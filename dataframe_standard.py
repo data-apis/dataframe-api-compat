@@ -2,14 +2,6 @@ import pandas as pd
 import collections
 import polars as pl
 import re
-import janitor
-from janitor.functions.clean_names import (
-    _change_case,
-    _normalize_1,
-    _remove_special,
-    _strip_accents,
-    _strip_underscores_func,
-)
 
 class Column:
     def __init__(self, column):
@@ -53,8 +45,11 @@ class PandasDataFrame:
         return PandasDataFrame(self.df.drop(label, axis=1))
     
     def set_column(self, label, value):
-        idx = self.df.columns.index(idx)
-        return self.drop_column(label).insert(idx, label, value)
+        columns = self.df.columns
+        if label in columns:
+            idx = self.df.columns.index(idx)
+            return self.drop_column(label).insert(idx, label, value)
+        return PandasDataFrame(pd.concat([self.df, pd.Series(value, name=label)], axis=1))
     
     def rename(self, mapping):
         return PandasDataFrame(self.df.rename(columns=mapping))
@@ -76,22 +71,28 @@ class PolarsDataFrame:
         return [self.get_column_by_name(name) for name in names]
     
     def get_rows(self, indices):
-        return PolarsDataFrame(self.dt.with_row_count('idx').filter(pl.col('idx')==indices))
+        return PolarsDataFrame(self.df.with_row_count('idx').filter(pl.col('idx').is_in(indices)).drop('idx'))
 
     def slice_rows(self, start, stop, step):
-        ...
+        return PolarsDataFrame(self.df.with_row_count('idx').filter(pl.col('idx').is_in(range(start, stop, step))).drop('idx'))
     
     def get_rows_by_mask(self, mask):
-        ...
+        return PolarsDataFrame(self.df.filter(mask))
 
     def insert(self, loc, label, value):
-        ...
+        df = self.df.clone()
+        df.insert_at_idx(loc, pl.Series(label, value.value))
+        return PolarsDataFrame(df)
 
     def drop_column(self, label):
-        ...
+        return PolarsDataFrame(self.df.drop(label))
     
     def set_column(self, label, value):
-        ...
+        columns = self.df.columns
+        if label in columns:
+            idx = self.df.columns.index(idx)
+            return self.drop_column(label).insert(idx, label, value)
+        return PolarsDataFrame(self.df.with_columns(label=pl.Series(value)))
     
     def rename(self, mapping):
         return PolarsDataFrame(self.df.rename(mapping))
@@ -100,57 +101,8 @@ class PolarsDataFrame:
     def column_names(self):
         return self.df.columns
 
-def clean_names_with_standard(
-    df,
-    strip_underscores=None,
-    case_type='lower',
-    remove_special=False,
-    strip_accents=True,
-    preserve_original_columns=True,
-    enforce_string=True,
-    truncate_limit=None,
-):
+def dataframe_standard(df):
     if isinstance(df, pd.DataFrame):
-        df = PandasDataFrame(df)
+        return PandasDataFrame(df)
     elif isinstance(df, pl.DataFrame):
-        df = PolarsDataFrame(df)
-
-    if enforce_string:
-        # not necessary, as the Standard already
-        # imposes string-only names
-        pass
-
-    mapping = {}
-    for old_label in df.column_names:
-        new_label = _change_case(old_label, case_type)
-        new_label = _normalize_1(new_label)
-        if remove_special:
-            new_label = _remove_special(new_label)
-        if strip_accents:
-            new_label = _strip_accents(new_label)
-        new_label = re.sub("_+", "_", new_label)
-        new_label = _strip_underscores_func(new_label, strip_underscores)
-        new_label = new_label[:truncate_limit]
-        mapping[old_label] = new_label
-    df = df.rename(mapping)
-
-    # Store the original column names, if enabled by user
-    if preserve_original_columns:
-        # This writes to df.__dict__ - is that allowed?
-        pass
-    return df.df
-
-pd_df = pd.DataFrame(
-    {
-        "Aloha": range(3),
-        "Bell Chart": range(3),
-        "Animals@#$%^": range(3)
-    }
-)
-pl_df = pl.from_pandas(pd_df)
-print(pd_df)
-# print(janitor.clean_names(df))
-print(clean_names_with_standard(pd_df))
-print(clean_names_with_standard(pl_df))
-
-# ok, pretty cool. let's do this for polars as well, and then see what happens
+        return PolarsDataFrame(df)
