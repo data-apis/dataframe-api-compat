@@ -57,5 +57,6 @@ pd_df = pd.DataFrame(
 )
 pl_df = pl.from_pandas(pd_df)
 print(pd_df)
+df_std = dataframe_standard(pd_df)
 print(clean_names_with_standard(pd_df))
 print(clean_names_with_standard(pl_df))
