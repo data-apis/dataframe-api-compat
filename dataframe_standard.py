@@ -3,15 +3,15 @@ import collections
 import polars as pl
 import re
 
-class Column:
+class PandasColumn:
     def __init__(self, column):
         self.value = column
     
-    def not_null(self):
-        return Column(self.value.notna())
+    def isnull(self):
+        return PandasColumn(self.value.isna())
 
-    def is_null(self):
-        return Column(self.value.isna())
+    def notnull(self):
+        return PandasColumn(self.value.notna())
     
     def any(self):
         return self.value.any()
@@ -19,16 +19,152 @@ class Column:
     def all(self):
         return self.value.all()
     
-    def __iter__(self):
-        return self.value.__iter__()
+    def __len__(self):
+        return len(self.value)
+
+class PolarsColumn:
+    def __init__(self, column):
+        self.value = column
+    
+    def isnull(self):
+        return PolarsColumn(self.value.isna())
+
+    def notnull(self):
+        return PolarsColumn(self.value.notna())
+    
+    def any(self):
+        return self.value.any()
+
+    def all(self):
+        return self.value.all()
     
     def __len__(self):
         return len(self.value)
+
+
+class PandasGroupBy:
+    def __init__(self, df, keys):
+        self.df = df
+        self.keys = keys
+
+    def _validate_result(self, result):
+        failed_columns = self.df.columns.difference(result.columns)
+        if len(failed_columns) > 0:
+            raise RuntimeError(
+                "Groupby operation could not be performed on columns "
+                f"{failed_columns}. Please drop them before calling groupby."
+            )
+
+    def any(self, skipna: bool = True):
+        result = self.df.groupby(self.keys, as_index=False).any()
+        if not (self.df.drop(columns=self.keys).dtypes == 'bool').all():
+            raise ValueError('Expected boolean types')
+        self._validate_result(result)
+        return PandasDataFrame(result)
+
+    def all(self, skipna: bool = True):
+        result = self.df.groupby(self.keys, as_index=False).all()
+        if not (self.df.drop(columns=self.keys).dtypes == 'bool').all():
+            raise ValueError('Expected boolean types')
+        self._validate_result(result)
+        return PandasDataFrame(result)
+
+    def min(self, skipna: bool = True):
+        result = self.df.groupby(self.keys, as_index=False).min()
+        self._validate_result(result)
+        return PandasDataFrame(result)
+
+    def max(self, skipna: bool = True):
+        result = self.df.groupby(self.keys, as_index=False).max()
+        self._validate_result(result)
+        return PandasDataFrame(result)
+
+    def sum(self, skipna: bool = True):
+        result = self.df.groupby(self.keys, as_index=False).sum()
+        self._validate_result(result)
+        return PandasDataFrame(result)
+
+    def prod(self, skipna: bool = True):
+        result = self.df.groupby(self.keys, as_index=False).prod()
+        self._validate_result(result)
+        return PandasDataFrame(result)
+
+    def median(self, skipna: bool = True):
+        result = self.df.groupby(self.keys, as_index=False).median()
+        self._validate_result(result)
+        return PandasDataFrame(result)
+
+    def mean(self, skipna: bool = True):
+        result = self.df.groupby(self.keys, as_index=False).mean()
+        self._validate_result(result)
+        return PandasDataFrame(result)
+
+    def std(self, skipna: bool = True):
+        result = self.df.groupby(self.keys, as_index=False).std()
+        self._validate_result(result)
+        return PandasDataFrame(result)
+
+    def var(self, skipna: bool = True):
+        result = self.df.groupby(self.keys, as_index=False).var()
+        self._validate_result(result)
+        return PandasDataFrame(result)
+
+class PolarsGroupBy:
+    def __init__(self, df, keys):
+        self.df = df
+        self.keys = keys
+
+    def any(self, skipna: bool = True):
+        result = self.df.groupby(self.keys).agg(pl.col('*').any())
+        return PolarsDataFrame(result)
+
+    def all(self, skipna: bool = True):
+        result = self.df.groupby(self.keys).agg(pl.col('*').all())
+        return PolarsDataFrame(result)
+
+    def min(self, skipna: bool = True):
+        result = self.df.groupby(self.keys).agg(pl.col('*').min())
+        return PolarsDataFrame(result)
+
+    def max(self, skipna: bool = True):
+        result = self.df.groupby(self.keys).agg(pl.col('*').max())
+        return PolarsDataFrame(result)
+
+    def sum(self, skipna: bool = True):
+        result = self.df.groupby(self.keys).agg(pl.col('*').sum())
+        return PolarsDataFrame(result)
+
+    def prod(self, skipna: bool = True):
+        result = self.df.groupby(self.keys).agg(pl.col('*').product())
+        return PolarsDataFrame(result)
+
+    def median(self, skipna: bool = True):
+        result = self.df.groupby(self.keys).agg(pl.col('*').median())
+        return PolarsDataFrame(result)
+
+    def mean(self, skipna: bool = True):
+        result = self.df.groupby(self.keys).agg(pl.col('*').mean())
+        return PolarsDataFrame(result)
+
+    def std(self, skipna: bool = True):
+        result = self.df.groupby(self.keys).agg(pl.col('*').std())
+        return PolarsDataFrame(result)
+
+    def var(self, skipna: bool = True):
+        result = self.df.groupby(self.keys).agg(pl.col('*').var())
+        return PolarsDataFrame(result)
+
 
 class PandasDataFrame:
     def __init__(self, df):
         self._validate_columns(df.columns) 
         self.df = df
+    
+    def groupby(self, keys):
+        return PandasGroupBy(self.df, keys)
+    
+    def copy(self, deep):
+        return PandasDataFrame(self.df.copy(deep=deep))
     
     def __iter__(self):
         yield from self.column_names
@@ -51,7 +187,7 @@ class PandasDataFrame:
                 raise TypeError(f'Expected column names to be of type str, got {col} of type {type(col)}')
     
     def get_column_by_name(self, name):
-        return Column(self.df.loc[:, name])
+        return PandasColumn(self.df.loc[:, name])
 
     def get_columns_by_name(self, names):
         return PandasDataFrame(self.df.loc[:, names])
@@ -98,11 +234,14 @@ class PolarsDataFrame:
     def shape(self):
         return self.df.shape
 
+    def groupby(self, keys):
+        return PolarsGroupBy(self.df, keys)
+
     def __iter__(self):
         yield from self.column_names
     
     def get_column_by_name(self, name):
-        return Column(self.df[name])
+        return PolarsColumn(self.df[name])
 
     def get_columns_by_name(self, names):
         return PolarsDataFrame(self.df.select(names))
