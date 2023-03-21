@@ -128,21 +128,15 @@ def test_groupby_numeric(aggregation, expected_b, expected_c):
     expected = pd.DataFrame({'key': [1,2], 'b': expected_b, 'c': expected_c})
     pd.testing.assert_frame_equal(result, expected)
 
-# @pytest.mark.parametrize(
-#     ('aggregation', 'expected_values'),
-#     [
-#         ('min',),
-#         ('max',),
-#         ('sum',),
-#         ('prod',),
-#         ('median',),
-#         ('mean',),
-#         ('std',),
-#         ('var',),
-#     ]
-# )
-# def test_groupby_boolean():
-#     df = PandasDataFrame(pd.DataFrame({'key': [1, 1, 2], 'b': [1,2,3], 'c': [4,5,6]}))
-#     result = df.groupby(['key']).sum().dataframe
-#     expected = pd.DataFrame({'key': [1,2], 'b': [3,3], 'c': [9, 6]})
-#     pd.testing.assert_frame_equal(result, expected)
+@pytest.mark.parametrize(
+    ('aggregation', 'expected_b', 'expected_c'),
+    [
+        ('any', [True, True], [True, False]),
+        ('all', [False, True], [False, False]),
+    ]
+)
+def test_groupby_numeric(aggregation, expected_b, expected_c):
+    df = PandasDataFrame(pd.DataFrame({'key': [1, 1, 2, 2], 'b': [False, True, True, True], 'c': [True, False, False, False]}))
+    result = getattr(df.groupby(['key']), aggregation)().dataframe
+    expected = pd.DataFrame({'key': [1,2], 'b': expected_b, 'c': expected_c})
+    pd.testing.assert_frame_equal(result, expected)
