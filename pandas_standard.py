@@ -244,7 +244,8 @@ class PandasDataFrame:
 
     def __divmod__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__divmod__(other.dataframe)))
+        quotient, remainder = self.dataframe.__divmod__(other.dataframe)
+        return PandasDataFrame(quotient), PandasDataFrame(remainder)
         
     def any(self):
         self._validate_booleanness()
