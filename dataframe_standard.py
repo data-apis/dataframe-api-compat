@@ -1,11 +1,15 @@
 import pandas as pd
+import numpy as np
 import collections
 import polars as pl
 import re
 
 class PandasColumn:
     def __init__(self, column):
-        self.value = column
+        self._value = column
+    
+    def __dlpack__(self):
+        return self._value.__dlpack__()
     
     def isnull(self):
         return PandasColumn(self.value.isna())
@@ -156,27 +160,13 @@ class PolarsGroupBy:
 
 
 class PandasDataFrame:
+
+    # Not technicall part of the standard
+
     def __init__(self, df):
         self._validate_columns(df.columns) 
         self.df = df
-    
-    def groupby(self, keys):
-        return PandasGroupBy(self.df, keys)
-    
-    def copy(self, deep):
-        return PandasDataFrame(self.df.copy(deep=deep))
-    
-    def __iter__(self):
-        yield from self.column_names
-    
-    def __eq__(self, other):
-        assert len(other) == self.shape[0]
-        return PandasDataFrame((self.df == other).to_frame())
-        
-    @property
-    def shape(self):
-        return self.df.shape
-    
+
     def _validate_columns(self, columns):
         counter = collections.Counter(columns)
         for col, count in counter.items():
@@ -186,29 +176,62 @@ class PandasDataFrame:
             if not isinstance(col, str):
                 raise TypeError(f'Expected column names to be of type str, got {col} of type {type(col)}')
     
+    # In the standard
+    
+    def groupby(self, keys):
+        if not isinstance(keys, collections.Sequence):
+            raise TypeError(f'Expected sequence of strings, got: {type(keys)}')
+        for key in keys:
+            if key not in self.get_column_names():
+                raise KeyError(f'key {key} not present in DataFrame\'s columns')
+        return PandasGroupBy(self.df, keys)
+
     def get_column_by_name(self, name):
         return PandasColumn(self.df.loc[:, name])
-
+    
     def get_columns_by_name(self, names):
         return PandasDataFrame(self.df.loc[:, names])
-    
-    def get_rows(self, indices):
-        return PandasDataFrame(self.df.iloc[indices, :])
 
+    def get_rows(self, indices):
+        if not isinstance(indices, collections.Sequence):
+            raise TypeError(f'Expected Sequence of int, got {type(indices)}')
+        return PandasDataFrame(self.df.iloc[indices, :])
+    
     def slice_rows(self, start, stop, step):
         return PandasDataFrame(self.df.iloc[start:stop:step])
-    
+
     def get_rows_by_mask(self, mask):
-        return PandasDataFrame(self.df.loc[mask, :])
+        mask_array = np.asarray(mask)
+        if not mask_array.dtype == 'bool':
+            raise TypeError(f'Expected boolean array, got {type(mask_array)}')
+        return PandasDataFrame(self.df.loc[mask_array, :])
 
     def insert(self, loc, label, value):
-        # todo turn off index alignment
-        df = self.df.copy()
-        df.insert(loc, label, value.value)
-        return PandasDataFrame(df)
+        value_array = np.asarray(value)
+        before = self.df.iloc[:, :loc]
+        after = self.df.iloc[:, loc+1:]
+        to_insert = pd.Series(value_array, index=self.df.index)
+        return pd.concat([before, to_insert, after], axis=1)
 
     def drop_column(self, label):
+        if not isinstance(label, str):
+            raise TypeError(f'Expected str, got: {type(label)}')
         return PandasDataFrame(self.df.drop(label, axis=1))
+
+    def __iter__(self):
+        raise NotImplementedError()
+    
+    def __eq__(self, other):
+        assert len(other) == self.shape[0]
+        return PandasDataFrame((self.df == other).to_frame())
+        
+    @property
+    def shape(self):
+        return self.df.shape
+    
+
+    
+
     
     def set_column(self, label, value):
         columns = self.df.columns
@@ -220,9 +243,8 @@ class PandasDataFrame:
     def rename(self, mapping):
         return PandasDataFrame(self.df.rename(columns=mapping))
     
-    @property
-    def column_names(self):
-        return self.df.columns.to_list()
+    def get_column_names(self):
+        return self.df.columns
 
 class PolarsDataFrame:
     def __init__(self, df):
