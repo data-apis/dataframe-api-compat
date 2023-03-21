@@ -192,59 +192,59 @@ class PandasDataFrame:
     
     def __eq__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__eq__(other.df)))
+        return PandasDataFrame(self.dataframe.__eq__(other.dataframe))
 
     def __ne__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__ne__(other.df)))
+        return PandasDataFrame((self.dataframe.__ne__(other.dataframe)))
 
     def __ge__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__ge__(other.df)))
+        return PandasDataFrame((self.dataframe.__ge__(other.dataframe)))
 
     def __gt__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__gt__(other.df)))
+        return PandasDataFrame((self.dataframe.__gt__(other.dataframe)))
 
     def __le__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__le__(other.df)))
+        return PandasDataFrame((self.dataframe.__le__(other.dataframe)))
 
     def __lt__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__lt__(other.df)))
+        return PandasDataFrame((self.dataframe.__lt__(other.dataframe)))
 
     def __add__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__add__(other.df)))
+        return PandasDataFrame((self.dataframe.__add__(other.dataframe)))
 
     def __sub__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__sub__(other.df)))
+        return PandasDataFrame((self.dataframe.__sub__(other.dataframe)))
 
     def __mul__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__mul__(other.df)))
+        return PandasDataFrame((self.dataframe.__mul__(other.dataframe)))
 
     def __truediv__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__truediv__(other.df)))
+        return PandasDataFrame((self.dataframe.__truediv__(other.dataframe)))
 
     def __floordiv__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__floordiv__(other.df)))
+        return PandasDataFrame((self.dataframe.__floordiv__(other.dataframe)))
 
     def __pow__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__pow__(other.df)))
+        return PandasDataFrame((self.dataframe.__pow__(other.dataframe)))
 
     def __mod__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__mod__(other.df)))
+        return PandasDataFrame((self.dataframe.__mod__(other.dataframe)))
 
     def __divmod__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__divmod__(other.df)))
+        return PandasDataFrame((self.dataframe.__divmod__(other.dataframe)))
         
     def any(self):
         self._validate_booleanness()
