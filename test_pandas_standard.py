@@ -109,5 +109,40 @@ def test_get_column_names():
     result = df.get_column_names()
     assert [name for name in result] == ['a', 'b']
 
-def test_groupby():
-    ...
+@pytest.mark.parametrize(
+    ('aggregation', 'expected_b', 'expected_c'),
+    [
+        ('min', [1, 3], [4, 6]),
+        ('max', [2, 4], [5, 7]),
+        ('sum', [3, 7], [9, 13]),
+        ('prod', [2, 12], [20, 42]),
+        ('median', [1.5, 3.5], [4.5, 6.5]),
+        ('mean', [1.5, 3.5], [4.5, 6.5]),
+        ('std', [0.7071067811865476, 0.7071067811865476], [0.7071067811865476, 0.7071067811865476]),
+        ('var', [0.5, 0.5], [0.5, 0.5]),
+    ]
+)
+def test_groupby_numeric(aggregation, expected_b, expected_c):
+    df = PandasDataFrame(pd.DataFrame({'key': [1, 1, 2, 2], 'b': [1,2,3,4], 'c': [4,5,6,7]}))
+    result = getattr(df.groupby(['key']), aggregation)().dataframe
+    expected = pd.DataFrame({'key': [1,2], 'b': expected_b, 'c': expected_c})
+    pd.testing.assert_frame_equal(result, expected)
+
+# @pytest.mark.parametrize(
+#     ('aggregation', 'expected_values'),
+#     [
+#         ('min',),
+#         ('max',),
+#         ('sum',),
+#         ('prod',),
+#         ('median',),
+#         ('mean',),
+#         ('std',),
+#         ('var',),
+#     ]
+# )
+# def test_groupby_boolean():
+#     df = PandasDataFrame(pd.DataFrame({'key': [1, 1, 2], 'b': [1,2,3], 'c': [4,5,6]}))
+#     result = df.groupby(['key']).sum().dataframe
+#     expected = pd.DataFrame({'key': [1,2], 'b': [3,3], 'c': [9, 6]})
+#     pd.testing.assert_frame_equal(result, expected)
