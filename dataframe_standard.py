@@ -176,6 +176,20 @@ class PandasDataFrame:
             if not isinstance(col, str):
                 raise TypeError(f'Expected column names to be of type str, got {col} of type {type(col)}')
     
+    def _validate_comparand(self, other):
+        if (
+            isinstance(other, PandasDataFrame)
+            and not (
+                self.df.index.equals(other.df.index)
+                and self.df.shape == other.df.shape
+                and self.df.columns.equals(other.df.columns)
+            )
+        ):
+            raise ValueError(
+                'Expected DataFrame with same length, matching columns, '
+                'and matching index.'
+            )
+    
     # In the standard
     
     def groupby(self, keys):
@@ -218,33 +232,87 @@ class PandasDataFrame:
             raise TypeError(f'Expected str, got: {type(label)}')
         return PandasDataFrame(self.df.drop(label, axis=1))
 
+    def set_column(self, label, value):
+        columns = self.get_column_names()
+        if label in columns:
+            idx = columns.index(idx)
+            return self.drop_column(label).insert(idx, label, value)
+        return self.insert(len(columns), label, value)
+
+    def rename_columns(self, mapping):
+        if not isinstance(mapping, collections.abc.Mapping):
+            raise TypeError(f'Expected Mapping, got: {type(mapping)}')
+        return PandasDataFrame(self.df.rename(columns=mapping))
+
+    def get_column_names(self):
+        return self.df.columns
+
     def __iter__(self):
         raise NotImplementedError()
     
     def __eq__(self, other):
-        assert len(other) == self.shape[0]
-        return PandasDataFrame((self.df == other).to_frame())
+        self._validate_comparand(other)
+        return PandasDataFrame((self.df.__eq__(other.df)))
+
+    def __ne__(self, other):
+        self._validate_comparand(other)
+        return PandasDataFrame((self.df.__ne__(other.df)))
+
+    def __ge__(self, other):
+        self._validate_comparand(other)
+        return PandasDataFrame((self.df.__ge__(other.df)))
+
+    def __gt__(self, other):
+        self._validate_comparand(other)
+        return PandasDataFrame((self.df.__gt__(other.df)))
+
+    def __le__(self, other):
+        self._validate_comparand(other)
+        return PandasDataFrame((self.df.__le__(other.df)))
+
+    def __lt__(self, other):
+        self._validate_comparand(other)
+        return PandasDataFrame((self.df.__lt__(other.df)))
+
+    def __add__(self, other):
+        self._validate_comparand(other)
+        return PandasDataFrame((self.df.__add__(other.df)))
+
+    def __sub__(self, other):
+        self._validate_comparand(other)
+        return PandasDataFrame((self.df.__sub__(other.df)))
+
+    def __mul__(self, other):
+        self._validate_comparand(other)
+        return PandasDataFrame((self.df.__mul__(other.df)))
+
+    def __truediv__(self, other):
+        self._validate_comparand(other)
+        return PandasDataFrame((self.df.__truediv__(other.df)))
+
+    def __floordiv__(self, other):
+        self._validate_comparand(other)
+        return PandasDataFrame((self.df.__floordiv__(other.df)))
+
+    def __pow__(self, other):
+        self._validate_comparand(other)
+        return PandasDataFrame((self.df.__pow__(other.df)))
+
+    def __mod__(self, other):
+        self._validate_comparand(other)
+        return PandasDataFrame((self.df.__mod__(other.df)))
+
+    def __divmod__(self, other):
+        self._validate_comparand(other)
+        return PandasDataFrame((self.df.__divmod__(other.df)))
         
-    @property
-    def shape(self):
-        return self.df.shape
-    
+    # missing reductions (any, all, ...)
 
     
 
     
-    def set_column(self, label, value):
-        columns = self.df.columns
-        if label in columns:
-            idx = self.df.columns.index(idx)
-            return self.drop_column(label).insert(idx, label, value)
-        return PandasDataFrame(pd.concat([self.df, pd.Series(value, name=label)], axis=1))
     
-    def rename(self, mapping):
-        return PandasDataFrame(self.df.rename(columns=mapping))
     
-    def get_column_names(self):
-        return self.df.columns
 
 class PolarsDataFrame:
     def __init__(self, df):
