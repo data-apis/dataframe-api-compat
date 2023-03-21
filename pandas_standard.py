@@ -8,9 +8,10 @@ class PandasColumn:
         self._value = column
     
     def __dlpack__(self):
+        # This looks odd and is almost certainly not correct.
+        # TODO bring up at call
         arr = self._value.to_numpy()
         if arr.dtype == 'bool':
-            # This looks...odd?
             return arr.astype('int').copy().__dlpack__()
         return arr.__dlpack__()
     
@@ -98,7 +99,7 @@ class PandasGroupBy:
 
 class PandasDataFrame:
 
-    # Not technicall part of the standard
+    # Not technically part of the standard
 
     def __init__(self, dataframe):
         self._validate_columns(dataframe.columns) 
