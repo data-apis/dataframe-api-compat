@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import collections
-import polars as pl
 import re
 
 class PandasColumn:
@@ -25,26 +24,6 @@ class PandasColumn:
     
     def __len__(self):
         return len(self.value)
-
-class PolarsColumn:
-    def __init__(self, column):
-        self.value = column
-    
-    def isnull(self):
-        return PolarsColumn(self.value.isna())
-
-    def notnull(self):
-        return PolarsColumn(self.value.notna())
-    
-    def any(self):
-        return self.value.any()
-
-    def all(self):
-        return self.value.all()
-    
-    def __len__(self):
-        return len(self.value)
-
 
 class PandasGroupBy:
     def __init__(self, df, keys):
@@ -113,59 +92,13 @@ class PandasGroupBy:
         self._validate_result(result)
         return PandasDataFrame(result)
 
-class PolarsGroupBy:
-    def __init__(self, df, keys):
-        self.df = df
-        self.keys = keys
-
-    def any(self, skipna: bool = True):
-        result = self.df.groupby(self.keys).agg(pl.col('*').any())
-        return PolarsDataFrame(result)
-
-    def all(self, skipna: bool = True):
-        result = self.df.groupby(self.keys).agg(pl.col('*').all())
-        return PolarsDataFrame(result)
-
-    def min(self, skipna: bool = True):
-        result = self.df.groupby(self.keys).agg(pl.col('*').min())
-        return PolarsDataFrame(result)
-
-    def max(self, skipna: bool = True):
-        result = self.df.groupby(self.keys).agg(pl.col('*').max())
-        return PolarsDataFrame(result)
-
-    def sum(self, skipna: bool = True):
-        result = self.df.groupby(self.keys).agg(pl.col('*').sum())
-        return PolarsDataFrame(result)
-
-    def prod(self, skipna: bool = True):
-        result = self.df.groupby(self.keys).agg(pl.col('*').product())
-        return PolarsDataFrame(result)
-
-    def median(self, skipna: bool = True):
-        result = self.df.groupby(self.keys).agg(pl.col('*').median())
-        return PolarsDataFrame(result)
-
-    def mean(self, skipna: bool = True):
-        result = self.df.groupby(self.keys).agg(pl.col('*').mean())
-        return PolarsDataFrame(result)
-
-    def std(self, skipna: bool = True):
-        result = self.df.groupby(self.keys).agg(pl.col('*').std())
-        return PolarsDataFrame(result)
-
-    def var(self, skipna: bool = True):
-        result = self.df.groupby(self.keys).agg(pl.col('*').var())
-        return PolarsDataFrame(result)
-
-
 class PandasDataFrame:
 
     # Not technicall part of the standard
 
-    def __init__(self, df):
-        self._validate_columns(df.columns) 
-        self.df = df
+    def __init__(self, dataframe):
+        self._validate_columns(dataframe.columns) 
+        self.dataframe = dataframe
 
     def _validate_columns(self, columns):
         counter = collections.Counter(columns)
@@ -180,9 +113,9 @@ class PandasDataFrame:
         if (
             isinstance(other, PandasDataFrame)
             and not (
-                self.df.index.equals(other.df.index)
-                and self.df.shape == other.df.shape
-                and self.df.columns.equals(other.df.columns)
+                self.dataframe.index.equals(other.dataframe.index)
+                and self.dataframe.shape == other.dataframe.shape
+                and self.dataframe.columns.equals(other.dataframe.columns)
             )
         ):
             raise ValueError(
@@ -190,47 +123,54 @@ class PandasDataFrame:
                 'and matching index.'
             )
     
+    def _validate_booleanness(self):
+        if not (self.dataframe.dtypes == 'bool').all():
+            raise NotImplementedError(
+                "'any' can only be called on DataFrame "
+                "where all dtypes are 'bool'"
+            )
+    
     # In the standard
     
     def groupby(self, keys):
-        if not isinstance(keys, collections.Sequence):
+        if not isinstance(keys, collections.abc.Sequence):
             raise TypeError(f'Expected sequence of strings, got: {type(keys)}')
         for key in keys:
             if key not in self.get_column_names():
                 raise KeyError(f'key {key} not present in DataFrame\'s columns')
-        return PandasGroupBy(self.df, keys)
+        return PandasGroupBy(self.dataframe, keys)
 
     def get_column_by_name(self, name):
-        return PandasColumn(self.df.loc[:, name])
+        return PandasColumn(self.dataframe.loc[:, name])
     
     def get_columns_by_name(self, names):
-        return PandasDataFrame(self.df.loc[:, names])
+        return PandasDataFrame(self.dataframe.loc[:, names])
 
     def get_rows(self, indices):
         if not isinstance(indices, collections.Sequence):
             raise TypeError(f'Expected Sequence of int, got {type(indices)}')
-        return PandasDataFrame(self.df.iloc[indices, :])
+        return PandasDataFrame(self.dataframe.iloc[indices, :])
     
     def slice_rows(self, start, stop, step):
-        return PandasDataFrame(self.df.iloc[start:stop:step])
+        return PandasDataFrame(self.dataframe.iloc[start:stop:step])
 
     def get_rows_by_mask(self, mask):
         mask_array = np.asarray(mask)
         if not mask_array.dtype == 'bool':
             raise TypeError(f'Expected boolean array, got {type(mask_array)}')
-        return PandasDataFrame(self.df.loc[mask_array, :])
+        return PandasDataFrame(self.dataframe.loc[mask_array, :])
 
     def insert(self, loc, label, value):
         value_array = np.asarray(value)
-        before = self.df.iloc[:, :loc]
-        after = self.df.iloc[:, loc+1:]
-        to_insert = pd.Series(value_array, index=self.df.index)
+        before = self.dataframe.iloc[:, :loc]
+        after = self.dataframe.iloc[:, loc+1:]
+        to_insert = pd.Series(value_array, index=self.dataframe.index)
         return pd.concat([before, to_insert, after], axis=1)
 
     def drop_column(self, label):
         if not isinstance(label, str):
             raise TypeError(f'Expected str, got: {type(label)}')
-        return PandasDataFrame(self.df.drop(label, axis=1))
+        return PandasDataFrame(self.dataframe.drop(label, axis=1))
 
     def set_column(self, label, value):
         columns = self.get_column_names()
@@ -242,133 +182,75 @@ class PandasDataFrame:
     def rename_columns(self, mapping):
         if not isinstance(mapping, collections.abc.Mapping):
             raise TypeError(f'Expected Mapping, got: {type(mapping)}')
-        return PandasDataFrame(self.df.rename(columns=mapping))
+        return PandasDataFrame(self.dataframe.rename(columns=mapping))
 
     def get_column_names(self):
-        return self.df.columns
+        return self.dataframe.columns
 
     def __iter__(self):
         raise NotImplementedError()
     
     def __eq__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.df.__eq__(other.df)))
+        return PandasDataFrame((self.dataframe.__eq__(other.df)))
 
     def __ne__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.df.__ne__(other.df)))
+        return PandasDataFrame((self.dataframe.__ne__(other.df)))
 
     def __ge__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.df.__ge__(other.df)))
+        return PandasDataFrame((self.dataframe.__ge__(other.df)))
 
     def __gt__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.df.__gt__(other.df)))
+        return PandasDataFrame((self.dataframe.__gt__(other.df)))
 
     def __le__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.df.__le__(other.df)))
+        return PandasDataFrame((self.dataframe.__le__(other.df)))
 
     def __lt__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.df.__lt__(other.df)))
+        return PandasDataFrame((self.dataframe.__lt__(other.df)))
 
     def __add__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.df.__add__(other.df)))
+        return PandasDataFrame((self.dataframe.__add__(other.df)))
 
     def __sub__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.df.__sub__(other.df)))
+        return PandasDataFrame((self.dataframe.__sub__(other.df)))
 
     def __mul__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.df.__mul__(other.df)))
+        return PandasDataFrame((self.dataframe.__mul__(other.df)))
 
     def __truediv__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.df.__truediv__(other.df)))
+        return PandasDataFrame((self.dataframe.__truediv__(other.df)))
 
     def __floordiv__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.df.__floordiv__(other.df)))
+        return PandasDataFrame((self.dataframe.__floordiv__(other.df)))
 
     def __pow__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.df.__pow__(other.df)))
+        return PandasDataFrame((self.dataframe.__pow__(other.df)))
 
     def __mod__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.df.__mod__(other.df)))
+        return PandasDataFrame((self.dataframe.__mod__(other.df)))
 
     def __divmod__(self, other):
         self._validate_comparand(other)
-        return PandasDataFrame((self.df.__divmod__(other.df)))
+        return PandasDataFrame((self.dataframe.__divmod__(other.df)))
         
-    # missing reductions (any, all, ...)
+    def any(self):
+        self._validate_booleanness()
+        return PandasDataFrame(self.dataframe.any().to_frame().T)
 
+    def all(self):
+        self._validate_booleanness()
+        return PandasDataFrame(self.dataframe.all().to_frame().T)
     
-
-    
-    
-    
-
-class PolarsDataFrame:
-    def __init__(self, df):
-        # columns already have to be strings, and duplicates aren't
-        # allowed, so no validation required
-        self.df = df
-
-    @property
-    def shape(self):
-        return self.df.shape
-
-    def groupby(self, keys):
-        return PolarsGroupBy(self.df, keys)
-
-    def __iter__(self):
-        yield from self.column_names
-    
-    def get_column_by_name(self, name):
-        return PolarsColumn(self.df[name])
-
-    def get_columns_by_name(self, names):
-        return PolarsDataFrame(self.df.select(names))
-    
-    def get_rows(self, indices):
-        return PolarsDataFrame(self.df.with_row_count('idx').filter(pl.col('idx').is_in(indices)).drop('idx'))
-
-    def slice_rows(self, start, stop, step):
-        return PolarsDataFrame(self.df.with_row_count('idx').filter(pl.col('idx').is_in(range(start, stop, step))).drop('idx'))
-    
-    def get_rows_by_mask(self, mask):
-        return PolarsDataFrame(self.df.filter(mask))
-
-    def insert(self, loc, label, value):
-        df = self.df.clone()
-        df.insert_at_idx(loc, pl.Series(label, value.value))
-        return PolarsDataFrame(df)
-
-    def drop_column(self, label):
-        return PolarsDataFrame(self.df.drop(label))
-    
-    def set_column(self, label, value):
-        columns = self.df.columns
-        if label in columns:
-            idx = self.df.columns.index(idx)
-            return self.drop_column(label).insert(idx, label, value)
-        return PolarsDataFrame(self.df.with_columns(label=pl.Series(value)))
-    
-    def rename(self, mapping):
-        return PolarsDataFrame(self.df.rename(mapping))
-    
-    @property
-    def column_names(self):
-        return self.df.columns
-
-def dataframe_standard(df):
-    if isinstance(df, pd.DataFrame):
-        return PandasDataFrame(df)
-    elif isinstance(df, pl.DataFrame):
-        return PolarsDataFrame(df)
