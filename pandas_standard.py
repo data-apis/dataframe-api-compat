@@ -8,7 +8,11 @@ class PandasColumn:
         self._value = column
     
     def __dlpack__(self):
-        return self._value.__dlpack__()
+        arr = self._value.to_numpy()
+        if arr.dtype == 'bool':
+            # This looks...odd?
+            return arr.astype('int').copy().__dlpack__()
+        return arr.__dlpack__()
     
     def isnull(self):
         return PandasColumn(self.value.isna())
@@ -147,7 +151,7 @@ class PandasDataFrame:
         return PandasDataFrame(self.dataframe.loc[:, names])
 
     def get_rows(self, indices):
-        if not isinstance(indices, collections.Sequence):
+        if not isinstance(indices, collections.abc.Sequence):
             raise TypeError(f'Expected Sequence of int, got {type(indices)}')
         return PandasDataFrame(self.dataframe.iloc[indices, :])
     
@@ -155,16 +159,15 @@ class PandasDataFrame:
         return PandasDataFrame(self.dataframe.iloc[start:stop:step])
 
     def get_rows_by_mask(self, mask):
-        mask_array = np.asarray(mask)
-        if not mask_array.dtype == 'bool':
-            raise TypeError(f'Expected boolean array, got {type(mask_array)}')
+        # TODO how to validate this properly?
+        mask_array = np.from_dlpack(mask).astype('bool')
         return PandasDataFrame(self.dataframe.loc[mask_array, :])
 
     def insert(self, loc, label, value):
-        value_array = np.asarray(value)
+        value_array = np.from_dlpack(value)
         before = self.dataframe.iloc[:, :loc]
-        after = self.dataframe.iloc[:, loc+1:]
-        to_insert = pd.Series(value_array, index=self.dataframe.index)
+        after = self.dataframe.iloc[:, loc:]
+        to_insert = pd.Series(value_array, index=self.dataframe.index).to_frame(name=label)
         return pd.concat([before, to_insert, after], axis=1)
 
     def drop_column(self, label):

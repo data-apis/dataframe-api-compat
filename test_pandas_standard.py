@@ -1,6 +1,7 @@
+import numpy as np
 import pytest
 import pandas as pd
-from pandas_standard import PandasDataFrame
+from pandas_standard import PandasDataFrame, PandasColumn
 
 @pytest.mark.parametrize(
     ('reduction', 'expected_data'),
@@ -49,3 +50,64 @@ def test_divmod():
     expected_remainder = pd.DataFrame({'a': [0, 0, 3], 'b': [0, 1, 0]})
     pd.testing.assert_frame_equal(result_quotient.dataframe, expected_quotient)
     pd.testing.assert_frame_equal(result_remainder.dataframe, expected_remainder)
+
+def test_get_column_by_name():
+    df = PandasDataFrame(pd.DataFrame({'a': [1,2,3], 'b': [4,5,6]}))
+    result = df.get_column_by_name('a')
+    np.testing.assert_array_equal(np.array([1,2,3]), np.from_dlpack(result))
+
+def test_get_columns_by_name():
+    df = PandasDataFrame(pd.DataFrame({'a': [1,2,3], 'b': [4,5,6]}))
+    result = df.get_columns_by_name(['b']).dataframe
+    expected = pd.DataFrame({'b': [4,5,6]})
+    pd.testing.assert_frame_equal(result, expected)
+
+def test_get_rows():
+    df = PandasDataFrame(pd.DataFrame({'a': [1,2,3], 'b': [4,5,6]}))
+    result = df.get_rows([0, 2]).dataframe
+    expected = pd.DataFrame({'a': [1,3], 'b': [4,6]}, index=[0, 2])
+    pd.testing.assert_frame_equal(result, expected)
+
+def test_slice_rows():
+    df = PandasDataFrame(pd.DataFrame({'a': [1,2,3,4,5,6, 7], 'b': [7, 6,5,4,3,2,1]}))
+    result = df.slice_rows(2, 7, 2).dataframe
+    expected = pd.DataFrame({'a': [3, 5, 7], 'b': [5, 3, 1]}, index=[2, 4, 6])
+    pd.testing.assert_frame_equal(result, expected)
+
+def test_get_rows_by_mask():
+    df = PandasDataFrame(pd.DataFrame({'a': [1,2,3], 'b': [4,5,6]}))
+    mask = PandasColumn(pd.Series([True, False, True]))
+    result = df.get_rows_by_mask(mask).dataframe
+    expected = pd.DataFrame({'a': [1, 3], 'b': [4, 6]}, index=[0, 2])
+    pd.testing.assert_frame_equal(result, expected)
+
+def test_insert():
+    df = PandasDataFrame(pd.DataFrame({'a': [1,2,3], 'b': [4,5,6]}))
+    new_col = PandasColumn(pd.Series([7,8,9]))
+    result = df.insert(1, 'c', new_col)
+    expected = pd.DataFrame({'a': [1, 2,3], 'c': [7,8,9], 'b': [4, 5,6]})
+    pd.testing.assert_frame_equal(result, expected)
+
+def test_drop_column():
+    df = PandasDataFrame(pd.DataFrame({'a': [1,2,3], 'b': [4,5,6]}))
+    result = df.drop_column('a').dataframe
+    expected = pd.DataFrame({'b': [4, 5,6]})
+    pd.testing.assert_frame_equal(result, expected)
+
+def test_set_column():
+    # I'm hoping to get rid of this one, so holding off for now... 
+    ...
+
+def test_rename_columns():
+    df = PandasDataFrame(pd.DataFrame({'a': [1,2,3], 'b': [4,5,6]}))
+    result = df.rename_columns({'a': 'c', 'b': 'e'}).dataframe
+    expected = pd.DataFrame({'c': [1,2,3], 'e': [4,5,6]})
+    pd.testing.assert_frame_equal(result, expected)
+
+def test_get_column_names():
+    df = PandasDataFrame(pd.DataFrame({'a': [1,2,3], 'b': [4,5,6]}))
+    result = df.get_column_names()
+    assert [name for name in result] == ['a', 'b']
+
+def test_groupby():
+    ...
