@@ -277,3 +277,9 @@ class PandasDataFrame:
     def all(self) -> PandasDataFrame:
         self._validate_booleanness()
         return PandasDataFrame(self.dataframe.all().to_frame().T)
+
+    def isnull(self) -> PandasDataFrame:
+        raise NotImplementedError()
+
+    def isnan(self) -> PandasDataFrame:
+        return PandasDataFrame(self.dataframe.isna())

@@ -188,3 +188,11 @@ def test_groupby_numeric(
     result = getattr(df.groupby(["key"]), aggregation)().dataframe
     expected = pd.DataFrame({"key": [1, 2], "b": expected_b, "c": expected_c})
     pd.testing.assert_frame_equal(result, expected)
+
+
+def test_isna() -> None:
+    df = pd.DataFrame({"a": [1, 2, np.nan]})
+    df_std = PandasDataFrame(df)
+    result = df_std.isnan().dataframe
+    expected = pd.DataFrame({"a": [False, False, True]})
+    pd.testing.assert_frame_equal(result, expected)
