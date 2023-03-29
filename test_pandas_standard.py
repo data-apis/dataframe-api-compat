@@ -76,20 +76,20 @@ def test_get_columns_by_name():
 def test_get_rows():
     df = PandasDataFrame(pd.DataFrame({'a': [1,2,3], 'b': [4,5,6]}))
     result = df.get_rows([0, 2]).dataframe
-    expected = pd.DataFrame({'a': [1,3], 'b': [4,6]}, index=[0, 2])
+    expected = pd.DataFrame({'a': [1,3], 'b': [4,6]})
     pd.testing.assert_frame_equal(result, expected)
 
 def test_slice_rows():
     df = PandasDataFrame(pd.DataFrame({'a': [1,2,3,4,5,6, 7], 'b': [7, 6,5,4,3,2,1]}))
     result = df.slice_rows(2, 7, 2).dataframe
-    expected = pd.DataFrame({'a': [3, 5, 7], 'b': [5, 3, 1]}, index=[2, 4, 6])
+    expected = pd.DataFrame({'a': [3, 5, 7], 'b': [5, 3, 1]})
     pd.testing.assert_frame_equal(result, expected)
 
 def test_get_rows_by_mask():
     df = PandasDataFrame(pd.DataFrame({'a': [1,2,3], 'b': [4,5,6]}))
     mask = PandasColumn(pd.Series([True, False, True]))
     result = df.get_rows_by_mask(mask).dataframe
-    expected = pd.DataFrame({'a': [1, 3], 'b': [4, 6]}, index=[0, 2])
+    expected = pd.DataFrame({'a': [1, 3], 'b': [4, 6]})
     pd.testing.assert_frame_equal(result, expected)
 
 def test_insert():
