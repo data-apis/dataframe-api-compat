@@ -5,6 +5,15 @@ import pytest
 import pandas as pd
 from pandas_standard import PandasDataFrame, PandasColumn
 
+def test_from_dict():
+    col_a = PandasColumn(pd.Series([1,2,3]))
+    col_b = PandasColumn(pd.Series([4,5,6]))
+    data = {'a': col_a, 'b': col_b}
+    result = PandasDataFrame.from_dict(data).dataframe
+    expected = pd.DataFrame({'a': [1,2,3], 'b': [4,5,6]})
+    pd.testing.assert_frame_equal(result, expected)
+
+
 @pytest.mark.parametrize(
     ('reduction', 'expected_data'),
     [

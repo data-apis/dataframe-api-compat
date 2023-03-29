@@ -1,3 +1,5 @@
+from __future__  import annotations
+
 import pandas as pd
 import numpy as np
 import collections
@@ -5,14 +7,10 @@ import re
 
 class PandasColumn:
     def __init__(self, column):
-        self._value = column
+        self._series = column
     
     def __dlpack__(self):
-        # This looks odd and is almost certainly not correct.
-        # TODO bring up at call
-        arr = self._value.to_numpy()
-        if arr.dtype == 'bool':
-            return arr.astype('int').copy().__dlpack__()
+        arr = self._series.to_numpy()
         return arr.__dlpack__()
     
     def isnull(self):
@@ -34,7 +32,7 @@ class PandasGroupBy:
     def __init__(self, df, keys):
         self.df = df
         self.keys = keys
-
+    
     def _validate_result(self, result):
         failed_columns = self.df.columns.difference(result.columns)
         if len(failed_columns) > 0:
@@ -105,6 +103,10 @@ class PandasDataFrame:
         self._validate_columns(dataframe.columns) 
         self.dataframe = dataframe
 
+    @classmethod
+    def from_dict(cls, data: dict[str, PandasColumn]) -> PandasDataFrame:
+        return cls(pd.DataFrame({label: column._series for label, column in data.items()}))
+
     def _validate_columns(self, columns):
         counter = collections.Counter(columns)
         for col, count in counter.items():
@@ -160,9 +162,8 @@ class PandasDataFrame:
         return PandasDataFrame(self.dataframe.iloc[start:stop:step])
 
     def get_rows_by_mask(self, mask):
-        # TODO how to validate this properly?
-        mask_array = np.from_dlpack(mask).astype('bool')
-        return PandasDataFrame(self.dataframe.loc[mask_array, :])
+        mask = mask._series.to_numpy()
+        return PandasDataFrame(self.dataframe.loc[mask, :])
 
     def insert(self, loc, label, value):
         value_array = np.from_dlpack(value)
