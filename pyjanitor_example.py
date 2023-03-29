@@ -6,10 +6,11 @@ import pandas as pd
 
 from pandas_standard import PandasDataFrame
 
+
 def clean_names_with_standard(
     df,
     strip_underscores=None,
-    case_type='lower',
+    case_type="lower",
     remove_special=False,
     strip_accents=True,
     preserve_original_columns=True,
@@ -51,12 +52,9 @@ def clean_names_with_standard(
         pass
     return df.dataframe
 
+
 pd_df = pd.DataFrame(
-    {
-        "Aloha": range(3),
-        "Bell Chart": range(3),
-        "Animals@#$%^": range(3)
-    }
+    {"Aloha": range(3), "Bell Chart": range(3), "Animals@#$%^": range(3)}
 )
 print(pd_df)
 print(clean_names_with_standard(pd_df))
