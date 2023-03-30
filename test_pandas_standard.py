@@ -196,3 +196,19 @@ def test_isna() -> None:
     result = df_std.isnan().dataframe
     expected = pd.DataFrame({"a": [False, False, True]})
     pd.testing.assert_frame_equal(result, expected)
+
+
+def test_any() -> None:
+    df = pd.DataFrame({"a": [False, False], "b": [False, True], "c": [True, True]})
+    df_std = PandasDataFrame(df)
+    result = df_std.any().dataframe
+    expected = pd.DataFrame({"a": [False], "b": [True], "c": [True]})
+    pd.testing.assert_frame_equal(result, expected)
+
+
+def test_all() -> None:
+    df = pd.DataFrame({"a": [False, False], "b": [False, True], "c": [True, True]})
+    df_std = PandasDataFrame(df)
+    result = df_std.all().dataframe
+    expected = pd.DataFrame({"a": [False], "b": [False], "c": [True]})
+    pd.testing.assert_frame_equal(result, expected)

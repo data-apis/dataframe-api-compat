@@ -28,6 +28,9 @@ class PandasColumn:
     def __len__(self) -> int:
         return len(self._series)
 
+    def to_iterable(self) -> object:
+        return self._series.to_numpy()
+
 
 class PandasGroupBy:
     def __init__(self, df: pd.DataFrame, keys: Sequence[str]) -> None:
