@@ -212,3 +212,29 @@ def test_all() -> None:
     result = df_std.all().dataframe
     expected = pd.DataFrame({"a": [False], "b": [False], "c": [True]})
     pd.testing.assert_frame_equal(result, expected)
+
+
+@pytest.mark.parametrize(
+    ("dtype", "expected_values"),
+    [("float64", [False, False, False]), ("Float64", [False, False, True])],
+)
+def test_isnull(dtype: str, expected_values: list[bool]) -> None:
+    df = pd.DataFrame({"a": [0.0, 1.0, np.nan]}, dtype=dtype)
+    df = df / df
+    df_std = PandasDataFrame(df)
+    result = df_std.isnull().dataframe
+    expected = pd.DataFrame({"a": expected_values})
+    pd.testing.assert_frame_equal(result, expected)
+
+
+@pytest.mark.parametrize(
+    ("dtype", "expected_values"),
+    [("float64", [True, False, True]), ("Float64", [True, False, False])],
+)
+def test_isnan(dtype: str, expected_values: list[bool]) -> None:
+    df = pd.DataFrame({"a": [0.0, 1.0, np.nan]}, dtype=dtype)
+    df = df / df
+    df_std = PandasDataFrame(df)
+    result = df_std.isnan().dataframe
+    expected = pd.DataFrame({"a": expected_values})
+    pd.testing.assert_frame_equal(result, expected)

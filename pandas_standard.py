@@ -1,8 +1,10 @@
 from __future__ import annotations
+import numpy as np
 
 import pandas as pd
+from pandas.api.types import is_extension_array_dtype
 import collections
-from typing import Sequence, Mapping, NoReturn, Iterator, Type
+from typing import Sequence, Mapping, NoReturn, Iterator, Type, cast
 
 
 class PandasColumn:
@@ -62,8 +64,7 @@ class PandasGroupBy:
 
     def __iter__(self) -> Iterator[tuple[str, PandasDataFrame]]:
         return (
-            (key, PandasDataFrame(df))
-            for key, df in self.grouped.__iter__  # type: ignore[attr-defined]
+            (cast(str, key), PandasDataFrame(df)) for (key, df) in self.grouped.__iter__()
         )
 
     def any(self, skipna: bool = True) -> PandasDataFrame:
@@ -196,6 +197,8 @@ class PandasDataFrame:
     def groupby(self, keys: Sequence[str]) -> PandasGroupBy:
         if not isinstance(keys, collections.abc.Sequence):
             raise TypeError(f"Expected sequence of strings, got: {type(keys)}")
+        if isinstance(keys, str):
+            raise TypeError("Expected sequence of strings, got: str")
         for key in keys:
             if key not in self.get_column_names():
                 raise KeyError(f"key {key} not present in DataFrame's columns")
@@ -322,7 +325,21 @@ class PandasDataFrame:
         return PandasDataFrame(self.dataframe.all().to_frame().T)
 
     def isnull(self) -> PandasDataFrame:
-        raise NotImplementedError()
+        result = []
+        for column in self.dataframe.columns:
+            if is_extension_array_dtype(self.dataframe[column].dtype):
+                result.append(self.dataframe[column].isnull())
+            else:
+                result.append(pd.Series(np.array([False] * self.shape[0]), name=column))
+        return PandasDataFrame(pd.concat(result, axis=1))
 
     def isnan(self) -> PandasDataFrame:
-        return PandasDataFrame(self.dataframe.isna())
+        result = []
+        for column in self.dataframe.columns:
+            if is_extension_array_dtype(self.dataframe[column].dtype):
+                result.append(
+                    np.isnan(self.dataframe[column]).replace(pd.NA, False).astype(bool)
+                )
+            else:
+                result.append(self.dataframe[column].isna())
+        return PandasDataFrame(pd.concat(result, axis=1))
