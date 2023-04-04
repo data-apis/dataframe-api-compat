@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 import collections
-from typing import Sequence, Mapping, NoReturn
+from typing import Sequence, Mapping, NoReturn, Iterator, Type
 
 
 class PandasColumn:
@@ -13,11 +13,15 @@ class PandasColumn:
         arr = self._series.to_numpy()
         return arr.__dlpack__()
 
-    def isnull(self) -> PandasColumn:
-        return PandasColumn(self._series.isna())
+    @classmethod
+    def from_array(cls, array: object) -> PandasColumn:
+        return cls(pd.Series(array))
 
-    def notnull(self) -> PandasColumn:
-        return PandasColumn(self._series.notna())
+    def isnull(self) -> PandasColumn:
+        raise NotImplementedError()
+
+    def isnan(self) -> PandasColumn:
+        return PandasColumn(self._series.isna())
 
     def any(self) -> bool:
         return self._series.any()
@@ -31,10 +35,21 @@ class PandasColumn:
     def to_iterable(self) -> object:
         return self._series.to_numpy()
 
+    def __eq__(self, other: PandasColumn) -> PandasColumn:  # type: ignore[override]
+        return PandasColumn(self._series == other)
+
+    def __and__(self, other: PandasColumn) -> PandasColumn:
+        return PandasColumn(self._series & other._series)
+
+    def __invert__(self) -> PandasColumn:
+        # TODO: validate booleanness
+        return PandasColumn(~self._series)
+
 
 class PandasGroupBy:
     def __init__(self, df: pd.DataFrame, keys: Sequence[str]) -> None:
         self.df = df
+        self.grouped = df.groupby(list(keys), sort=False, as_index=False)
         self.keys = list(keys)
 
     def _validate_result(self, result: pd.DataFrame) -> None:
@@ -45,57 +60,63 @@ class PandasGroupBy:
                 f"{failed_columns}. Please drop them before calling groupby."
             )
 
+    def __iter__(self) -> Iterator[tuple[str, PandasDataFrame]]:
+        return (
+            (key, PandasDataFrame(df))
+            for key, df in self.grouped.__iter__  # type: ignore[attr-defined]
+        )
+
     def any(self, skipna: bool = True) -> PandasDataFrame:
-        result = self.df.groupby(self.keys, as_index=False).any()
         if not (self.df.drop(columns=self.keys).dtypes == "bool").all():
             raise ValueError("Expected boolean types")
+        result = self.grouped.any()
         self._validate_result(result)
         return PandasDataFrame(result)
 
     def all(self, skipna: bool = True) -> PandasDataFrame:
-        result = self.df.groupby(self.keys, as_index=False).all()
         if not (self.df.drop(columns=self.keys).dtypes == "bool").all():
             raise ValueError("Expected boolean types")
+        result = self.grouped.all()
         self._validate_result(result)
         return PandasDataFrame(result)
 
     def min(self, skipna: bool = True) -> PandasDataFrame:
-        result = self.df.groupby(self.keys, as_index=False).min()
+        result = self.grouped.min()
         self._validate_result(result)
         return PandasDataFrame(result)
 
     def max(self, skipna: bool = True) -> PandasDataFrame:
-        result = self.df.groupby(self.keys, as_index=False).max()
+        result = self.grouped.max()
         self._validate_result(result)
         return PandasDataFrame(result)
 
     def sum(self, skipna: bool = True) -> PandasDataFrame:
-        result = self.df.groupby(self.keys, as_index=False).sum()
+        result = self.grouped.sum()
         self._validate_result(result)
         return PandasDataFrame(result)
 
     def prod(self, skipna: bool = True) -> PandasDataFrame:
-        result = self.df.groupby(self.keys, as_index=False).prod()
+        result = self.grouped.prod()
         self._validate_result(result)
         return PandasDataFrame(result)
 
     def median(self, skipna: bool = True) -> PandasDataFrame:
-        result = self.df.groupby(self.keys, as_index=False).median()
+        result = self.grouped.median()
         self._validate_result(result)
         return PandasDataFrame(result)
 
     def mean(self, skipna: bool = True) -> PandasDataFrame:
-        result = self.df.groupby(self.keys, as_index=False).mean()
+        result = self.grouped.mean()
         self._validate_result(result)
         return PandasDataFrame(result)
 
     def std(self, skipna: bool = True) -> PandasDataFrame:
-        result = self.df.groupby(self.keys, as_index=False).std()
+        result = self.grouped.std()
         self._validate_result(result)
         return PandasDataFrame(result)
 
     def var(self, skipna: bool = True) -> PandasDataFrame:
-        result = self.df.groupby(self.keys, as_index=False).var()
+        result = self.grouped.var()
         self._validate_result(result)
         return PandasDataFrame(result)
 
@@ -105,7 +126,18 @@ class PandasDataFrame:
 
     def __init__(self, dataframe: pd.DataFrame) -> None:
         self._validate_columns(dataframe.columns)  # type: ignore[arg-type]
-        self.dataframe = dataframe
+        if (
+            isinstance(dataframe.index, pd.RangeIndex)
+            and dataframe.index.start == 0  # type: ignore[comparison-overlap]
+            and dataframe.index.step == 1  # type: ignore[comparison-overlap]
+            and (
+                dataframe.index.stop  # type: ignore[comparison-overlap]
+                == len(dataframe) - 1
+            )
+        ):
+            self._dataframe = dataframe
+        else:
+            self._dataframe = dataframe.reset_index(drop=True)
 
     def _validate_columns(self, columns: Sequence[str]) -> None:
         counter = collections.Counter(columns)
@@ -141,7 +173,19 @@ class PandasDataFrame:
                 "'any' can only be called on DataFrame " "where all dtypes are 'bool'"
             )
 
+    @property
+    def column_class(self) -> Type[PandasColumn]:
+        return PandasColumn
+
     # In the standard
+
+    @property
+    def dataframe(self) -> pd.DataFrame:
+        return self._dataframe
+
+    @property
+    def shape(self) -> tuple[int, int]:
+        return self.dataframe.shape
 
     @classmethod
     def from_dict(cls, data: dict[str, PandasColumn]) -> PandasDataFrame:
@@ -169,19 +213,15 @@ class PandasDataFrame:
     def get_rows(self, indices: Sequence[int]) -> PandasDataFrame:
         if not isinstance(indices, collections.abc.Sequence):
             raise TypeError(f"Expected Sequence of int, got {type(indices)}")
-        return PandasDataFrame(
-            self.dataframe.iloc[list(indices), :].reset_index(drop=True)
-        )
+        return PandasDataFrame(self.dataframe.iloc[list(indices), :])
 
     def slice_rows(self, start: int, stop: int, step: int) -> PandasDataFrame:
-        return PandasDataFrame(
-            self.dataframe.iloc[start:stop:step].reset_index(drop=True)
-        )
+        return PandasDataFrame(self.dataframe.iloc[start:stop:step])
 
     def get_rows_by_mask(self, mask: PandasColumn) -> PandasDataFrame:
         series = mask._series
         self._validate_index(series.index)
-        return PandasDataFrame(self.dataframe.loc[series, :].reset_index(drop=True))
+        return PandasDataFrame(self.dataframe.loc[series, :])
 
     def insert(self, loc: int, label: str, value: PandasColumn) -> PandasDataFrame:
         series = value._series
