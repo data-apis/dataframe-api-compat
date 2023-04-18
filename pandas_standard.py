@@ -31,8 +31,8 @@ class PandasColumn:
         return self._series.mean()
 
     @classmethod
-    def from_array(cls, array: object) -> PandasColumn:
-        return cls(pd.Series(array))
+    def from_array(cls, array: object, dtype: str) -> PandasColumn:
+        return cls(pd.Series(array, dtype=dtype))
 
     def isnull(self) -> PandasColumn:
         if is_extension_array_dtype(self._series.dtype):
@@ -48,9 +48,6 @@ class PandasColumn:
 
     def all(self) -> bool:
         return self._series.all()
-
-    def __len__(self) -> int:
-        return len(self._series)
 
     def to_iterable(self) -> object:
         return self._series.to_numpy()
@@ -68,9 +65,6 @@ class PandasColumn:
     def max(self) -> object:
         return self._series.max()
 
-    def unique(self) -> PandasColumn:
-        return PandasColumn(pd.Series(self._series.unique()))
-
 
 class PandasGroupBy:
     def __init__(self, df: pd.DataFrame, keys: Sequence[str]) -> None:
@@ -86,8 +80,8 @@ class PandasGroupBy:
                 f"{failed_columns}. Please drop them before calling groupby."
             )
 
-    def size(self) -> PandasDataFrame:
-        return PandasDataFrame(self.grouped.size())
+    def size(self) -> PandasColumn:
+        return PandasColumn(self.df.groupby(self.keys, as_index=True).size())
 
     def any(self, skipna: bool = True) -> PandasDataFrame:
         if not (self.df.drop(columns=self.keys).dtypes == "bool").all():
@@ -162,7 +156,7 @@ class PandasDataFrame:
         else:
             self._dataframe = dataframe.reset_index(drop=True)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.shape()[0]
 
     def _validate_columns(self, columns: Sequence[str]) -> None:
@@ -178,9 +172,6 @@ class PandasDataFrame:
                     f"Expected column names to be of type str, got {col} "
                     f"of type {type(col)}"
                 )
-
-    def to_dict(self) -> dict[str, dict[int, object]]:
-        return self.dataframe.to_dict()
 
     def _validate_index(self, index: pd.Index) -> None:
         pd.testing.assert_index_equal(self.dataframe.index, index)
@@ -383,13 +374,16 @@ class PandasDataFrame:
 
     def concat(self, other: Sequence[PandasDataFrame]) -> PandasDataFrame:
         for _other in other:
-            if _other.dtypes != self.dtypes:
+            if _other.dataframe.dtypes != self.dataframe.dtypes:
                 raise ValueError("Expected matching columns")
         return PandasDataFrame(
-            pd.concat([self.dataframe, *other], axis=0, ignore_index=True)
+            pd.concat(
+                [self.dataframe, *[_other.dataframe for _other in other]],
+                axis=0,
+                ignore_index=True,
+            )
         )
 
     def sorted_indices(self, keys: Sequence[str]) -> PandasColumn:
-        return PandasColumn(
-            self.dataframe.loc[:, keys].sort_values(keys).index.to_series()
-        )
+        df = self.dataframe.loc[:, list(keys)]
+        return PandasColumn(df.sort_values(keys).index.to_series())
