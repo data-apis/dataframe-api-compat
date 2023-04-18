@@ -388,3 +388,8 @@ class PandasDataFrame:
         return PandasDataFrame(
             pd.concat([self.dataframe, *other], axis=0, ignore_index=True)
         )
+
+    def sorted_indices(self, keys: Sequence[str]) -> PandasColumn:
+        return PandasColumn(
+            self.dataframe.loc[:, keys].sort_values(keys).index.to_series()
+        )
