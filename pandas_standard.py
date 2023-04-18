@@ -4,23 +4,41 @@ import numpy as np
 import pandas as pd
 from pandas.api.types import is_extension_array_dtype
 import collections
-from typing import Sequence, Mapping, NoReturn, Iterator, Type, cast
+from typing import Sequence, Mapping, NoReturn, Type
 
 
 class PandasColumn:
     def __init__(self, column: pd.Series) -> None:  # type: ignore[type-arg]
         self._series = column
 
+    def __len__(self) -> int:
+        return len(self._series)
+
+    def __getitem__(self, row: int) -> object:
+        return self._series.iloc[row]
+
+    def __iter__(self) -> NoReturn:
+        raise NotImplementedError()
+
     def __dlpack__(self) -> object:
         arr = self._series.to_numpy()
         return arr.__dlpack__()
+
+    def unique(self) -> PandasColumn:
+        return PandasColumn(pd.Series(self._series.unique()))
+
+    def mean(self) -> float:
+        return self._series.mean()
 
     @classmethod
     def from_array(cls, array: object) -> PandasColumn:
         return cls(pd.Series(array))
 
     def isnull(self) -> PandasColumn:
-        raise NotImplementedError()
+        if is_extension_array_dtype(self._series.dtype):
+            return PandasColumn(self._series.isnull())
+        else:
+            return PandasColumn(pd.Series(np.array([False] * len(self))))
 
     def isnan(self) -> PandasColumn:
         return PandasColumn(self._series.isna())
@@ -47,6 +65,12 @@ class PandasColumn:
         # TODO: validate booleanness
         return PandasColumn(~self._series)
 
+    def max(self) -> object:
+        return self._series.max()
+
+    def unique(self) -> PandasColumn:
+        return PandasColumn(pd.Series(self._series.unique()))
+
 
 class PandasGroupBy:
     def __init__(self, df: pd.DataFrame, keys: Sequence[str]) -> None:
@@ -62,10 +86,8 @@ class PandasGroupBy:
                 f"{failed_columns}. Please drop them before calling groupby."
             )
 
-    def __iter__(self) -> Iterator[tuple[str, PandasDataFrame]]:
-        return (
-            (cast(str, key), PandasDataFrame(df)) for (key, df) in self.grouped.__iter__()
-        )
+    def size(self) -> PandasDataFrame:
+        return PandasDataFrame(self.grouped.size())
 
     def any(self, skipna: bool = True) -> PandasDataFrame:
         if not (self.df.drop(columns=self.keys).dtypes == "bool").all():
@@ -140,6 +162,9 @@ class PandasDataFrame:
         else:
             self._dataframe = dataframe.reset_index(drop=True)
 
+    def __len__(self):
+        return self.shape()[0]
+
     def _validate_columns(self, columns: Sequence[str]) -> None:
         counter = collections.Counter(columns)
         for col, count in counter.items():
@@ -153,6 +178,9 @@ class PandasDataFrame:
                     f"Expected column names to be of type str, got {col} "
                     f"of type {type(col)}"
                 )
+
+    def to_dict(self) -> dict[str, dict[int, object]]:
+        return self.dataframe.to_dict()
 
     def _validate_index(self, index: pd.Index) -> None:
         pd.testing.assert_index_equal(self.dataframe.index, index)
@@ -184,7 +212,6 @@ class PandasDataFrame:
     def dataframe(self) -> pd.DataFrame:
         return self._dataframe
 
-    @property
     def shape(self) -> tuple[int, int]:
         return self.dataframe.shape
 
@@ -210,6 +237,8 @@ class PandasDataFrame:
         return PandasColumn(self.dataframe.loc[:, name])
 
     def get_columns_by_name(self, names: Sequence[str]) -> PandasDataFrame:
+        if isinstance(names, str):
+            raise TypeError(f"Expected sequence of str, got {type(names)}")
         self._validate_columns(names)
         return PandasDataFrame(self.dataframe.loc[:, list(names)])
 
@@ -324,13 +353,21 @@ class PandasDataFrame:
         self._validate_booleanness()
         return PandasDataFrame(self.dataframe.all().to_frame().T)
 
+    def any_rowwise(self) -> PandasColumn:
+        self._validate_booleanness()
+        return PandasColumn(self.dataframe.any(axis=1))
+
+    def all_rowwise(self) -> PandasColumn:
+        self._validate_booleanness()
+        return PandasColumn(self.dataframe.all(axis=1))
+
     def isnull(self) -> PandasDataFrame:
         result = []
         for column in self.dataframe.columns:
             if is_extension_array_dtype(self.dataframe[column].dtype):
                 result.append(self.dataframe[column].isnull())
             else:
-                result.append(pd.Series(np.array([False] * self.shape[0]), name=column))
+                result.append(pd.Series(np.array([False] * self.shape()[0]), name=column))
         return PandasDataFrame(pd.concat(result, axis=1))
 
     def isnan(self) -> PandasDataFrame:
@@ -343,3 +380,11 @@ class PandasDataFrame:
             else:
                 result.append(self.dataframe[column].isna())
         return PandasDataFrame(pd.concat(result, axis=1))
+
+    def concat(self, other: Sequence[PandasDataFrame]) -> PandasDataFrame:
+        for _other in other:
+            if _other.dtypes != self.dtypes:
+                raise ValueError("Expected matching columns")
+        return PandasDataFrame(
+            pd.concat([self.dataframe, *other], axis=0, ignore_index=True)
+        )
