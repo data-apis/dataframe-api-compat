@@ -49,9 +49,6 @@ class PandasColumn:
     def all(self) -> bool:
         return self._series.all()
 
-    def to_iterable(self) -> object:
-        return self._series.to_numpy()
-
     def __eq__(self, other: PandasColumn) -> PandasColumn:  # type: ignore[override]
         return PandasColumn(self._series == other)
 
@@ -80,8 +77,8 @@ class PandasGroupBy:
                 f"{failed_columns}. Please drop them before calling groupby."
             )
 
-    def size(self) -> PandasColumn:
-        return PandasColumn(self.df.groupby(self.keys, as_index=True).size())
+    def size(self) -> PandasDataFrame:
+        return PandasDataFrame(self.grouped.size())
 
     def any(self, skipna: bool = True) -> PandasDataFrame:
         if not (self.df.drop(columns=self.keys).dtypes == "bool").all():
