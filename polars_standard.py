@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import NoReturn
+from typing import Sequence, NoReturn
 import polars as pl
 
 
@@ -21,11 +21,14 @@ class PolarsColumn:
         return PolarsColumn(self._series.unique())
 
     def mean(self) -> float:
-        return self.series.mean()
+        return self._series.mean()
 
     @classmethod
     def from_array(cls, array, dtype) -> PolarsColumn:
-        dtype_map = {"int": pl.Int64, "float": pl.Float64}
+        dtype_map = {
+            "int": pl.Int64,
+            "float": pl.Float64,
+        }
         return cls(pl.Series(array, dtype=dtype_map[dtype]))
 
     def isnull(self):
@@ -50,7 +53,7 @@ class PolarsColumn:
             return PolarsColumn(self._series & other._series)
         return PolarsColumn(self._series & other)
 
-    def __invert__(self, other) -> PolarsColumn:
+    def __invert__(self) -> PolarsColumn:
         return PolarsColumn(~self._series)
 
     def max(self):
@@ -61,6 +64,10 @@ class PolarsGroupBy:
     def __init__(self, df, keys):
         self.df = df
         self.keys = keys
+
+    def size(self) -> PolarsDataFrame:
+        result = self.df.groupby(self.keys).count().rename({"count": "size"})
+        return PolarsDataFrame(result)
 
     def any(self, skipna: bool = True):
         result = self.df.groupby(self.keys).agg(pl.col("*").any())
@@ -109,13 +116,16 @@ class PolarsDataFrame:
         # allowed, so no validation required
         self.df = df
 
-    @property
-    def dataframe(self):
-        return self.df
+    def __len__(self) -> int:
+        return len(self.df)
 
     @property
     def column_class(self):
         return PolarsColumn
+
+    @property
+    def dataframe(self) -> pl.DataFrame:
+        return self.df
 
     def shape(self):
         return self.df.shape
@@ -155,8 +165,10 @@ class PolarsDataFrame:
 
     def insert(self, loc, label, value):
         df = self.df.clone()
-        df.insert_at_idx(loc, pl.Series(label, value._series))
-        return PolarsDataFrame(df)
+        if len(df) > 0:
+            df.insert_at_idx(loc, pl.Series(label, value._series))
+            return PolarsDataFrame(df)
+        return PolarsDataFrame(pl.DataFrame({label: value._series}))
 
     def drop_column(self, label):
         return PolarsDataFrame(self.df.drop(label))
@@ -173,3 +185,24 @@ class PolarsDataFrame:
 
     def get_column_names(self):
         return self.df.columns
+
+    def concat(self, other: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
+        return PolarsDataFrame(
+            pl.concat(
+                [self.dataframe, *[_other.dataframe for _other in other]],
+            )
+        )
+
+    def isnull(self):
+        result = {}
+        for column in self.dataframe.columns:
+            result[column] = self.dataframe[column].is_null()
+        return PolarsDataFrame(pl.DataFrame(result))
+
+    def any_rowwise(self) -> PolarsColumn:
+        # self._validate_booleanness()
+        return PolarsColumn(self.dataframe.select(pl.any(pl.col("*")))["any"])
+
+    def sorted_indices(self, keys: Sequence[str]) -> PolarsColumn:
+        df = self.dataframe.select(keys)
+        return PolarsColumn(df.with_row_count().sort(keys)["row_nr"])
