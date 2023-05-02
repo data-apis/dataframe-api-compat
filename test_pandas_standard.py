@@ -238,3 +238,12 @@ def test_isnan(dtype: str, expected_values: list[bool]) -> None:
     result = df_std.isnan().dataframe
     expected = pd.DataFrame({"a": expected_values})
     pd.testing.assert_frame_equal(result, expected)
+
+
+def test_concat() -> None:
+    df1 = PandasDataFrame(pd.DataFrame({"a": [1, 2]}))
+    df2 = PandasDataFrame(pd.DataFrame({"a": [3, 4]}))
+    namespace = df1.__dataframe_namespace__()
+    result = namespace.concat([df1, df2]).dataframe
+    expected = pd.DataFrame({"a": [1, 2, 3, 4]})
+    pd.testing.assert_frame_equal(result, expected)

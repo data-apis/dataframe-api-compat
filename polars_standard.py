@@ -1,11 +1,20 @@
 from __future__ import annotations
 
-from typing import Sequence, NoReturn
+from typing import Sequence, NoReturn, Any, Type, Mapping
 import polars as pl
 
 
+class PolarsNamespace:
+    @classmethod
+    def concat(cls, dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
+        dfs = []
+        for _df in dataframes:
+            dfs.append(_df.dataframe)
+        return PolarsDataFrame(pl.concat(dfs))
+
+
 class PolarsColumn:
-    def __init__(self, column):
+    def __init__(self, column: pl.Series) -> None:
         self._series = column
 
     def __len__(self) -> int:
@@ -20,48 +29,51 @@ class PolarsColumn:
     def unique(self) -> PolarsColumn:
         return PolarsColumn(self._series.unique())
 
-    def mean(self) -> float:
+    def mean(self) -> object:
         return self._series.mean()
 
     @classmethod
-    def from_array(cls, array, dtype) -> PolarsColumn:
+    def from_array(cls, array: Sequence[object], dtype: str) -> PolarsColumn:
+        # TODO: pending agreement on how to specify dtypes
         dtype_map = {
             "int": pl.Int64,
             "float": pl.Float64,
         }
         return cls(pl.Series(array, dtype=dtype_map[dtype]))
 
-    def isnull(self):
+    def isnull(self) -> PolarsColumn:
         return PolarsColumn(self._series.is_null())
 
     def isnan(self) -> PolarsColumn:
         return PolarsColumn(self._series.is_nan())
 
-    def any(self):
+    def any(self) -> bool:
         return self._series.any()
 
-    def all(self):
+    def all(self) -> bool:
         return self._series.all()
 
-    def __eq__(self, other) -> PolarsColumn:
+    def __eq__(  # type: ignore[override]
+        self, other: PolarsColumn | object
+    ) -> PolarsColumn:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self._series == other._series)
         return PolarsColumn(self._series == other)
 
-    def __and__(self, other) -> PolarsColumn:
+    def __and__(self, other: PolarsColumn | object) -> PolarsColumn:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self._series & other._series)
-        return PolarsColumn(self._series & other)
+        return PolarsColumn(self._series & other)  # type: ignore[operator]
 
     def __invert__(self) -> PolarsColumn:
         return PolarsColumn(~self._series)
 
-    def max(self):
+    def max(self) -> object:
         return self._series.max()
 
 
 class PolarsGroupBy:
-    def __init__(self, df, keys):
+    def __init__(self, df: pl.DataFrame, keys: Sequence[str]) -> None:
         self.df = df
         self.keys = keys
 
@@ -69,65 +81,68 @@ class PolarsGroupBy:
         result = self.df.groupby(self.keys).count().rename({"count": "size"})
         return PolarsDataFrame(result)
 
-    def any(self, skipna: bool = True):
+    def any(self, skipna: bool = True) -> PolarsDataFrame:
         result = self.df.groupby(self.keys).agg(pl.col("*").any())
         return PolarsDataFrame(result)
 
-    def all(self, skipna: bool = True):
+    def all(self, skipna: bool = True) -> PolarsDataFrame:
         result = self.df.groupby(self.keys).agg(pl.col("*").all())
         return PolarsDataFrame(result)
 
-    def min(self, skipna: bool = True):
+    def min(self, skipna: bool = True) -> PolarsDataFrame:
         result = self.df.groupby(self.keys).agg(pl.col("*").min())
         return PolarsDataFrame(result)
 
-    def max(self, skipna: bool = True):
+    def max(self, skipna: bool = True) -> PolarsDataFrame:
         result = self.df.groupby(self.keys).agg(pl.col("*").max())
         return PolarsDataFrame(result)
 
-    def sum(self, skipna: bool = True):
+    def sum(self, skipna: bool = True) -> PolarsDataFrame:
         result = self.df.groupby(self.keys).agg(pl.col("*").sum())
         return PolarsDataFrame(result)
 
-    def prod(self, skipna: bool = True):
+    def prod(self, skipna: bool = True) -> PolarsDataFrame:
         result = self.df.groupby(self.keys).agg(pl.col("*").product())
         return PolarsDataFrame(result)
 
-    def median(self, skipna: bool = True):
+    def median(self, skipna: bool = True) -> PolarsDataFrame:
         result = self.df.groupby(self.keys).agg(pl.col("*").median())
         return PolarsDataFrame(result)
 
-    def mean(self, skipna: bool = True):
+    def mean(self, skipna: bool = True) -> PolarsDataFrame:
         result = self.df.groupby(self.keys).agg(pl.col("*").mean())
         return PolarsDataFrame(result)
 
-    def std(self, skipna: bool = True):
+    def std(self, skipna: bool = True) -> PolarsDataFrame:
         result = self.df.groupby(self.keys).agg(pl.col("*").std())
         return PolarsDataFrame(result)
 
-    def var(self, skipna: bool = True):
+    def var(self, skipna: bool = True) -> PolarsDataFrame:
         result = self.df.groupby(self.keys).agg(pl.col("*").var())
         return PolarsDataFrame(result)
 
 
 class PolarsDataFrame:
-    def __init__(self, df):
+    def __init__(self, df: pl.DataFrame) -> None:
         # columns already have to be strings, and duplicates aren't
         # allowed, so no validation required
         self.df = df
+
+    def __dataframe_namespace__(self, *, api_version: str | None = None) -> Any:
+        return PolarsNamespace
 
     def __len__(self) -> int:
         return len(self.df)
 
     @property
-    def column_class(self):
+    def column_class(self) -> Type[PolarsColumn]:
         return PolarsColumn
 
     @property
     def dataframe(self) -> pl.DataFrame:
         return self.df
 
-    def shape(self):
+    def shape(self) -> tuple[int, int]:
         return self.df.shape
 
     @classmethod
@@ -136,64 +151,49 @@ class PolarsDataFrame:
             pl.DataFrame({label: column._series for label, column in data.items()})
         )
 
-    def groupby(self, keys):
+    def groupby(self, keys: Sequence[str]) -> PolarsGroupBy:
         return PolarsGroupBy(self.df, keys)
 
-    def __iter__(self):
-        yield from self.column_names
-
-    def get_column_by_name(self, name):
+    def get_column_by_name(self, name: str) -> PolarsColumn:
         return PolarsColumn(self.df[name])
 
-    def get_columns_by_name(self, names):
+    def get_columns_by_name(self, names: Sequence[str]) -> PolarsDataFrame:
         return PolarsDataFrame(self.df.select(names))
 
-    def get_rows(self, indices):
+    def get_rows(self, indices: PolarsColumn) -> PolarsDataFrame:
         return PolarsDataFrame(
-            self.df.with_row_count("idx").filter(pl.col("idx").is_in(indices)).drop("idx")
+            self.df.with_row_count("idx")
+            .filter(pl.col("idx").is_in(indices._series))
+            .drop("idx")
         )
 
-    def slice_rows(self, start, stop, step):
+    def slice_rows(self, start: int, stop: int, step: int) -> PolarsDataFrame:
         return PolarsDataFrame(
             self.df.with_row_count("idx")
             .filter(pl.col("idx").is_in(range(start, stop, step)))
             .drop("idx")
         )
 
-    def get_rows_by_mask(self, mask):
+    def get_rows_by_mask(self, mask: PolarsColumn) -> PolarsDataFrame:
         return PolarsDataFrame(self.df.filter(mask._series))
 
-    def insert(self, loc, label, value):
+    def insert(self, loc: int, label: str, value: PolarsColumn) -> PolarsDataFrame:
         df = self.df.clone()
         if len(df) > 0:
             df.insert_at_idx(loc, pl.Series(label, value._series))
             return PolarsDataFrame(df)
         return PolarsDataFrame(pl.DataFrame({label: value._series}))
 
-    def drop_column(self, label):
+    def drop_column(self, label: str) -> PolarsDataFrame:
         return PolarsDataFrame(self.df.drop(label))
 
-    def set_column(self, label, value):
-        columns = self.df.columns
-        if label in columns:
-            idx = self.df.columns.index(idx)
-            return self.drop_column(label).insert(idx, label, value)
-        return PolarsDataFrame(self.df.with_columns(label=pl.Series(value)))
+    def rename(self, mapping: Mapping[str, str]) -> PolarsDataFrame:
+        return PolarsDataFrame(self.df.rename(dict(mapping)))
 
-    def rename(self, mapping):
-        return PolarsDataFrame(self.df.rename(mapping))
-
-    def get_column_names(self):
+    def get_column_names(self) -> Sequence[str]:
         return self.df.columns
 
-    def concat(self, other: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
-        return PolarsDataFrame(
-            pl.concat(
-                [self.dataframe, *[_other.dataframe for _other in other]],
-            )
-        )
-
-    def isnull(self):
+    def isnull(self) -> PolarsDataFrame:
         result = {}
         for column in self.dataframe.columns:
             result[column] = self.dataframe[column].is_null()

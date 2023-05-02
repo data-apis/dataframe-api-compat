@@ -4,7 +4,28 @@ import numpy as np
 import pandas as pd
 from pandas.api.types import is_extension_array_dtype
 import collections
-from typing import Sequence, Mapping, NoReturn, Type
+from typing import Any, Sequence, Mapping, NoReturn, Type
+
+
+class PandasNamespace:
+    @classmethod
+    def concat(cls, dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:
+        dtypes = dataframes[0].dataframe.dtypes
+        dfs = []
+        for _df in dataframes:
+            try:
+                pd.testing.assert_series_equal(_df.dataframe.dtypes, dtypes)
+            except Exception as exc:
+                raise ValueError("Expected matching columns") from exc
+            else:
+                dfs.append(_df.dataframe)
+        return PandasDataFrame(
+            pd.concat(
+                dfs,
+                axis=0,
+                ignore_index=True,
+            )
+        )
 
 
 class PandasColumn:
@@ -78,7 +99,8 @@ class PandasGroupBy:
             )
 
     def size(self) -> PandasDataFrame:
-        return PandasDataFrame(self.grouped.size())
+        # pandas-stubs is wrong
+        return PandasDataFrame(self.grouped.size())  # type: ignore[arg-type]
 
     def any(self, skipna: bool = True) -> PandasDataFrame:
         if not (self.df.drop(columns=self.keys).dtypes == "bool").all():
@@ -196,6 +218,9 @@ class PandasDataFrame:
 
     # In the standard
 
+    def __dataframe_namespace__(self, *, api_version: str | None = None) -> Any:
+        return PandasNamespace
+
     @property
     def dataframe(self) -> pd.DataFrame:
         return self._dataframe
@@ -255,13 +280,6 @@ class PandasDataFrame:
         if not isinstance(label, str):
             raise TypeError(f"Expected str, got: {type(label)}")
         return PandasDataFrame(self.dataframe.drop(label, axis=1))
-
-    def set_column(self, label: str, value: PandasColumn) -> PandasDataFrame:
-        columns = self.get_column_names()
-        if label in columns:
-            idx: int = columns.index(label)
-            return self.drop_column(label).insert(idx, label, value)
-        return self.insert(len(columns), label, value)
 
     def rename_columns(self, mapping: Mapping[str, str]) -> PandasDataFrame:
         if not isinstance(mapping, collections.abc.Mapping):
@@ -368,18 +386,6 @@ class PandasDataFrame:
             else:
                 result.append(self.dataframe[column].isna())
         return PandasDataFrame(pd.concat(result, axis=1))
-
-    def concat(self, other: Sequence[PandasDataFrame]) -> PandasDataFrame:
-        for _other in other:
-            if _other.dataframe.dtypes != self.dataframe.dtypes:
-                raise ValueError("Expected matching columns")
-        return PandasDataFrame(
-            pd.concat(
-                [self.dataframe, *[_other.dataframe for _other in other]],
-                axis=0,
-                ignore_index=True,
-            )
-        )
 
     def sorted_indices(self, keys: Sequence[str]) -> PandasColumn:
         df = self.dataframe.loc[:, list(keys)]

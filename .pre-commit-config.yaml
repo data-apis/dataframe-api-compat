@@ -19,7 +19,7 @@ repos:
     hooks:
     -   id: mypy
         args: [--strict]
-        additional_dependencies: [pandas_stubs==v1.5.3.230321, pandas==1.5.3, pytest==7.2.2]
+        additional_dependencies: [pandas_stubs==v1.5.3.230321, pandas==1.5.3, pytest==7.2.2, polars==0.17.11]
 -   repo: https://github.com/psf/black
     rev: 23.3.0
     hooks:
