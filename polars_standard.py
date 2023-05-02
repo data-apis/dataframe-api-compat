@@ -12,6 +12,10 @@ class PolarsNamespace:
             dfs.append(_df.dataframe)
         return PolarsDataFrame(pl.concat(dfs))
 
+    @classmethod
+    def column_class(cls) -> Type[PolarsColumn]:
+        return PolarsColumn
+
 
 class PolarsColumn:
     def __init__(self, column: pl.Series) -> None:
@@ -33,11 +37,11 @@ class PolarsColumn:
         return self._series.mean()
 
     @classmethod
-    def from_array(cls, array: Sequence[object], dtype: str) -> PolarsColumn:
+    def from_sequence(cls, array: Sequence[object], dtype: str) -> PolarsColumn:
         # TODO: pending agreement on how to specify dtypes
         dtype_map = {
-            "int": pl.Int64,
-            "float": pl.Float64,
+            "int64": pl.Int64,
+            "float64": pl.Float64,
         }
         return cls(pl.Series(array, dtype=dtype_map[dtype]))
 
@@ -133,10 +137,6 @@ class PolarsDataFrame:
 
     def __len__(self) -> int:
         return len(self.df)
-
-    @property
-    def column_class(self) -> Type[PolarsColumn]:
-        return PolarsColumn
 
     @property
     def dataframe(self) -> pl.DataFrame:

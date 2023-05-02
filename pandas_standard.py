@@ -27,6 +27,10 @@ class PandasNamespace:
             )
         )
 
+    @classmethod
+    def column_class(cls) -> Type[PandasColumn]:
+        return PandasColumn
+
 
 class PandasColumn:
     def __init__(self, column: pd.Series) -> None:  # type: ignore[type-arg]
@@ -52,7 +56,7 @@ class PandasColumn:
         return self._series.mean()
 
     @classmethod
-    def from_array(cls, array: object, dtype: str) -> PandasColumn:
+    def from_sequence(cls, array: object, dtype: str) -> PandasColumn:
         return cls(pd.Series(array, dtype=dtype))
 
     def isnull(self) -> PandasColumn:
@@ -212,12 +216,7 @@ class PandasDataFrame:
                 "'any' can only be called on DataFrame " "where all dtypes are 'bool'"
             )
 
-    @property
-    def column_class(self) -> Type[PandasColumn]:
-        return PandasColumn
-
     # In the standard
-
     def __dataframe_namespace__(self, *, api_version: str | None = None) -> Any:
         return PandasNamespace
 
