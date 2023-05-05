@@ -120,11 +120,6 @@ def test_drop_column() -> None:
     pd.testing.assert_frame_equal(result, expected)
 
 
-def test_set_column() -> None:
-    # I'm hoping to get rid of this one, so holding off for now...
-    ...
-
-
 def test_rename_columns() -> None:
     df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
     result = df.rename_columns({"a": "c", "b": "e"}).dataframe
