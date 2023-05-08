@@ -1,5 +1,5 @@
 Work-in-progress draft of what the [DataFrame Standard](https://data-apis.org/dataframe-api/draft/index.html)
-might look like for pandas.
+might look like for pandas and polars.
 
 Example usage:
 ```python
