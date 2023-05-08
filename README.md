@@ -14,3 +14,8 @@ Installation:
 ```
 pip install git+https://github.com/MarcoGorelli/impl-dataframe-api
 ```
+
+Testing:
+```
+pytest
+```
