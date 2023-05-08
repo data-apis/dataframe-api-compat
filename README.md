@@ -19,3 +19,8 @@ Testing:
 ```
 pytest
 ```
+
+Linting:
+```
+pre-commit run --all-files
+```
