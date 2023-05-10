@@ -242,10 +242,41 @@ def test_concat() -> None:
     expected = pd.DataFrame({"a": [1, 2, 3, 4]})
     pd.testing.assert_frame_equal(result, expected)
 
-def test_is_in() -> None:
-    values = PandasColumn(pd.Series([1., np.nan]))
-    ser = PandasColumn(pd.Series([2., 3.]))
-    expected = pd.Series([False, False])
+@pytest.mark.parametrize(
+    ('ser', 'other', 'expected'),
+    [
+        ([2., 3.], [1, np.nan], [False, False]),
+        ([2., 1.], [1, np.nan], [False, True]),
+        ([np.nan, 2], [1, np.nan], [True, False]),
+    ]
+)
+def test_is_in(ser, other, expected) -> None:
+    values = PandasColumn(pd.Series(other))
+    ser = PandasColumn(pd.Series(ser))
+    expected = pd.Series(expected)
     result = ser.is_in(values)._series
+    pd.testing.assert_series_equal(result, expected)
+
+@pytest.mark.parametrize(
+    ('ser', 'other', 'expected'),
+    [
+        ([2., 3.], [1, np.nan], [False, False]),
+        ([2., 1.], [1, np.nan], [False, True]),
+        ([None, 2], [pd.NA], [True, False]),
+    ]
+)
+def test_is_in_nullable_float(ser, other, expected) -> None:
+    values = PandasColumn(pd.Series(other, dtype='Float64'))
+    ser = PandasColumn(pd.Series(ser, dtype='Float64'))
+    expected = pd.Series(expected, dtype='boolean')
+    result = ser.is_in(values)._series
+    pd.testing.assert_series_equal(result, expected)
+
+def test_is_in_nullable_float_nan() -> None:
+    values = PandasColumn(pd.Series([None], dtype='Float64'))
+    ser = pd.Series([0, None], dtype='Float64')
+    ser /= ser
+    expected = pd.Series([False, True], dtype='boolean')
+    result = PandasColumn(ser).is_in(values)._series
     pd.testing.assert_series_equal(result, expected)
 
