@@ -68,10 +68,9 @@ def test_divmod() -> None:
 
 def test_get_column_by_name() -> None:
     df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
-    result = df.get_column_by_name("a")
-    np.testing.assert_array_equal(
-        np.array([1, 2, 3]), np.from_dlpack(result)  # type: ignore[arg-type]
-    )
+    result = df.get_column_by_name("a")._series
+    expected = pd.Series([1,2,3], name='a')
+    pd.testing.assert_series_equal(expected, result)
 
 
 def test_get_columns_by_name() -> None:

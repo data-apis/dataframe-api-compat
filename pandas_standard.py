@@ -45,9 +45,9 @@ class PandasColumn:
     def __iter__(self) -> NoReturn:
         raise NotImplementedError()
 
-    def __dlpack__(self) -> object:
-        arr = self._series.to_numpy()
-        return arr.__dlpack__()
+    def is_in(self, values: PandasColumn) -> PandasColumn:
+        if values.dtype != self.dtype:
+            raise ValueError(f'`value` has dtype {values.dtype}, expected {self.dtype}')
 
     def unique(self) -> PandasColumn:
         return PandasColumn(pd.Series(self._series.unique()))
