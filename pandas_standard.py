@@ -45,9 +45,14 @@ class PandasColumn:
     def __iter__(self) -> NoReturn:
         raise NotImplementedError()
 
+    @property
+    def dtype(self) -> object:
+        return self._series.dtype
+
     def is_in(self, values: PandasColumn) -> PandasColumn:
         if values.dtype != self.dtype:
             raise ValueError(f'`value` has dtype {values.dtype}, expected {self.dtype}')
+        return PandasColumn(self._series.isin(values._series))
 
     def unique(self) -> PandasColumn:
         return PandasColumn(pd.Series(self._series.unique()))

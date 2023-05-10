@@ -241,3 +241,11 @@ def test_concat() -> None:
     result = namespace.concat([df1, df2]).dataframe
     expected = pd.DataFrame({"a": [1, 2, 3, 4]})
     pd.testing.assert_frame_equal(result, expected)
+
+def test_is_in() -> None:
+    values = PandasColumn(pd.Series([1., np.nan]))
+    ser = PandasColumn(pd.Series([2., 3.]))
+    expected = pd.Series([False, False])
+    result = ser.is_in(values)._series
+    pd.testing.assert_series_equal(result, expected)
+
