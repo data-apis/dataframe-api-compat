@@ -6,6 +6,15 @@ from pandas.api.types import is_extension_array_dtype
 import collections
 from typing import Any, Sequence, Mapping, NoReturn
 
+import pandas
+
+
+def dataframe_standard(df: pd.DataFrame) -> PandasDataFrame:
+    return PandasDataFrame(df)
+
+
+pandas.DataFrame.__dataframe_standard__ = dataframe_standard  # type: ignore[attr-defined]
+
 
 class PandasNamespace:
     @classmethod
@@ -74,8 +83,12 @@ class PandasColumn:
     def all(self) -> bool:
         return self._series.all()
 
-    def __eq__(self, other: PandasColumn) -> PandasColumn:  # type: ignore[override]
-        return PandasColumn(self._series == other._series)
+    def __eq__(  # type: ignore[override]
+        self, other: PandasColumn | object
+    ) -> PandasColumn:
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self._series == other._series)
+        return PandasColumn(self._series == other)
 
     def __ne__(self, other: PandasColumn) -> PandasColumn:  # type: ignore[override]
         return PandasColumn(self._series != other._series)

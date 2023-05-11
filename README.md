@@ -32,21 +32,15 @@ def split_df(df):
 How to try this out
 -------------------
 
-The objective is to get the point where
+Here's an example of how you can try this out:
 ```python
-df.__dataframe_standard__()
+import pandas as pd
+import pandas_standard
+
+df = pd.DataFrame({'a': [1,2,3]})
+df_std = df.__dataframe_standard__()
 ```
-would return a Standard-compliant DataFrame object.
-
-We are not there yet - to try out the Standard with this MVP, you can use the
-`pandas_standard.PandasDataFrame` class:
-```python
-from pandas_standard import PandasDataFrame
-
-df = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
-
-df_standard = PandasDataFrame(df)  # standard-compliant DataFrame
-```
+The object `df_std` is a Standard-compliant DataFrame.
 
 Installation
 ------------
