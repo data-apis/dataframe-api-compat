@@ -413,3 +413,14 @@ def test_sorted_indices() -> None:
     result = PandasColumn(pd.Series([1, 3, 2])).sorted_indices()._series
     expected = pd.Series([0, 2, 1])
     pd.testing.assert_series_equal(result, expected)
+
+
+def test_column_invert() -> None:
+    result = (~PandasColumn(pd.Series([True, False])))._series
+    expected = pd.Series([False, True])
+    pd.testing.assert_series_equal(result, expected)
+
+
+def test_column_max() -> None:
+    result = PandasColumn(pd.Series([1, 3, 2])).max()
+    assert result == 3
