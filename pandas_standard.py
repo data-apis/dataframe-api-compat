@@ -238,8 +238,7 @@ class PandasDataFrame:
             and dataframe.index.start == 0  # type: ignore[comparison-overlap]
             and dataframe.index.step == 1  # type: ignore[comparison-overlap]
             and (
-                dataframe.index.stop  # type: ignore[comparison-overlap]
-                == len(dataframe) - 1
+                dataframe.index.stop == len(dataframe)  # type: ignore[comparison-overlap]
             )
         ):
             self._dataframe = dataframe

@@ -212,6 +212,25 @@ def test_groupby_boolean(
     pd.testing.assert_frame_equal(result, expected)
 
 
+def test_groupby_size() -> None:
+    df = PandasDataFrame(
+        pd.DataFrame({"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]})
+    )
+    result = df.groupby(["key"]).size().dataframe
+    expected = pd.DataFrame({"key": [1, 2], "size": [2, 2]})
+    pd.testing.assert_frame_equal(result, expected)
+
+
+def test_groupby_invalid_any_all() -> None:
+    df = PandasDataFrame(
+        pd.DataFrame({"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]})
+    )
+    with pytest.raises(ValueError, match="Expected boolean types"):
+        df.groupby(["key"]).any()
+    with pytest.raises(ValueError, match="Expected boolean types"):
+        df.groupby(["key"]).all()
+
+
 @pytest.mark.parametrize(
     ("aggregation", "expected_b", "expected_c"),
     [
@@ -389,6 +408,11 @@ def test_is_in_raises() -> None:
 
 
 def test_len() -> None:
+    result = len(PandasDataFrame(pd.DataFrame({"a": [1, 2]})))
+    assert result == 2
+
+
+def test_column_len() -> None:
     result = len(PandasColumn(pd.Series([1, 2])))
     assert result == 2
 
@@ -424,3 +448,11 @@ def test_column_invert() -> None:
 def test_column_max() -> None:
     result = PandasColumn(pd.Series([1, 3, 2])).max()
     assert result == 3
+
+
+def test_repeated_columns() -> None:
+    df = pd.DataFrame({"a": [1, 2]}, index=["b", "b"]).T
+    with pytest.raises(
+        ValueError, match=r"Expected unique column names, got b 2 time\(s\)"
+    ):
+        PandasDataFrame(df)
