@@ -18,7 +18,7 @@ def split_df(df):
 ```
 
 Using the DataFrame Standard, however, it would be possible to write portable code which would work
-for both libraries:
+for both libraries, allowing library authours to write DataFrame-agnostic code!
 ```python
 def split_df(df):
     # Note: this isn't implemented yet and is just for illustrative purposes
