@@ -82,6 +82,32 @@ def test_column_comparisons(comparison: str, expected_data: list[object]) -> Non
     pd.testing.assert_series_equal(result, expected)
 
 
+@pytest.mark.parametrize(
+    ("comparison", "expected_data"),
+    [
+        ("__eq__", [False, False, True]),
+        ("__ne__", [True, True, False]),
+        ("__ge__", [False, False, True]),
+        ("__gt__", [False, False, False]),
+        ("__le__", [True, True, True]),
+        ("__lt__", [True, True, False]),
+        ("__add__", [4, 5, 6]),
+        ("__sub__", [-2, -1, 0]),
+        ("__mul__", [3, 6, 9]),
+        ("__truediv__", [1 / 3, 2 / 3, 1]),
+        ("__floordiv__", [0, 0, 1]),
+        ("__pow__", [1, 8, 27]),
+        ("__mod__", [1, 2, 0]),
+    ],
+)
+def test_column_comparisons_scalar(comparison: str, expected_data: list[object]) -> None:
+    ser = PandasColumn(pd.Series([1, 2, 3]))
+    other = 3
+    result = getattr(ser, comparison)(other)._series
+    expected = pd.Series(expected_data)
+    pd.testing.assert_series_equal(result, expected)
+
+
 def test_divmod() -> None:
     df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
     other = PandasDataFrame(pd.DataFrame({"a": [1, 2, 4], "b": [4, 2, 6]}))

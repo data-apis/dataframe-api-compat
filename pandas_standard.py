@@ -89,40 +89,64 @@ class PandasColumn:
         return PandasColumn(self._series == other)
 
     def __ne__(self, other: PandasColumn) -> PandasColumn:  # type: ignore[override]
-        return PandasColumn(self._series != other._series)
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self._series != other._series)
+        return PandasColumn(self._series != other)
 
     def __ge__(self, other: PandasColumn) -> PandasColumn:
-        return PandasColumn(self._series >= other._series)
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self._series >= other._series)
+        return PandasColumn(self._series >= other)
 
     def __gt__(self, other: PandasColumn) -> PandasColumn:
-        return PandasColumn(self._series > other._series)
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self._series > other._series)
+        return PandasColumn(self._series > other)
 
     def __le__(self, other: PandasColumn) -> PandasColumn:
-        return PandasColumn(self._series <= other._series)
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self._series <= other._series)
+        return PandasColumn(self._series <= other)
 
     def __lt__(self, other: PandasColumn) -> PandasColumn:
-        return PandasColumn(self._series < other._series)
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self._series < other._series)
+        return PandasColumn(self._series < other)
 
     def __add__(self, other: PandasColumn) -> PandasColumn:
-        return PandasColumn(self._series + other._series)
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self._series + other._series)
+        return PandasColumn(self._series + other)
 
     def __sub__(self, other: PandasColumn) -> PandasColumn:
-        return PandasColumn(self._series - other._series)
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self._series - other._series)
+        return PandasColumn(self._series - other)
 
     def __mul__(self, other: PandasColumn) -> PandasColumn:
-        return PandasColumn(self._series * other._series)
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self._series * other._series)
+        return PandasColumn(self._series * other)
 
     def __truediv__(self, other: PandasColumn) -> PandasColumn:
-        return PandasColumn(self._series / other._series)
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self._series / other._series)
+        return PandasColumn(self._series / other)
 
     def __floordiv__(self, other: PandasColumn) -> PandasColumn:
-        return PandasColumn(self._series // other._series)
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self._series // other._series)
+        return PandasColumn(self._series // other)
 
     def __pow__(self, other: PandasColumn) -> PandasColumn:
-        return PandasColumn(self._series**other._series)
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self._series**other._series)
+        return PandasColumn(self._series**other)
 
     def __mod__(self, other: PandasColumn) -> PandasColumn:
-        return PandasColumn(self._series % other._series)
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self._series % other._series)
+        return PandasColumn(self._series % other)
 
     def __invert__(self) -> PandasColumn:
         return PandasColumn(~self._series)
