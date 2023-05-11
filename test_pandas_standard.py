@@ -125,6 +125,12 @@ def test_get_column_by_name() -> None:
     pd.testing.assert_series_equal(expected, result)
 
 
+def test_get_column_by_name_invalid() -> None:
+    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
+    with pytest.raises(TypeError, match=r"Expected str, got: <class \'list\'>"):
+        df.get_column_by_name([True, False])
+
+
 def test_get_columns_by_name() -> None:
     df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
     result = df.get_columns_by_name(["b"]).dataframe
@@ -132,11 +138,23 @@ def test_get_columns_by_name() -> None:
     pd.testing.assert_frame_equal(result, expected)
 
 
+def test_get_columns_by_name_invalid() -> None:
+    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
+    with pytest.raises(TypeError, match=r"Expected sequence of str, got <class \'str\'>"):
+        df.get_columns_by_name("b")
+
+
 def test_get_rows() -> None:
     df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
     result = df.get_rows([0, 2]).dataframe
     expected = pd.DataFrame({"a": [1, 3], "b": [4, 6]})
     pd.testing.assert_frame_equal(result, expected)
+
+
+def test_get_rows_invalid() -> None:
+    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
+    with pytest.raises(TypeError, match="Expected Sequence of int, got <class 'int'>"):
+        df.get_rows(0)
 
 
 def test_slice_rows() -> None:
@@ -169,6 +187,12 @@ def test_drop_column() -> None:
     result = df.drop_column("a").dataframe
     expected = pd.DataFrame({"b": [4, 5, 6]})
     pd.testing.assert_frame_equal(result, expected)
+
+
+def test_drop_column_invalid() -> None:
+    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
+    with pytest.raises(TypeError, match="Expected str, got: <class 'list'>"):
+        df.drop_column(["a"])
 
 
 def test_rename_columns() -> None:
@@ -456,3 +480,34 @@ def test_repeated_columns() -> None:
         ValueError, match=r"Expected unique column names, got b 2 time\(s\)"
     ):
         PandasDataFrame(df)
+
+
+def test_non_str_columns() -> None:
+    df = pd.DataFrame({0: [1, 2]})
+    with pytest.raises(
+        TypeError,
+        match=r"Expected column names to be of type str, got 0 of type <class 'int'>",
+    ):
+        PandasDataFrame(df)
+
+
+def test_comparison_invalid() -> None:
+    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3]}))
+    other = PandasDataFrame(pd.DataFrame({"b": [1, 2, 3]}))
+    with pytest.raises(
+        ValueError,
+        match="Expected DataFrame with same length, matching columns, and matching index.",
+    ):
+        df > other
+
+
+def test_groupby_invalid() -> None:
+    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3]}))
+    with pytest.raises(
+        TypeError, match=r"Expected sequence of strings, got: <class \'int\'>"
+    ):
+        df.groupby(0)
+    with pytest.raises(TypeError, match=r"Expected sequence of strings, got: str"):
+        df.groupby("0")
+    with pytest.raises(KeyError, match=r"key b not present in DataFrame\'s columns"):
+        df.groupby(["b"])
