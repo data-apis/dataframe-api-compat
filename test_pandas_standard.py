@@ -128,7 +128,7 @@ def test_get_column_by_name() -> None:
 def test_get_column_by_name_invalid() -> None:
     df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
     with pytest.raises(TypeError, match=r"Expected str, got: <class \'list\'>"):
-        df.get_column_by_name([True, False])
+        df.get_column_by_name([True, False])  # type: ignore[arg-type]
 
 
 def test_get_columns_by_name() -> None:
@@ -154,7 +154,7 @@ def test_get_rows() -> None:
 def test_get_rows_invalid() -> None:
     df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
     with pytest.raises(TypeError, match="Expected Sequence of int, got <class 'int'>"):
-        df.get_rows(0)
+        df.get_rows(0)  # type: ignore[arg-type]
 
 
 def test_slice_rows() -> None:
@@ -192,7 +192,7 @@ def test_drop_column() -> None:
 def test_drop_column_invalid() -> None:
     df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
     with pytest.raises(TypeError, match="Expected str, got: <class 'list'>"):
-        df.drop_column(["a"])
+        df.drop_column(["a"])  # type: ignore[arg-type]
 
 
 def test_rename_columns() -> None:
@@ -200,6 +200,12 @@ def test_rename_columns() -> None:
     result = df.rename_columns({"a": "c", "b": "e"}).dataframe
     expected = pd.DataFrame({"c": [1, 2, 3], "e": [4, 5, 6]})
     pd.testing.assert_frame_equal(result, expected)
+
+
+def test_rename_columns_invalid() -> None:
+    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
+    with pytest.raises(TypeError, match="Expected Mapping, got: <class 'function'>"):
+        df.rename_columns(lambda x: x.upper())  # type: ignore[arg-type]
 
 
 def test_get_column_names() -> None:
@@ -458,6 +464,16 @@ def test_mean() -> None:
 
 
 def test_sorted_indices() -> None:
+    result = (
+        PandasDataFrame(pd.DataFrame({"a": [1, 1], "b": [4, 3]}))
+        .sorted_indices(keys=["a", "b"])
+        ._series
+    )
+    expected = pd.Series([1, 0])
+    pd.testing.assert_series_equal(result, expected)
+
+
+def test_column_sorted_indices() -> None:
     result = PandasColumn(pd.Series([1, 3, 2])).sorted_indices()._series
     expected = pd.Series([0, 2, 1])
     pd.testing.assert_series_equal(result, expected)
@@ -496,7 +512,8 @@ def test_comparison_invalid() -> None:
     other = PandasDataFrame(pd.DataFrame({"b": [1, 2, 3]}))
     with pytest.raises(
         ValueError,
-        match="Expected DataFrame with same length, matching columns, and matching index.",
+        match="Expected DataFrame with same length, matching "
+        "columns, and matching index.",
     ):
         df > other
 
@@ -506,8 +523,22 @@ def test_groupby_invalid() -> None:
     with pytest.raises(
         TypeError, match=r"Expected sequence of strings, got: <class \'int\'>"
     ):
-        df.groupby(0)
+        df.groupby(0)  # type: ignore
     with pytest.raises(TypeError, match=r"Expected sequence of strings, got: str"):
         df.groupby("0")
     with pytest.raises(KeyError, match=r"key b not present in DataFrame\'s columns"):
         df.groupby(["b"])
+
+
+def test_any_rowwise() -> None:
+    df = PandasDataFrame(pd.DataFrame({"a": [True, False], "b": [False, False]}))
+    result = df.any_rowwise()._series
+    expected = pd.Series([True, False])
+    pd.testing.assert_series_equal(result, expected)
+
+
+def test_all_rowwise() -> None:
+    df = PandasDataFrame(pd.DataFrame({"a": [True, False], "b": [False, False]}))
+    result = df.all_rowwise()._series
+    expected = pd.Series([False, False])
+    pd.testing.assert_series_equal(result, expected)

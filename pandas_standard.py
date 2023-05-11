@@ -37,7 +37,15 @@ class PandasNamespace:
 
 class PandasColumn:
     def __init__(self, column: pd.Series) -> None:  # type: ignore[type-arg]
-        self._series = column
+        if (
+            isinstance(column.index, pd.RangeIndex)
+            and column.index.start == 0  # type: ignore[comparison-overlap]
+            and column.index.step == 1  # type: ignore[comparison-overlap]
+            and (column.index.stop == len(column))  # type: ignore[comparison-overlap]
+        ):
+            self._series = column
+        else:
+            self._series = column.reset_index(drop=True)
 
     def __len__(self) -> int:
         return len(self._series)
@@ -164,7 +172,8 @@ class PandasGroupBy:
     def _validate_result(self, result: pd.DataFrame) -> None:
         failed_columns = self.df.columns.difference(result.columns)
         if len(failed_columns) > 0:
-            raise RuntimeError(
+            # defensive check
+            raise AssertionError(
                 "Groupby operation could not be performed on columns "
                 f"{failed_columns}. Please drop them before calling groupby."
             )
