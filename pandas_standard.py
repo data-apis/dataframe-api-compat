@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from pandas.api.types import is_extension_array_dtype
 import collections
-from typing import Any, Sequence, Mapping, NoReturn, Type
+from typing import Any, Sequence, Mapping, NoReturn
 
 
 class PandasNamespace:
@@ -50,7 +50,7 @@ class PandasColumn:
 
     def is_in(self, values: PandasColumn) -> PandasColumn:
         if values.dtype != self.dtype:
-            raise ValueError(f'`value` has dtype {values.dtype}, expected {self.dtype}')
+            raise ValueError(f"`value` has dtype {values.dtype}, expected {self.dtype}")
         return PandasColumn(self._series.isin(values._series))
 
     def unique(self) -> PandasColumn:
@@ -80,34 +80,40 @@ class PandasColumn:
     def __ne__(self, other: PandasColumn) -> PandasColumn:  # type: ignore[override]
         return PandasColumn(self._series != other._series)
 
-    def __ge__(self, other: PandasColumn) -> PandasColumn:  # type: ignore[override]
+    def __ge__(self, other: PandasColumn) -> PandasColumn:
         return PandasColumn(self._series >= other._series)
 
-    def __gt__(self, other: PandasColumn) -> PandasColumn:  # type: ignore[override]
+    def __gt__(self, other: PandasColumn) -> PandasColumn:
         return PandasColumn(self._series > other._series)
 
-    def __le__(self, other: PandasColumn) -> PandasColumn:  # type: ignore[override]
+    def __le__(self, other: PandasColumn) -> PandasColumn:
         return PandasColumn(self._series <= other._series)
 
     def __lt__(self, other: PandasColumn) -> PandasColumn:
         return PandasColumn(self._series < other._series)
+
     def __add__(self, other: PandasColumn) -> PandasColumn:
         return PandasColumn(self._series + other._series)
+
     def __sub__(self, other: PandasColumn) -> PandasColumn:
         return PandasColumn(self._series - other._series)
+
     def __mul__(self, other: PandasColumn) -> PandasColumn:
         return PandasColumn(self._series * other._series)
+
     def __truediv__(self, other: PandasColumn) -> PandasColumn:
         return PandasColumn(self._series / other._series)
+
     def __floordiv__(self, other: PandasColumn) -> PandasColumn:
         return PandasColumn(self._series // other._series)
+
     def __pow__(self, other: PandasColumn) -> PandasColumn:
-        return PandasColumn(self._series ** other._series)
+        return PandasColumn(self._series**other._series)
+
     def __mod__(self, other: PandasColumn) -> PandasColumn:
         return PandasColumn(self._series % other._series)
 
     def __invert__(self) -> PandasColumn:
-        # TODO: validate booleanness
         return PandasColumn(~self._series)
 
     def max(self) -> object:
