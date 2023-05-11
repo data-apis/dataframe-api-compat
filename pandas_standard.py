@@ -27,10 +27,6 @@ class PandasNamespace:
             )
         )
 
-    @classmethod
-    def column_class(cls) -> Type[PandasColumn]:
-        return PandasColumn
-
 
 class PandasColumn:
     def __init__(self, column: pd.Series) -> None:  # type: ignore[type-arg]
@@ -44,6 +40,9 @@ class PandasColumn:
 
     def __iter__(self) -> NoReturn:
         raise NotImplementedError()
+
+    def sorted_indices(self) -> PandasColumn:
+        return PandasColumn(pd.Series(self._series.argsort()))
 
     @property
     def dtype(self) -> object:
@@ -59,10 +58,6 @@ class PandasColumn:
 
     def mean(self) -> float:
         return self._series.mean()
-
-    @classmethod
-    def from_sequence(cls, array: object, dtype: str) -> PandasColumn:
-        return cls(pd.Series(array, dtype=dtype))
 
     def isnull(self) -> PandasColumn:
         if is_extension_array_dtype(self._series.dtype):
@@ -80,10 +75,36 @@ class PandasColumn:
         return self._series.all()
 
     def __eq__(self, other: PandasColumn) -> PandasColumn:  # type: ignore[override]
-        return PandasColumn(self._series == other)
+        return PandasColumn(self._series == other._series)
 
-    def __and__(self, other: PandasColumn) -> PandasColumn:
-        return PandasColumn(self._series & other._series)
+    def __ne__(self, other: PandasColumn) -> PandasColumn:  # type: ignore[override]
+        return PandasColumn(self._series != other._series)
+
+    def __ge__(self, other: PandasColumn) -> PandasColumn:  # type: ignore[override]
+        return PandasColumn(self._series >= other._series)
+
+    def __gt__(self, other: PandasColumn) -> PandasColumn:  # type: ignore[override]
+        return PandasColumn(self._series > other._series)
+
+    def __le__(self, other: PandasColumn) -> PandasColumn:  # type: ignore[override]
+        return PandasColumn(self._series <= other._series)
+
+    def __lt__(self, other: PandasColumn) -> PandasColumn:
+        return PandasColumn(self._series < other._series)
+    def __add__(self, other: PandasColumn) -> PandasColumn:
+        return PandasColumn(self._series + other._series)
+    def __sub__(self, other: PandasColumn) -> PandasColumn:
+        return PandasColumn(self._series - other._series)
+    def __mul__(self, other: PandasColumn) -> PandasColumn:
+        return PandasColumn(self._series * other._series)
+    def __truediv__(self, other: PandasColumn) -> PandasColumn:
+        return PandasColumn(self._series / other._series)
+    def __floordiv__(self, other: PandasColumn) -> PandasColumn:
+        return PandasColumn(self._series // other._series)
+    def __pow__(self, other: PandasColumn) -> PandasColumn:
+        return PandasColumn(self._series ** other._series)
+    def __mod__(self, other: PandasColumn) -> PandasColumn:
+        return PandasColumn(self._series % other._series)
 
     def __invert__(self) -> PandasColumn:
         # TODO: validate booleanness

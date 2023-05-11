@@ -55,6 +55,30 @@ def test_comparisons(comparison: str, expected_data: dict[str, object]) -> None:
     expected = pd.DataFrame(expected_data)
     pd.testing.assert_frame_equal(result, expected)
 
+@pytest.mark.parametrize(
+    ("comparison", "expected_data"),
+    [
+        ("__eq__", [True, True, False]),
+        ("__ne__", [False, False, True]),
+        ("__ge__", [True, True, False]),
+        ("__gt__", [False, False, False]),
+        ("__le__", [True, True, True]),
+        ("__lt__", [False, False, True]),
+        ("__add__", [2, 4, 7]),
+        ("__sub__", [0, 0, -1]),
+        ("__mul__", [1, 4, 12]),
+        ("__truediv__", [1, 1, 0.75]),
+        ("__floordiv__", [1, 1, 0]),
+        ("__pow__", [1, 4, 81]),
+        ("__mod__", [0, 0, 3]),
+    ],
+)
+def test_column_comparisons(comparison: str, expected_data: list[object]) -> None:
+    ser = PandasColumn(pd.Series([1, 2, 3]))
+    other = PandasColumn(pd.Series([1, 2, 4]))
+    result = getattr(ser, comparison)(other)._series
+    expected = pd.Series(expected_data)
+    pd.testing.assert_series_equal(result, expected)
 
 def test_divmod() -> None:
     df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
@@ -184,13 +208,19 @@ def test_groupby_numeric(
     pd.testing.assert_frame_equal(result, expected)
 
 
-def test_isna() -> None:
+def test_isnan() -> None:
     df = pd.DataFrame({"a": [1, 2, np.nan]})
     df_std = PandasDataFrame(df)
     result = df_std.isnan().dataframe
     expected = pd.DataFrame({"a": [False, False, True]})
     pd.testing.assert_frame_equal(result, expected)
 
+def test_column_isnan() -> None:
+    ser = pd.Series([1, 2, np.nan])
+    ser_std = PandasColumn(ser)
+    result = ser_std.isnan()._series
+    expected = pd.Series([False, False, True])
+    pd.testing.assert_series_equal(result, expected)
 
 def test_any() -> None:
     df = pd.DataFrame({"a": [False, False], "b": [False, True], "c": [True, True]})
@@ -207,6 +237,17 @@ def test_all() -> None:
     expected = pd.DataFrame({"a": [False], "b": [False], "c": [True]})
     pd.testing.assert_frame_equal(result, expected)
 
+def test_column_any() -> None:
+    ser = PandasColumn(pd.Series([False, False]))
+    result = ser.any()
+    assert result == False
+
+
+def test_column_all() -> None:
+    ser = PandasColumn(pd.Series([False, False]))
+    result = ser.all()
+    assert result == False
+
 
 @pytest.mark.parametrize(
     ("dtype", "expected_values"),
@@ -220,6 +261,17 @@ def test_isnull(dtype: str, expected_values: list[bool]) -> None:
     expected = pd.DataFrame({"a": expected_values})
     pd.testing.assert_frame_equal(result, expected)
 
+@pytest.mark.parametrize(
+    ("dtype", "expected_values"),
+    [("float64", [False, False, False]), ("Float64", [False, False, True])],
+)
+def test_column_isnull(dtype: str, expected_values: list[bool]) -> None:
+    ser = pd.Series([0.0, 1.0, np.nan], dtype=dtype)
+    ser = ser / ser
+    ser_std = PandasColumn(ser)
+    result = ser_std.isnull()._series
+    expected = pd.Series(expected_values)
+    pd.testing.assert_series_equal(result, expected)
 
 @pytest.mark.parametrize(
     ("dtype", "expected_values"),
@@ -241,6 +293,14 @@ def test_concat() -> None:
     result = namespace.concat([df1, df2]).dataframe
     expected = pd.DataFrame({"a": [1, 2, 3, 4]})
     pd.testing.assert_frame_equal(result, expected)
+
+def test_concat_mismatch() -> None:
+    df1 = PandasDataFrame(pd.DataFrame({"a": [1, 2]}))
+    df2 = PandasDataFrame(pd.DataFrame({"b": [3, 4]}))
+    namespace = df1.__dataframe_namespace__()
+    with pytest.raises(ValueError, match='Expected matching columns'):
+        result = namespace.concat([df1, df2]).dataframe
+    
 
 @pytest.mark.parametrize(
     ('ser', 'other', 'expected'),
@@ -280,3 +340,30 @@ def test_is_in_nullable_float_nan() -> None:
     result = PandasColumn(ser).is_in(values)._series
     pd.testing.assert_series_equal(result, expected)
 
+def test_is_in_raises() -> None:
+    values = PandasColumn(pd.Series([1], dtype='int64'))
+    ser = PandasColumn(pd.Series([0, None], dtype='Float64'))
+    with pytest.raises(ValueError, match='`value` has dtype int64, expected Float64'):
+        PandasColumn(ser).is_in(values)._series
+
+def test_len() -> None:
+    result = len(PandasColumn(pd.Series([1,2])))
+    assert result == 2
+
+def test_getitem() -> None:
+    result = PandasColumn(pd.Series([1,999]))[1]
+    assert result == 999
+
+def test_unique() -> None:
+    result = PandasColumn(pd.Series([1, 1, 2])).unique()._series
+    expected = pd.Series([1, 2])
+    pd.testing.assert_series_equal(result, expected)
+
+def test_mean() -> None:
+    result = PandasColumn(pd.Series([1, 1, 4])).mean()
+    assert result == 2
+    
+def test_sorted_indices() -> None:
+    result = PandasColumn(pd.Series([1, 3, 2])).sorted_indices()._series
+    expected = pd.Series([0, 2, 1])
+    pd.testing.assert_series_equal(result, expected)
