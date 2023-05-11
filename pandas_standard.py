@@ -9,11 +9,9 @@ from typing import Any, Sequence, Mapping, NoReturn
 import pandas
 
 
-def dataframe_standard(df: pd.DataFrame) -> PandasDataFrame:
-    return PandasDataFrame(df)
-
-
-pandas.DataFrame.__dataframe_standard__ = dataframe_standard  # type: ignore[attr-defined]
+pandas.DataFrame.__dataframe_standard__ = (  # type: ignore[attr-defined]
+    lambda x: PandasDataFrame(x)
+)
 
 
 class PandasNamespace:
