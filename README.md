@@ -4,30 +4,35 @@ might look like for pandas and polars.
 Example
 -------
 
-Say you want to write a function which takes a DataFrame `df` and want to split it into
-two sub-dataframes: one with rows the value of column `'x'` is `True`, and another with rows when the value
-of column `'x'` is `False`. In `pandas` this would be:
+Say you want to write a function which selects rows in a DataFrame based on whether the z-score
+of a column is between -3 and 3.
+In `pandas` you might write:
 ```python
-def split_df(df):
-    return df[df['x']], df[!df['x']]
+def remove_outliers(df: pd.DataFrame, column: str) -> pd.DataFrame:
+    z_score = (df[column] - df[column].mean())/df[column].std()
+    return df[z_score.between(-3, 3)]
 ```
-whereas in polars, this would be:
+whereas in polars, you might write:
 ```python
-def split_df(df):
-    return df.filter(pl.col('x')==True), df.filter(pl.col('x')==False)
+def remove_outliers(df: pl.DataFrame, column: str) -> pl.DataFrame:
+    z_score = ((pl.col(column) - pl.col(column).mean()) / pl.col(column).std())
+    return df.filter(z_score.is_between(-3, 3))
 ```
 
 Using the DataFrame Standard, however, it would be possible to write portable code which would work
 for both libraries, allowing library authours to write DataFrame-agnostic code!
 ```python
-def split_df(df):
-    # Note: this isn't implemented yet and is just for illustrative purposes
+def remove_outliers(df, column):
     df_standard = df.__dataframe_standard__()
-    mask = df_standard.get_column_by_name('x') == True
-    df0 = df_standard.get_rows_by_mask(mask)
-    df1 = df_standard.get_rows_by_mask(~mask)
-    return df0.dataframe, df1.dataframe
+    col = df_standard.get_column_by_name(column)
+    z_score = (col - col.mean()) / col.std()
+    return df_standard.get_rows_by_mask((z_score > -3) & (z_score < 3)).dataframe
 ```
+Not only with this work with both pandas and polars, it'll also work with any other DataFrame library
+which has an implementation of the DataFrame Standard!
+
+Note: this has not yet been upstreamed into pandas nor polars, so the snippet above does not (yet) work
+out-of-the-box.
 
 How to try this out
 -------------------
@@ -35,7 +40,7 @@ How to try this out
 Here's an example of how you can try this out:
 ```python
 import pandas as pd
-import pandas_standard
+import pandas_standard  # Necessary to monkey-patch the `__dataframe_standard__` attribute.
 
 df = pd.DataFrame({'a': [1,2,3]})
 df_std = df.__dataframe_standard__()

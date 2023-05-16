@@ -83,6 +83,34 @@ class PolarsColumn:
     def max(self) -> object:
         return self._series.max()
 
+    def std(self) -> object:
+        return self._series.std()
+
+    def __gt__(self, other: PolarsColumn) -> PolarsColumn:
+        if isinstance(other, PolarsColumn):
+            return PolarsColumn(self._series > other._series)
+        return PolarsColumn(self._series > other)
+
+    def __lt__(self, other: PolarsColumn) -> PolarsColumn:
+        if isinstance(other, PolarsColumn):
+            return PolarsColumn(self._series < other._series)
+        return PolarsColumn(self._series < other)
+
+    def __add__(self, other: PolarsColumn) -> PolarsColumn:
+        if isinstance(other, PolarsColumn):
+            return PolarsColumn(self._series + other._series)
+        return PolarsColumn(self._series + other)
+
+    def __sub__(self, other: PolarsColumn) -> PolarsColumn:
+        if isinstance(other, PolarsColumn):
+            return PolarsColumn(self._series - other._series)
+        return PolarsColumn(self._series - other)
+
+    def __truediv__(self, other: PolarsColumn) -> PolarsColumn:
+        if isinstance(other, PolarsColumn):
+            return PolarsColumn(self._series / other._series)
+        return PolarsColumn(self._series / other)
+
 
 class PolarsGroupBy:
     def __init__(self, df: pl.DataFrame, keys: Sequence[str]) -> None:

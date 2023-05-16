@@ -74,6 +74,9 @@ class PandasColumn:
     def mean(self) -> float:
         return self._series.mean()
 
+    def std(self) -> float:
+        return self._series.std()
+
     def isnull(self) -> PandasColumn:
         if is_extension_array_dtype(self._series.dtype):
             return PandasColumn(self._series.isnull())
@@ -158,6 +161,9 @@ class PandasColumn:
 
     def __invert__(self) -> PandasColumn:
         return PandasColumn(~self._series)
+
+    def __and__(self, other: PandasColumn) -> PandasColumn:
+        return PandasColumn(self._series & other._series)
 
     def max(self) -> object:
         return self._series.max()
