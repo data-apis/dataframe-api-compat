@@ -16,7 +16,7 @@ you write that?
 
 ### Solution 1
 
-To achieve this, you would typically write something like:
+You would typically write something like:
 ```python
 def remove_outliers(df: object, column: str) -> pd.DataFrame:
     if isinstance(df, pandas.DataFrame):
