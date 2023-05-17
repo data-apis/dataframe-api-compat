@@ -99,15 +99,6 @@ will behave in a strict and predictable manner across DataFrame libraries. Libra
 authours trying to write DataFrame-agnostic code are expected to greatly benefit from
 this.
 
-## How do I try this out?
-
-For now, while this is still a proof-of-concept, you can install
-```
-pip install git+https://github.com/MarcoGorelli/impl-dataframe-api
-```
-Later, we aim to get to the point where each major DataFrame library has a `__dataframe_standard__`
-method.
-
 ## Are we there yet? What lies ahead?
 
 No, not yet. This is just a first draft, and a request for comments.
@@ -118,4 +109,15 @@ Future plans include:
 - increasing the scope of the Standard (currently, the spec is very minimal);
 - creating implementations of the Standard for several major DataFrame libraries;
 - creating a cross-DataFrame test-suite;
-- making sure each major DataFrame library has a `__dataframe_standard__` method.
+- aiming to ensure each major DataFrame library has a `__dataframe_standard__` method.
+
+## Conclusion
+
+We've introduced the DataFrame Standard, which allows you to write cross-DataFrame code.
+We learned about its philosophy, as well as what it doesn't aim to be. Finally, we saw
+what plans lie ahead - the Standard is in active development, so please watch this space!
+
+## Resources
+
+- Read more on the [official website](https://data-apis.org/dataframe-api/)
+- Try out the [proof-of-concept implementation for pandas and polars](https://github.com/MarcoGorelli/impl-dataframe-api)
