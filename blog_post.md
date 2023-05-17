@@ -37,7 +37,7 @@ wouldn't work on because you didn't hard-code support for it.
 
 Can we do better?
 
-### Solution 2: interchange protocol
+### Solution 2: Interchange Protocol
 
 An alternative, which wouldn't involve special-casing, could be to
 leverage the [DataFrame interchange protocol](https://data-apis.org/dataframe-protocol/latest/index.html):
@@ -96,4 +96,6 @@ Would the DataFrame Standard help solve your problems?
 
 Future plans include:
 - increasing the scope of the Standard (currently, the spec is very minimal);
-- creating implementations of the Standard for several major DataFrame libraries.
+- creating implementations of the Standard for several major DataFrame libraries;
+- creating a cross-DataFrame test-suite;
+- making sure each major DataFrame library has a `__dataframe_standard__` method.
