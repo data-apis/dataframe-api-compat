@@ -9,10 +9,9 @@
 
 Tired of getting lost in if-then statements when dealing with API differences
 between DataFrame libraries? Would you like to be able to write your code
-once, have it be able to dispatch to virtually any DataFrame library, and
-be done?
+once, have it work with all major DataFrame libraries, and be done?
 Let's learn about an initiative which will enable you to write
-cross-DataFrame code, without special-casing and without any data conversions.
+cross-DataFrame code - no special-casing nor data conversions required!
 
 ## Why would I want this anyway?
 
@@ -23,7 +22,7 @@ you write that?
 
 ### Solution 1
 
-You would typically write something like:
+Here's a typical solution:
 ```python
 def remove_outliers(df: object, column: str) -> pd.DataFrame:
     if isinstance(df, pandas.DataFrame):
@@ -75,12 +74,14 @@ Let's see how this would look like for our ``remove_outliers`` example function:
 ```python
 def remove_outliers(df, column):
     # Get a Standard-compliant DataFrame.
+    # NOTE: this has not yet been upstreamed, so won't work out-of-the-box!
+    # See 'resources' below for how to try it out.
     df_standard = df.__dataframe_standard__()
     # Use methods from the Standard specification.
     col = df_standard.get_column_by_name(column)
     z_score = (col - col.mean()) / col.std()
     df_standard_filtered = df_standard.get_rows_by_mask((z_score > -3) & (z_score < 3))
-    # Return the result as a DataFrame from the original library
+    # Return the result as a DataFrame from the original library.
     return df_standard_filtered.dataframe
 ```
 This will work, as if by magic, on any DataFrame with a Standard-compliant implementation.
@@ -97,7 +98,7 @@ the same way across libraries, and which are accessible in a separate namespace.
 is what the Standard will be: a minimal set of essential DataFrame functionality, which
 will behave in a strict and predictable manner across DataFrame libraries. Library
 authours trying to write DataFrame-agnostic code are expected to greatly benefit from
-this.
+this, as are their users.
 
 ## Are we there yet? What lies ahead?
 
@@ -120,4 +121,4 @@ what plans lie ahead - the Standard is in active development, so please watch th
 ## Resources
 
 - Read more on the [official website](https://data-apis.org/dataframe-api/)
-- Try out the [proof-of-concept implementation for pandas and polars](https://github.com/MarcoGorelli/impl-dataframe-api)
+- Try out the [proof-of-concept implementation for pandas and polars](https://github.com/MarcoGorelli/impl-dataframe-api)!
