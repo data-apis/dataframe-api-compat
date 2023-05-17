@@ -1,5 +1,12 @@
 # DataFrame Standard: Enabling cross-DataFrame code.
 
+<h1 align="center">
+	<img
+		width="400"
+		alt="standard-compliant DataFrame"
+		src="https://github.com/MarcoGorelli/impl-dataframe-api/assets/33491632/fb4bc907-2b85-4ad7-8d13-c2b9912b97f5">
+</h1>
+
 Tired of getting lost in if-then statements when dealing with API differences
 between DataFrame libraries? Would you like to be able to write your code
 once, have it be able to dispatch to virtually any DataFrame library, and
