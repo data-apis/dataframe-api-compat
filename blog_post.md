@@ -79,6 +79,19 @@ def remove_outliers(df, column):
 This will work, as if by magic, on any DataFrame with a Standard-compliant implementation.
 But it's not magic, of course, it's the power of standardisation!
 
+## Standard Philosophy - will all DataFrame libraries have the same API one day?
+
+Let's start with what this isn't: the Standard isn't an attempt to force all DataFrame
+libraries to have the same API and do the same things. That would be near impossible,
+as they have different users with different needs and different histories.
+
+What we can do, on the other hand, is agree on a minimal set of methods which will work
+the same way across libraries, and which are accessible in a separate namespace. This
+is what the Standard will be: a minimal set of essential DataFrame functionality, which
+will behave in a strict and predictable manner across DataFrame libraries. Library
+authours trying to write DataFrame-agnostic code are expected to greatly benefit from
+this.
+
 ## How do I try this out?
 
 For now, while this is still a proof-of-concept, you can install
