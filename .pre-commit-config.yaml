@@ -31,3 +31,9 @@ repos:
     hooks:
       - id: black
         args: [--line-length=90]
+-   repo: https://github.com/codespell-project/codespell
+    rev: v2.2.4
+    hooks:
+      - id: codespell
+        files: \.(py|rst|md)$
+        args: [--ignore-words-list=ser]
