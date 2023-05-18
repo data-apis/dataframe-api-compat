@@ -4,7 +4,7 @@
 	<img
 		width="400"
 		alt="standard-compliant DataFrame"
-		src="https://github.com/MarcoGorelli/impl-dataframe-api/assets/33491632/fb4bc907-2b85-4ad7-8d13-c2b9912b97f5">
+		src="https://github.com/MarcoGorelli/impl-dataframe-api/assets/33491632/348376d8-b941-467f-bb27-7dfe889797b2">
 </h1>
 
 Tired of getting lost in if-then statements when dealing with API differences
