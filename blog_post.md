@@ -31,7 +31,7 @@ def remove_outliers(df: object, column: str) -> pd.DataFrame:
     if isinstance(df, polars.DataFrame):
         z_score = ((pl.col(column) - pl.col(column).mean()) / pl.col(column).std())
         return df.filter(z_score.is_between(-3, 3))
-    if isinsance(df, some_other_library.DataFrame):
+    if isinstance(df, some_other_library.DataFrame):
         ...
 ```
 This quickly gets unwieldy. Libraries like `cudf` and `modin` _might_ work
