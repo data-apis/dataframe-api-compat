@@ -65,7 +65,7 @@ Can we do better, and avoid these issues? Can we really have it all?
 ### Solution 3: Introducing the DataFrame Standard
 
 Yes, we really can have it all. To write cross-DataFrame code, we'll take these steps:
-1. enable the Standard using ``.__dataframe_standard__``. This will return
+1. enable the Standard using ``.__dataframe_consortium__``. This will return
    a Standard-compliant DataFrame;
 2. write your code, using the [DataFrame Standard specification](https://data-apis.org/dataframe-api/draft/API_specification/index.html)
 3. (optional) return a DataFrame from your original library by calling `.dataframe`.
@@ -76,7 +76,7 @@ def remove_outliers(df, column):
     # Get a Standard-compliant DataFrame.
     # NOTE: this has not yet been upstreamed, so won't work out-of-the-box!
     # See 'resources' below for how to try it out.
-    df_standard = df.__dataframe_standard__()
+    df_standard = df.__dataframe_consortium__()
     # Use methods from the Standard specification.
     col = df_standard.get_column_by_name(column)
     z_score = (col - col.mean()) / col.std()
@@ -111,7 +111,7 @@ Future plans include:
 - increasing the scope of the Standard (currently, the spec is very minimal);
 - creating implementations of the Standard for several major DataFrame libraries;
 - creating a cross-DataFrame test-suite;
-- aiming to ensure each major DataFrame library has a `__dataframe_standard__` method.
+- aiming to ensure each major DataFrame library has a `__dataframe_consortium__` method.
 
 ## Conclusion
 

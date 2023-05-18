@@ -9,7 +9,9 @@ def dataframe_standard(df: pl.DataFrame) -> PolarsDataFrame:
     return PolarsDataFrame(df)
 
 
-polars.DataFrame.__dataframe_standard__ = dataframe_standard  # type: ignore[attr-defined]
+polars.DataFrame.__dataframe_consortium__ = (  # type: ignore[attr-defined]
+    dataframe_standard
+)
 
 
 class PolarsNamespace:

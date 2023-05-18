@@ -9,7 +9,7 @@ from typing import Any, Sequence, Mapping, NoReturn
 import pandas
 
 
-pandas.DataFrame.__dataframe_standard__ = (  # type: ignore[attr-defined]
+pandas.DataFrame.__dataframe_consortium__ = (  # type: ignore[attr-defined]
     lambda x: PandasDataFrame(x)
 )
 
