@@ -168,6 +168,13 @@ class PandasColumn:
     def max(self) -> object:
         return self._series.max()
 
+    def fill_nan(
+        self, value: float | pd.NAType  # type: ignore[name-defined]
+    ) -> PandasColumn:
+        ser = self._series.copy()
+        ser[cast(pd.Series[bool], np.isnan(ser)).fillna(False).to_numpy(bool)] = value
+        return PandasColumn(ser)
+
 
 class PandasGroupBy:
     def __init__(self, df: pd.DataFrame, keys: Sequence[str]) -> None:

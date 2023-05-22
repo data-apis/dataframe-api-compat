@@ -552,3 +552,22 @@ def test_fill_nan() -> None:
     expected = pd.DataFrame({"a": [0.0, 1.0, -1.0], "b": [1, 2, 3]})
     expected["c"] = pd.Series([1, 2, pd.NA], dtype="Int64")
     pd.testing.assert_frame_equal(result, expected)
+
+
+@pytest.mark.parametrize(
+    ("series", "expected"),
+    [
+        (
+            pd.Series([1, 2, pd.NA], dtype="Int64"),
+            pd.Series([1, 2, pd.NA], dtype="Int64"),
+        ),
+        (
+            pd.Series([1.0, 2.0, np.nan], dtype="float64"),
+            pd.Series([1.0, 2.0, -1.0], dtype="float64"),
+        ),
+    ],
+)
+def test_column_fill_nan(series: pd.Series[float], expected: pd.Series[float]) -> None:
+    col = PandasColumn(series)
+    result = col.fill_nan(-1)._series
+    pd.testing.assert_series_equal(result, expected)
