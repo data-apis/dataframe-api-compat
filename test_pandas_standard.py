@@ -542,3 +542,13 @@ def test_all_rowwise() -> None:
     result = df.all_rowwise()._series
     expected = pd.Series([False, False])
     pd.testing.assert_series_equal(result, expected)
+
+
+def test_fill_nan() -> None:
+    df_pd = pd.DataFrame({"a": [0.0, 1.0, np.nan], "b": [1, 2, 3]})
+    df_pd["c"] = pd.Series([1, 2, pd.NA], dtype="Int64")
+    df = PandasDataFrame(df_pd)
+    result = df.fill_nan(-1).dataframe
+    expected = pd.DataFrame({"a": [0.0, 1.0, -1.0], "b": [1, 2, 3]})
+    expected["c"] = pd.Series([1, 2, pd.NA], dtype="Int64")
+    pd.testing.assert_frame_equal(result, expected)

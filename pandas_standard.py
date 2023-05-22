@@ -470,3 +470,12 @@ class PandasDataFrame:
     def sorted_indices(self, keys: Sequence[str]) -> PandasColumn:
         df = self.dataframe.loc[:, list(keys)]
         return PandasColumn(df.sort_values(keys).index.to_series())
+
+    def fill_nan(
+        self, value: float | pd.NAType  # type: ignore[name-defined]
+    ) -> PandasDataFrame:
+        df = self.dataframe.copy()
+        df[
+            np.isnan(df).fillna(False).to_numpy(bool)  # type: ignore[attr-defined]
+        ] = value
+        return PandasDataFrame(df)
