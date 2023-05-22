@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from pandas.api.types import is_extension_array_dtype
 import collections
-from typing import Any, Sequence, Mapping, NoReturn
+from typing import Any, Sequence, Mapping, NoReturn, cast
 
 import pandas
 
@@ -475,7 +475,5 @@ class PandasDataFrame:
         self, value: float | pd.NAType  # type: ignore[name-defined]
     ) -> PandasDataFrame:
         df = self.dataframe.copy()
-        df[
-            np.isnan(df).fillna(False).to_numpy(bool)  # type: ignore[attr-defined]
-        ] = value
+        df[cast(pd.DataFrame, np.isnan(df)).fillna(False).to_numpy(bool)] = value
         return PandasDataFrame(df)
