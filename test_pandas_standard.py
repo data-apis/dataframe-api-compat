@@ -147,15 +147,18 @@ def test_get_columns_by_name_invalid() -> None:
 
 def test_get_rows() -> None:
     df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
-    result = df.get_rows([0, 2]).dataframe
+    indices = PandasColumn(pd.Series([0, 2]))
+    result = df.get_rows(indices).dataframe
     expected = pd.DataFrame({"a": [1, 3], "b": [4, 6]})
     pd.testing.assert_frame_equal(result, expected)
 
 
-def test_get_rows_invalid() -> None:
-    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
-    with pytest.raises(TypeError, match="Expected Sequence of int, got <class 'int'>"):
-        df.get_rows(0)  # type: ignore[arg-type]
+def test_column_get_rows() -> None:
+    ser = PandasColumn(pd.Series([1, 2, 3]))
+    indices = PandasColumn(pd.Series([0, 2]))
+    result = ser.get_rows(indices)._series
+    expected = pd.Series([1, 3])
+    pd.testing.assert_series_equal(result, expected)
 
 
 def test_slice_rows() -> None:

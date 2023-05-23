@@ -36,6 +36,7 @@ class PandasNamespace:
 
 
 class PandasColumn:
+    # private, not technically part of the standard
     def __init__(self, column: pd.Series) -> None:  # type: ignore[type-arg]
         if (
             isinstance(column.index, pd.RangeIndex)
@@ -50,18 +51,21 @@ class PandasColumn:
     def __len__(self) -> int:
         return len(self._series)
 
-    def __getitem__(self, row: int) -> object:
-        return self._series.iloc[row]
-
     def __iter__(self) -> NoReturn:
         raise NotImplementedError()
-
-    def sorted_indices(self) -> PandasColumn:
-        return PandasColumn(pd.Series(self._series.argsort()))
 
     @property
     def dtype(self) -> object:
         return self._series.dtype
+
+    def get_rows(self, indices: PandasColumn) -> PandasColumn:
+        return PandasColumn(self._series.iloc[indices._series.to_numpy()])
+
+    def __getitem__(self, row: int) -> object:
+        return self._series.iloc[row]
+
+    def sorted_indices(self) -> PandasColumn:
+        return PandasColumn(pd.Series(self._series.argsort()))
 
     def is_in(self, values: PandasColumn) -> PandasColumn:
         if values.dtype != self.dtype:
@@ -342,10 +346,8 @@ class PandasDataFrame:
         self._validate_columns(names)
         return PandasDataFrame(self.dataframe.loc[:, list(names)])
 
-    def get_rows(self, indices: Sequence[int]) -> PandasDataFrame:
-        if not isinstance(indices, collections.abc.Sequence):
-            raise TypeError(f"Expected Sequence of int, got {type(indices)}")
-        return PandasDataFrame(self.dataframe.iloc[list(indices), :])
+    def get_rows(self, indices: PandasColumn) -> PandasDataFrame:
+        return PandasDataFrame(self.dataframe.iloc[indices._series, :])
 
     def slice_rows(self, start: int, stop: int, step: int) -> PandasDataFrame:
         return PandasDataFrame(self.dataframe.iloc[start:stop:step])
