@@ -1,4 +1,13 @@
-Work-in-progress draft of what the [DataFrame Standard](https://data-apis.org/dataframe-api/draft/index.html)
+# DataFrame Standard POC
+
+<h1 align="center">
+	<img
+		width="400"
+		alt="standard-compliant DataFrame"
+		src="https://github.com/MarcoGorelli/impl-dataframe-api/assets/33491632/fb4bc907-2b85-4ad7-8d13-c2b9912b97f5">
+</h1>
+
+Work-in-progress POC of what the [DataFrame Standard](https://data-apis.org/dataframe-api/draft/index.html)
 might look like for pandas and polars.
 
 Example
