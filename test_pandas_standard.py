@@ -12,6 +12,11 @@ import pandas_standard  # noqa
 import polars_standard  # noqa
 
 
+def pytest_generate_tests(metafunc: Any) -> None:
+    if "library" in metafunc.fixturenames:
+        metafunc.parametrize("library", ["pandas", "polars"])
+
+
 def integer_series_1(library: str) -> object:
     df: Any
     if library == "pandas":
@@ -34,6 +39,28 @@ def integer_series_2(library: str) -> object:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
+def integer_dataframe_1(library: str) -> object:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "polars":
+        df = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
+def integer_dataframe_2(library: str) -> object:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [1, 2, 4], "b": [4, 2, 6]})
+        return df.__dataframe_standard__()
+    if library == "polars":
+        df = pl.DataFrame({"a": [1, 2, 4], "b": [4, 2, 6]})
+        return df.__dataframe_standard__()
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
 def bool_dataframe_1(library: str) -> object:
     df: Any
     if library == "pandas":
@@ -45,15 +72,6 @@ def bool_dataframe_1(library: str) -> object:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-# @pytest.mark.parametrize("library", ["pandas", "polars"])
-# def test_from_dict(library: str) -> None:
-#     data = {"a": integer_series_1(library), "b": integer_series_2(library)}
-#     result = PandasDataFrame.from_dict(data)
-#     result_pd = pd.api.interchange.from_dataframe(result.dataframe)
-#     expected = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
-#     pd.testing.assert_frame_equal(result_pd, expected)
-
-
 @pytest.mark.parametrize(
     ("reduction", "expected_data"),
     [
@@ -61,7 +79,6 @@ def bool_dataframe_1(library: str) -> object:
         ("all", {"a": [False], "b": [True]}),
     ],
 )
-@pytest.mark.parametrize("library", ["pandas", "polars"])
 def test_reductions(
     library: str, reduction: str, expected_data: dict[str, object]
 ) -> None:
@@ -92,12 +109,17 @@ def test_reductions(
         ("__mod__", {"a": [0, 0, 3], "b": [0, 1, 0]}),
     ],
 )
-def test_comparisons(comparison: str, expected_data: dict[str, object]) -> None:
-    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
-    other = PandasDataFrame(pd.DataFrame({"a": [1, 2, 4], "b": [4, 2, 6]}))
-    result = getattr(df, comparison)(other).dataframe
+def test_comparisons(
+    library: str, comparison: str, expected_data: dict[str, object]
+) -> None:
+    df = integer_dataframe_1(library)
+    other = integer_dataframe_2(library)
+    result = getattr(df, comparison)(other)
+    result_pd = pd.api.interchange.from_dataframe(  # type: ignore[attr-defined]
+        result.dataframe
+    )
     expected = pd.DataFrame(expected_data)
-    pd.testing.assert_frame_equal(result, expected)
+    pd.testing.assert_frame_equal(result_pd, expected)
 
 
 @pytest.mark.parametrize(
