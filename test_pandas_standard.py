@@ -8,6 +8,8 @@ import pytest
 import pandas as pd
 import polars as pl
 from pandas_standard import PandasColumn, PandasDataFrame
+import pandas_standard  # noqa
+import polars_standard  # noqa
 
 
 def integer_series_1(library: str) -> object:
