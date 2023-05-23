@@ -235,6 +235,12 @@ class PolarsDataFrame:
             result[column] = self.dataframe[column].is_null()
         return PolarsDataFrame(pl.DataFrame(result))
 
+    def any(self) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.select(pl.col("*").any()))
+
+    def all(self) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.select(pl.col("*").all()))
+
     def any_rowwise(self) -> PolarsColumn:
         # self._validate_booleanness()
         return PolarsColumn(self.dataframe.select(pl.any(pl.col("*")))["any"])
