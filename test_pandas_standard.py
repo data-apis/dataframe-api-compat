@@ -1,4 +1,5 @@
 # todo: test that errors are appropriately raised when calls violate standard
+from __future__ import annotations
 
 import numpy as np
 import pytest
@@ -24,7 +25,7 @@ def test_from_dict() -> None:
 )
 def test_reductions(reduction: str, expected_data: dict[str, object]) -> None:
     df = pd.DataFrame({"a": [True, True, False], "b": [True, True, True]})
-    dfstd = df.__dataframe_consortium__()  # type: ignore[operator]
+    dfstd = df.__dataframe_standard__()  # type: ignore[operator]
     result = getattr(dfstd, reduction)().dataframe
     expected = pd.DataFrame(expected_data)
     pd.testing.assert_frame_equal(result, expected)
@@ -287,7 +288,7 @@ def test_groupby_numeric(
 
 def test_isnan_nan() -> None:
     df = pd.DataFrame({"a": [1, 2, np.nan]})
-    df_std = df.__dataframe_consortium__()  # type: ignore[operator]
+    df_std = df.__dataframe_standard__()  # type: ignore[operator]
     result = df_std.isnan().dataframe
     expected = pd.DataFrame({"a": [False, False, True]})
     pd.testing.assert_frame_equal(result, expected)
@@ -303,7 +304,7 @@ def test_column_isnan() -> None:
 
 def test_any() -> None:
     df = pd.DataFrame({"a": [False, False], "b": [False, True], "c": [True, True]})
-    df_std = df.__dataframe_consortium__()  # type: ignore[operator]
+    df_std = df.__dataframe_standard__()  # type: ignore[operator]
     result = df_std.any().dataframe
     expected = pd.DataFrame({"a": [False], "b": [True], "c": [True]})
     pd.testing.assert_frame_equal(result, expected)
@@ -311,7 +312,7 @@ def test_any() -> None:
 
 def test_all() -> None:
     df = pd.DataFrame({"a": [False, False], "b": [False, True], "c": [True, True]})
-    df_std = df.__dataframe_consortium__()  # type: ignore[operator]
+    df_std = df.__dataframe_standard__()  # type: ignore[operator]
     result = df_std.all().dataframe
     expected = pd.DataFrame({"a": [False], "b": [False], "c": [True]})
     pd.testing.assert_frame_equal(result, expected)
@@ -336,7 +337,7 @@ def test_column_all() -> None:
 def test_isnull(dtype: str, expected_values: list[bool]) -> None:
     df = pd.DataFrame({"a": [0.0, 1.0, np.nan]}, dtype=dtype)
     df = df / df
-    df_std = df.__dataframe_consortium__()  # type: ignore[operator]
+    df_std = df.__dataframe_standard__()  # type: ignore[operator]
     result = df_std.isnull().dataframe
     expected = pd.DataFrame({"a": expected_values})
     pd.testing.assert_frame_equal(result, expected)
@@ -362,7 +363,7 @@ def test_column_isnull(dtype: str, expected_values: list[bool]) -> None:
 def test_isnan(dtype: str, expected_values: list[bool]) -> None:
     df = pd.DataFrame({"a": [0.0, 1.0, np.nan]}, dtype=dtype)
     df = df / df
-    df_std = df.__dataframe_consortium__()  # type: ignore[operator]
+    df_std = df.__dataframe_standard__()  # type: ignore[operator]
     result = df_std.isnan().dataframe
     expected = pd.DataFrame({"a": expected_values})
     pd.testing.assert_frame_equal(result, expected)
@@ -567,7 +568,9 @@ def test_fill_nan() -> None:
         ),
     ],
 )
-def test_column_fill_nan(series: pd.Series[float], expected: pd.Series[float]) -> None:
+def test_column_fill_nan(
+    series: "pd.Series[float]", expected: "pd.Series[float]"
+) -> None:
     col = PandasColumn(series)
     result = col.fill_nan(-1)._series
     pd.testing.assert_series_equal(result, expected)

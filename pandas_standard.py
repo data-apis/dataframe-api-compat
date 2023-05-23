@@ -9,7 +9,7 @@ from typing import Any, Sequence, Mapping, NoReturn, cast
 import pandas
 
 
-pandas.DataFrame.__dataframe_consortium__ = (  # type: ignore[attr-defined]
+pandas.DataFrame.__dataframe_standard__ = (  # type: ignore[attr-defined]
     lambda x: PandasDataFrame(x)
 )
 
@@ -172,7 +172,7 @@ class PandasColumn:
         self, value: float | pd.NAType  # type: ignore[name-defined]
     ) -> PandasColumn:
         ser = self._series.copy()
-        ser[cast(pd.Series[bool], np.isnan(ser)).fillna(False).to_numpy(bool)] = value
+        ser[cast("pd.Series[bool]", np.isnan(ser)).fillna(False).to_numpy(bool)] = value
         return PandasColumn(ser)
 
 

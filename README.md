@@ -23,7 +23,7 @@ Using the DataFrame Standard, however, it would be possible to write portable co
 for both libraries, allowing library authours to write DataFrame-agnostic code!
 ```python
 def remove_outliers(df, column):
-    df_standard = df.__dataframe_consortium__()
+    df_standard = df.__dataframe_standard__()
     col = df_standard.get_column_by_name(column)
     z_score = (col - col.mean()) / col.std()
     return df_standard.get_rows_by_mask((z_score > -3) & (z_score < 3)).dataframe
@@ -40,10 +40,10 @@ How to try this out
 Here's an example of how you can try this out:
 ```python
 import pandas as pd
-import pandas_standard  # Necessary to monkey-patch the `__dataframe_consortium__` attribute.
+import pandas_standard  # Necessary to monkey-patch the `__dataframe_standard__` attribute.
 
 df = pd.DataFrame({'a': [1,2,3]})
-df_std = df.__dataframe_consortium__()
+df_std = df.__dataframe_standard__()
 ```
 The object `df_std` is a Standard-compliant DataFrame.
 
