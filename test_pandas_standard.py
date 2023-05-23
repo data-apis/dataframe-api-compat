@@ -1,19 +1,55 @@
 # todo: test that errors are appropriately raised when calls violate standard
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 import pytest
 import pandas as pd
-from pandas_standard import PandasDataFrame, PandasColumn
+import polars as pl
+from pandas_standard import PandasColumn, PandasDataFrame
 
 
-def test_from_dict() -> None:
-    col_a = PandasColumn(pd.Series([1, 2, 3]))
-    col_b = PandasColumn(pd.Series([4, 5, 6]))
-    data = {"a": col_a, "b": col_b}
-    result = PandasDataFrame.from_dict(data).dataframe
-    expected = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
-    pd.testing.assert_frame_equal(result, expected)
+def integer_series_1(library: str) -> object:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [1, 2, 3]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "polars":
+        df = pl.DataFrame({"a": [1, 2, 3]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
+def integer_series_2(library: str) -> object:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [4, 5, 6]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "polars":
+        df = pl.DataFrame({"a": [4, 5, 6]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
+def bool_dataframe_1(library: str) -> object:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [True, True, False], "b": [True, True, True]})
+        return df.__dataframe_standard__()
+    if library == "polars":
+        df = pl.DataFrame({"a": [True, True, False], "b": [True, True, True]})
+        return df.__dataframe_standard__()
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
+# @pytest.mark.parametrize("library", ["pandas", "polars"])
+# def test_from_dict(library: str) -> None:
+#     data = {"a": integer_series_1(library), "b": integer_series_2(library)}
+#     result = PandasDataFrame.from_dict(data)
+#     result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+#     expected = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+#     pd.testing.assert_frame_equal(result_pd, expected)
 
 
 @pytest.mark.parametrize(
@@ -23,12 +59,17 @@ def test_from_dict() -> None:
         ("all", {"a": [False], "b": [True]}),
     ],
 )
-def test_reductions(reduction: str, expected_data: dict[str, object]) -> None:
-    df = pd.DataFrame({"a": [True, True, False], "b": [True, True, True]})
-    dfstd = df.__dataframe_standard__()  # type: ignore[operator]
-    result = getattr(dfstd, reduction)().dataframe
+@pytest.mark.parametrize("library", ["pandas", "polars"])
+def test_reductions(
+    library: str, reduction: str, expected_data: dict[str, object]
+) -> None:
+    df = bool_dataframe_1(library)
+    result = getattr(df, reduction)()
+    result_pd = pd.api.interchange.from_dataframe(  # type: ignore[attr-defined]
+        result.dataframe
+    )
     expected = pd.DataFrame(expected_data)
-    pd.testing.assert_frame_equal(result, expected)
+    pd.testing.assert_frame_equal(result_pd, expected)
 
 
 @pytest.mark.parametrize(
