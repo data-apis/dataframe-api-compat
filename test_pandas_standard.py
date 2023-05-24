@@ -222,11 +222,16 @@ def test_divmod(library: str) -> None:
     pd.testing.assert_frame_equal(result_remainder_pd, expected_remainder)
 
 
-def test_get_column_by_name() -> None:
-    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
-    result = df.get_column_by_name("a")._series
-    expected = pd.Series([1, 2, 3], name="a")
-    pd.testing.assert_series_equal(expected, result)
+def test_get_column_by_name(library: str) -> None:
+    df = integer_dataframe_1(library)
+    result = df.get_column_by_name("a")
+    namespace = df.__dataframe_namespace__()
+    result = namespace.dataframe_from_dict({"result": result})
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)[  # type: ignore
+        "result"
+    ]
+    expected = pd.Series([1, 2, 3], name="result")
+    pd.testing.assert_series_equal(result_pd, expected)
 
 
 def test_get_column_by_name_invalid() -> None:
