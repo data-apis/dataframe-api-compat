@@ -234,31 +234,34 @@ def test_get_column_by_name(library: str) -> None:
     pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_get_column_by_name_invalid() -> None:
-    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
-    with pytest.raises(TypeError, match=r"Expected str, got: <class \'list\'>"):
-        df.get_column_by_name([True, False])  # type: ignore[arg-type]
+def test_get_column_by_name_invalid(library: str) -> None:
+    df = integer_dataframe_1(library)
+    with pytest.raises(ValueError):
+        df.get_column_by_name([True, False])
 
 
-def test_get_columns_by_name() -> None:
-    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
+def test_get_columns_by_name(library: str) -> None:
+    df = integer_dataframe_1(library)
     result = df.get_columns_by_name(["b"]).dataframe
+    result_pd = pd.api.interchange.from_dataframe(result)  # type: ignore[attr-defined]
     expected = pd.DataFrame({"b": [4, 5, 6]})
-    pd.testing.assert_frame_equal(result, expected)
+    pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_get_columns_by_name_invalid() -> None:
-    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
+def test_get_columns_by_name_invalid(library: str) -> None:
+    df = integer_dataframe_1(library)
     with pytest.raises(TypeError, match=r"Expected sequence of str, got <class \'str\'>"):
         df.get_columns_by_name("b")
 
 
-def test_get_rows() -> None:
-    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
-    indices = PandasColumn(pd.Series([0, 2]))
+def test_get_rows(library: str) -> None:
+    df = integer_dataframe_1(library)
+    namespace = df.__dataframe_namespace__()
+    indices = namespace.column_from_sequence([0, 2], dtype="int64")
     result = df.get_rows(indices).dataframe
+    result_pd = pd.api.interchange.from_dataframe(result)  # type: ignore[attr-defined]
     expected = pd.DataFrame({"a": [1, 3], "b": [4, 6]})
-    pd.testing.assert_frame_equal(result, expected)
+    pd.testing.assert_frame_equal(result_pd, expected)
 
 
 def test_column_get_rows() -> None:

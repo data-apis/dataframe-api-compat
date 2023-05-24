@@ -35,6 +35,10 @@ class PandasNamespace:
         )
 
     @classmethod
+    def column_from_sequence(cls, sequence: Sequence[object], dtype: str) -> PandasColumn:
+        return PandasColumn(pd.Series(sequence, dtype=dtype))
+
+    @classmethod
     def dataframe_from_dict(cls, data: dict[str, PandasColumn]) -> PandasDataFrame:
         return PandasDataFrame(
             pd.DataFrame({label: column._series for label, column in data.items()})
@@ -341,7 +345,7 @@ class PandasDataFrame:
 
     def get_column_by_name(self, name: str) -> PandasColumn:
         if not isinstance(name, str):
-            raise TypeError(f"Expected str, got: {type(name)}")
+            raise ValueError(f"Expected str, got: {type(name)}")
         return PandasColumn(self.dataframe.loc[:, name])
 
     def get_columns_by_name(self, names: Sequence[str]) -> PandasDataFrame:

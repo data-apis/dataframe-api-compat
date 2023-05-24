@@ -11,6 +11,11 @@ def dataframe_standard(df: pl.DataFrame) -> PolarsDataFrame:
 
 polars.DataFrame.__dataframe_standard__ = dataframe_standard  # type: ignore[attr-defined]
 
+DTYPE_MAPPING = {  # todo, expand
+    "int64": pl.Int64,
+    "float64": pl.Float64,
+}
+
 
 class PolarsNamespace:
     @classmethod
@@ -25,6 +30,10 @@ class PolarsNamespace:
         return PolarsDataFrame(
             pl.DataFrame({label: column._series for label, column in data.items()})
         )
+
+    @classmethod
+    def column_from_sequence(cls, sequence: Sequence[object], dtype: str) -> PolarsColumn:
+        return PolarsColumn(pl.Series(sequence, dtype=DTYPE_MAPPING[dtype]))
 
 
 class PolarsColumn:
@@ -49,15 +58,6 @@ class PolarsColumn:
 
     def mean(self) -> object:
         return self._series.mean()
-
-    @classmethod
-    def from_sequence(cls, array: Sequence[object], dtype: str) -> PolarsColumn:
-        # TODO: pending agreement on how to specify dtypes
-        dtype_map = {
-            "int64": pl.Int64,
-            "float64": pl.Float64,
-        }
-        return cls(pl.Series(array, dtype=dtype_map[dtype]))
 
     def isnull(self) -> PolarsColumn:
         return PolarsColumn(self._series.is_null())
@@ -231,6 +231,8 @@ class PolarsDataFrame:
         return PolarsColumn(self.df[name])
 
     def get_columns_by_name(self, names: Sequence[str]) -> PolarsDataFrame:
+        if isinstance(names, str):
+            raise TypeError(f"Expected sequence of str, got {type(names)}")
         return PolarsDataFrame(self.df.select(names))
 
     def get_rows(self, indices: PolarsColumn) -> PolarsDataFrame:
