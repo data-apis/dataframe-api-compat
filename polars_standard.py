@@ -229,6 +229,45 @@ class PolarsDataFrame:
     def get_column_names(self) -> Sequence[str]:
         return self.df.columns
 
+    def __eq__(self, other: PolarsDataFrame) -> PolarsDataFrame:  # type: ignore[override]
+        return PolarsDataFrame(self.dataframe.__eq__(other.dataframe))
+
+    def __ne__(self, other: PolarsDataFrame) -> PolarsDataFrame:  # type: ignore[override]
+        return PolarsDataFrame(self.dataframe.__ne__(other.dataframe))
+
+    def __ge__(self, other: PolarsDataFrame) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.__ge__(other.dataframe))
+
+    def __gt__(self, other: PolarsDataFrame) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.__gt__(other.dataframe))
+
+    def __le__(self, other: PolarsDataFrame) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.__le__(other.dataframe))
+
+    def __lt__(self, other: PolarsDataFrame) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.__lt__(other.dataframe))
+
+    def __add__(self, other: PolarsDataFrame) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.__add__(other.dataframe))
+
+    def __sub__(self, other: PolarsDataFrame) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.__sub__(other.dataframe))
+
+    def __mul__(self, other: PolarsDataFrame) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.__mul__(other.dataframe))
+
+    def __truediv__(self, other: PolarsDataFrame) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.__truediv__(other.dataframe))
+
+    def __floordiv__(self, other: PolarsDataFrame) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.__floordiv__(other.dataframe))
+
+    def __pow__(self, other: PolarsDataFrame) -> PolarsDataFrame:
+        raise NotImplementedError()
+
+    def __mod__(self, other: PolarsDataFrame) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.__mod__(other.dataframe))
+
     def isnull(self) -> PolarsDataFrame:
         result = {}
         for column in self.dataframe.columns:
