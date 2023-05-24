@@ -309,6 +309,14 @@ class PolarsDataFrame:
     def __mod__(self, other: PolarsDataFrame) -> PolarsDataFrame:
         return PolarsDataFrame(self.dataframe.__mod__(other.dataframe))
 
+    def __divmod__(
+        self,
+        other: PolarsDataFrame,
+    ) -> tuple[PolarsDataFrame, PolarsDataFrame]:
+        quotient = self // other
+        remainder = self - quotient * other
+        return quotient, remainder
+
     def isnull(self) -> PolarsDataFrame:
         result = {}
         for column in self.dataframe.columns:

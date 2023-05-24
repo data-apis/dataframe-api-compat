@@ -50,7 +50,7 @@ def integer_series_3(library: str) -> object:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def integer_dataframe_1(library: str) -> object:
+def integer_dataframe_1(library: str) -> Any:
     df: Any
     if library == "pandas":
         df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
@@ -61,7 +61,7 @@ def integer_dataframe_1(library: str) -> object:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def integer_dataframe_2(library: str) -> object:
+def integer_dataframe_2(library: str) -> Any:
     df: Any
     if library == "pandas":
         df = pd.DataFrame({"a": [1, 2, 4], "b": [4, 2, 6]})
@@ -188,22 +188,38 @@ def test_column_comparisons(
         ("__mod__", [1, 2, 0]),
     ],
 )
-def test_column_comparisons_scalar(comparison: str, expected_data: list[object]) -> None:
-    ser = PandasColumn(pd.Series([1, 2, 3]))
+def test_column_comparisons_scalar(
+    library: str, comparison: str, expected_data: list[object]
+) -> None:
+    ser: Any
+    ser = integer_series_1(library)
     other = 3
-    result = getattr(ser, comparison)(other)._series
-    expected = pd.Series(expected_data)
-    pd.testing.assert_series_equal(result, expected)
+    namespace = ser.__dataframe_namespace__()
+    result = namespace.dataframe_from_dict({"result": getattr(ser, comparison)(other)})
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)[  # type: ignore
+        "result"
+    ]
+    expected = pd.Series(expected_data, name="result")
+    if library == "polars" and comparison == "__pow__":
+        # todo: what should the type be?
+        result_pd = result_pd.astype("int64")
+    pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_divmod() -> None:
-    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
-    other = PandasDataFrame(pd.DataFrame({"a": [1, 2, 4], "b": [4, 2, 6]}))
+def test_divmod(library: str) -> None:
+    df = integer_dataframe_1(library)
+    other = integer_dataframe_2(library)
     result_quotient, result_remainder = df.__divmod__(other)
+    result_quotient_pd = pd.api.interchange.from_dataframe(  # type: ignore[attr-defined]
+        result_quotient.dataframe
+    )
+    result_remainder_pd = pd.api.interchange.from_dataframe(  # type: ignore[attr-defined]
+        result_remainder.dataframe
+    )
     expected_quotient = pd.DataFrame({"a": [1, 1, 0], "b": [1, 2, 1]})
     expected_remainder = pd.DataFrame({"a": [0, 0, 3], "b": [0, 1, 0]})
-    pd.testing.assert_frame_equal(result_quotient.dataframe, expected_quotient)
-    pd.testing.assert_frame_equal(result_remainder.dataframe, expected_remainder)
+    pd.testing.assert_frame_equal(result_quotient_pd, expected_quotient)
+    pd.testing.assert_frame_equal(result_remainder_pd, expected_remainder)
 
 
 def test_get_column_by_name() -> None:
