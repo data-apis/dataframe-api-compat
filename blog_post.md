@@ -101,6 +101,15 @@ will behave in a strict and predictable manner across DataFrame libraries. Libra
 authours trying to write DataFrame-agnostic code are expected to greatly benefit from
 this, as are their users.
 
+## Who's this for? Do I need to learn yet another API?
+
+Probably not. The DataFrame Standard is mainly targeted towards library developers,
+who wish to target multiple DataFrame types. For example, a feature engineering
+library could well want to support multiple DataFrame libraries. Given that people
+doing machine learning are probably working with huge datasets, the overhead of
+converting to pandas might be quite high for them - so, allowing the library to
+write DataFrame-agnostic code would be a win for non-pandas users.
+
 ## Are we there yet? What lies ahead?
 
 No, not yet. This is just a first draft, and a request for comments.
