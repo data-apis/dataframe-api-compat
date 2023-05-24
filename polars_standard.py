@@ -263,7 +263,11 @@ class PolarsDataFrame:
         return PolarsDataFrame(self.dataframe.__floordiv__(other.dataframe))
 
     def __pow__(self, other: PolarsDataFrame) -> PolarsDataFrame:
-        raise NotImplementedError()
+        return PolarsDataFrame(
+            self.dataframe.select(
+                [pl.col(col).pow(other.dataframe[col]) for col in self.get_column_names()]
+            )
+        )
 
     def __mod__(self, other: PolarsDataFrame) -> PolarsDataFrame:
         return PolarsDataFrame(self.dataframe.__mod__(other.dataframe))

@@ -112,15 +112,13 @@ def test_reductions(
 def test_comparisons(
     library: str, comparison: str, expected_data: dict[str, object]
 ) -> None:
-    if library == "polars" and comparison == "__pow__":
-        # Not implemented
-        return
     df = integer_dataframe_1(library)
     other = integer_dataframe_2(library)
-    result = getattr(df, comparison)(other)
-    result_pd = pd.api.interchange.from_dataframe(  # type: ignore[attr-defined]
-        result.dataframe
-    )
+    result = getattr(df, comparison)(other).dataframe
+    if library == "polars" and comparison == "__pow__":
+        # Is this right? Might need fixing upstream.
+        result = result.select(pl.col("*").cast(pl.Int64))
+    result_pd = pd.api.interchange.from_dataframe(result)  # type: ignore[attr-defined]
     expected = pd.DataFrame(expected_data)
     pd.testing.assert_frame_equal(result_pd, expected)
 
