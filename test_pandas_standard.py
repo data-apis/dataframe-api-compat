@@ -39,6 +39,17 @@ def integer_series_2(library: str) -> object:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
+def integer_series_3(library: str) -> object:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [1, 2, 4]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "polars":
+        df = pl.DataFrame({"a": [1, 2, 4]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
 def integer_dataframe_1(library: str) -> object:
     df: Any
     if library == "pandas":
@@ -141,12 +152,22 @@ def test_comparisons(
         ("__mod__", [0, 0, 3]),
     ],
 )
-def test_column_comparisons(comparison: str, expected_data: list[object]) -> None:
-    ser = PandasColumn(pd.Series([1, 2, 3]))
-    other = PandasColumn(pd.Series([1, 2, 4]))
-    result = getattr(ser, comparison)(other)._series
-    expected = pd.Series(expected_data)
-    pd.testing.assert_series_equal(result, expected)
+def test_column_comparisons(
+    library: str, comparison: str, expected_data: list[object]
+) -> None:
+    ser: Any
+    ser = integer_series_1(library)
+    other = integer_series_3(library)
+    namespace = ser.__dataframe_namespace__()
+    result = namespace.dataframe_from_dict({"result": getattr(ser, comparison)(other)})
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)[  # type: ignore
+        "result"
+    ]
+    expected = pd.Series(expected_data, name="result")
+    if library == "polars" and comparison == "__pow__":
+        # todo: what should the type be?
+        result_pd = result_pd.astype("int64")
+    pd.testing.assert_series_equal(result_pd, expected)
 
 
 @pytest.mark.parametrize(

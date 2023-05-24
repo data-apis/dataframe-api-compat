@@ -34,6 +34,12 @@ class PandasNamespace:
             )
         )
 
+    @classmethod
+    def dataframe_from_dict(cls, data: dict[str, PandasColumn]) -> PandasDataFrame:
+        return PandasDataFrame(
+            pd.DataFrame({label: column._series for label, column in data.items()})
+        )
+
 
 class PandasColumn:
     # private, not technically part of the standard
@@ -47,6 +53,10 @@ class PandasColumn:
             self._series = column
         else:
             self._series = column.reset_index(drop=True)
+
+    # In the standard
+    def __dataframe_namespace__(self, *, api_version: str | None = None) -> Any:
+        return PandasNamespace
 
     def __len__(self) -> int:
         return len(self._series)
@@ -318,12 +328,6 @@ class PandasDataFrame:
 
     def shape(self) -> tuple[int, int]:
         return self.dataframe.shape
-
-    @classmethod
-    def from_dict(cls, data: dict[str, PandasColumn]) -> PandasDataFrame:
-        return cls(
-            pd.DataFrame({label: column._series for label, column in data.items()})
-        )
 
     def groupby(self, keys: Sequence[str]) -> PandasGroupBy:
         if not isinstance(keys, collections.abc.Sequence):
