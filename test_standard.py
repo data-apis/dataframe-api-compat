@@ -258,10 +258,14 @@ def test_get_rows(library: str) -> None:
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
     indices = namespace.column_from_sequence([0, 2], dtype="int64")
+    # solution 1: (using interchange protocol)
     result = df.get_rows(indices).dataframe
     result_pd = pd.api.interchange.from_dataframe(result)  # type: ignore[attr-defined]
     expected = pd.DataFrame({"a": [1, 3], "b": [4, 6]})
     pd.testing.assert_frame_equal(result_pd, expected)
+    # solution 2:
+    result = df.get_rows(indices)
+    assert result.schema == {"a": namespace.Int64, "b": namespace.Int64}
 
 
 def test_column_get_rows() -> None:
