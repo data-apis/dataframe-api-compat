@@ -352,10 +352,10 @@ def test_drop_column(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_drop_column_invalid() -> None:
-    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
+def test_drop_column_invalid(library: str) -> None:
+    df = integer_dataframe_1(library)
     with pytest.raises(TypeError, match="Expected str, got: <class 'list'>"):
-        df.drop_column(["a"])  # type: ignore[arg-type]
+        df.drop_column(["a"])
 
 
 def test_rename_columns() -> None:
