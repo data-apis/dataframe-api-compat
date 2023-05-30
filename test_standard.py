@@ -333,12 +333,12 @@ def test_get_rows_by_mask(library: str) -> None:
 
 def test_insert(library: str) -> None:
     df = integer_dataframe_1(library)
-    new_col = integer_series_2(library)
+    new_col = integer_series_3(library)
     result = df.insert(1, "c", new_col)
-    result_pd = pd.api.interchange.from_data(  # type: ignore[attr-defined]
+    result_pd = pd.api.interchange.from_dataframe(  # type: ignore[attr-defined]
         result.dataframe
     )
-    expected = pd.DataFrame({"a": [1, 2, 3], "c": [7, 8, 9], "b": [4, 5, 6]})
+    expected = pd.DataFrame({"a": [1, 2, 3], "c": [1, 2, 4], "b": [4, 5, 6]})
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
