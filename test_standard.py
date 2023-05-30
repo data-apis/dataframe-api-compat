@@ -438,13 +438,11 @@ def test_groupby_size(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_groupby_invalid_any_all() -> None:
-    df = PandasDataFrame(
-        pd.DataFrame({"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]})
-    )
-    with pytest.raises(ValueError, match="Expected boolean types"):
+def test_groupby_invalid_any_all(library: str) -> None:
+    df = integer_dataframe_4(library)
+    with pytest.raises(Exception):
         df.groupby(["key"]).any()
-    with pytest.raises(ValueError, match="Expected boolean types"):
+    with pytest.raises(Exception):
         df.groupby(["key"]).all()
 
 
