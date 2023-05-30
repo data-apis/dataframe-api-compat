@@ -49,6 +49,15 @@ def integer_series_3(library: str) -> object:
         return df.__dataframe_standard__().get_column_by_name("a")
     raise AssertionError(f"Got unexpected library: {library}")
 
+def integer_series_4(library: str) -> object:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [0, 2]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "polars":
+        df = pl.DataFrame({"a": [0, 2]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    raise AssertionError(f"Got unexpected library: {library}")
 
 def integer_dataframe_1(library: str) -> Any:
     df: Any
@@ -165,7 +174,7 @@ def test_column_comparisons(
     ]
     expected = pd.Series(expected_data, name="result")
     if library == "polars" and comparison == "__pow__":
-        # todo: what should the type be?
+        # todo: fix
         result_pd = result_pd.astype("int64")
     pd.testing.assert_series_equal(result_pd, expected)
 
@@ -201,7 +210,7 @@ def test_column_comparisons_scalar(
     ]
     expected = pd.Series(expected_data, name="result")
     if library == "polars" and comparison == "__pow__":
-        # todo: what should the type be?
+        # todo: fix
         result_pd = result_pd.astype("int64")
     pd.testing.assert_series_equal(result_pd, expected)
 
@@ -264,12 +273,16 @@ def test_get_rows(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_column_get_rows() -> None:
-    ser = PandasColumn(pd.Series([1, 2, 3]))
-    indices = PandasColumn(pd.Series([0, 2]))
-    result = ser.get_rows(indices)._series
-    expected = pd.Series([1, 3])
-    pd.testing.assert_series_equal(result, expected)
+def test_column_get_rows(library: str) -> None:
+    ser = integer_series_1(library)
+    indices = integer_series_4(library)
+    namespace = ser.__dataframe_namespace__()
+    result = namespace.dataframe_from_dict({'result': ser.get_rows(indices)})
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)[  # type: ignore
+        "result"
+    ]
+    expected = pd.Series([1, 3], name='result')
+    pd.testing.assert_series_equal(result_pd, expected)
 
 
 def test_slice_rows() -> None:

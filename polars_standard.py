@@ -47,6 +47,9 @@ class PolarsColumn:
     def __len__(self) -> int:
         return len(self._series)
 
+    def get_rows(self, indices: PolarsColumn) -> PolarsColumn:
+        return PolarsColumn(self._series[indices._series.to_numpy()])
+
     def __getitem__(self, row: int) -> object:
         return self._series[row]
 
