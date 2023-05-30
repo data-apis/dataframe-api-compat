@@ -61,7 +61,7 @@ def integer_series_4(library: str) -> object:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def bool_series_4(library: str) -> object:
+def bool_series_1(library: str) -> object:
     df: Any
     if library == "pandas":
         df = pd.DataFrame({"a": [True, False, True]})
@@ -322,10 +322,13 @@ def test_slice_rows(library: str) -> None:
 
 def test_get_rows_by_mask(library: str) -> None:
     df = integer_dataframe_1(library)
-    mask = PandasColumn(pd.Series([True, False, True]))
-    result = df.get_rows_by_mask(mask).dataframe
+    mask = bool_series_1(library)
+    result = df.get_rows_by_mask(mask)
+    result_pd = pd.api.interchange.from_dataframe(  # type: ignore[attr-defined]
+        result.dataframe
+    )
     expected = pd.DataFrame({"a": [1, 3], "b": [4, 6]})
-    pd.testing.assert_frame_equal(result, expected)
+    pd.testing.assert_frame_equal(result_pd, expected)
 
 
 def test_insert() -> None:
