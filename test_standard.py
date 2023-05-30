@@ -423,13 +423,19 @@ def test_groupby_boolean(
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_groupby_size() -> None:
-    df = PandasDataFrame(
-        pd.DataFrame({"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]})
+def test_groupby_size(library: str) -> None:
+    df = integer_dataframe_4(library)
+    result = df.groupby(["key"]).size()
+    # got to sort
+    idx = result.sorted_indices(["key"])
+    result = result.get_rows(idx)
+    result_pd = pd.api.interchange.from_dataframe(  # type: ignore[attr-defined]
+        result.dataframe
     )
-    result = df.groupby(["key"]).size().dataframe
     expected = pd.DataFrame({"key": [1, 2], "size": [2, 2]})
-    pd.testing.assert_frame_equal(result, expected)
+    # TODO polars returns uint32. what do we standardise to?
+    result_pd["size"] = result_pd["size"].astype("int64")
+    pd.testing.assert_frame_equal(result_pd, expected)
 
 
 def test_groupby_invalid_any_all() -> None:
