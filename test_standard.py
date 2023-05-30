@@ -331,12 +331,15 @@ def test_get_rows_by_mask(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_insert() -> None:
-    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
-    new_col = PandasColumn(pd.Series([7, 8, 9]))
-    result = df.insert(1, "c", new_col).dataframe
+def test_insert(library: str) -> None:
+    df = integer_dataframe_1(library)
+    new_col = integer_series_2(library)
+    result = df.insert(1, "c", new_col)
+    result_pd = pd.api.interchange.from_data(  # type: ignore[attr-defined]
+        result.dataframe
+    )
     expected = pd.DataFrame({"a": [1, 2, 3], "c": [7, 8, 9], "b": [4, 5, 6]})
-    pd.testing.assert_frame_equal(result, expected)
+    pd.testing.assert_frame_equal(result_pd, expected)
 
 
 def test_drop_column() -> None:
