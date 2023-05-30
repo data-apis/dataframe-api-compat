@@ -127,6 +127,17 @@ def nan_dataframe(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
+def nan_column(library: str) -> Any:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [1.0, 2.0, float("nan")]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "polars":
+        df = pl.DataFrame({"a": [1.0, 2.0, float("nan")]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
 def bool_dataframe_1(library: str) -> object:
     df: Any
     if library == "pandas":
@@ -512,12 +523,16 @@ def test_isnan_nan(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_column_isnan() -> None:
-    ser = pd.Series([1, 2, np.nan])
-    ser_std = PandasColumn(ser)
-    result = ser_std.isnan()._series
-    expected = pd.Series([False, False, True])
-    pd.testing.assert_series_equal(result, expected)
+def test_column_isnan(library: str) -> None:
+    col = nan_column(library)
+    result = col.isnan()
+    namespace = col.__dataframe_namespace__()
+    result_df = namespace.dataframe_from_dict({"result": result})
+    result_pd = pd.api.interchange.from_dataframe(  # type: ignore[attr-defined]
+        result_df.dataframe
+    )["result"]
+    expected = pd.Series([False, False, True], name="result")
+    pd.testing.assert_series_equal(result_pd, expected)
 
 
 def test_any() -> None:
