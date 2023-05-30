@@ -49,6 +49,7 @@ def integer_series_3(library: str) -> object:
         return df.__dataframe_standard__().get_column_by_name("a")
     raise AssertionError(f"Got unexpected library: {library}")
 
+
 def integer_series_4(library: str) -> object:
     df: Any
     if library == "pandas":
@@ -58,6 +59,18 @@ def integer_series_4(library: str) -> object:
         df = pl.DataFrame({"a": [0, 2]})
         return df.__dataframe_standard__().get_column_by_name("a")
     raise AssertionError(f"Got unexpected library: {library}")
+
+
+def bool_series_4(library: str) -> object:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [True, False, True]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "polars":
+        df = pl.DataFrame({"a": [True, False, True]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    raise AssertionError(f"Got unexpected library: {library}")
+
 
 def integer_dataframe_1(library: str) -> Any:
     df: Any
@@ -77,6 +90,17 @@ def integer_dataframe_2(library: str) -> Any:
         return df.__dataframe_standard__()
     if library == "polars":
         df = pl.DataFrame({"a": [1, 2, 4], "b": [4, 2, 6]})
+        return df.__dataframe_standard__()
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
+def integer_dataframe_3(library: str) -> Any:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [1, 2, 3, 4, 5, 6, 7], "b": [7, 6, 5, 4, 3, 2, 1]})
+        return df.__dataframe_standard__()
+    if library == "polars":
+        df = pl.DataFrame({"a": [1, 2, 3, 4, 5, 6, 7], "b": [7, 6, 5, 4, 3, 2, 1]})
         return df.__dataframe_standard__()
     raise AssertionError(f"Got unexpected library: {library}")
 
@@ -274,28 +298,30 @@ def test_get_rows(library: str) -> None:
 
 
 def test_column_get_rows(library: str) -> None:
+    ser: Any
     ser = integer_series_1(library)
     indices = integer_series_4(library)
     namespace = ser.__dataframe_namespace__()
-    result = namespace.dataframe_from_dict({'result': ser.get_rows(indices)})
+    result = namespace.dataframe_from_dict({"result": ser.get_rows(indices)})
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)[  # type: ignore
         "result"
     ]
-    expected = pd.Series([1, 3], name='result')
+    expected = pd.Series([1, 3], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_slice_rows() -> None:
-    df = PandasDataFrame(
-        pd.DataFrame({"a": [1, 2, 3, 4, 5, 6, 7], "b": [7, 6, 5, 4, 3, 2, 1]})
+def test_slice_rows(library: str) -> None:
+    df = integer_dataframe_3(library)
+    result = df.slice_rows(2, 7, 2)
+    result_pd = pd.api.interchange.from_dataframe(  # type: ignore[attr-defined]
+        result.dataframe
     )
-    result = df.slice_rows(2, 7, 2).dataframe
     expected = pd.DataFrame({"a": [3, 5, 7], "b": [5, 3, 1]})
-    pd.testing.assert_frame_equal(result, expected)
+    pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_get_rows_by_mask() -> None:
-    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
+def test_get_rows_by_mask(library: str) -> None:
+    df = integer_dataframe_1(library)
     mask = PandasColumn(pd.Series([True, False, True]))
     result = df.get_rows_by_mask(mask).dataframe
     expected = pd.DataFrame({"a": [1, 3], "b": [4, 6]})
