@@ -358,11 +358,14 @@ def test_drop_column_invalid(library: str) -> None:
         df.drop_column(["a"])
 
 
-def test_rename_columns() -> None:
-    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
-    result = df.rename_columns({"a": "c", "b": "e"}).dataframe
+def test_rename_columns(library: str) -> None:
+    df = integer_dataframe_1(library)
+    result = df.rename_columns({"a": "c", "b": "e"})
+    result_pd = pd.api.interchange.from_dataframe(  # type: ignore[attr-defined]
+        result.dataframe
+    )
     expected = pd.DataFrame({"c": [1, 2, 3], "e": [4, 5, 6]})
-    pd.testing.assert_frame_equal(result, expected)
+    pd.testing.assert_frame_equal(result_pd, expected)
 
 
 def test_rename_columns_invalid() -> None:
