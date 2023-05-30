@@ -413,6 +413,9 @@ def test_groupby_boolean(
 ) -> None:
     df = integer_dataframe_4(library)
     result = getattr(df.groupby(["key"]), aggregation)()
+    # Need to sort, as the Standard doesn't guarantee order
+    idx = result.sorted_indices(["key"])
+    result = result.get_rows(idx)
     result_pd = pd.api.interchange.from_dataframe(  # type: ignore[attr-defined]
         result.dataframe
     )

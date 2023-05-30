@@ -240,11 +240,7 @@ class PolarsDataFrame:
         return PolarsDataFrame(self.df.select(names))
 
     def get_rows(self, indices: PolarsColumn) -> PolarsDataFrame:
-        return PolarsDataFrame(
-            self.df.with_row_count("idx")
-            .filter(pl.col("idx").is_in(indices._series))
-            .drop("idx")
-        )
+        return PolarsDataFrame(self.df[indices._series.to_numpy()])
 
     def slice_rows(self, start: int, stop: int, step: int) -> PolarsDataFrame:
         return PolarsDataFrame(
@@ -345,4 +341,4 @@ class PolarsDataFrame:
 
     def sorted_indices(self, keys: Sequence[str]) -> PolarsColumn:
         df = self.dataframe.select(keys)
-        return PolarsColumn(df.with_row_count().sort(keys)["row_nr"])
+        return PolarsColumn(df.with_row_count().sort(keys, descending=False)["row_nr"])
