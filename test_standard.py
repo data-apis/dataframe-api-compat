@@ -116,6 +116,17 @@ def integer_dataframe_4(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
+def nan_dataframe(library: str) -> Any:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [1.0, 2.0, float("nan")]})
+        return df.__dataframe_standard__()
+    if library == "polars":
+        df = pl.DataFrame({"a": [1.0, 2.0, float("nan")]})
+        return df.__dataframe_standard__()
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
 def bool_dataframe_1(library: str) -> object:
     df: Any
     if library == "pandas":
@@ -491,12 +502,14 @@ def test_groupby_boolean(
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_isnan_nan() -> None:
-    df = pd.DataFrame({"a": [1, 2, np.nan]})
-    df_std = df.__dataframe_standard__()  # type: ignore[operator]
-    result = df_std.isnan().dataframe
+def test_isnan_nan(library: str) -> None:
+    df = nan_dataframe(library)
+    result = df.isnan()
+    result_pd = pd.api.interchange.from_dataframe(  # type: ignore[attr-defined]
+        result.dataframe
+    )
     expected = pd.DataFrame({"a": [False, False, True]})
-    pd.testing.assert_frame_equal(result, expected)
+    pd.testing.assert_frame_equal(result_pd, expected)
 
 
 def test_column_isnan() -> None:

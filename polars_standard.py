@@ -329,6 +329,12 @@ class PolarsDataFrame:
             result[column] = self.dataframe[column].is_null()
         return PolarsDataFrame(pl.DataFrame(result))
 
+    def isnan(self) -> PolarsDataFrame:
+        result = {}
+        for column in self.dataframe.columns:
+            result[column] = self.dataframe[column].is_nan()
+        return PolarsDataFrame(pl.DataFrame(result))
+
     def any(self) -> PolarsDataFrame:
         return PolarsDataFrame(self.dataframe.select(pl.col("*").any()))
 
