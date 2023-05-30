@@ -1,4 +1,5 @@
 from __future__ import annotations
+import collections
 
 from typing import Sequence, NoReturn, Any, Mapping
 import polars as pl
@@ -267,8 +268,10 @@ class PolarsDataFrame:
             raise TypeError(f"Expected str, got: {type(label)}")
         return PolarsDataFrame(self.df.drop(label))
 
-    def rename(self, mapping: Mapping[str, str]) -> PolarsDataFrame:
-        return PolarsDataFrame(self.df.rename(dict(mapping)))
+    def rename_columns(self, mapping: Mapping[str, str]) -> PolarsDataFrame:
+        if not isinstance(mapping, collections.abc.Mapping):
+            raise TypeError(f"Expected Mapping, got: {type(mapping)}")
+        return PolarsDataFrame(self.dataframe.rename(dict(mapping)))
 
     def get_column_names(self) -> Sequence[str]:
         return self.df.columns

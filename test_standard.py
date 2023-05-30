@@ -368,14 +368,14 @@ def test_rename_columns(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_rename_columns_invalid() -> None:
-    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
+def test_rename_columns_invalid(library: str) -> None:
+    df = integer_dataframe_1(library)
     with pytest.raises(TypeError, match="Expected Mapping, got: <class 'function'>"):
-        df.rename_columns(lambda x: x.upper())  # type: ignore[arg-type]
+        df.rename_columns(lambda x: x.upper())
 
 
-def test_get_column_names() -> None:
-    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
+def test_get_column_names(library: str) -> None:
+    df = integer_dataframe_1(library)
     result = df.get_column_names()
     assert [name for name in result] == ["a", "b"]
 
