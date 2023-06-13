@@ -647,14 +647,14 @@ def test_concat_mismatch(library: str) -> None:
 )
 def test_is_in(
     library: str,
-    ser_values: Callable[[str], Any],
-    other: Callable[[str], Any],
+    ser_factory: Callable[[str], Any],
+    other_factory: Callable[[str], Any],
     expected_values: list[bool],
 ) -> None:
-    values = other(library)
-    ser = ser_values(library)
+    other = other_factory(library)
+    ser = ser_factory(library)
     namespace = ser.__column_namespace__()
-    result = namespace.dataframe_from_dict({"result": ser.is_in(values)})
+    result = namespace.dataframe_from_dict({"result": ser.is_in(other)})
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     expected = pd.Series(expected_values, name="result")
     pd.testing.assert_series_equal(result_pd, expected)
