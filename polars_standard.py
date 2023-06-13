@@ -64,6 +64,8 @@ class PolarsColumn:
         raise NotImplementedError()
 
     def is_in(self, values: PolarsColumn) -> PolarsColumn:
+        if values.dtype != self.dtype:
+            raise ValueError(f"`value` has dtype {values.dtype}, expected {self.dtype}")
         return PolarsColumn(self._series.is_in(values._series))
 
     def unique(self) -> PolarsColumn:

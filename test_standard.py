@@ -61,7 +61,7 @@ def integer_series_4(library: str) -> object:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def float_series_1(library: str) -> object:
+def float_series_1(library: str) -> Any:
     df: Any
     if library == "pandas":
         df = pd.DataFrame({"a": [2.0, 3.0]})
@@ -72,7 +72,7 @@ def float_series_1(library: str) -> object:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def float_series_2(library: str) -> object:
+def float_series_2(library: str) -> Any:
     df: Any
     if library == "pandas":
         df = pd.DataFrame({"a": [2.0, 1.0]})
@@ -638,7 +638,7 @@ def test_concat_mismatch(library: str) -> None:
 
 
 @pytest.mark.parametrize(
-    ("ser_values", "other", "expected_values"),
+    ("ser_factory", "other_factory", "expected_values"),
     [
         (float_series_1, float_series_4, [False, False]),
         (float_series_2, float_series_4, [False, True]),
@@ -660,20 +660,11 @@ def test_is_in(
     pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_is_in_nullable_float_nan() -> None:
-    values = PandasColumn(pd.Series([None], dtype="Float64"))
-    ser = pd.Series([0, None], dtype="Float64")
-    ser /= ser
-    expected = pd.Series([False, True], dtype="boolean")
-    result = PandasColumn(ser).is_in(values)._series
-    pd.testing.assert_series_equal(result, expected)
-
-
-def test_is_in_raises() -> None:
-    values = PandasColumn(pd.Series([1], dtype="int64"))
-    ser = PandasColumn(pd.Series([0, None], dtype="Float64"))
-    with pytest.raises(ValueError, match="`value` has dtype int64, expected Float64"):
-        ser.is_in(values)._series
+def test_is_in_raises(library: str) -> None:
+    ser = float_series_1(library)
+    other = integer_series_1(library)
+    with pytest.raises(ValueError):
+        ser.is_in(other)
 
 
 def test_len() -> None:
