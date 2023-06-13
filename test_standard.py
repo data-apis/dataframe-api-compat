@@ -17,7 +17,7 @@ def pytest_generate_tests(metafunc: Any) -> None:
         metafunc.parametrize("library", ["pandas", "polars"])
 
 
-def integer_series_1(library: str) -> object:
+def integer_series_1(library: str) -> Any:
     df: Any
     if library == "pandas":
         df = pd.DataFrame({"a": [1, 2, 3]})
@@ -95,9 +95,7 @@ def test_reductions(
 ) -> None:
     df = bool_dataframe_1(library)
     result = getattr(df, reduction)()
-    result_pd = pd.api.interchange.from_dataframe(  # type: ignore[attr-defined]
-        result.dataframe
-    )
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
     expected = pd.DataFrame(expected_data)
     pd.testing.assert_frame_equal(result_pd, expected)
 
@@ -129,7 +127,7 @@ def test_comparisons(
     if library == "polars" and comparison == "__pow__":
         # Is this right? Might need fixing upstream.
         result = result.select(pl.col("*").cast(pl.Int64))
-    result_pd = pd.api.interchange.from_dataframe(result)  # type: ignore[attr-defined]
+    result_pd = pd.api.interchange.from_dataframe(result)
     expected = pd.DataFrame(expected_data)
     pd.testing.assert_frame_equal(result_pd, expected)
 
@@ -158,11 +156,9 @@ def test_column_comparisons(
     ser: Any
     ser = integer_series_1(library)
     other = integer_series_3(library)
-    namespace = ser.__dataframe_namespace__()
+    namespace = ser.__column_namespace__()
     result = namespace.dataframe_from_dict({"result": getattr(ser, comparison)(other)})
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)[  # type: ignore
-        "result"
-    ]
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     expected = pd.Series(expected_data, name="result")
     if library == "polars" and comparison == "__pow__":
         # todo: what should the type be?
@@ -194,11 +190,9 @@ def test_column_comparisons_scalar(
     ser: Any
     ser = integer_series_1(library)
     other = 3
-    namespace = ser.__dataframe_namespace__()
+    namespace = ser.__column_namespace__()
     result = namespace.dataframe_from_dict({"result": getattr(ser, comparison)(other)})
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)[  # type: ignore
-        "result"
-    ]
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     expected = pd.Series(expected_data, name="result")
     if library == "polars" and comparison == "__pow__":
         # todo: what should the type be?
@@ -210,12 +204,8 @@ def test_divmod(library: str) -> None:
     df = integer_dataframe_1(library)
     other = integer_dataframe_2(library)
     result_quotient, result_remainder = df.__divmod__(other)
-    result_quotient_pd = pd.api.interchange.from_dataframe(  # type: ignore[attr-defined]
-        result_quotient.dataframe
-    )
-    result_remainder_pd = pd.api.interchange.from_dataframe(  # type: ignore[attr-defined]
-        result_remainder.dataframe
-    )
+    result_quotient_pd = pd.api.interchange.from_dataframe(result_quotient.dataframe)
+    result_remainder_pd = pd.api.interchange.from_dataframe(result_remainder.dataframe)
     expected_quotient = pd.DataFrame({"a": [1, 1, 0], "b": [1, 2, 1]})
     expected_remainder = pd.DataFrame({"a": [0, 0, 3], "b": [0, 1, 0]})
     pd.testing.assert_frame_equal(result_quotient_pd, expected_quotient)
@@ -227,9 +217,7 @@ def test_get_column_by_name(library: str) -> None:
     result = df.get_column_by_name("a")
     namespace = df.__dataframe_namespace__()
     result = namespace.dataframe_from_dict({"result": result})
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)[  # type: ignore
-        "result"
-    ]
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     expected = pd.Series([1, 2, 3], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 
@@ -243,7 +231,7 @@ def test_get_column_by_name_invalid(library: str) -> None:
 def test_get_columns_by_name(library: str) -> None:
     df = integer_dataframe_1(library)
     result = df.get_columns_by_name(["b"]).dataframe
-    result_pd = pd.api.interchange.from_dataframe(result)  # type: ignore[attr-defined]
+    result_pd = pd.api.interchange.from_dataframe(result)
     expected = pd.DataFrame({"b": [4, 5, 6]})
     pd.testing.assert_frame_equal(result_pd, expected)
 
@@ -257,19 +245,21 @@ def test_get_columns_by_name_invalid(library: str) -> None:
 def test_get_rows(library: str) -> None:
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
-    indices = namespace.column_from_sequence([0, 2], dtype="int64")
+    indices = namespace.column_from_sequence([0, 2, 1], dtype="int64")
     result = df.get_rows(indices).dataframe
-    result_pd = pd.api.interchange.from_dataframe(result)  # type: ignore[attr-defined]
-    expected = pd.DataFrame({"a": [1, 3], "b": [4, 6]})
+    result_pd = pd.api.interchange.from_dataframe(result)
+    expected = pd.DataFrame({"a": [1, 3, 2], "b": [4, 6, 5]})
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_column_get_rows() -> None:
-    ser = PandasColumn(pd.Series([1, 2, 3]))
-    indices = PandasColumn(pd.Series([0, 2]))
-    result = ser.get_rows(indices)._series
-    expected = pd.Series([1, 3])
-    pd.testing.assert_series_equal(result, expected)
+def test_column_get_rows(library: str) -> None:
+    ser = integer_series_1(library)
+    namespace = ser.__column_namespace__()
+    indices = namespace.column_from_sequence([0, 2, 1], dtype="int64")
+    result = namespace.dataframe_from_dict({"result": ser.get_rows(indices)})
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    expected = pd.Series([1, 3, 2], name="result")
+    pd.testing.assert_series_equal(result_pd, expected)
 
 
 def test_slice_rows() -> None:

@@ -59,7 +59,7 @@ class PandasColumn:
             self._series = column.reset_index(drop=True)
 
     # In the standard
-    def __dataframe_namespace__(self, *, api_version: str | None = None) -> Any:
+    def __column_namespace__(self, *, api_version: str | None = None) -> Any:
         return PandasNamespace
 
     def __len__(self) -> int:

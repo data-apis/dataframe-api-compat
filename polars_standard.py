@@ -41,11 +41,19 @@ class PolarsColumn:
         self._series = column
 
     # In the standard
-    def __dataframe_namespace__(self, *, api_version: str | None = None) -> Any:
+    def __column_namespace__(self, *, api_version: str | None = None) -> Any:
         return PolarsNamespace
 
     def __len__(self) -> int:
         return len(self._series)
+
+    @property
+    def dtype(self) -> object:
+        # todo change
+        return self._series.dtype
+
+    def get_rows(self, indices: PolarsColumn) -> PolarsColumn:
+        return PolarsColumn(self._series.take(indices._series))
 
     def __getitem__(self, row: int) -> object:
         return self._series[row]
@@ -236,11 +244,7 @@ class PolarsDataFrame:
         return PolarsDataFrame(self.df.select(names))
 
     def get_rows(self, indices: PolarsColumn) -> PolarsDataFrame:
-        return PolarsDataFrame(
-            self.df.with_row_count("idx")
-            .filter(pl.col("idx").is_in(indices._series))
-            .drop("idx")
-        )
+        return PolarsDataFrame(self.df[indices._series])
 
     def slice_rows(self, start: int, stop: int, step: int) -> PolarsDataFrame:
         return PolarsDataFrame(

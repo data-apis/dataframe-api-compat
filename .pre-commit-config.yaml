@@ -20,8 +20,8 @@ repos:
     -   id: mypy
         args: [--strict]
         additional_dependencies: [
-            pandas_stubs==v1.5.3.230321,
-            pandas==1.5.3,
+            pandas_stubs==2.0.2.230605,
+            pandas==2.0.2,
             pytest==7.2.2,
             polars==0.17.11,
             types-setuptools,
