@@ -1,7 +1,7 @@
 # todo: test that errors are appropriately raised when calls violate standard
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Callable
 
 import numpy as np
 import pytest
@@ -57,6 +57,50 @@ def integer_series_4(library: str) -> object:
         return df.__dataframe_standard__().get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [0, 2]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
+def float_series_1(library: str) -> object:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [2.0, 3.0]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "polars":
+        df = pl.DataFrame({"a": [2.0, 3.0]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
+def float_series_2(library: str) -> object:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [2.0, 1.0]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "polars":
+        df = pl.DataFrame({"a": [2.0, 1.0]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
+def float_series_3(library: str) -> object:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [float("nan"), 2.0]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "polars":
+        df = pl.DataFrame({"a": [float("nan"), 2.0]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
+def float_series_4(library: str) -> object:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [1.0, float("nan")]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "polars":
+        df = pl.DataFrame({"a": [1.0, float("nan")]})
         return df.__dataframe_standard__().get_column_by_name("a")
     raise AssertionError(f"Got unexpected library: {library}")
 
@@ -596,37 +640,24 @@ def test_concat_mismatch(library: str) -> None:
 @pytest.mark.parametrize(
     ("ser_values", "other", "expected_values"),
     [
-        ([2.0, 3.0], [1, np.nan], [False, False]),
-        ([2.0, 1.0], [1, np.nan], [False, True]),
-        ([np.nan, 2], [1, np.nan], [True, False]),
+        (float_series_1, float_series_4, [False, False]),
+        (float_series_2, float_series_4, [False, True]),
+        (float_series_3, float_series_4, [True, False]),
     ],
 )
 def test_is_in(
-    ser_values: list[object], other: list[object], expected_values: list[bool]
+    library: str,
+    ser_values: Callable[[str], Any],
+    other: Callable[[str], Any],
+    expected_values: list[bool],
 ) -> None:
-    values = PandasColumn(pd.Series(other))
-    ser = PandasColumn(pd.Series(ser_values))
-    expected = pd.Series(expected_values)
-    result = ser.is_in(values)._series
-    pd.testing.assert_series_equal(result, expected)
-
-
-@pytest.mark.parametrize(
-    ("ser_values", "other", "expected_values"),
-    [
-        ([2.0, 3.0], [1, np.nan], [False, False]),
-        ([2.0, 1.0], [1, np.nan], [False, True]),
-        ([None, 2], [pd.NA], [True, False]),
-    ],
-)
-def test_is_in_nullable_float(
-    ser_values: list[object], other: list[object], expected_values: list[bool]
-) -> None:
-    values = PandasColumn(pd.Series(other, dtype="Float64"))
-    ser = PandasColumn(pd.Series(ser_values, dtype="Float64"))
-    expected = pd.Series(expected_values, dtype="boolean")
-    result = ser.is_in(values)._series
-    pd.testing.assert_series_equal(result, expected)
+    values = other(library)
+    ser = ser_values(library)
+    namespace = ser.__column_namespace__()
+    result = namespace.dataframe_from_dict({"result": ser.is_in(values)})
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    expected = pd.Series(expected_values, name="result")
+    pd.testing.assert_series_equal(result_pd, expected)
 
 
 def test_is_in_nullable_float_nan() -> None:

@@ -63,6 +63,9 @@ class PolarsColumn:
     def __iter__(self) -> NoReturn:
         raise NotImplementedError()
 
+    def is_in(self, values: PolarsColumn) -> PolarsColumn:
+        return PolarsColumn(self._series.is_in(values._series))
+
     def unique(self) -> PolarsColumn:
         return PolarsColumn(self._series.unique())
 
