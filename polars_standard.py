@@ -12,6 +12,7 @@ def dataframe_standard(df: pl.DataFrame) -> PolarsDataFrame:
 polars.DataFrame.__dataframe_standard__ = dataframe_standard  # type: ignore[attr-defined]
 
 DTYPE_MAPPING = {  # todo, expand
+    "bool": pl.Boolean,
     "int64": pl.Int64,
     "float64": pl.Float64,
 }
