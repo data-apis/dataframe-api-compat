@@ -751,10 +751,13 @@ def test_column_sorted_indices(library: str) -> None:
     pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_column_invert() -> None:
-    result = (~PandasColumn(pd.Series([True, False])))._series
-    expected = pd.Series([False, True])
-    pd.testing.assert_series_equal(result, expected)
+def test_column_invert(library: str) -> None:
+    ser = bool_series_1(library)
+    namespace = ser.__column_namespace__()
+    result = namespace.dataframe_from_dict({"result": ~ser})
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    expected = pd.Series([False, True, False], name="result")
+    pd.testing.assert_series_equal(result_pd, expected)
 
 
 def test_column_max() -> None:
