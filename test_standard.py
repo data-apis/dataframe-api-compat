@@ -584,11 +584,12 @@ def test_concat(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_concat_mismatch() -> None:
-    df1 = PandasDataFrame(pd.DataFrame({"a": [1, 2]}))
-    df2 = PandasDataFrame(pd.DataFrame({"b": [3, 4]}))
+def test_concat_mismatch(library: str) -> None:
+    df1 = integer_dataframe_1(library)
+    df2 = integer_dataframe_4(library)
     namespace = df1.__dataframe_namespace__()
-    with pytest.raises(ValueError, match="Expected matching columns"):
+    # todo check the error
+    with pytest.raises((ValueError, pl.exceptions.ShapeError)):
         namespace.concat([df1, df2]).dataframe
 
 
