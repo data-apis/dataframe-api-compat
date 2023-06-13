@@ -83,6 +83,17 @@ def integer_dataframe_3(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
+def integer_dataframe_4(library: str) -> Any:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]})
+        return df.__dataframe_standard__()
+    if library == "polars":
+        df = pl.DataFrame({"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]})
+        return df.__dataframe_standard__()
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
 def bool_dataframe_1(library: str) -> object:
     df: Any
     if library == "pandas":
@@ -357,14 +368,15 @@ def test_get_column_names(library: str) -> None:
     ],
 )
 def test_groupby_boolean(
-    aggregation: str, expected_b: list[float], expected_c: list[float]
+    library: str, aggregation: str, expected_b: list[float], expected_c: list[float]
 ) -> None:
-    df = PandasDataFrame(
-        pd.DataFrame({"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]})
-    )
-    result = getattr(df.groupby(["key"]), aggregation)().dataframe
+    df = integer_dataframe_4(library)
+    result = getattr(df.groupby(["key"]), aggregation)()
+    sorted_indices = result.sorted_indices(["key"])
+    result = result.get_rows(sorted_indices)
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
     expected = pd.DataFrame({"key": [1, 2], "b": expected_b, "c": expected_c})
-    pd.testing.assert_frame_equal(result, expected)
+    pd.testing.assert_frame_equal(result_pd, expected)
 
 
 def test_groupby_size() -> None:
