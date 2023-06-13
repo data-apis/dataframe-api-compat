@@ -169,6 +169,11 @@ class PolarsColumn:
             return PolarsColumn(self._series - other._series)
         return PolarsColumn(self._series - other)
 
+    def sorted_indices(self) -> PolarsColumn:
+        df = self._series.to_frame()
+        keys = df.columns
+        return PolarsColumn(df.with_row_count().sort(keys, descending=False)["row_nr"])
+
 
 class PolarsGroupBy:
     def __init__(self, df: pl.DataFrame, keys: Sequence[str]) -> None:

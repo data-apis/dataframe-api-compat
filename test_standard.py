@@ -64,10 +64,21 @@ def integer_series_4(library: str) -> object:
 def integer_series_5(library: str) -> Any:
     df: Any
     if library == "pandas":
-        df = pd.DataFrame({"a": [1, 1, 2]})
+        df = pd.DataFrame({"a": [1, 1, 4]})
         return df.__dataframe_standard__().get_column_by_name("a")
     if library == "polars":
-        df = pl.DataFrame({"a": [1, 1, 2]})
+        df = pl.DataFrame({"a": [1, 1, 4]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
+def integer_series_6(library: str) -> Any:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [1, 3, 2]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "polars":
+        df = pl.DataFrame({"a": [1, 3, 2]})
         return df.__dataframe_standard__().get_column_by_name("a")
     raise AssertionError(f"Got unexpected library: {library}")
 
@@ -167,6 +178,17 @@ def integer_dataframe_4(library: str) -> Any:
         return df.__dataframe_standard__()
     if library == "polars":
         df = pl.DataFrame({"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]})
+        return df.__dataframe_standard__()
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
+def integer_dataframe_5(library: str) -> Any:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [1, 1], "b": [4, 3]})
+        return df.__dataframe_standard__()
+    if library == "polars":
+        df = pl.DataFrame({"a": [1, 1], "b": [4, 3]})
         return df.__dataframe_standard__()
     raise AssertionError(f"Got unexpected library: {library}")
 
@@ -698,29 +720,35 @@ def test_unique(library: str) -> None:
     namespace = ser.__column_namespace__()
     result = namespace.dataframe_from_dict({"result": ser.unique()})
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
-    expected = pd.Series([1, 2], name="result")
+    expected = pd.Series([1, 4], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 
 
 def test_mean(library: str) -> None:
-    result = PandasColumn(pd.Series([1, 1, 4])).mean()
-    assert result == 2
+    result = integer_series_5(library).mean()
+    assert result == 2.0
 
 
-def test_sorted_indices() -> None:
-    result = (
-        PandasDataFrame(pd.DataFrame({"a": [1, 1], "b": [4, 3]}))
-        .sorted_indices(keys=["a", "b"])
-        ._series
-    )
-    expected = pd.Series([1, 0])
-    pd.testing.assert_series_equal(result, expected)
+def test_sorted_indices(library: str) -> None:
+    df = integer_dataframe_5(library)
+    namespace = df.__dataframe_namespace__()
+    result = namespace.dataframe_from_dict({"result": df.sorted_indices(keys=["a", "b"])})
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    # TODO should we standardise on the return type?
+    result_pd = result_pd.astype("int64")
+    expected = pd.Series([1, 0], name="result")
+    pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_column_sorted_indices() -> None:
-    result = PandasColumn(pd.Series([1, 3, 2])).sorted_indices()._series
-    expected = pd.Series([0, 2, 1])
-    pd.testing.assert_series_equal(result, expected)
+def test_column_sorted_indices(library: str) -> None:
+    ser = integer_series_6(library)
+    namespace = ser.__column_namespace__()
+    result = namespace.dataframe_from_dict({"result": ser.sorted_indices()})
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    # TODO standardise return type?
+    result_pd = result_pd.astype("int64")
+    expected = pd.Series([0, 2, 1], name="result")
+    pd.testing.assert_series_equal(result_pd, expected)
 
 
 def test_column_invert() -> None:
