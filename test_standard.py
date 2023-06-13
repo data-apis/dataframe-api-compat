@@ -61,6 +61,17 @@ def integer_series_4(library: str) -> object:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
+def integer_series_5(library: str) -> Any:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [1, 1, 2]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "polars":
+        df = pl.DataFrame({"a": [1, 1, 2]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
 def float_series_1(library: str) -> Any:
     df: Any
     if library == "pandas":
@@ -682,13 +693,16 @@ def test_getitem(library: str) -> None:
     assert result == 1
 
 
-def test_unique() -> None:
-    result = PandasColumn(pd.Series([1, 1, 2])).unique()._series
-    expected = pd.Series([1, 2])
-    pd.testing.assert_series_equal(result, expected)
+def test_unique(library: str) -> None:
+    ser = integer_series_5(library)
+    namespace = ser.__column_namespace__()
+    result = namespace.dataframe_from_dict({"result": ser.unique()})
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    expected = pd.Series([1, 2], name="result")
+    pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_mean() -> None:
+def test_mean(library: str) -> None:
     result = PandasColumn(pd.Series([1, 1, 4])).mean()
     assert result == 2
 
