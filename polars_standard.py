@@ -1,4 +1,5 @@
 from __future__ import annotations
+import collections
 
 from typing import Sequence, NoReturn, Any, Mapping
 import polars as pl
@@ -267,13 +268,15 @@ class PolarsDataFrame:
     def drop_column(self, label: str) -> PolarsDataFrame:
         if not isinstance(label, str):
             raise TypeError(f"Expected str, got: {type(label)}")
-        return PolarsDataFrame(self.df.drop(label))
+        return PolarsDataFrame(self.dataframe.drop(label))
 
     def rename_columns(self, mapping: Mapping[str, str]) -> PolarsDataFrame:
-        return PolarsDataFrame(self.df.rename(dict(mapping)))
+        if not isinstance(mapping, collections.abc.Mapping):
+            raise TypeError(f"Expected Mapping, got: {type(mapping)}")
+        return PolarsDataFrame(self.dataframe.rename(dict(mapping)))
 
     def get_column_names(self) -> Sequence[str]:
-        return self.df.columns
+        return self.dataframe.columns
 
     def __eq__(self, other: PolarsDataFrame) -> PolarsDataFrame:  # type: ignore[override]
         return PolarsDataFrame(self.dataframe.__eq__(other.dataframe))
@@ -332,6 +335,12 @@ class PolarsDataFrame:
             result[column] = self.dataframe[column].is_null()
         return PolarsDataFrame(pl.DataFrame(result))
 
+    def isnan(self) -> PolarsDataFrame:
+        result = {}
+        for column in self.dataframe.columns:
+            result[column] = self.dataframe[column].is_nan()
+        return PolarsDataFrame(pl.DataFrame(result))
+
     def any(self) -> PolarsDataFrame:
         return PolarsDataFrame(self.dataframe.select(pl.col("*").any()))
 
@@ -344,4 +353,4 @@ class PolarsDataFrame:
 
     def sorted_indices(self, keys: Sequence[str]) -> PolarsColumn:
         df = self.dataframe.select(keys)
-        return PolarsColumn(df.with_row_count().sort(keys)["row_nr"])
+        return PolarsColumn(df.with_row_count().sort(keys, descending=False)["row_nr"])

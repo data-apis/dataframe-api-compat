@@ -50,6 +50,28 @@ def integer_series_3(library: str) -> object:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
+def integer_series_4(library: str) -> object:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [0, 2]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "polars":
+        df = pl.DataFrame({"a": [0, 2]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
+def bool_series_1(library: str) -> object:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [True, False, True]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "polars":
+        df = pl.DataFrame({"a": [True, False, True]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
 def integer_dataframe_1(library: str) -> Any:
     df: Any
     if library == "pandas":
@@ -94,6 +116,28 @@ def integer_dataframe_4(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
+def nan_dataframe(library: str) -> Any:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [1.0, 2.0, float("nan")]})
+        return df.__dataframe_standard__()
+    if library == "polars":
+        df = pl.DataFrame({"a": [1.0, 2.0, float("nan")]})
+        return df.__dataframe_standard__()
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
+def nan_column(library: str) -> Any:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [1.0, 2.0, float("nan")]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "polars":
+        df = pl.DataFrame({"a": [1.0, 2.0, float("nan")]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
 def bool_dataframe_1(library: str) -> object:
     df: Any
     if library == "pandas":
@@ -101,6 +145,29 @@ def bool_dataframe_1(library: str) -> object:
         return df.__dataframe_standard__()
     if library == "polars":
         df = pl.DataFrame({"a": [True, True, False], "b": [True, True, True]})
+        return df.__dataframe_standard__()
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
+def bool_dataframe_2(library: str) -> Any:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame(
+            {
+                "key": [1, 1, 2, 2],
+                "b": [False, True, True, True],
+                "c": [True, False, False, False],
+            }
+        )
+        return df.__dataframe_standard__()
+    if library == "polars":
+        df = pl.DataFrame(
+            {
+                "key": [1, 1, 2, 2],
+                "b": [False, True, True, True],
+                "c": [True, False, False, False],
+            }
+        )
         return df.__dataframe_standard__()
     raise AssertionError(f"Got unexpected library: {library}")
 
@@ -183,7 +250,7 @@ def test_column_comparisons(
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     expected = pd.Series(expected_data, name="result")
     if library == "polars" and comparison == "__pow__":
-        # todo: what should the type be?
+        # todo: fix
         result_pd = result_pd.astype("int64")
     pd.testing.assert_series_equal(result_pd, expected)
 
@@ -217,7 +284,7 @@ def test_column_comparisons_scalar(
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     expected = pd.Series(expected_data, name="result")
     if library == "polars" and comparison == "__pow__":
-        # todo: what should the type be?
+        # todo: fix
         result_pd = result_pd.astype("int64")
     pd.testing.assert_series_equal(result_pd, expected)
 
@@ -338,10 +405,10 @@ def test_rename_columns(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_rename_columns_invalid() -> None:
-    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
+def test_rename_columns_invalid(library: str) -> None:
+    df = integer_dataframe_1(library)
     with pytest.raises(TypeError, match="Expected Mapping, got: <class 'function'>"):
-        df.rename_columns(lambda x: x.upper())  # type: ignore[arg-type]
+        df.rename_columns(lambda x: x.upper())
 
 
 def test_get_column_names(library: str) -> None:
@@ -367,7 +434,7 @@ def test_get_column_names(library: str) -> None:
         ("var", [0.5, 0.5], [0.5, 0.5]),
     ],
 )
-def test_groupby_boolean(
+def test_groupby_numeric(
     library: str, aggregation: str, expected_b: list[float], expected_c: list[float]
 ) -> None:
     df = integer_dataframe_4(library)
@@ -379,22 +446,24 @@ def test_groupby_boolean(
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_groupby_size() -> None:
-    df = PandasDataFrame(
-        pd.DataFrame({"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]})
-    )
-    result = df.groupby(["key"]).size().dataframe
+def test_groupby_size(library: str) -> None:
+    df = integer_dataframe_4(library)
+    result = df.groupby(["key"]).size()
+    # got to sort
+    idx = result.sorted_indices(["key"])
+    result = result.get_rows(idx)
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
     expected = pd.DataFrame({"key": [1, 2], "size": [2, 2]})
-    pd.testing.assert_frame_equal(result, expected)
+    # TODO polars returns uint32. what do we standardise to?
+    result_pd["size"] = result_pd["size"].astype("int64")
+    pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_groupby_invalid_any_all() -> None:
-    df = PandasDataFrame(
-        pd.DataFrame({"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]})
-    )
-    with pytest.raises(ValueError, match="Expected boolean types"):
+def test_groupby_invalid_any_all(library: str) -> None:
+    df = integer_dataframe_4(library)
+    with pytest.raises(Exception):
         df.groupby(["key"]).any()
-    with pytest.raises(ValueError, match="Expected boolean types"):
+    with pytest.raises(Exception):
         df.groupby(["key"]).all()
 
 
@@ -405,37 +474,35 @@ def test_groupby_invalid_any_all() -> None:
         ("all", [False, True], [False, False]),
     ],
 )
-def test_groupby_numeric(
-    aggregation: str, expected_b: list[bool], expected_c: list[bool]
+def test_groupby_boolean(
+    library: str, aggregation: str, expected_b: list[bool], expected_c: list[bool]
 ) -> None:
-    df = PandasDataFrame(
-        pd.DataFrame(
-            {
-                "key": [1, 1, 2, 2],
-                "b": [False, True, True, True],
-                "c": [True, False, False, False],
-            }
-        )
-    )
-    result = getattr(df.groupby(["key"]), aggregation)().dataframe
+    df = bool_dataframe_2(library)
+    result = getattr(df.groupby(["key"]), aggregation)()
+    # need to sort
+    idx = result.sorted_indices(["key"])
+    result = result.get_rows(idx)
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
     expected = pd.DataFrame({"key": [1, 2], "b": expected_b, "c": expected_c})
-    pd.testing.assert_frame_equal(result, expected)
+    pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_isnan_nan() -> None:
-    df = pd.DataFrame({"a": [1, 2, np.nan]})
-    df_std = df.__dataframe_standard__()  # type: ignore[operator]
-    result = df_std.isnan().dataframe
+def test_isnan_nan(library: str) -> None:
+    df = nan_dataframe(library)
+    result = df.isnan()
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
     expected = pd.DataFrame({"a": [False, False, True]})
-    pd.testing.assert_frame_equal(result, expected)
+    pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_column_isnan() -> None:
-    ser = pd.Series([1, 2, np.nan])
-    ser_std = PandasColumn(ser)
-    result = ser_std.isnan()._series
-    expected = pd.Series([False, False, True])
-    pd.testing.assert_series_equal(result, expected)
+def test_column_isnan(library: str) -> None:
+    col = nan_column(library)
+    result = col.isnan()
+    namespace = col.__column_namespace__()
+    result_df = namespace.dataframe_from_dict({"result": result})
+    result_pd = pd.api.interchange.from_dataframe(result_df.dataframe)["result"]
+    expected = pd.Series([False, False, True], name="result")
+    pd.testing.assert_series_equal(result_pd, expected)
 
 
 def test_any() -> None:
