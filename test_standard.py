@@ -61,7 +61,7 @@ def integer_series_4(library: str) -> object:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def bool_series_1(library: str) -> object:
+def bool_series_1(library: str) -> Any:
     df: Any
     if library == "pandas":
         df = pd.DataFrame({"a": [True, False, True]})
@@ -116,7 +116,7 @@ def integer_dataframe_4(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def nan_dataframe(library: str) -> Any:
+def nan_dataframe_1(library: str) -> Any:
     df: Any
     if library == "pandas":
         df = pd.DataFrame({"a": [1.0, 2.0, float("nan")]})
@@ -127,13 +127,24 @@ def nan_dataframe(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def nan_column(library: str) -> Any:
+def nan_dataframe_2(library: str) -> Any:
     df: Any
     if library == "pandas":
-        df = pd.DataFrame({"a": [1.0, 2.0, float("nan")]})
+        df = pd.DataFrame({"a": [0.0, 1.0, float("nan")]})
+        return df.__dataframe_standard__()
+    if library == "polars":
+        df = pl.DataFrame({"a": [0.0, 1.0, float("nan")]})
+        return df.__dataframe_standard__()
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
+def nan_series_1(library: str) -> Any:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [0.0, 1.0, float("nan")]})
         return df.__dataframe_standard__().get_column_by_name("a")
     if library == "polars":
-        df = pl.DataFrame({"a": [1.0, 2.0, float("nan")]})
+        df = pl.DataFrame({"a": [0.0, 1.0, float("nan")]})
         return df.__dataframe_standard__().get_column_by_name("a")
     raise AssertionError(f"Got unexpected library: {library}")
 
@@ -168,6 +179,17 @@ def bool_dataframe_2(library: str) -> Any:
                 "c": [True, False, False, False],
             }
         )
+        return df.__dataframe_standard__()
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
+def bool_dataframe_3(library: str) -> Any:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [False, False], "b": [False, True], "c": [True, True]})
+        return df.__dataframe_standard__()
+    if library == "polars":
+        df = pl.DataFrame({"a": [False, False], "b": [False, True], "c": [True, True]})
         return df.__dataframe_standard__()
     raise AssertionError(f"Got unexpected library: {library}")
 
@@ -487,8 +509,36 @@ def test_groupby_boolean(
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_isnan_nan(library: str) -> None:
-    df = nan_dataframe(library)
+def test_any(library: str) -> None:
+    df = bool_dataframe_3(library)
+    result = df.any()
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    expected = pd.DataFrame({"a": [False], "b": [True], "c": [True]})
+    pd.testing.assert_frame_equal(result_pd, expected)
+
+
+def test_all(library: str) -> None:
+    df = bool_dataframe_3(library)
+    result = df.all()
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    expected = pd.DataFrame({"a": [False], "b": [False], "c": [True]})
+    pd.testing.assert_frame_equal(result_pd, expected)
+
+
+def test_column_any(library: str) -> None:
+    ser = bool_series_1(library)
+    result = ser.any()
+    assert result
+
+
+def test_column_all(library: str) -> None:
+    ser = bool_series_1(library)
+    result = ser.all()
+    assert not result
+
+
+def test_dataframe_isnan(library: str) -> None:
+    df = nan_dataframe_1(library)
     result = df.isnan()
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)
     expected = pd.DataFrame({"a": [False, False, True]})
@@ -496,89 +546,42 @@ def test_isnan_nan(library: str) -> None:
 
 
 def test_column_isnan(library: str) -> None:
-    col = nan_column(library)
-    result = col.isnan()
-    namespace = col.__column_namespace__()
+    ser = nan_series_1(library)
+    result = ser.isnan()
+    namespace = ser.__column_namespace__()
     result_df = namespace.dataframe_from_dict({"result": result})
     result_pd = pd.api.interchange.from_dataframe(result_df.dataframe)["result"]
     expected = pd.Series([False, False, True], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_any() -> None:
-    df = pd.DataFrame({"a": [False, False], "b": [False, True], "c": [True, True]})
-    df_std = df.__dataframe_standard__()  # type: ignore[operator]
-    result = df_std.any().dataframe
-    expected = pd.DataFrame({"a": [False], "b": [True], "c": [True]})
-    pd.testing.assert_frame_equal(result, expected)
+def test_isnull(library: str) -> None:
+    # todo: test for nullable pandas
+    df = nan_dataframe_2(library)
+    result = df.isnull().dataframe
+    result_pd = pd.api.interchange.from_dataframe(result)
+    expected = pd.DataFrame({"a": [False, False, False]})
+    pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_all() -> None:
-    df = pd.DataFrame({"a": [False, False], "b": [False, True], "c": [True, True]})
-    df_std = df.__dataframe_standard__()  # type: ignore[operator]
-    result = df_std.all().dataframe
-    expected = pd.DataFrame({"a": [False], "b": [False], "c": [True]})
-    pd.testing.assert_frame_equal(result, expected)
+def test_column_isnull(library: str) -> None:
+    # todo: test for nullable pandas
+    ser = nan_series_1(library)
+    namespace = ser.__column_namespace__()
+    result = namespace.dataframe_from_dict({"result": ser.isnull()})
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    expected = pd.Series([False, False, False], name="result")
+    pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_column_any() -> None:
-    ser = PandasColumn(pd.Series([False, False]))
-    result = ser.any()
-    assert not result
-
-
-def test_column_all() -> None:
-    ser = PandasColumn(pd.Series([False, False]))
-    result = ser.all()
-    assert not result
-
-
-@pytest.mark.parametrize(
-    ("dtype", "expected_values"),
-    [("float64", [False, False, False]), ("Float64", [False, False, True])],
-)
-def test_isnull(dtype: str, expected_values: list[bool]) -> None:
-    df = pd.DataFrame({"a": [0.0, 1.0, np.nan]}, dtype=dtype)
-    df = df / df
-    df_std = df.__dataframe_standard__()  # type: ignore[operator]
-    result = df_std.isnull().dataframe
-    expected = pd.DataFrame({"a": expected_values})
-    pd.testing.assert_frame_equal(result, expected)
-
-
-@pytest.mark.parametrize(
-    ("dtype", "expected_values"),
-    [("float64", [False, False, False]), ("Float64", [False, False, True])],
-)
-def test_column_isnull(dtype: str, expected_values: list[bool]) -> None:
-    ser = pd.Series([0.0, 1.0, np.nan], dtype=dtype)
-    ser = ser / ser
-    ser_std = PandasColumn(ser)
-    result = ser_std.isnull()._series
-    expected = pd.Series(expected_values)
-    pd.testing.assert_series_equal(result, expected)
-
-
-@pytest.mark.parametrize(
-    ("dtype", "expected_values"),
-    [("float64", [True, False, True]), ("Float64", [True, False, False])],
-)
-def test_isnan(dtype: str, expected_values: list[bool]) -> None:
-    df = pd.DataFrame({"a": [0.0, 1.0, np.nan]}, dtype=dtype)
-    df = df / df
-    df_std = df.__dataframe_standard__()  # type: ignore[operator]
-    result = df_std.isnan().dataframe
-    expected = pd.DataFrame({"a": expected_values})
-    pd.testing.assert_frame_equal(result, expected)
-
-
-def test_concat() -> None:
-    df1 = PandasDataFrame(pd.DataFrame({"a": [1, 2]}))
-    df2 = PandasDataFrame(pd.DataFrame({"a": [3, 4]}))
+def test_concat(library: str) -> None:
+    df1 = integer_dataframe_1(library)
+    df2 = integer_dataframe_2(library)
     namespace = df1.__dataframe_namespace__()
-    result = namespace.concat([df1, df2]).dataframe
-    expected = pd.DataFrame({"a": [1, 2, 3, 4]})
-    pd.testing.assert_frame_equal(result, expected)
+    result = namespace.concat([df1, df2])
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    expected = pd.DataFrame({"a": [1, 2, 3, 1, 2, 4], "b": [4, 5, 6, 4, 2, 6]})
+    pd.testing.assert_frame_equal(result_pd, expected)
 
 
 def test_concat_mismatch() -> None:
