@@ -319,11 +319,12 @@ def test_drop_column_invalid(library: str) -> None:
         df.drop_column(["a"])
 
 
-def test_rename_columns() -> None:
-    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
-    result = df.rename_columns({"a": "c", "b": "e"}).dataframe
+def test_rename_columns(library: str) -> None:
+    df = integer_dataframe_1(library)
+    result = df.rename_columns({"a": "c", "b": "e"})
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
     expected = pd.DataFrame({"c": [1, 2, 3], "e": [4, 5, 6]})
-    pd.testing.assert_frame_equal(result, expected)
+    pd.testing.assert_frame_equal(result_pd, expected)
 
 
 def test_rename_columns_invalid() -> None:
@@ -332,8 +333,8 @@ def test_rename_columns_invalid() -> None:
         df.rename_columns(lambda x: x.upper())  # type: ignore[arg-type]
 
 
-def test_get_column_names() -> None:
-    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}))
+def test_get_column_names(library: str) -> None:
+    df = integer_dataframe_1(library)
     result = df.get_column_names()
     assert [name for name in result] == ["a", "b"]
 

@@ -269,7 +269,7 @@ class PolarsDataFrame:
             raise TypeError(f"Expected str, got: {type(label)}")
         return PolarsDataFrame(self.df.drop(label))
 
-    def rename(self, mapping: Mapping[str, str]) -> PolarsDataFrame:
+    def rename_columns(self, mapping: Mapping[str, str]) -> PolarsDataFrame:
         return PolarsDataFrame(self.df.rename(dict(mapping)))
 
     def get_column_names(self) -> Sequence[str]:
