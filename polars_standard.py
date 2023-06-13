@@ -265,6 +265,8 @@ class PolarsDataFrame:
         return PolarsDataFrame(pl.DataFrame({label: value._series}))
 
     def drop_column(self, label: str) -> PolarsDataFrame:
+        if not isinstance(label, str):
+            raise TypeError(f"Expected str, got: {type(label)}")
         return PolarsDataFrame(self.df.drop(label))
 
     def rename(self, mapping: Mapping[str, str]) -> PolarsDataFrame:
