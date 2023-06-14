@@ -174,9 +174,15 @@ class PolarsColumn:
         keys = df.columns
         return PolarsColumn(df.with_row_count().sort(keys, descending=False)["row_nr"])
 
+    def fill_nan(self, value: float) -> PolarsColumn:
+        return PolarsColumn(self._series.fill_nan(value))
+
 
 class PolarsGroupBy:
     def __init__(self, df: pl.DataFrame, keys: Sequence[str]) -> None:
+        for key in keys:
+            if key not in df.columns:
+                raise KeyError(f"key {key} not present in DataFrame's columns")
         self.df = df
         self.keys = keys
 
@@ -358,9 +364,14 @@ class PolarsDataFrame:
         return PolarsDataFrame(self.dataframe.select(pl.col("*").all()))
 
     def any_rowwise(self) -> PolarsColumn:
-        # self._validate_booleanness()
         return PolarsColumn(self.dataframe.select(pl.any(pl.col("*")))["any"])
+
+    def all_rowwise(self) -> PolarsColumn:
+        return PolarsColumn(self.dataframe.select(pl.all(pl.col("*")))["all"])
 
     def sorted_indices(self, keys: Sequence[str]) -> PolarsColumn:
         df = self.dataframe.select(keys)
         return PolarsColumn(df.with_row_count().sort(keys, descending=False)["row_nr"])
+
+    def fill_nan(self, value: float) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.fill_nan(value))

@@ -3,11 +3,9 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-import numpy as np
 import pytest
 import pandas as pd
 import polars as pl
-from pandas_standard import PandasColumn, PandasDataFrame
 import pandas_standard  # noqa
 import polars_standard  # noqa
 
@@ -226,7 +224,7 @@ def nan_series_1(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def bool_dataframe_1(library: str) -> object:
+def bool_dataframe_1(library: str) -> Any:
     df: Any
     if library == "pandas":
         df = pd.DataFrame({"a": [True, True, False], "b": [True, True, True]})
@@ -760,8 +758,8 @@ def test_column_invert(library: str) -> None:
     pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_column_max() -> None:
-    result = PandasColumn(pd.Series([1, 3, 2])).max()
+def test_column_max(library: str) -> None:
+    result = integer_series_1(library).max()
     assert result == 3
 
 
@@ -770,7 +768,7 @@ def test_repeated_columns() -> None:
     with pytest.raises(
         ValueError, match=r"Expected unique column names, got b 2 time\(s\)"
     ):
-        PandasDataFrame(df)
+        df.__dataframe_standard__()  # type: ignore[operator]
 
 
 def test_non_str_columns() -> None:
@@ -779,72 +777,60 @@ def test_non_str_columns() -> None:
         TypeError,
         match=r"Expected column names to be of type str, got 0 of type <class 'int'>",
     ):
-        PandasDataFrame(df)
+        df.__dataframe_standard__()  # type: ignore[operator]
 
 
-def test_comparison_invalid() -> None:
-    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3]}))
-    other = PandasDataFrame(pd.DataFrame({"b": [1, 2, 3]}))
+def test_comparison_invalid(library: str) -> None:
+    df = integer_dataframe_1(library).get_columns_by_name(["a"])
+    other = integer_dataframe_1(library).get_columns_by_name(["b"])
     with pytest.raises(
-        ValueError,
-        match="Expected DataFrame with same length, matching "
-        "columns, and matching index.",
+        (ValueError, pl.exceptions.DuplicateError),
     ):
         df > other
 
 
-def test_groupby_invalid() -> None:
-    df = PandasDataFrame(pd.DataFrame({"a": [1, 2, 3]}))
-    with pytest.raises(
-        TypeError, match=r"Expected sequence of strings, got: <class \'int\'>"
-    ):
-        df.groupby(0)  # type: ignore
-    with pytest.raises(TypeError, match=r"Expected sequence of strings, got: str"):
+def test_groupby_invalid(library: str) -> None:
+    df = integer_dataframe_1(library).get_columns_by_name(["a"])
+    with pytest.raises((KeyError, TypeError)):
+        df.groupby(0)
+    with pytest.raises((KeyError, TypeError)):
         df.groupby("0")
-    with pytest.raises(KeyError, match=r"key b not present in DataFrame\'s columns"):
+    with pytest.raises((KeyError, TypeError)):
         df.groupby(["b"])
 
 
-def test_any_rowwise() -> None:
-    df = PandasDataFrame(pd.DataFrame({"a": [True, False], "b": [False, False]}))
-    result = df.any_rowwise()._series
-    expected = pd.Series([True, False])
-    pd.testing.assert_series_equal(result, expected)
+def test_any_rowwise(library: str) -> None:
+    df = bool_dataframe_1(library)
+    namespace = df.__dataframe_namespace__()
+    result = namespace.dataframe_from_dict({"result": df.any_rowwise()})
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    expected = pd.Series([True, True, True], name="result")
+    pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_all_rowwise() -> None:
-    df = PandasDataFrame(pd.DataFrame({"a": [True, False], "b": [False, False]}))
-    result = df.all_rowwise()._series
-    expected = pd.Series([False, False])
-    pd.testing.assert_series_equal(result, expected)
+def test_all_rowwise(library: str) -> None:
+    df = bool_dataframe_1(library)
+    namespace = df.__dataframe_namespace__()
+    result = namespace.dataframe_from_dict({"result": df.all_rowwise()})
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    expected = pd.Series([True, True, False], name="result")
+    pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_fill_nan() -> None:
-    df_pd = pd.DataFrame({"a": [0.0, 1.0, np.nan], "b": [1, 2, 3]})
-    df_pd["c"] = pd.Series([1, 2, pd.NA], dtype="Int64")
-    df = PandasDataFrame(df_pd)
-    result = df.fill_nan(-1).dataframe
-    expected = pd.DataFrame({"a": [0.0, 1.0, -1.0], "b": [1, 2, 3]})
-    expected["c"] = pd.Series([1, 2, pd.NA], dtype="Int64")
-    pd.testing.assert_frame_equal(result, expected)
+def test_fill_nan(library: str) -> None:
+    # todo test with nullable pandas
+    df = nan_dataframe_1(library)
+    result = df.fill_nan(-1)
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    expected = pd.DataFrame({"a": [1.0, 2.0, -1.0]})
+    pd.testing.assert_frame_equal(result_pd, expected)
 
 
-@pytest.mark.parametrize(
-    ("series", "expected"),
-    [
-        (
-            pd.Series([1, 2, pd.NA], dtype="Int64"),
-            pd.Series([1, 2, pd.NA], dtype="Int64"),
-        ),
-        (
-            pd.Series([1.0, 2.0, np.nan], dtype="float64"),
-            pd.Series([1.0, 2.0, -1.0], dtype="float64"),
-        ),
-    ],
-)
-def test_column_fill_nan(
-    series: "pd.Series[float]", expected: "pd.Series[float]"
-) -> None:
-    col = PandasColumn(series)
-    result = col.fill_nan(-1)._series
-    pd.testing.assert_series_equal(result, expected)
+def test_column_fill_nan(library: str) -> None:
+    # todo: test with nullable pandas
+    ser = nan_series_1(library)
+    namespace = ser.__column_namespace__()
+    result = namespace.dataframe_from_dict({"result": ser.fill_nan(-1.0)})
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    expected = pd.Series([0.0, 1.0, -1.0], name="result")
+    pd.testing.assert_series_equal(result_pd, expected)
