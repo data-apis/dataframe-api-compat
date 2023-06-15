@@ -52,20 +52,6 @@ def integer_series_1(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def integer_series_2(library: str) -> object:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame({"a": [4, 5, 6]}, dtype="int64")
-        return df.__dataframe_standard__().get_column_by_name("a")
-    if library == "pandas-nullable":
-        df = pd.DataFrame({"a": [4, 5, 6]}, dtype="Int64")
-        return df.__dataframe_standard__().get_column_by_name("a")
-    if library == "polars":
-        df = pl.DataFrame({"a": [4, 5, 6]})
-        return df.__dataframe_standard__().get_column_by_name("a")
-    raise AssertionError(f"Got unexpected library: {library}")
-
-
 def integer_series_3(library: str) -> object:
     df: Any
     if library == "pandas-numpy":
@@ -76,20 +62,6 @@ def integer_series_3(library: str) -> object:
         return df.__dataframe_standard__().get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [1, 2, 4]})
-        return df.__dataframe_standard__().get_column_by_name("a")
-    raise AssertionError(f"Got unexpected library: {library}")
-
-
-def integer_series_4(library: str) -> object:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame({"a": [0, 2]}, dtype="int64")
-        return df.__dataframe_standard__().get_column_by_name("a")
-    if library == "pandas-nullable":
-        df = pd.DataFrame({"a": [0, 2]}, dtype="Int64")
-        return df.__dataframe_standard__().get_column_by_name("a")
-    if library == "polars":
-        df = pl.DataFrame({"a": [0, 2]})
         return df.__dataframe_standard__().get_column_by_name("a")
     raise AssertionError(f"Got unexpected library: {library}")
 
@@ -282,21 +254,6 @@ def integer_dataframe_5(library: str) -> Any:
         return df.__dataframe_standard__()
     if library == "polars":
         df = pl.DataFrame({"a": [1, 1], "b": [4, 3]})
-        return df.__dataframe_standard__()
-    raise AssertionError(f"Got unexpected library: {library}")
-
-
-def empty_integer_dataframe_1(library: str) -> Any:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame({"a": []}, dtype="int64").astype({"a": "int64"})
-        return df.__dataframe_standard__()
-    if library == "pandas-nullable":
-        df = pd.DataFrame({"a": []}, dtype="Int64").astype({"a": "int64"})
-        return df.__dataframe_standard__()
-    if library == "polars":
-        df = pl.DataFrame({"a": []})
-        df = df.with_columns(pl.col("a").cast(pl.Int64))
         return df.__dataframe_standard__()
     raise AssertionError(f"Got unexpected library: {library}")
 
@@ -692,7 +649,10 @@ def test_rename_columns(library: str) -> None:
 
 def test_rename_columns_invalid(library: str) -> None:
     df = integer_dataframe_1(library)
-    with pytest.raises(TypeError, match="Expected Mapping, got: <class 'function'>"):
+    with pytest.raises(
+        TypeError, match="Expected Mapping, got: <class 'function'>"
+    ):  # pragma: no cover
+        # why is this not covered? bug in coverage?
         df.rename_columns(lambda x: x.upper())
 
 
