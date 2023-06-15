@@ -1,3 +1,7 @@
+[![Build Status](https://github.com/MarcoGorelli/impl-dataframe-api/workflows/tox/badge.svg)](https://github.com/MarcoGorelli/impl-dataframe-api/actions?workflow=tox)
+[![Coverage](https://codecov.io/gh/MarcoGorelli/impl-dataframe-api/branch/main/graph/badge.svg)](https://codecov.io/gh/MarcoGorelli/impl-dataframe-api)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/MarcoGorelli/impl-dataframe-api/main.svg)](https://results.pre-commit.ci/latest/github/MarcoGorelli/impl-dataframe-api/main)
+
 # DataFrame Standard POC
 
 <h1 align="center">
