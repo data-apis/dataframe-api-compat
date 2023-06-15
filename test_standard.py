@@ -136,6 +136,17 @@ def bool_series_1(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
+def bool_series_2(library: str) -> Any:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": [True, False, False]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "polars":
+        df = pl.DataFrame({"a": [True, False, False]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
 def integer_dataframe_1(library: str) -> Any:
     df: Any
     if library == "pandas":
@@ -727,6 +738,11 @@ def test_mean(library: str) -> None:
     assert result == 2.0
 
 
+def test_std(library: str) -> None:
+    result = integer_series_5(library).std()
+    assert abs(result - 1.7320508075688772) < 1e-8
+
+
 def test_sorted_indices(library: str) -> None:
     df = integer_dataframe_5(library)
     namespace = df.__dataframe_namespace__()
@@ -755,6 +771,16 @@ def test_column_invert(library: str) -> None:
     result = namespace.dataframe_from_dict({"result": ~ser})
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     expected = pd.Series([False, True, False], name="result")
+    pd.testing.assert_series_equal(result_pd, expected)
+
+
+def test_column_and(library: str) -> None:
+    ser = bool_series_1(library)
+    other = bool_series_2(library)
+    namespace = ser.__column_namespace__()
+    result = namespace.dataframe_from_dict({"result": ser & other})
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    expected = pd.Series([True, False, False], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 
 
