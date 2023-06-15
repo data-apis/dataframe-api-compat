@@ -65,8 +65,9 @@ pip install git+https://github.com/MarcoGorelli/impl-dataframe-api
 Testing
 -------
 ```
-pytest --cov=pandas_standard
+pytest --cov=pandas_standard --cov=polars_standard --cov=test_standard --cov-fail-under=100
 ```
+100% branch coverage isn't the objective - it's the bare minimum.
 
 Linting
 -------
