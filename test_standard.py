@@ -202,6 +202,18 @@ def integer_dataframe_5(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
+def empty_integer_dataframe_1(library: str) -> Any:
+    df: Any
+    if library == "pandas":
+        df = pd.DataFrame({"a": []}).astype({"a": "int64"})
+        return df.__dataframe_standard__()
+    if library == "polars":
+        df = pl.DataFrame({"a": []})
+        df = df.with_columns(pl.col("a").cast(pl.Int64))
+        return df.__dataframe_standard__()
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
 def nan_dataframe_1(library: str) -> Any:
     df: Any
     if library == "pandas":
@@ -650,6 +662,11 @@ def test_isnull(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
+def test_shape(library: str) -> None:
+    df = integer_dataframe_1(library)
+    assert df.shape() == (3, 2)
+
+
 def test_column_isnull(library: str) -> None:
     # todo: test for nullable pandas
     ser = nan_series_1(library)
@@ -781,6 +798,16 @@ def test_column_and(library: str) -> None:
     result = namespace.dataframe_from_dict({"result": ser & other})
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     expected = pd.Series([True, False, False], name="result")
+    pd.testing.assert_series_equal(result_pd, expected)
+
+
+def test_column_and_with_scalar(library: str) -> None:
+    ser = bool_series_1(library)
+    other = True
+    namespace = ser.__column_namespace__()
+    result = namespace.dataframe_from_dict({"result": ser & other})
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    expected = pd.Series([True, False, True], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 
 

@@ -181,7 +181,9 @@ class PandasColumn:
         return PandasColumn(~self._series)
 
     def __and__(self, other: PandasColumn) -> PandasColumn:
-        return PandasColumn(self._series & other._series)
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self._series & other._series)
+        return PandasColumn(self._series & other)
 
     def max(self) -> object:
         return self._series.max()

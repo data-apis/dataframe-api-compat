@@ -276,10 +276,8 @@ class PolarsDataFrame:
 
     def insert(self, loc: int, label: str, value: PolarsColumn) -> PolarsDataFrame:
         df = self.df.clone()
-        if len(df) > 0:
-            df.insert_at_idx(loc, pl.Series(label, value._series))
-            return PolarsDataFrame(df)
-        return PolarsDataFrame(pl.DataFrame({label: value._series}))
+        df.insert_at_idx(loc, pl.Series(label, value._series))
+        return PolarsDataFrame(df)
 
     def drop_column(self, label: str) -> PolarsDataFrame:
         if not isinstance(label, str):
