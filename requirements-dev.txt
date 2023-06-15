@@ -1,0 +1,5 @@
+covdefaults
+pandas
+polars
+pytest
+pytest-cov
