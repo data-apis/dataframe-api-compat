@@ -10,15 +10,41 @@ import pandas_standard  # noqa
 import polars_standard  # noqa
 
 
+def convert_dataframe_to_pandas_numpy(df: pd.DataFrame) -> pd.DataFrame:
+    conversions = {
+        "boolean": "bool",
+        "Int64": "int64",
+        "Float64": "float64",
+    }
+    for nullable, numpy in conversions.items():
+        df = df.astype({key: numpy for key in df.columns[df.dtypes == nullable]})
+    return df
+
+
+def convert_series_to_pandas_numpy(ser: pd.Series) -> pd.Series:  # type: ignore[type-arg]
+    conversions = {
+        "boolean": "bool",
+        "Int64": "int64",
+        "Float64": "float64",
+    }
+    for nullable, numpy in conversions.items():
+        if ser.dtype == nullable:
+            ser = ser.astype(numpy)  # type: ignore[call-overload]
+    return ser
+
+
 def pytest_generate_tests(metafunc: Any) -> None:
     if "library" in metafunc.fixturenames:
-        metafunc.parametrize("library", ["pandas", "polars"])
+        metafunc.parametrize("library", ["pandas-numpy", "pandas-nullable", "polars"])
 
 
 def integer_series_1(library: str) -> Any:
     df: Any
-    if library == "pandas":
-        df = pd.DataFrame({"a": [1, 2, 3]})
+    if library == "pandas-numpy":
+        df = pd.DataFrame({"a": [1, 2, 3]}, dtype="int64")
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "pandas-nullable":
+        df = pd.DataFrame({"a": [1, 2, 3]}, dtype="Int64")
         return df.__dataframe_standard__().get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [1, 2, 3]})
@@ -28,8 +54,11 @@ def integer_series_1(library: str) -> Any:
 
 def integer_series_2(library: str) -> object:
     df: Any
-    if library == "pandas":
-        df = pd.DataFrame({"a": [4, 5, 6]})
+    if library == "pandas-numpy":
+        df = pd.DataFrame({"a": [4, 5, 6]}, dtype="int64")
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "pandas-nullable":
+        df = pd.DataFrame({"a": [4, 5, 6]}, dtype="Int64")
         return df.__dataframe_standard__().get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [4, 5, 6]})
@@ -39,8 +68,11 @@ def integer_series_2(library: str) -> object:
 
 def integer_series_3(library: str) -> object:
     df: Any
-    if library == "pandas":
-        df = pd.DataFrame({"a": [1, 2, 4]})
+    if library == "pandas-numpy":
+        df = pd.DataFrame({"a": [1, 2, 4]}, dtype="int64")
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "pandas-nullable":
+        df = pd.DataFrame({"a": [1, 2, 4]}, dtype="Int64")
         return df.__dataframe_standard__().get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [1, 2, 4]})
@@ -50,8 +82,11 @@ def integer_series_3(library: str) -> object:
 
 def integer_series_4(library: str) -> object:
     df: Any
-    if library == "pandas":
-        df = pd.DataFrame({"a": [0, 2]})
+    if library == "pandas-numpy":
+        df = pd.DataFrame({"a": [0, 2]}, dtype="int64")
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "pandas-nullable":
+        df = pd.DataFrame({"a": [0, 2]}, dtype="Int64")
         return df.__dataframe_standard__().get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [0, 2]})
@@ -61,8 +96,11 @@ def integer_series_4(library: str) -> object:
 
 def integer_series_5(library: str) -> Any:
     df: Any
-    if library == "pandas":
-        df = pd.DataFrame({"a": [1, 1, 4]})
+    if library == "pandas-numpy":
+        df = pd.DataFrame({"a": [1, 1, 4]}, dtype="int64")
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "pandas-nullable":
+        df = pd.DataFrame({"a": [1, 1, 4]}, dtype="Int64")
         return df.__dataframe_standard__().get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [1, 1, 4]})
@@ -72,8 +110,11 @@ def integer_series_5(library: str) -> Any:
 
 def integer_series_6(library: str) -> Any:
     df: Any
-    if library == "pandas":
-        df = pd.DataFrame({"a": [1, 3, 2]})
+    if library == "pandas-numpy":
+        df = pd.DataFrame({"a": [1, 3, 2]}, dtype="int64")
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "pandas-nullable":
+        df = pd.DataFrame({"a": [1, 3, 2]}, dtype="Int64")
         return df.__dataframe_standard__().get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [1, 3, 2]})
@@ -83,8 +124,11 @@ def integer_series_6(library: str) -> Any:
 
 def float_series_1(library: str) -> Any:
     df: Any
-    if library == "pandas":
-        df = pd.DataFrame({"a": [2.0, 3.0]})
+    if library == "pandas-numpy":
+        df = pd.DataFrame({"a": [2.0, 3.0]}, dtype="float64")
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "pandas-nullable":
+        df = pd.DataFrame({"a": [2.0, 3.0]}, dtype="Float64")
         return df.__dataframe_standard__().get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [2.0, 3.0]})
@@ -94,8 +138,11 @@ def float_series_1(library: str) -> Any:
 
 def float_series_2(library: str) -> Any:
     df: Any
-    if library == "pandas":
-        df = pd.DataFrame({"a": [2.0, 1.0]})
+    if library == "pandas-numpy":
+        df = pd.DataFrame({"a": [2.0, 1.0]}, dtype="float64")
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "pandas-nullable":
+        df = pd.DataFrame({"a": [2.0, 1.0]}, dtype="Float64")
         return df.__dataframe_standard__().get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [2.0, 1.0]})
@@ -105,9 +152,13 @@ def float_series_2(library: str) -> Any:
 
 def float_series_3(library: str) -> object:
     df: Any
-    if library == "pandas":
-        df = pd.DataFrame({"a": [float("nan"), 2.0]})
+    if library == "pandas-numpy":
+        df = pd.DataFrame({"a": [float("nan"), 2.0]}, dtype="float64")
         return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "pandas-nullable":
+        df = pd.DataFrame({"a": [0.0, 2.0]}, dtype="Float64")
+        other = pd.DataFrame({"a": [0.0, 1.0]}, dtype="Float64")
+        return (df / other).__dataframe_standard__().get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [float("nan"), 2.0]})
         return df.__dataframe_standard__().get_column_by_name("a")
@@ -116,9 +167,13 @@ def float_series_3(library: str) -> object:
 
 def float_series_4(library: str) -> object:
     df: Any
-    if library == "pandas":
-        df = pd.DataFrame({"a": [1.0, float("nan")]})
+    if library == "pandas-numpy":
+        df = pd.DataFrame({"a": [1.0, float("nan")]}, dtype="float64")
         return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "pandas-nullable":
+        df = pd.DataFrame({"a": [1.0, 0.0]}, dtype="Float64")
+        other = pd.DataFrame({"a": [1.0, 0.0]}, dtype="Float64")
+        return (df / other).__dataframe_standard__().get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [1.0, float("nan")]})
         return df.__dataframe_standard__().get_column_by_name("a")
@@ -127,8 +182,11 @@ def float_series_4(library: str) -> object:
 
 def bool_series_1(library: str) -> Any:
     df: Any
-    if library == "pandas":
-        df = pd.DataFrame({"a": [True, False, True]})
+    if library == "pandas-numpy":
+        df = pd.DataFrame({"a": [True, False, True]}, dtype="bool")
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "pandas-nullable":
+        df = pd.DataFrame({"a": [True, False, True]}, dtype="boolean")
         return df.__dataframe_standard__().get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [True, False, True]})
@@ -138,8 +196,11 @@ def bool_series_1(library: str) -> Any:
 
 def bool_series_2(library: str) -> Any:
     df: Any
-    if library == "pandas":
-        df = pd.DataFrame({"a": [True, False, False]})
+    if library == "pandas-numpy":
+        df = pd.DataFrame({"a": [True, False, False]}, dtype="bool")
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "pandas-nullable":
+        df = pd.DataFrame({"a": [True, False, False]}, dtype="boolean")
         return df.__dataframe_standard__().get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [True, False, False]})
@@ -149,8 +210,11 @@ def bool_series_2(library: str) -> Any:
 
 def integer_dataframe_1(library: str) -> Any:
     df: Any
-    if library == "pandas":
-        df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+    if library == "pandas-numpy":
+        df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}, dtype="int64")
+        return df.__dataframe_standard__()
+    if library == "pandas-nullable":
+        df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}, dtype="Int64")
         return df.__dataframe_standard__()
     if library == "polars":
         df = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
@@ -160,8 +224,11 @@ def integer_dataframe_1(library: str) -> Any:
 
 def integer_dataframe_2(library: str) -> Any:
     df: Any
-    if library == "pandas":
-        df = pd.DataFrame({"a": [1, 2, 4], "b": [4, 2, 6]})
+    if library == "pandas-numpy":
+        df = pd.DataFrame({"a": [1, 2, 4], "b": [4, 2, 6]}, dtype="int64")
+        return df.__dataframe_standard__()
+    if library == "pandas-nullable":
+        df = pd.DataFrame({"a": [1, 2, 4], "b": [4, 2, 6]}, dtype="Int64")
         return df.__dataframe_standard__()
     if library == "polars":
         df = pl.DataFrame({"a": [1, 2, 4], "b": [4, 2, 6]})
@@ -171,8 +238,15 @@ def integer_dataframe_2(library: str) -> Any:
 
 def integer_dataframe_3(library: str) -> Any:
     df: Any
-    if library == "pandas":
-        df = pd.DataFrame({"a": [1, 2, 3, 4, 5, 6, 7], "b": [7, 6, 5, 4, 3, 2, 1]})
+    if library == "pandas-numpy":
+        df = pd.DataFrame(
+            {"a": [1, 2, 3, 4, 5, 6, 7], "b": [7, 6, 5, 4, 3, 2, 1]}, dtype="int64"
+        )
+        return df.__dataframe_standard__()
+    if library == "pandas-nullable":
+        df = pd.DataFrame(
+            {"a": [1, 2, 3, 4, 5, 6, 7], "b": [7, 6, 5, 4, 3, 2, 1]}, dtype="Int64"
+        )
         return df.__dataframe_standard__()
     if library == "polars":
         df = pl.DataFrame({"a": [1, 2, 3, 4, 5, 6, 7], "b": [7, 6, 5, 4, 3, 2, 1]})
@@ -182,8 +256,15 @@ def integer_dataframe_3(library: str) -> Any:
 
 def integer_dataframe_4(library: str) -> Any:
     df: Any
-    if library == "pandas":
-        df = pd.DataFrame({"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]})
+    if library == "pandas-numpy":
+        df = pd.DataFrame(
+            {"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]}, dtype="int64"
+        )
+        return df.__dataframe_standard__()
+    if library == "pandas-nullable":
+        df = pd.DataFrame(
+            {"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]}, dtype="Int64"
+        )
         return df.__dataframe_standard__()
     if library == "polars":
         df = pl.DataFrame({"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]})
@@ -193,8 +274,11 @@ def integer_dataframe_4(library: str) -> Any:
 
 def integer_dataframe_5(library: str) -> Any:
     df: Any
-    if library == "pandas":
-        df = pd.DataFrame({"a": [1, 1], "b": [4, 3]})
+    if library == "pandas-numpy":
+        df = pd.DataFrame({"a": [1, 1], "b": [4, 3]}, dtype="int64")
+        return df.__dataframe_standard__()
+    if library == "pandas-nullable":
+        df = pd.DataFrame({"a": [1, 1], "b": [4, 3]}, dtype="Int64")
         return df.__dataframe_standard__()
     if library == "polars":
         df = pl.DataFrame({"a": [1, 1], "b": [4, 3]})
@@ -204,8 +288,11 @@ def integer_dataframe_5(library: str) -> Any:
 
 def empty_integer_dataframe_1(library: str) -> Any:
     df: Any
-    if library == "pandas":
-        df = pd.DataFrame({"a": []}).astype({"a": "int64"})
+    if library == "pandas-numpy":
+        df = pd.DataFrame({"a": []}, dtype="int64").astype({"a": "int64"})
+        return df.__dataframe_standard__()
+    if library == "pandas-nullable":
+        df = pd.DataFrame({"a": []}, dtype="Int64").astype({"a": "int64"})
         return df.__dataframe_standard__()
     if library == "polars":
         df = pl.DataFrame({"a": []})
@@ -216,9 +303,13 @@ def empty_integer_dataframe_1(library: str) -> Any:
 
 def nan_dataframe_1(library: str) -> Any:
     df: Any
-    if library == "pandas":
-        df = pd.DataFrame({"a": [1.0, 2.0, float("nan")]})
+    if library == "pandas-numpy":
+        df = pd.DataFrame({"a": [1.0, 2.0, float("nan")]}, dtype="float64")
         return df.__dataframe_standard__()
+    if library == "pandas-nullable":
+        df = pd.DataFrame({"a": [1.0, 2.0, 0.0]}, dtype="Float64")
+        other = pd.DataFrame({"a": [1.0, 1.0, 0.0]}, dtype="Float64")
+        return (df / other).__dataframe_standard__()
     if library == "polars":
         df = pl.DataFrame({"a": [1.0, 2.0, float("nan")]})
         return df.__dataframe_standard__()
@@ -227,20 +318,42 @@ def nan_dataframe_1(library: str) -> Any:
 
 def nan_dataframe_2(library: str) -> Any:
     df: Any
-    if library == "pandas":
-        df = pd.DataFrame({"a": [0.0, 1.0, float("nan")]})
+    if library == "pandas-numpy":
+        df = pd.DataFrame({"a": [0.0, 1.0, float("nan")]}, dtype="float64")
         return df.__dataframe_standard__()
+    if library == "pandas-nullable":
+        df = pd.DataFrame({"a": [0.0, 1.0, 0.0]}, dtype="Float64")
+        other = pd.DataFrame({"a": [1.0, 1.0, 0.0]}, dtype="Float64")
+        return (df / other).__dataframe_standard__()
     if library == "polars":
         df = pl.DataFrame({"a": [0.0, 1.0, float("nan")]})
         return df.__dataframe_standard__()
     raise AssertionError(f"Got unexpected library: {library}")
 
 
+def null_dataframe_1(library: str) -> Any:
+    df: Any
+    if library == "pandas-numpy":
+        # xfail
+        pass
+    if library == "pandas-nullable":
+        df = pd.DataFrame({"a": [1.0, 2.0, pd.NA]}, dtype="Float64")
+        return df.__dataframe_standard__()
+    if library == "polars":
+        df = pl.DataFrame({"a": [1.0, 2.0, None]})
+        return df.__dataframe_standard__()
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
 def nan_series_1(library: str) -> Any:
     df: Any
-    if library == "pandas":
-        df = pd.DataFrame({"a": [0.0, 1.0, float("nan")]})
+    if library == "pandas-numpy":
+        df = pd.DataFrame({"a": [0.0, 1.0, float("nan")]}, dtype="float64")
         return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "pandas-nullable":
+        df = pd.DataFrame({"a": [0.0, 1.0, 0.0]}, dtype="Float64")
+        other = pd.DataFrame({"a": [1.0, 1.0, 0.0]}, dtype="Float64")
+        return (df / other).__dataframe_standard__().get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [0.0, 1.0, float("nan")]})
         return df.__dataframe_standard__().get_column_by_name("a")
@@ -249,8 +362,15 @@ def nan_series_1(library: str) -> Any:
 
 def bool_dataframe_1(library: str) -> Any:
     df: Any
-    if library == "pandas":
-        df = pd.DataFrame({"a": [True, True, False], "b": [True, True, True]})
+    if library == "pandas-numpy":
+        df = pd.DataFrame(
+            {"a": [True, True, False], "b": [True, True, True]}, dtype="bool"
+        )
+        return df.__dataframe_standard__()
+    if library == "pandas-nullable":
+        df = pd.DataFrame(
+            {"a": [True, True, False], "b": [True, True, True]}, dtype="boolean"
+        )
         return df.__dataframe_standard__()
     if library == "polars":
         df = pl.DataFrame({"a": [True, True, False], "b": [True, True, True]})
@@ -260,14 +380,23 @@ def bool_dataframe_1(library: str) -> Any:
 
 def bool_dataframe_2(library: str) -> Any:
     df: Any
-    if library == "pandas":
+    if library == "pandas-numpy":
         df = pd.DataFrame(
             {
                 "key": [1, 1, 2, 2],
                 "b": [False, True, True, True],
                 "c": [True, False, False, False],
             }
-        )
+        ).astype({"key": "int64", "b": "bool", "c": "bool"})
+        return df.__dataframe_standard__()
+    if library == "pandas-nullable":
+        df = pd.DataFrame(
+            {
+                "key": [1, 1, 2, 2],
+                "b": [False, True, True, True],
+                "c": [True, False, False, False],
+            }
+        ).astype({"key": "Int64", "b": "boolean", "c": "boolean"})
         return df.__dataframe_standard__()
     if library == "polars":
         df = pl.DataFrame(
@@ -283,8 +412,15 @@ def bool_dataframe_2(library: str) -> Any:
 
 def bool_dataframe_3(library: str) -> Any:
     df: Any
-    if library == "pandas":
-        df = pd.DataFrame({"a": [False, False], "b": [False, True], "c": [True, True]})
+    if library == "pandas-numpy":
+        df = pd.DataFrame(
+            {"a": [False, False], "b": [False, True], "c": [True, True]}, dtype="bool"
+        )
+        return df.__dataframe_standard__()
+    if library == "pandas-nullable":
+        df = pd.DataFrame(
+            {"a": [False, False], "b": [False, True], "c": [True, True]}, dtype="boolean"
+        )
         return df.__dataframe_standard__()
     if library == "polars":
         df = pl.DataFrame({"a": [False, False], "b": [False, True], "c": [True, True]})
@@ -337,6 +473,7 @@ def test_comparisons(
         # Is this right? Might need fixing upstream.
         result = result.select(pl.col("*").cast(pl.Int64))
     result_pd = pd.api.interchange.from_dataframe(result)
+    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame(expected_data)
     pd.testing.assert_frame_equal(result_pd, expected)
 
@@ -372,6 +509,7 @@ def test_column_comparisons(
     if library == "polars" and comparison == "__pow__":
         # todo: fix
         result_pd = result_pd.astype("int64")
+    result_pd = convert_series_to_pandas_numpy(result_pd)
     pd.testing.assert_series_equal(result_pd, expected)
 
 
@@ -406,6 +544,7 @@ def test_column_comparisons_scalar(
     if library == "polars" and comparison == "__pow__":
         # todo: fix
         result_pd = result_pd.astype("int64")
+    result_pd = convert_series_to_pandas_numpy(result_pd)
     pd.testing.assert_series_equal(result_pd, expected)
 
 
@@ -417,6 +556,8 @@ def test_divmod(library: str) -> None:
     result_remainder_pd = pd.api.interchange.from_dataframe(result_remainder.dataframe)
     expected_quotient = pd.DataFrame({"a": [1, 1, 0], "b": [1, 2, 1]})
     expected_remainder = pd.DataFrame({"a": [0, 0, 3], "b": [0, 1, 0]})
+    result_quotient_pd = convert_dataframe_to_pandas_numpy(result_quotient_pd)
+    result_remainder_pd = convert_dataframe_to_pandas_numpy(result_remainder_pd)
     pd.testing.assert_frame_equal(result_quotient_pd, expected_quotient)
     pd.testing.assert_frame_equal(result_remainder_pd, expected_remainder)
 
@@ -427,6 +568,7 @@ def test_get_column_by_name(library: str) -> None:
     namespace = df.__dataframe_namespace__()
     result = namespace.dataframe_from_dict({"result": result})
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series([1, 2, 3], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 
@@ -441,6 +583,7 @@ def test_get_columns_by_name(library: str) -> None:
     df = integer_dataframe_1(library)
     result = df.get_columns_by_name(["b"]).dataframe
     result_pd = pd.api.interchange.from_dataframe(result)
+    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"b": [4, 5, 6]})
     pd.testing.assert_frame_equal(result_pd, expected)
 
@@ -457,6 +600,7 @@ def test_get_rows(library: str) -> None:
     indices = namespace.column_from_sequence([0, 2, 1], dtype="int64")
     result = df.get_rows(indices).dataframe
     result_pd = pd.api.interchange.from_dataframe(result)
+    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"a": [1, 3, 2], "b": [4, 6, 5]})
     pd.testing.assert_frame_equal(result_pd, expected)
 
@@ -467,6 +611,7 @@ def test_column_get_rows(library: str) -> None:
     indices = namespace.column_from_sequence([0, 2, 1], dtype="int64")
     result = namespace.dataframe_from_dict({"result": ser.get_rows(indices)})
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series([1, 3, 2], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 
@@ -475,6 +620,7 @@ def test_slice_rows(library: str) -> None:
     df = integer_dataframe_3(library)
     result = df.slice_rows(2, 7, 2)
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"a": [3, 5, 7], "b": [5, 3, 1]})
     pd.testing.assert_frame_equal(result_pd, expected)
 
@@ -485,6 +631,7 @@ def test_get_rows_by_mask(library: str) -> None:
     mask = namespace.column_from_sequence([True, False, True], dtype="bool")
     result = df.get_rows_by_mask(mask)
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"a": [1, 3], "b": [4, 6]})
     pd.testing.assert_frame_equal(result_pd, expected)
 
@@ -495,10 +642,12 @@ def test_insert(library: str) -> None:
     new_col = namespace.column_from_sequence([7, 8, 9], dtype="int64")
     result = df.insert(1, "c", new_col)
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"a": [1, 2, 3], "c": [7, 8, 9], "b": [4, 5, 6]})
     pd.testing.assert_frame_equal(result_pd, expected)
     # check original df didn't change
     df_pd = pd.api.interchange.from_dataframe(df.dataframe)
+    df_pd = convert_dataframe_to_pandas_numpy(df_pd)
     expected = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
     pd.testing.assert_frame_equal(df_pd, expected)
 
@@ -507,6 +656,7 @@ def test_drop_column(library: str) -> None:
     df = integer_dataframe_1(library)
     result = df.drop_column("a")
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"b": [4, 5, 6]})
     pd.testing.assert_frame_equal(result_pd, expected)
 
@@ -521,6 +671,7 @@ def test_rename_columns(library: str) -> None:
     df = integer_dataframe_1(library)
     result = df.rename_columns({"a": "c", "b": "e"})
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"c": [1, 2, 3], "e": [4, 5, 6]})
     pd.testing.assert_frame_equal(result_pd, expected)
 
@@ -562,6 +713,7 @@ def test_groupby_numeric(
     sorted_indices = result.sorted_indices(["key"])
     result = result.get_rows(sorted_indices)
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"key": [1, 2], "b": expected_b, "c": expected_c})
     pd.testing.assert_frame_equal(result_pd, expected)
 
@@ -576,6 +728,7 @@ def test_groupby_size(library: str) -> None:
     expected = pd.DataFrame({"key": [1, 2], "size": [2, 2]})
     # TODO polars returns uint32. what do we standardise to?
     result_pd["size"] = result_pd["size"].astype("int64")
+    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
@@ -603,6 +756,7 @@ def test_groupby_boolean(
     idx = result.sorted_indices(["key"])
     result = result.get_rows(idx)
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"key": [1, 2], "b": expected_b, "c": expected_c})
     pd.testing.assert_frame_equal(result_pd, expected)
 
@@ -683,6 +837,7 @@ def test_concat(library: str) -> None:
     namespace = df1.__dataframe_namespace__()
     result = namespace.concat([df1, df2])
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"a": [1, 2, 3, 1, 2, 4], "b": [4, 5, 6, 4, 2, 6]})
     pd.testing.assert_frame_equal(result_pd, expected)
 
@@ -715,6 +870,7 @@ def test_is_in(
     namespace = ser.__column_namespace__()
     result = namespace.dataframe_from_dict({"result": ser.is_in(other)})
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series(expected_values, name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 
@@ -746,6 +902,7 @@ def test_unique(library: str) -> None:
     namespace = ser.__column_namespace__()
     result = namespace.dataframe_from_dict({"result": ser.unique()})
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series([1, 4], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 
@@ -787,6 +944,7 @@ def test_column_invert(library: str) -> None:
     namespace = ser.__column_namespace__()
     result = namespace.dataframe_from_dict({"result": ~ser})
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series([False, True, False], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 
@@ -797,6 +955,7 @@ def test_column_and(library: str) -> None:
     namespace = ser.__column_namespace__()
     result = namespace.dataframe_from_dict({"result": ser & other})
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series([True, False, False], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 
@@ -807,6 +966,7 @@ def test_column_and_with_scalar(library: str) -> None:
     namespace = ser.__column_namespace__()
     result = namespace.dataframe_from_dict({"result": ser & other})
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series([True, False, True], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 
@@ -875,6 +1035,7 @@ def test_fill_nan(library: str) -> None:
     df = nan_dataframe_1(library)
     result = df.fill_nan(-1)
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    result_pd = result_pd.astype("float64")
     expected = pd.DataFrame({"a": [1.0, 2.0, -1.0]})
     pd.testing.assert_frame_equal(result_pd, expected)
 
@@ -885,5 +1046,6 @@ def test_column_fill_nan(library: str) -> None:
     namespace = ser.__column_namespace__()
     result = namespace.dataframe_from_dict({"result": ser.fill_nan(-1.0)})
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series([0.0, 1.0, -1.0], name="result")
     pd.testing.assert_series_equal(result_pd, expected)

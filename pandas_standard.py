@@ -102,6 +102,8 @@ class PandasColumn:
             return PandasColumn(pd.Series(np.array([False] * len(self))))
 
     def isnan(self) -> PandasColumn:
+        if is_extension_array_dtype(self._series.dtype):
+            return PandasColumn(np.isnan(self._series).replace(pd.NA, False).astype(bool))
         return PandasColumn(self._series.isna())
 
     def any(self) -> bool:
@@ -215,16 +217,24 @@ class PandasGroupBy:
         # pandas-stubs is wrong
         return PandasDataFrame(self.grouped.size())  # type: ignore[arg-type]
 
+    def _validate_booleanness(self) -> None:
+        if not (
+            (self.df.drop(columns=self.keys).dtypes == "bool")
+            | (self.df.drop(columns=self.keys).dtypes == "boolean")
+        ).all():
+            raise NotImplementedError(
+                "'function' can only be called on DataFrame "
+                "where all dtypes are 'bool'"
+            )
+
     def any(self, skipna: bool = True) -> PandasDataFrame:
-        if not (self.df.drop(columns=self.keys).dtypes == "bool").all():
-            raise ValueError("Expected boolean types")
+        self._validate_booleanness()
         result = self.grouped.any()
         self._validate_result(result)
         return PandasDataFrame(result)
 
     def all(self, skipna: bool = True) -> PandasDataFrame:
-        if not (self.df.drop(columns=self.keys).dtypes == "bool").all():
-            raise ValueError("Expected boolean types")
+        self._validate_booleanness()
         result = self.grouped.all()
         self._validate_result(result)
         return PandasDataFrame(result)
@@ -319,7 +329,9 @@ class PandasDataFrame:
             )
 
     def _validate_booleanness(self) -> None:
-        if not (self.dataframe.dtypes == "bool").all():
+        if not (
+            (self.dataframe.dtypes == "bool") | (self.dataframe.dtypes == "boolean")
+        ).all():
             raise NotImplementedError(
                 "'any' can only be called on DataFrame " "where all dtypes are 'bool'"
             )
