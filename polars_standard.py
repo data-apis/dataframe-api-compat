@@ -240,9 +240,6 @@ class PolarsDataFrame:
     def __dataframe_namespace__(self, *, api_version: str | None = None) -> Any:
         return PolarsNamespace
 
-    def __len__(self) -> int:
-        return len(self.df)
-
     @property
     def dataframe(self) -> pl.DataFrame:
         return self.df

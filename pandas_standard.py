@@ -297,9 +297,6 @@ class PandasDataFrame:
         else:
             self._dataframe = dataframe.reset_index(drop=True)
 
-    def __len__(self) -> int:
-        return self.shape()[0]
-
     def _validate_columns(self, columns: Sequence[str]) -> None:
         counter = collections.Counter(columns)
         for col, count in counter.items():
@@ -400,8 +397,9 @@ class PandasDataFrame:
     def get_column_names(self) -> Sequence[str]:
         return self.dataframe.columns.tolist()
 
-    def __iter__(self) -> NoReturn:
-        raise NotImplementedError()
+    def sorted_indices(self, keys: Sequence[str]) -> PandasColumn:
+        df = self.dataframe.loc[:, list(keys)]
+        return PandasColumn(df.sort_values(keys).index.to_series())
 
     def __eq__(self, other: PandasDataFrame) -> PandasDataFrame:  # type: ignore[override]
         self._validate_comparand(other)
@@ -462,6 +460,9 @@ class PandasDataFrame:
         quotient, remainder = self.dataframe.__divmod__(other.dataframe)
         return PandasDataFrame(quotient), PandasDataFrame(remainder)
 
+    def __iter__(self) -> NoReturn:
+        raise NotImplementedError()
+
     def any(self) -> PandasDataFrame:
         self._validate_booleanness()
         return PandasDataFrame(self.dataframe.any().to_frame().T)
@@ -497,10 +498,6 @@ class PandasDataFrame:
             else:
                 result.append(self.dataframe[column].isna())
         return PandasDataFrame(pd.concat(result, axis=1))
-
-    def sorted_indices(self, keys: Sequence[str]) -> PandasColumn:
-        df = self.dataframe.loc[:, list(keys)]
-        return PandasColumn(df.sort_values(keys).index.to_series())
 
     def fill_nan(
         self, value: float | pd.NAType  # type: ignore[name-defined]
