@@ -75,42 +75,8 @@ class PandasColumn:
     def get_rows(self, indices: PandasColumn) -> PandasColumn:
         return PandasColumn(self._series.iloc[indices._series.to_numpy()])
 
-    def __getitem__(self, row: int) -> object:
+    def get_value(self, row: int) -> object:
         return self._series.iloc[row]
-
-    def sorted_indices(self) -> PandasColumn:
-        return PandasColumn(pd.Series(self._series.argsort()))
-
-    def is_in(self, values: PandasColumn) -> PandasColumn:
-        if values.dtype != self.dtype:
-            raise ValueError(f"`value` has dtype {values.dtype}, expected {self.dtype}")
-        return PandasColumn(self._series.isin(values._series))
-
-    def unique(self) -> PandasColumn:
-        return PandasColumn(pd.Series(self._series.unique()))
-
-    def mean(self) -> float:
-        return self._series.mean()
-
-    def std(self) -> float:
-        return self._series.std()
-
-    def isnull(self) -> PandasColumn:
-        if is_extension_array_dtype(self._series.dtype):
-            return PandasColumn(self._series.isnull())
-        else:
-            return PandasColumn(pd.Series(np.array([False] * len(self))))
-
-    def isnan(self) -> PandasColumn:
-        if is_extension_array_dtype(self._series.dtype):
-            return PandasColumn(np.isnan(self._series).replace(pd.NA, False).astype(bool))
-        return PandasColumn(self._series.isna())
-
-    def any(self) -> bool:
-        return self._series.any()
-
-    def all(self) -> bool:
-        return self._series.all()
 
     def __eq__(  # type: ignore[override]
         self, other: PandasColumn | object
@@ -179,8 +145,46 @@ class PandasColumn:
             return PandasColumn(self._series % other._series)
         return PandasColumn(self._series % other)
 
+    def __divmod__(self, other: PandasColumn) -> tuple[PandasColumn, PandasColumn]:
+        quotient, remainder = self._series.__divmod__(other._series)
+        return PandasColumn(quotient), PandasColumn(remainder)
+
     def __invert__(self) -> PandasColumn:
         return PandasColumn(~self._series)
+
+    def any(self) -> bool:
+        return self._series.any()
+
+    def all(self) -> bool:
+        return self._series.all()
+
+    def sorted_indices(self) -> PandasColumn:
+        return PandasColumn(pd.Series(self._series.argsort()))
+
+    def is_in(self, values: PandasColumn) -> PandasColumn:
+        if values.dtype != self.dtype:
+            raise ValueError(f"`value` has dtype {values.dtype}, expected {self.dtype}")
+        return PandasColumn(self._series.isin(values._series))
+
+    def unique(self) -> PandasColumn:
+        return PandasColumn(pd.Series(self._series.unique()))
+
+    def mean(self) -> float:
+        return self._series.mean()
+
+    def std(self) -> float:
+        return self._series.std()
+
+    def isnull(self) -> PandasColumn:
+        if is_extension_array_dtype(self._series.dtype):
+            return PandasColumn(self._series.isnull())
+        else:
+            return PandasColumn(pd.Series(np.array([False] * len(self))))
+
+    def isnan(self) -> PandasColumn:
+        if is_extension_array_dtype(self._series.dtype):
+            return PandasColumn(np.isnan(self._series).replace(pd.NA, False).astype(bool))
+        return PandasColumn(self._series.isna())
 
     def __and__(self, other: PandasColumn) -> PandasColumn:
         if isinstance(other, PandasColumn):

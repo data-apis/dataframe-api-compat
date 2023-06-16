@@ -57,7 +57,7 @@ class PolarsColumn:
     def get_rows(self, indices: PolarsColumn) -> PolarsColumn:
         return PolarsColumn(self._series.take(indices._series))
 
-    def __getitem__(self, row: int) -> object:
+    def get_value(self, row: int) -> object:
         return self._series[row]
 
     def __iter__(self) -> NoReturn:
@@ -144,6 +144,14 @@ class PolarsColumn:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self._series % other._series)
         return PolarsColumn(self._series % other)
+
+    def __divmod__(
+        self,
+        other: PolarsColumn,
+    ) -> tuple[PolarsColumn, PolarsColumn]:
+        quotient = self // other
+        remainder = self - quotient * other
+        return quotient, remainder
 
     def __and__(self, other: PolarsColumn | object) -> PolarsColumn:
         if isinstance(other, PolarsColumn):
