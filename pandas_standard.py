@@ -460,6 +460,10 @@ class PandasDataFrame:
         quotient, remainder = self.dataframe.__divmod__(other.dataframe)
         return PandasDataFrame(quotient), PandasDataFrame(remainder)
 
+    def __invert__(self) -> PandasDataFrame:
+        self._validate_booleanness()
+        return PandasDataFrame(self.dataframe.__invert__())
+
     def __iter__(self) -> NoReturn:
         raise NotImplementedError()
 

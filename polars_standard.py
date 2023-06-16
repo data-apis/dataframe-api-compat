@@ -340,6 +340,12 @@ class PolarsDataFrame:
         remainder = self - quotient * other
         return quotient, remainder
 
+    def __invert__(self) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.select(~pl.col("*")))
+
+    def __iter__(self) -> NoReturn:
+        raise NotImplementedError()
+
     def isnull(self) -> PolarsDataFrame:
         result = {}
         for column in self.dataframe.columns:

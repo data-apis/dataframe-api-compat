@@ -924,6 +924,15 @@ def test_column_sorted_indices(library: str) -> None:
     pd.testing.assert_series_equal(result_pd, expected)
 
 
+def test_invert(library: str) -> None:
+    df = bool_dataframe_1(library)
+    result = ~df
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
+    expected = pd.DataFrame({"a": [False, False, True], "b": [False, False, False]})
+    pd.testing.assert_frame_equal(result_pd, expected)
+
+
 def test_column_invert(library: str) -> None:
     ser = bool_series_1(library)
     namespace = ser.__column_namespace__()
