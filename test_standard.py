@@ -1033,3 +1033,25 @@ def test_column_fill_nan(library: str) -> None:
     result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series([0.0, 1.0, -1.0], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
+
+
+@pytest.mark.parametrize(
+    ("reduction", "expected"),
+    [
+        ("min", pd.DataFrame({"a": [1], "b": [4]})),
+        ("max", pd.DataFrame({"a": [3], "b": [6]})),
+        ("sum", pd.DataFrame({"a": [6], "b": [15]})),
+        ("prod", pd.DataFrame({"a": [6], "b": [120]})),
+        ("median", pd.DataFrame({"a": [2.0], "b": [5.0]})),
+        ("mean", pd.DataFrame({"a": [2.0], "b": [5.0]})),
+        ("std", pd.DataFrame({"a": [1.0], "b": [1.0]})),
+        ("var", pd.DataFrame({"a": [1.0], "b": [1.0]})),
+    ],
+)
+def test_dataframe_reductions(
+    library: str, reduction: str, expected: pd.DataFrame
+) -> None:
+    df = integer_dataframe_1(library)
+    result = getattr(df, reduction)()
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    pd.testing.assert_frame_equal(result_pd, expected)

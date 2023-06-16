@@ -364,6 +364,30 @@ class PolarsDataFrame:
     def all_rowwise(self) -> PolarsColumn:
         return PolarsColumn(self.dataframe.select(pl.all(pl.col("*")))["all"])
 
+    def min(self) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.select(pl.col("*").min()))
+
+    def max(self) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.select(pl.col("*").max()))
+
+    def sum(self) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.select(pl.col("*").sum()))
+
+    def prod(self) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.select(pl.col("*").product()))
+
+    def mean(self) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.select(pl.col("*").mean()))
+
+    def median(self) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.select(pl.col("*").median()))
+
+    def std(self) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.select(pl.col("*").std()))
+
+    def var(self) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.select(pl.col("*").var()))
+
     def sorted_indices(self, keys: Sequence[str]) -> PolarsColumn:
         df = self.dataframe.select(keys)
         return PolarsColumn(df.with_row_count().sort(keys, descending=False)["row_nr"])

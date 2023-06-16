@@ -479,6 +479,30 @@ class PandasDataFrame:
         self._validate_booleanness()
         return PandasColumn(self.dataframe.all(axis=1))
 
+    def min(self) -> PandasDataFrame:
+        return PandasDataFrame(self.dataframe.min().to_frame().T)
+
+    def max(self) -> PandasDataFrame:
+        return PandasDataFrame(self.dataframe.max().to_frame().T)
+
+    def sum(self) -> PandasDataFrame:
+        return PandasDataFrame(self.dataframe.sum().to_frame().T)
+
+    def prod(self) -> PandasDataFrame:
+        return PandasDataFrame(self.dataframe.prod().to_frame().T)
+
+    def median(self) -> PandasDataFrame:
+        return PandasDataFrame(self.dataframe.median().to_frame().T)
+
+    def mean(self) -> PandasDataFrame:
+        return PandasDataFrame(self.dataframe.mean().to_frame().T)
+
+    def std(self) -> PandasDataFrame:
+        return PandasDataFrame(self.dataframe.std().to_frame().T)
+
+    def var(self) -> PandasDataFrame:
+        return PandasDataFrame(self.dataframe.var().to_frame().T)
+
     def isnull(self) -> PandasDataFrame:
         result = []
         for column in self.dataframe.columns:
@@ -505,3 +529,7 @@ class PandasDataFrame:
         df = self.dataframe.copy()
         df[cast(pd.DataFrame, np.isnan(df)).fillna(False).to_numpy(bool)] = value
         return PandasDataFrame(df)
+
+
+# missing: min, max, prod, etc...
+# ok, break, then do that?
