@@ -110,6 +110,16 @@ class PandasColumn:
             return PandasColumn(self._series < other._series)
         return PandasColumn(self._series < other)
 
+    def __and__(self, other: PandasColumn) -> PandasColumn:
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self._series & other._series)
+        return PandasColumn(self._series & other)
+
+    def __or__(self, other: PandasColumn) -> PandasColumn:
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self._series | other._series)
+        return PandasColumn(self._series | other)
+
     def __add__(self, other: PandasColumn) -> PandasColumn:
         if isinstance(other, PandasColumn):
             return PandasColumn(self._series + other._series)
@@ -203,11 +213,6 @@ class PandasColumn:
 
     def unique(self) -> PandasColumn:
         return PandasColumn(pd.Series(self._series.unique()))
-
-    def __and__(self, other: PandasColumn) -> PandasColumn:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(self._series & other._series)
-        return PandasColumn(self._series & other)
 
     def fill_nan(
         self, value: float | pd.NAType  # type: ignore[name-defined]

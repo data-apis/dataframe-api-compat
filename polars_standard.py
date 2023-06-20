@@ -179,6 +179,11 @@ class PolarsColumn:
             return PolarsColumn(self._series & other._series)
         return PolarsColumn(self._series & other)  # type: ignore[operator]
 
+    def __or__(self, other: PolarsColumn | object) -> PolarsColumn:
+        if isinstance(other, PolarsColumn):
+            return PolarsColumn(self._series | other._series)
+        return PolarsColumn(self._series | other)  # type: ignore[operator]
+
     def __invert__(self) -> PolarsColumn:
         return PolarsColumn(~self._series)
 
