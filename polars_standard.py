@@ -71,9 +71,6 @@ class PolarsColumn:
     def unique(self) -> PolarsColumn:
         return PolarsColumn(self._series.unique())
 
-    def mean(self) -> object:
-        return self._series.mean()
-
     def isnull(self) -> PolarsColumn:
         return PolarsColumn(self._series.is_null())
 
@@ -85,6 +82,30 @@ class PolarsColumn:
 
     def all(self) -> bool:
         return self._series.all()
+
+    def min(self) -> object:
+        return self._series.min()
+
+    def max(self) -> object:
+        return self._series.max()
+
+    def sum(self) -> object:
+        return self._series.sum()
+
+    def prod(self) -> object:
+        return self._series.product()
+
+    def mean(self) -> object:
+        return self._series.mean()
+
+    def median(self) -> object:
+        return self._series.median()
+
+    def std(self) -> object:
+        return self._series.std()
+
+    def var(self) -> object:
+        return self._series.var()
 
     def __eq__(  # type: ignore[override]
         self, other: PolarsColumn | object
@@ -160,12 +181,6 @@ class PolarsColumn:
 
     def __invert__(self) -> PolarsColumn:
         return PolarsColumn(~self._series)
-
-    def max(self) -> object:
-        return self._series.max()
-
-    def std(self) -> object:
-        return self._series.std()
 
     def __add__(self, other: PolarsColumn) -> PolarsColumn:
         if isinstance(other, PolarsColumn):

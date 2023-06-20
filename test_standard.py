@@ -1083,3 +1083,22 @@ def test_dataframe_reductions(
     result = getattr(df, reduction)()
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)
     pd.testing.assert_frame_equal(result_pd, expected)
+
+
+@pytest.mark.parametrize(
+    ("reduction", "expected"),
+    [
+        ("min", 1),
+        ("max", 3),
+        ("sum", 6),
+        ("prod", 6),
+        ("median", 2.0),
+        ("mean", 2.0),
+        ("std", 1.0),
+        ("var", 1.0),
+    ],
+)
+def test_column_reductions(library: str, reduction: str, expected: float) -> None:
+    ser = integer_series_1(library)
+    result = getattr(ser, reduction)()
+    assert result == expected

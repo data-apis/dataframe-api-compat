@@ -158,6 +158,30 @@ class PandasColumn:
     def all(self) -> bool:
         return self._series.all()
 
+    def min(self) -> object:
+        return self._series.min()
+
+    def max(self) -> object:
+        return self._series.max()
+
+    def sum(self) -> object:
+        return self._series.sum()
+
+    def prod(self) -> object:
+        return self._series.prod()
+
+    def median(self) -> object:
+        return self._series.median()
+
+    def mean(self) -> object:
+        return self._series.mean()
+
+    def std(self) -> object:
+        return self._series.std()
+
+    def var(self) -> object:
+        return self._series.var()
+
     def sorted_indices(self) -> PandasColumn:
         return PandasColumn(pd.Series(self._series.argsort()))
 
@@ -168,12 +192,6 @@ class PandasColumn:
 
     def unique(self) -> PandasColumn:
         return PandasColumn(pd.Series(self._series.unique()))
-
-    def mean(self) -> float:
-        return self._series.mean()
-
-    def std(self) -> float:
-        return self._series.std()
 
     def isnull(self) -> PandasColumn:
         if is_extension_array_dtype(self._series.dtype):
@@ -190,9 +208,6 @@ class PandasColumn:
         if isinstance(other, PandasColumn):
             return PandasColumn(self._series & other._series)
         return PandasColumn(self._series & other)
-
-    def max(self) -> object:
-        return self._series.max()
 
     def fill_nan(
         self, value: float | pd.NAType  # type: ignore[name-defined]
