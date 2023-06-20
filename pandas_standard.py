@@ -182,6 +182,17 @@ class PandasColumn:
     def var(self) -> object:
         return self._series.var()
 
+    def is_null(self) -> PandasColumn:
+        if is_extension_array_dtype(self._series.dtype):
+            return PandasColumn(self._series.isnull())
+        else:
+            return PandasColumn(pd.Series(np.array([False] * len(self))))
+
+    def is_nan(self) -> PandasColumn:
+        if is_extension_array_dtype(self._series.dtype):
+            return PandasColumn(np.isnan(self._series).replace(pd.NA, False).astype(bool))
+        return PandasColumn(self._series.isna())
+
     def sorted_indices(self) -> PandasColumn:
         return PandasColumn(pd.Series(self._series.argsort()))
 
@@ -192,17 +203,6 @@ class PandasColumn:
 
     def unique(self) -> PandasColumn:
         return PandasColumn(pd.Series(self._series.unique()))
-
-    def isnull(self) -> PandasColumn:
-        if is_extension_array_dtype(self._series.dtype):
-            return PandasColumn(self._series.isnull())
-        else:
-            return PandasColumn(pd.Series(np.array([False] * len(self))))
-
-    def isnan(self) -> PandasColumn:
-        if is_extension_array_dtype(self._series.dtype):
-            return PandasColumn(np.isnan(self._series).replace(pd.NA, False).astype(bool))
-        return PandasColumn(self._series.isna())
 
     def __and__(self, other: PandasColumn) -> PandasColumn:
         if isinstance(other, PandasColumn):
@@ -526,7 +526,7 @@ class PandasDataFrame:
     def var(self) -> PandasDataFrame:
         return PandasDataFrame(self.dataframe.var().to_frame().T)
 
-    def isnull(self) -> PandasDataFrame:
+    def is_null(self) -> PandasDataFrame:
         result = []
         for column in self.dataframe.columns:
             if is_extension_array_dtype(self.dataframe[column].dtype):
@@ -535,7 +535,7 @@ class PandasDataFrame:
                 result.append(pd.Series(np.array([False] * self.shape()[0]), name=column))
         return PandasDataFrame(pd.concat(result, axis=1))
 
-    def isnan(self) -> PandasDataFrame:
+    def is_nan(self) -> PandasDataFrame:
         result = []
         for column in self.dataframe.columns:
             if is_extension_array_dtype(self.dataframe[column].dtype):

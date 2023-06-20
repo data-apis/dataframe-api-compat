@@ -288,6 +288,21 @@ def nan_dataframe_2(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
+def nan_series_2(library: str) -> Any:
+    df: Any
+    if library == "pandas-numpy":
+        df = pd.DataFrame({"a": [0.0, 1.0, float("nan")]}, dtype="float64")
+        return df.__dataframe_standard__().get_column_by_name("a")
+    if library == "pandas-nullable":
+        df = pd.DataFrame({"a": [0.0, 1.0, 0.0]}, dtype="Float64")
+        other = pd.DataFrame({"a": [1.0, 1.0, 0.0]}, dtype="Float64")
+        return (df / other).__dataframe_standard__().get_column_by_name("a")
+    if library == "polars":
+        df = pl.DataFrame({"a": [0.0, 1.0, float("nan")]})
+        return df.__dataframe_standard__().get_column_by_name("a")
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
 def null_dataframe_1(library: str, request: pytest.FixtureRequest) -> Any:
     df: Any
     if library == "pandas-numpy":
@@ -782,17 +797,17 @@ def test_column_all(library: str) -> None:
     assert not result
 
 
-def test_dataframe_isnan(library: str) -> None:
+def test_dataframe_is_nan(library: str) -> None:
     df = nan_dataframe_1(library)
-    result = df.isnan()
+    result = df.is_nan()
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)
     expected = pd.DataFrame({"a": [False, False, True]})
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_column_isnan(library: str) -> None:
+def test_column_is_nan(library: str) -> None:
     ser = nan_series_1(library)
-    result = ser.isnan()
+    result = ser.is_nan()
     namespace = ser.__column_namespace__()
     result_df = namespace.dataframe_from_dict({"result": result})
     result_pd = pd.api.interchange.from_dataframe(result_df.dataframe)["result"]
@@ -800,18 +815,17 @@ def test_column_isnan(library: str) -> None:
     pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_isnull_1(library: str) -> None:
-    # todo: test for nullable pandas
+def test_is_null_1(library: str) -> None:
     df = nan_dataframe_2(library)
-    result = df.isnull().dataframe
+    result = df.is_null().dataframe
     result_pd = pd.api.interchange.from_dataframe(result)
     expected = pd.DataFrame({"a": [False, False, False]})
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_isnull_2(library: str, request: pytest.FixtureRequest) -> None:
+def test_is_null_2(library: str, request: pytest.FixtureRequest) -> None:
     df = null_dataframe_1(library, request)
-    result = df.isnull().dataframe
+    result = df.is_null().dataframe
     result_pd = pd.api.interchange.from_dataframe(result)
     expected = pd.DataFrame({"a": [False, False, True]})
     pd.testing.assert_frame_equal(result_pd, expected)
@@ -822,19 +836,19 @@ def test_shape(library: str) -> None:
     assert df.shape() == (3, 2)
 
 
-def test_column_isnull_1(library: str) -> None:
+def test_column_is_null_1(library: str) -> None:
     ser = nan_series_1(library)
     namespace = ser.__column_namespace__()
-    result = namespace.dataframe_from_dict({"result": ser.isnull()})
+    result = namespace.dataframe_from_dict({"result": ser.is_null()})
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     expected = pd.Series([False, False, False], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_column_isnull_2(library: str, request: pytest.FixtureRequest) -> None:
+def test_column_is_null_2(library: str, request: pytest.FixtureRequest) -> None:
     ser = null_series_1(library, request)
     namespace = ser.__column_namespace__()
-    result = namespace.dataframe_from_dict({"result": ser.isnull()})
+    result = namespace.dataframe_from_dict({"result": ser.is_null()})
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     expected = pd.Series([False, False, True], name="result")
     pd.testing.assert_series_equal(result_pd, expected)

@@ -71,10 +71,10 @@ class PolarsColumn:
     def unique(self) -> PolarsColumn:
         return PolarsColumn(self._series.unique())
 
-    def isnull(self) -> PolarsColumn:
+    def is_null(self) -> PolarsColumn:
         return PolarsColumn(self._series.is_null())
 
-    def isnan(self) -> PolarsColumn:
+    def is_nan(self) -> PolarsColumn:
         return PolarsColumn(self._series.is_nan())
 
     def any(self) -> bool:
@@ -369,13 +369,13 @@ class PolarsDataFrame:
     def __iter__(self) -> NoReturn:
         raise NotImplementedError()
 
-    def isnull(self) -> PolarsDataFrame:
+    def is_null(self) -> PolarsDataFrame:
         result = {}
         for column in self.dataframe.columns:
             result[column] = self.dataframe[column].is_null()
         return PolarsDataFrame(pl.DataFrame(result))
 
-    def isnan(self) -> PolarsDataFrame:
+    def is_nan(self) -> PolarsDataFrame:
         result = {}
         for column in self.dataframe.columns:
             result[column] = self.dataframe[column].is_nan()
