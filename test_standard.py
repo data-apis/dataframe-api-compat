@@ -288,21 +288,6 @@ def nan_dataframe_2(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def nan_series_2(library: str) -> Any:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame({"a": [0.0, 1.0, float("nan")]}, dtype="float64")
-        return df.__dataframe_standard__().get_column_by_name("a")
-    if library == "pandas-nullable":
-        df = pd.DataFrame({"a": [0.0, 1.0, 0.0]}, dtype="Float64")
-        other = pd.DataFrame({"a": [1.0, 1.0, 0.0]}, dtype="Float64")
-        return (df / other).__dataframe_standard__().get_column_by_name("a")
-    if library == "polars":
-        df = pl.DataFrame({"a": [0.0, 1.0, float("nan")]})
-        return df.__dataframe_standard__().get_column_by_name("a")
-    raise AssertionError(f"Got unexpected library: {library}")
-
-
 def null_dataframe_1(library: str, request: pytest.FixtureRequest) -> Any:
     df: Any
     if library == "pandas-numpy":
