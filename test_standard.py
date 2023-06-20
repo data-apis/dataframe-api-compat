@@ -900,10 +900,12 @@ def test_get_value(library: str) -> None:
     assert result == 1
 
 
-def test_unique(library: str) -> None:
+def test_unique_indices(library: str) -> None:
     ser = integer_series_5(library)
     namespace = ser.__column_namespace__()
-    result = namespace.dataframe_from_dict({"result": ser.unique()})
+    ser = ser.get_rows(ser.unique_indices())
+    ser = ser.get_rows(ser.sorted_indices())
+    result = namespace.dataframe_from_dict({"result": ser})
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series([1, 4], name="result")

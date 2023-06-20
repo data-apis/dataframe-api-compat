@@ -211,8 +211,8 @@ class PandasColumn:
             raise ValueError(f"`value` has dtype {values.dtype}, expected {self.dtype}")
         return PandasColumn(self._series.isin(values._series))
 
-    def unique(self) -> PandasColumn:
-        return PandasColumn(pd.Series(self._series.unique()))
+    def unique_indices(self) -> PandasColumn:
+        return PandasColumn(self._series.drop_duplicates().index.to_series())
 
     def fill_nan(
         self, value: float | pd.NAType  # type: ignore[name-defined]

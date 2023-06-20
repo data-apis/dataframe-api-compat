@@ -68,8 +68,10 @@ class PolarsColumn:
             raise ValueError(f"`value` has dtype {values.dtype}, expected {self.dtype}")
         return PolarsColumn(self._series.is_in(values._series))
 
-    def unique(self) -> PolarsColumn:
-        return PolarsColumn(self._series.unique())
+    def unique_indices(self) -> PolarsColumn:
+        df = self._series.to_frame()
+        keys = df.columns
+        return PolarsColumn(df.with_row_count().unique(keys)["row_nr"])
 
     def is_null(self) -> PolarsColumn:
         return PolarsColumn(self._series.is_null())
