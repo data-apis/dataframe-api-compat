@@ -1125,3 +1125,20 @@ def test_column_reductions(library: str, reduction: str, expected: float) -> Non
     ser = integer_series_1(library)
     result = getattr(ser, reduction)()
     assert result == expected
+
+
+def test_column_column() -> None:
+    result = (
+        pl.DataFrame({"a": [1, 2, 3]})  # type: ignore[attr-defined]
+        .__dataframe_standard__()
+        .get_column_by_name("a")
+        .column
+    )
+    pd.testing.assert_series_equal(result.to_pandas(), pd.Series([1, 2, 3], name="a"))
+    result = (
+        pd.DataFrame({"a": [1, 2, 3]})  # type: ignore[operator]
+        .__dataframe_standard__()
+        .get_column_by_name("a")
+        .column
+    )
+    pd.testing.assert_series_equal(result, pd.Series([1, 2, 3], name="a"))

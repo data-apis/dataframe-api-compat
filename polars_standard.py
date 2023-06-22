@@ -46,6 +46,10 @@ class PolarsColumn:
     def __column_namespace__(self, *, api_version: str | None = None) -> Any:
         return PolarsNamespace
 
+    @property
+    def column(self) -> object:
+        return self._series
+
     def __len__(self) -> int:
         return len(self._series)
 
