@@ -6,11 +6,9 @@ import polars as pl
 import polars
 
 
-def dataframe_standard(df: pl.DataFrame) -> PolarsDataFrame:
+def convert_to_standard_compliant_dataframe(df: pl.DataFrame) -> PolarsDataFrame:
     return PolarsDataFrame(df)
 
-
-polars.DataFrame.__dataframe_standard__ = dataframe_standard  # type: ignore[attr-defined]
 
 DTYPE_MAPPING = {  # todo, expand
     "bool": pl.Boolean,

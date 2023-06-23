@@ -24,10 +24,19 @@ How to try this out
 Here's an example of how you can try this out:
 ```python
 import pandas as pd
-import pandas_standard  # Necessary to monkey-patch the `__dataframe_standard__` attribute.
+import pandas_standard
+import polars_standard
+
+def convert_to_standard_compliant_dataframe(df):
+    if isinstance(df, pd.DataFrame):
+        return pandas_standard.convert_to_standard_compliant_dataframe(df)
+    elif isinstance(df, pl.DataFrame):
+        return polars_standard.convert_to_standard_compliant_dataframe(df)
+    else:
+        raise TypeError(f"Got unexpected type: {type(df)}")
 
 df = pd.DataFrame({'a': [1,2,3]})
-df_std = df.__dataframe_standard__()
+df_std = convert_to_standard_compliant_dataframe(df)
 ```
 The object `df_std` is a Standard-compliant DataFrame.
 

@@ -6,12 +6,9 @@ from pandas.api.types import is_extension_array_dtype
 import collections
 from typing import Any, Sequence, Mapping, NoReturn, cast
 
-import pandas
 
-
-pandas.DataFrame.__dataframe_standard__ = (  # type: ignore[attr-defined]
-    lambda x: PandasDataFrame(x)
-)
+def convert_to_standard_compliant_dataframe(df: pd.DataFrame) -> PandasDataFrame:
+    return PandasDataFrame(df)
 
 
 class PandasNamespace:

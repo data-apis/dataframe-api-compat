@@ -6,8 +6,18 @@ from typing import Any, Callable
 import pytest
 import pandas as pd
 import polars as pl
-import pandas_standard  # noqa
-import polars_standard  # noqa
+import pandas_standard
+import polars_standard
+
+
+def convert_to_standard_compliant_dataframe(df: pd.DataFrame | pl.DataFrame) -> Any:
+    # todo: type return
+    if isinstance(df, pd.DataFrame):
+        return pandas_standard.convert_to_standard_compliant_dataframe(df)
+    elif isinstance(df, pl.DataFrame):
+        return polars_standard.convert_to_standard_compliant_dataframe(df)
+    else:
+        raise AssertionError(f"Got unexpected type: {type(df)}")
 
 
 def convert_dataframe_to_pandas_numpy(df: pd.DataFrame) -> pd.DataFrame:
@@ -42,13 +52,13 @@ def integer_series_1(library: str) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1, 2, 3]}, dtype="int64")
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1, 2, 3]}, dtype="Int64")
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [1, 2, 3]})
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -56,13 +66,13 @@ def integer_series_3(library: str) -> object:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1, 2, 4]}, dtype="int64")
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1, 2, 4]}, dtype="Int64")
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [1, 2, 4]})
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -70,13 +80,13 @@ def integer_series_5(library: str) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1, 1, 4]}, dtype="int64")
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1, 1, 4]}, dtype="Int64")
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [1, 1, 4]})
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -84,13 +94,13 @@ def integer_series_6(library: str) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1, 3, 2]}, dtype="int64")
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1, 3, 2]}, dtype="Int64")
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [1, 3, 2]})
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -98,13 +108,13 @@ def float_series_1(library: str) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [2.0, 3.0]}, dtype="float64")
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [2.0, 3.0]}, dtype="Float64")
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [2.0, 3.0]})
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -112,13 +122,13 @@ def float_series_2(library: str) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [2.0, 1.0]}, dtype="float64")
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [2.0, 1.0]}, dtype="Float64")
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [2.0, 1.0]})
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -126,14 +136,14 @@ def float_series_3(library: str) -> object:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [float("nan"), 2.0]}, dtype="float64")
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [0.0, 2.0]}, dtype="Float64")
         other = pd.DataFrame({"a": [0.0, 1.0]}, dtype="Float64")
-        return (df / other).__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df / other).get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [float("nan"), 2.0]})
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -141,14 +151,14 @@ def float_series_4(library: str) -> object:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1.0, float("nan")]}, dtype="float64")
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1.0, 0.0]}, dtype="Float64")
         other = pd.DataFrame({"a": [1.0, 0.0]}, dtype="Float64")
-        return (df / other).__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df / other).get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [1.0, float("nan")]})
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -156,13 +166,13 @@ def bool_series_1(library: str) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [True, False, True]}, dtype="bool")
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [True, False, True]}, dtype="boolean")
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [True, False, True]})
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -170,13 +180,13 @@ def bool_series_2(library: str) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [True, False, False]}, dtype="bool")
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [True, False, False]}, dtype="boolean")
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [True, False, False]})
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -184,13 +194,13 @@ def integer_dataframe_1(library: str) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}, dtype="int64")
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}, dtype="Int64")
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     if library == "polars":
         df = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -198,13 +208,13 @@ def integer_dataframe_2(library: str) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1, 2, 4], "b": [4, 2, 6]}, dtype="int64")
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1, 2, 4], "b": [4, 2, 6]}, dtype="Int64")
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     if library == "polars":
         df = pl.DataFrame({"a": [1, 2, 4], "b": [4, 2, 6]})
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -214,15 +224,15 @@ def integer_dataframe_3(library: str) -> Any:
         df = pd.DataFrame(
             {"a": [1, 2, 3, 4, 5, 6, 7], "b": [7, 6, 5, 4, 3, 2, 1]}, dtype="int64"
         )
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     if library == "pandas-nullable":
         df = pd.DataFrame(
             {"a": [1, 2, 3, 4, 5, 6, 7], "b": [7, 6, 5, 4, 3, 2, 1]}, dtype="Int64"
         )
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     if library == "polars":
         df = pl.DataFrame({"a": [1, 2, 3, 4, 5, 6, 7], "b": [7, 6, 5, 4, 3, 2, 1]})
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -232,15 +242,15 @@ def integer_dataframe_4(library: str) -> Any:
         df = pd.DataFrame(
             {"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]}, dtype="int64"
         )
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     if library == "pandas-nullable":
         df = pd.DataFrame(
             {"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]}, dtype="Int64"
         )
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     if library == "polars":
         df = pl.DataFrame({"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]})
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -248,13 +258,13 @@ def integer_dataframe_5(library: str) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1, 1], "b": [4, 3]}, dtype="int64")
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1, 1], "b": [4, 3]}, dtype="Int64")
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     if library == "polars":
         df = pl.DataFrame({"a": [1, 1], "b": [4, 3]})
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -262,14 +272,14 @@ def nan_dataframe_1(library: str) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1.0, 2.0, float("nan")]}, dtype="float64")
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1.0, 2.0, 0.0]}, dtype="Float64")
         other = pd.DataFrame({"a": [1.0, 1.0, 0.0]}, dtype="Float64")
-        return (df / other).__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df / other)
     if library == "polars":
         df = pl.DataFrame({"a": [1.0, 2.0, float("nan")]})
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -277,14 +287,14 @@ def nan_dataframe_2(library: str) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [0.0, 1.0, float("nan")]}, dtype="float64")
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [0.0, 1.0, 0.0]}, dtype="Float64")
         other = pd.DataFrame({"a": [1.0, 1.0, 0.0]}, dtype="Float64")
-        return (df / other).__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df / other)
     if library == "polars":
         df = pl.DataFrame({"a": [0.0, 1.0, float("nan")]})
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -295,10 +305,10 @@ def null_dataframe_1(library: str, request: pytest.FixtureRequest) -> Any:
         request.node.add_marker(mark)
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1.0, 2.0, pd.NA]}, dtype="Float64")
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     if library == "polars":
         df = pl.DataFrame({"a": [1.0, 2.0, None]})
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -306,14 +316,14 @@ def nan_series_1(library: str) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [0.0, 1.0, float("nan")]}, dtype="float64")
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [0.0, 1.0, 0.0]}, dtype="Float64")
         other = pd.DataFrame({"a": [1.0, 1.0, 0.0]}, dtype="Float64")
-        return (df / other).__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df / other).get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [0.0, 1.0, float("nan")]})
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -324,10 +334,10 @@ def null_series_1(library: str, request: pytest.FixtureRequest) -> Any:
         request.node.add_marker(mark)
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1.0, 2.0, pd.NA]}, dtype="Float64")
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [1.0, 2.0, None]})
-        return df.__dataframe_standard__().get_column_by_name("a")
+        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -337,15 +347,15 @@ def bool_dataframe_1(library: str) -> Any:
         df = pd.DataFrame(
             {"a": [True, True, False], "b": [True, True, True]}, dtype="bool"
         )
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     if library == "pandas-nullable":
         df = pd.DataFrame(
             {"a": [True, True, False], "b": [True, True, True]}, dtype="boolean"
         )
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     if library == "polars":
         df = pl.DataFrame({"a": [True, True, False], "b": [True, True, True]})
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -359,7 +369,7 @@ def bool_dataframe_2(library: str) -> Any:
                 "c": [True, False, False, False],
             }
         ).astype({"key": "int64", "b": "bool", "c": "bool"})
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     if library == "pandas-nullable":
         df = pd.DataFrame(
             {
@@ -368,7 +378,7 @@ def bool_dataframe_2(library: str) -> Any:
                 "c": [True, False, False, False],
             }
         ).astype({"key": "Int64", "b": "boolean", "c": "boolean"})
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     if library == "polars":
         df = pl.DataFrame(
             {
@@ -377,7 +387,7 @@ def bool_dataframe_2(library: str) -> Any:
                 "c": [True, False, False, False],
             }
         )
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -387,15 +397,15 @@ def bool_dataframe_3(library: str) -> Any:
         df = pd.DataFrame(
             {"a": [False, False], "b": [False, True], "c": [True, True]}, dtype="bool"
         )
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     if library == "pandas-nullable":
         df = pd.DataFrame(
             {"a": [False, False], "b": [False, True], "c": [True, True]}, dtype="boolean"
         )
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     if library == "polars":
         df = pl.DataFrame({"a": [False, False], "b": [False, True], "c": [True, True]})
-        return df.__dataframe_standard__()
+        return convert_to_standard_compliant_dataframe(df)
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -1017,7 +1027,7 @@ def test_repeated_columns() -> None:
     with pytest.raises(
         ValueError, match=r"Expected unique column names, got b 2 time\(s\)"
     ):
-        df.__dataframe_standard__()  # type: ignore[operator]
+        convert_to_standard_compliant_dataframe(df)
 
 
 def test_non_str_columns() -> None:
@@ -1026,7 +1036,7 @@ def test_non_str_columns() -> None:
         TypeError,
         match=r"Expected column names to be of type str, got 0 of type <class 'int'>",
     ):
-        df.__dataframe_standard__()  # type: ignore[operator]
+        convert_to_standard_compliant_dataframe(df)
 
 
 def test_comparison_invalid(library: str) -> None:
@@ -1129,15 +1139,13 @@ def test_column_reductions(library: str, reduction: str, expected: float) -> Non
 
 def test_column_column() -> None:
     result = (
-        pl.DataFrame({"a": [1, 2, 3]})  # type: ignore[attr-defined]
-        .__dataframe_standard__()
+        convert_to_standard_compliant_dataframe(pl.DataFrame({"a": [1, 2, 3]}))
         .get_column_by_name("a")
         .column
     )
     pd.testing.assert_series_equal(result.to_pandas(), pd.Series([1, 2, 3], name="a"))
     result = (
-        pd.DataFrame({"a": [1, 2, 3]})  # type: ignore[operator]
-        .__dataframe_standard__()
+        convert_to_standard_compliant_dataframe(pd.DataFrame({"a": [1, 2, 3]}))
         .get_column_by_name("a")
         .column
     )
