@@ -293,7 +293,15 @@ class PolarsDataFrame:
     def get_rows(self, indices: PolarsColumn) -> PolarsDataFrame:
         return PolarsDataFrame(self.df[indices._series])
 
-    def slice_rows(self, start: int, stop: int, step: int) -> PolarsDataFrame:
+    def slice_rows(
+        self, start: int | None, stop: int | None, step: int | None
+    ) -> PolarsDataFrame:
+        if start is None:
+            start = 0
+        if stop is None:
+            stop = len(self.dataframe)
+        if step is None:
+            step = 1
         return PolarsDataFrame(
             self.df.with_row_count("idx")
             .filter(pl.col("idx").is_in(range(start, stop, step)))

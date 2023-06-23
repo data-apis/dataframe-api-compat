@@ -393,7 +393,15 @@ class PandasDataFrame:
     def get_rows(self, indices: PandasColumn) -> PandasDataFrame:
         return PandasDataFrame(self.dataframe.iloc[indices._series, :])
 
-    def slice_rows(self, start: int, stop: int, step: int) -> PandasDataFrame:
+    def slice_rows(
+        self, start: int | None, stop: int | None, step: int | None
+    ) -> PandasDataFrame:
+        if start is None:
+            start = 0
+        if stop is None:
+            stop = len(self.dataframe)
+        if step is None:
+            step = 1
         return PandasDataFrame(self.dataframe.iloc[start:stop:step])
 
     def get_rows_by_mask(self, mask: PandasColumn) -> PandasDataFrame:
