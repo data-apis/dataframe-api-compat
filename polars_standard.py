@@ -5,6 +5,8 @@ from typing import Sequence, NoReturn, Any, Mapping
 import polars as pl
 import polars
 
+from dataframe_api import DataFrame, DTypeT
+
 
 def convert_to_standard_compliant_dataframe(df: pl.DataFrame) -> PolarsDataFrame:
     return PolarsDataFrame(df)
@@ -263,7 +265,7 @@ class PolarsGroupBy:
         return PolarsDataFrame(result)
 
 
-class PolarsDataFrame:
+class PolarsDataFrame(DataFrame[DTypeT]):
     def __init__(self, df: pl.DataFrame) -> None:
         # columns already have to be strings, and duplicates aren't
         # allowed, so no validation required
@@ -438,5 +440,5 @@ class PolarsDataFrame:
         df = self.dataframe.select(keys)
         return PolarsColumn(df.with_row_count().sort(keys, descending=False)["row_nr"])
 
-    def fill_nan(self, value: float) -> PolarsDataFrame:
+    def fill_nan(self, value: float) -> PolarsDataFrame[DTypeT]:
         return PolarsDataFrame(self.dataframe.fill_nan(value))

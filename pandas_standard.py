@@ -6,14 +6,16 @@ from pandas.api.types import is_extension_array_dtype
 import collections
 from typing import Any, Sequence, Mapping, NoReturn, cast
 
+from dataframe_api import DataFrame, DTypeT
 
-def convert_to_standard_compliant_dataframe(df: pd.DataFrame) -> PandasDataFrame:
+
+def convert_to_standard_compliant_dataframe(df: pd.DataFrame) -> PandasDataFrame[Any]:
     return PandasDataFrame(df)
 
 
 class PandasNamespace:
     @classmethod
-    def concat(cls, dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:
+    def concat(cls, dataframes: Sequence[PandasDataFrame[Any]]) -> PandasDataFrame[Any]:
         dtypes = dataframes[0].dataframe.dtypes
         dfs = []
         for _df in dataframes:
@@ -305,7 +307,7 @@ class PandasGroupBy:
         return PandasDataFrame(result)
 
 
-class PandasDataFrame:
+class PandasDataFrame(DataFrame[DTypeT]):
     # Not technically part of the standard
 
     def __init__(self, dataframe: pd.DataFrame) -> None:
