@@ -373,13 +373,19 @@ class PolarsDataFrame(DataFrame[DTypeT]):
         return self.dataframe.columns
 
     def __eq__(self, other: PolarsDataFrame) -> PolarsDataFrame:  # type: ignore[override]
-        return PolarsDataFrame(self.dataframe.__eq__(other.dataframe))
+        if isinstance(other, PolarsDataFrame):
+            return PolarsDataFrame(self.dataframe.__eq__(other.dataframe))
+        return PolarsDataFrame(self.dataframe.__eq__(other))
 
     def __ne__(self, other: PolarsDataFrame) -> PolarsDataFrame:  # type: ignore[override]
-        return PolarsDataFrame(self.dataframe.__ne__(other.dataframe))
+        if isinstance(other, PolarsDataFrame):
+            return PolarsDataFrame(self.dataframe.__ne__(other.dataframe))
+        return PolarsDataFrame(self.dataframe.__ne__(other))
 
     def __ge__(self, other: PolarsDataFrame) -> PolarsDataFrame:
-        return PolarsDataFrame(self.dataframe.__ge__(other.dataframe))
+        if isinstance(other, PolarsDataFrame):
+            return PolarsDataFrame(self.dataframe.__ge__(other.dataframe))
+        return PolarsDataFrame(self.dataframe.__ge__(other))
 
     def __gt__(self, other: PolarsDataFrame) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
@@ -422,9 +428,18 @@ class PolarsDataFrame(DataFrame[DTypeT]):
         return PolarsDataFrame(self.dataframe.__floordiv__(other))
 
     def __pow__(self, other: PolarsDataFrame) -> PolarsDataFrame:
+        if isinstance(other, PolarsDataFrame):
+            return PolarsDataFrame(
+                self.dataframe.select(
+                    [
+                        pl.col(col).pow(other.dataframe[col])
+                        for col in self.get_column_names()
+                    ]
+                )
+            )
         return PolarsDataFrame(
             self.dataframe.select(
-                [pl.col(col).pow(other.dataframe[col]) for col in self.get_column_names()]
+                [pl.col(col).pow(other) for col in self.get_column_names()]
             )
         )
 
