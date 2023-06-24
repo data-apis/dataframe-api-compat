@@ -97,136 +97,138 @@ class PandasColumn(Column[DTypeT]):
 
     def __ne__(self, other: PandasColumn[DTypeT]) -> PandasColumn[Bool]:  # type: ignore[override]
         if isinstance(other, PandasColumn):
-            return PandasColumn(self.column != other._series)
+            return PandasColumn(self.column != other.column)
         return PandasColumn(self.column != other)
 
     def __ge__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Bool]:
         if isinstance(other, PandasColumn):
-            return PandasColumn(self.column >= other._series)
+            return PandasColumn(self.column >= other.column)
         return PandasColumn(self.column >= other)
 
     def __gt__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Bool]:
         if isinstance(other, PandasColumn):
-            return PandasColumn(self.column > other._series)
+            return PandasColumn(self.column > other.column)
         return PandasColumn(self.column > other)
 
     def __le__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Bool]:
         if isinstance(other, PandasColumn):
-            return PandasColumn(self.column <= other._series)
+            return PandasColumn(self.column <= other.column)
         return PandasColumn(self.column <= other)
 
     def __lt__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Bool]:
         if isinstance(other, PandasColumn):
-            return PandasColumn(self.column < other._series)
+            return PandasColumn(self.column < other.column)
         return PandasColumn(self.column < other)
 
     def __and__(self, other: Column[Bool] | Scalar[Bool]) -> PandasColumn[Bool]:
         if isinstance(other, PandasColumn):
-            return PandasColumn(self.column & other._series)
-        return PandasColumn(self.column & other)
+            return PandasColumn(self.column & other.column)
+        result = self.column & other  # type: ignore[operator]
+        return PandasColumn(result)
 
     def __or__(self, other: Column[Bool] | Scalar[Bool]) -> PandasColumn[Bool]:
         if isinstance(other, PandasColumn):
-            return PandasColumn(self.column | other._series)
-        return PandasColumn(self.column | other)
+            return PandasColumn(self.column | other.column)
+        return PandasColumn(self.column | other)  # type: ignore[operator]
 
-    def __add__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn:
+    def __add__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[DTypeT]:
         if isinstance(other, PandasColumn):
-            return PandasColumn(self.column + other._series)
-        return PandasColumn(self.column + other)
+            return PandasColumn(self.column + other.column)
+        return PandasColumn(self.column + other)  # type: ignore[operator]
 
-    def __sub__(self, other: PandasColumn | Scalar[DTypeT]) -> PandasColumn:
+    def __sub__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[DTypeT]:
         if isinstance(other, PandasColumn):
-            return PandasColumn(self.column - other._series)
-        return PandasColumn(self.column - other)
+            return PandasColumn(self.column - other.column)
+        return PandasColumn(self.column + other)  # type: ignore[operator]
 
-    def __mul__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn:
+    def __mul__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Any]:
         if isinstance(other, PandasColumn):
-            return PandasColumn(self.column * other._series)
-        return PandasColumn(self.column * other)
+            return PandasColumn(self.column * other.column)
+        return PandasColumn(self.column + other)  # type: ignore[operator]
 
-    def __truediv__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn:
+    def __truediv__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Any]:
         if isinstance(other, PandasColumn):
-            return PandasColumn(self.column / other._series)
-        return PandasColumn(self.column / other)
+            return PandasColumn(self.column / other.column)
+        return PandasColumn(self.column + other)  # type: ignore[operator]
 
-    def __floordiv__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn:
+    def __floordiv__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Any]:
         if isinstance(other, PandasColumn):
-            return PandasColumn(self.column // other._series)
-        return PandasColumn(self.column // other)
+            return PandasColumn(self.column // other.column)
+        return PandasColumn(self.column + other)  # type: ignore[operator]
 
-    def __pow__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn:
+    def __pow__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Any]:
         if isinstance(other, PandasColumn):
-            return PandasColumn(self.column**other._series)
-        return PandasColumn(self.column**other)
+            return PandasColumn(self.column**other.column)
+        return PandasColumn(self.column + other)  # type: ignore[operator]
 
-    def __mod__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn:
+    def __mod__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Any]:
         if isinstance(other, PandasColumn):
-            return PandasColumn(self.column % other._series)
-        return PandasColumn(self.column % other)
+            return PandasColumn(self.column % other.column)
+        return PandasColumn(self.column + other)  # type: ignore[operator]
 
-    def __divmod__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> tuple[PandasColumn, PandasColumn]:
-        quotient, remainder = self.column.__divmod__(other._series)
+    def __divmod__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> tuple[PandasColumn[Any], PandasColumn[Any]]:
+        # todo: fix scalar case
+        quotient, remainder = self.column.__divmod__(other.column)  # type: ignore[union-attr]
         return PandasColumn(quotient), PandasColumn(remainder)
 
     def __invert__(self: PandasColumn[Bool]) -> PandasColumn[Bool]:
         return PandasColumn(~self.column)
 
-    def any(self) -> bool:
-        return self.column.any()
+    def any(self, *, skip_nulls: bool = True) -> Scalar[Bool]:
+        return self.column.any()  # type: ignore[return-value]
 
-    def all(self) -> bool:
-        return self.column.all()
+    def all(self, *, skip_nulls: bool = True) -> Scalar[Bool]:
+        return self.column.all()  # type: ignore[return-value]
 
-    def min(self) -> object:
-        return self.column.min()
+    def min(self, *, skip_nulls: bool = True) -> Scalar[DTypeT]:
+        return self.column.min()  # type: ignore[no-any-return]
 
-    def max(self) -> object:
-        return self.column.max()
+    def max(self, *, skip_nulls: bool = True) -> Scalar[DTypeT]:
+        return self.column.max()  # type: ignore[no-any-return]
 
-    def sum(self) -> object:
-        return self.column.sum()
+    def sum(self, *, skip_nulls: bool = True) -> Scalar[DTypeT]:
+        return self.column.sum()  # type: ignore[no-any-return]
 
-    def prod(self) -> object:
-        return self.column.prod()
+    def prod(self, *, skip_nulls: bool = True) -> Scalar[Any]:
+        return self.column.prod()  # type: ignore[return-value]
 
-    def median(self) -> object:
-        return self.column.median()
+    def median(self, *, skip_nulls: bool = True) -> Scalar[Any]:
+        return self.column.median()  # type: ignore[return-value]
 
-    def mean(self) -> object:
-        return self.column.mean()
+    def mean(self, *, skip_nulls: bool = True) -> Scalar[Any]:
+        return self.column.mean()  # type: ignore[return-value]
 
-    def std(self) -> object:
-        return self.column.std()
+    def std(self, *, skip_nulls: bool = True) -> Scalar[Any]:
+        return self.column.std()  # type: ignore[return-value]
 
-    def var(self) -> object:
-        return self.column.var()
+    def var(self, *, skip_nulls: bool = True) -> Scalar[Any]:
+        return self.column.var()  # type: ignore[return-value]
 
-    def is_null(self) -> PandasColumn:
+    def is_null(self) -> PandasColumn[Bool]:
         if is_extension_array_dtype(self.column.dtype):
             return PandasColumn(self.column.isnull())
         else:
             return PandasColumn(pd.Series(np.array([False] * len(self))))
 
-    def is_nan(self) -> PandasColumn:
+    def is_nan(self) -> PandasColumn[Bool]:
         if is_extension_array_dtype(self.column.dtype):
             return PandasColumn(np.isnan(self.column).replace(pd.NA, False).astype(bool))
         return PandasColumn(self.column.isna())
 
-    def sorted_indices(self) -> PandasColumn:
+    def sorted_indices(self) -> PandasColumn[IntDType]:
         return PandasColumn(pd.Series(self.column.argsort()))
 
-    def is_in(self, values: PandasColumn) -> PandasColumn:
+    def is_in(self, values: PandasColumn[Any]) -> PandasColumn[Bool]:
         if values.dtype != self.dtype:
             raise ValueError(f"`value` has dtype {values.dtype}, expected {self.dtype}")
         return PandasColumn(self.column.isin(values._series))
 
-    def unique_indices(self) -> PandasColumn:
+    def unique_indices(self) -> PandasColumn[IntDType]:
         return PandasColumn(self.column.drop_duplicates().index.to_series())
 
     def fill_nan(
         self, value: float | pd.NAType  # type: ignore[name-defined]
-    ) -> PandasColumn:
+    ) -> PandasColumn[DTypeT]:
         ser = self.column.copy()
         ser[cast("pd.Series[bool]", np.isnan(ser)).fillna(False).to_numpy(bool)] = value
         return PandasColumn(ser)

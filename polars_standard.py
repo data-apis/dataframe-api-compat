@@ -117,59 +117,59 @@ class PolarsColumn:
         self, other: PolarsColumn | object
     ) -> PolarsColumn:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self._series == other._series)
+            return PolarsColumn(self._series == other.column)
         return PolarsColumn(self._series == other)
 
     def __ne__(  # type: ignore[override]
         self, other: PolarsColumn | object
     ) -> PolarsColumn:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self._series != other._series)
+            return PolarsColumn(self._series != other.column)
         return PolarsColumn(self._series != other)
 
     def __ge__(self, other: PolarsColumn | object) -> PolarsColumn:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self._series >= other._series)
+            return PolarsColumn(self._series >= other.column)
         return PolarsColumn(self._series >= other)
 
     def __gt__(self, other: PolarsColumn | object) -> PolarsColumn:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self._series > other._series)
+            return PolarsColumn(self._series > other.column)
         return PolarsColumn(self._series > other)
 
     def __le__(self, other: PolarsColumn | object) -> PolarsColumn:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self._series <= other._series)
+            return PolarsColumn(self._series <= other.column)
         return PolarsColumn(self._series <= other)
 
     def __lt__(self, other: PolarsColumn | object) -> PolarsColumn:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self._series < other._series)
+            return PolarsColumn(self._series < other.column)
         return PolarsColumn(self._series < other)
 
     def __mul__(self, other: PolarsColumn | object) -> PolarsColumn:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self._series * other._series)
+            return PolarsColumn(self._series * other.column)
         return PolarsColumn(self._series * other)
 
     def __floordiv__(self, other: PolarsColumn | object) -> PolarsColumn:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self._series // other._series)
+            return PolarsColumn(self._series // other.column)
         return PolarsColumn(self._series // other)
 
     def __truediv__(self, other: PolarsColumn | object) -> PolarsColumn:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self._series / other._series)
+            return PolarsColumn(self._series / other.column)
         return PolarsColumn(self._series / other)
 
     def __pow__(self, other: PolarsColumn | float) -> PolarsColumn:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self._series.pow(other._series))
+            return PolarsColumn(self._series.pow(other.column))
         return PolarsColumn(self._series.pow(other))
 
     def __mod__(self, other: PolarsColumn | object) -> PolarsColumn:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self._series % other._series)
+            return PolarsColumn(self._series % other.column)
         return PolarsColumn(self._series % other)
 
     def __divmod__(
@@ -182,12 +182,12 @@ class PolarsColumn:
 
     def __and__(self, other: PolarsColumn | object) -> PolarsColumn:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self._series & other._series)
+            return PolarsColumn(self._series & other.column)
         return PolarsColumn(self._series & other)  # type: ignore[operator]
 
     def __or__(self, other: PolarsColumn | object) -> PolarsColumn:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self._series | other._series)
+            return PolarsColumn(self._series | other.column)
         return PolarsColumn(self._series | other)  # type: ignore[operator]
 
     def __invert__(self) -> PolarsColumn:
@@ -195,12 +195,12 @@ class PolarsColumn:
 
     def __add__(self, other: PolarsColumn) -> PolarsColumn:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self._series + other._series)
+            return PolarsColumn(self._series + other.column)
         return PolarsColumn(self._series + other)
 
     def __sub__(self, other: PolarsColumn) -> PolarsColumn:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self._series - other._series)
+            return PolarsColumn(self._series - other.column)
         return PolarsColumn(self._series - other)
 
     def sorted_indices(self) -> PolarsColumn:
