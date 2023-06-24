@@ -61,7 +61,10 @@ pre-commit run --all-files
 
 Type Checking
 -------------
+
+First, clone the [dataframe_standard](https://github.com/data-apis/dataframe-api) to some
+local path. Then, run:
 ```
-MYPYPATH=<path to dataframe_standard> mypy pandas_standard.py
-MYPYPATH=<path to dataframe_standard> mypy polars_standard.py
+MYPYPATH=<path to dataframe-api/spec/API_specification> mypy pandas_standard.py
+MYPYPATH=<path to dataframe-api/spec/API_specification> mypy polars_standard.py
 ```
