@@ -4,9 +4,9 @@ import numpy as np
 import pandas as pd
 from pandas.api.types import is_extension_array_dtype
 import collections
-from typing import Any, Sequence, Mapping, NoReturn, cast
+from typing import Any, Sequence, Mapping, NoReturn, cast, Literal
 
-from dataframe_api import DataFrame, DTypeT, null, IntDType, FloatDType, Bool, Column, Int64, Int32, Float64, Float32, DType, Scalar
+from dataframe_api import DataFrame, DTypeT, null, IntDType, FloatDType, Bool, Column, Int64, Int32, Float64, Float32, DType, Scalar, GroupBy
 
 
 def convert_to_standard_compliant_dataframe(df: pd.DataFrame) -> PandasDataFrame[Any]:
@@ -215,15 +215,15 @@ class PandasColumn(Column[DTypeT]):
             return PandasColumn(np.isnan(self.column).replace(pd.NA, False).astype(bool))
         return PandasColumn(self.column.isna())
 
-    def sorted_indices(self) -> PandasColumn[IntDType]:
+    def sorted_indices(self, *, ascending: bool = True, nulls_position: Literal['first', 'last'] = 'last') -> PandasColumn[IntDType]:
         return PandasColumn(pd.Series(self.column.argsort()))
 
-    def is_in(self, values: PandasColumn[Any]) -> PandasColumn[Bool]:
+    def is_in(self, values: Column[DTypeT]) -> PandasColumn[Bool]:
         if values.dtype != self.dtype:
             raise ValueError(f"`value` has dtype {values.dtype}, expected {self.dtype}")
-        return PandasColumn(self.column.isin(values._series))
+        return PandasColumn(self.column.isin(values.column))
 
-    def unique_indices(self) -> PandasColumn[IntDType]:
+    def unique_indices(self, *, skip_nulls: bool = True) -> PandasColumn[IntDType]:
         return PandasColumn(self.column.drop_duplicates().index.to_series())
 
     def fill_nan(
@@ -234,7 +234,7 @@ class PandasColumn(Column[DTypeT]):
         return PandasColumn(ser)
 
 
-class PandasGroupBy:
+class PandasGroupBy(GroupBy):
     def __init__(self, df: pd.DataFrame, keys: Sequence[str]) -> None:
         self.df = df
         self.grouped = df.groupby(list(keys), sort=False, as_index=False)
@@ -263,54 +263,54 @@ class PandasGroupBy:
                 "where all dtypes are 'bool'"
             )
 
-    def any(self, skipna: bool = True) -> PandasDataFrame[Bool]:
+    def any(self, *, skip_nulls: bool = True) -> PandasDataFrame[Bool]:
         self._validate_booleanness()
         result = self.grouped.any()
         self._validate_result(result)
         return PandasDataFrame(result)
 
-    def all(self, skipna: bool = True) -> PandasDataFrame[Bool]:
+    def all(self, *, skip_nulls: bool = True) -> PandasDataFrame[Bool]:
         self._validate_booleanness()
         result = self.grouped.all()
         self._validate_result(result)
         return PandasDataFrame(result)
 
-    def min(self, skipna: bool = True) -> PandasDataFrame[DtypeT]:
+    def min(self, *, skip_nulls: bool = True) -> PandasDataFrame[DTypeT]:
         result = self.grouped.min()
         self._validate_result(result)
         return PandasDataFrame(result)
 
-    def max(self, skipna: bool = True) -> PandasDataFrame[DtypeT]:
+    def max(self, *, skip_nulls: bool = True) -> PandasDataFrame[DTypeT]:
         result = self.grouped.max()
         self._validate_result(result)
         return PandasDataFrame(result)
 
-    def sum(self, skipna: bool = True) -> PandasDataFrame[Any]:
+    def sum(self, *, skip_nulls: bool = True) -> PandasDataFrame[Any]:
         result = self.grouped.sum()
         self._validate_result(result)
         return PandasDataFrame(result)
 
-    def prod(self, skipna: bool = True) -> PandasDataFrame[Any]:
+    def prod(self, *, skip_nulls: bool = True) -> PandasDataFrame[Any]:
         result = self.grouped.prod()
         self._validate_result(result)
         return PandasDataFrame(result)
 
-    def median(self, skipna: bool = True) -> PandasDataFrame[Any]:
+    def median(self, *, skip_nulls: bool = True) -> PandasDataFrame[Any]:
         result = self.grouped.median()
         self._validate_result(result)
         return PandasDataFrame(result)
 
-    def mean(self, skipna: bool = True) -> PandasDataFrame[Any]:
+    def mean(self, *, skip_nulls: bool = True) -> PandasDataFrame[Any]:
         result = self.grouped.mean()
         self._validate_result(result)
         return PandasDataFrame(result)
 
-    def std(self, skipna: bool = True) -> PandasDataFrame[Any]:
+    def std(self, *, skip_nulls: bool = True) -> PandasDataFrame[Any]:
         result = self.grouped.std()
         self._validate_result(result)
         return PandasDataFrame(result)
 
-    def var(self, skipna: bool = True) -> PandasDataFrame[Any]:
+    def var(self, *, skip_nulls: bool = True) -> PandasDataFrame[Any]:
         result = self.grouped.var()
         self._validate_result(result)
         return PandasDataFrame(result)
@@ -350,7 +350,7 @@ class PandasDataFrame(DataFrame[DTypeT]):
     def _validate_index(self, index: pd.Index) -> None:
         pd.testing.assert_index_equal(self.dataframe.index, index)
 
-    def _validate_comparand(self, other: PandasDataFrame) -> None:
+    def _validate_comparand(self, other: DataFrame[DTypeT]) -> None:
         if isinstance(other, PandasDataFrame) and not (
             self.dataframe.index.equals(other.dataframe.index)
             and self.dataframe.shape == other.dataframe.shape
@@ -390,23 +390,23 @@ class PandasDataFrame(DataFrame[DTypeT]):
                 raise KeyError(f"key {key} not present in DataFrame's columns")
         return PandasGroupBy(self.dataframe, keys)
 
-    def get_column_by_name(self, name: str) -> PandasColumn:
+    def get_column_by_name(self, name: str) -> PandasColumn[DTypeT]:
         if not isinstance(name, str):
             raise ValueError(f"Expected str, got: {type(name)}")
         return PandasColumn(self.dataframe.loc[:, name])
 
-    def get_columns_by_name(self, names: Sequence[str]) -> PandasDataFrame:
+    def get_columns_by_name(self, names: Sequence[str]) -> PandasDataFrame[DTypeT]:
         if isinstance(names, str):
             raise TypeError(f"Expected sequence of str, got {type(names)}")
         self._validate_columns(names)
         return PandasDataFrame(self.dataframe.loc[:, list(names)])
 
-    def get_rows(self, indices: PandasColumn) -> PandasDataFrame:
-        return PandasDataFrame(self.dataframe.iloc[indices._series, :])
+    def get_rows(self, indices: Column[IntDType]) -> PandasDataFrame[DTypeT]:
+        return PandasDataFrame(self.dataframe.iloc[indices.column, :])
 
     def slice_rows(
         self, start: int | None, stop: int | None, step: int | None
-    ) -> PandasDataFrame:
+    ) -> PandasDataFrame[DTypeT]:
         if start is None:
             start = 0
         if stop is None:
@@ -415,25 +415,25 @@ class PandasDataFrame(DataFrame[DTypeT]):
             step = 1
         return PandasDataFrame(self.dataframe.iloc[start:stop:step])
 
-    def get_rows_by_mask(self, mask: PandasColumn) -> PandasDataFrame:
-        series = mask._series
+    def get_rows_by_mask(self, mask: Column[Bool]) -> PandasDataFrame[DTypeT]:
+        series = mask.column
         self._validate_index(series.index)
         return PandasDataFrame(self.dataframe.loc[series, :])
 
-    def insert(self, loc: int, label: str, value: PandasColumn) -> PandasDataFrame:
-        series = value._series
+    def insert(self, loc: int, label: str, value: Column[Any]) -> PandasDataFrame[Any]:
+        series = value.column
         self._validate_index(series.index)
         before = self.dataframe.iloc[:, :loc]
         after = self.dataframe.iloc[:, loc:]
-        to_insert = value._series.rename(label)
+        to_insert = value.column.rename(label)
         return PandasDataFrame(pd.concat([before, to_insert, after], axis=1))
 
-    def drop_column(self, label: str) -> PandasDataFrame:
+    def drop_column(self, label: str) -> PandasDataFrame[DTypeT]:
         if not isinstance(label, str):
             raise TypeError(f"Expected str, got: {type(label)}")
         return PandasDataFrame(self.dataframe.drop(label, axis=1))
 
-    def rename_columns(self, mapping: Mapping[str, str]) -> PandasDataFrame:
+    def rename_columns(self, mapping: Mapping[str, str]) -> PandasDataFrame[DTypeT]:
         if not isinstance(mapping, collections.abc.Mapping):
             raise TypeError(f"Expected Mapping, got: {type(mapping)}")
         return PandasDataFrame(self.dataframe.rename(columns=mapping))
@@ -441,117 +441,142 @@ class PandasDataFrame(DataFrame[DTypeT]):
     def get_column_names(self) -> Sequence[str]:
         return self.dataframe.columns.tolist()
 
-    def sorted_indices(self, keys: Sequence[str]) -> PandasColumn:
+    def sorted_indices(self, keys: Sequence[str], *, ascending: Sequence[bool] | bool = True, nulls_position: Literal['first', 'last'] = 'last') -> PandasColumn[IntDType]:
         df = self.dataframe.loc[:, list(keys)]
         return PandasColumn(df.sort_values(keys).index.to_series())
 
-    def __eq__(self, other: PandasDataFrame) -> PandasDataFrame:  # type: ignore[override]
+    def __eq__(self, other: DataFrame[DTypeT]) -> PandasDataFrame[Bool]:  # type: ignore[override]
         self._validate_comparand(other)
         return PandasDataFrame(self.dataframe.__eq__(other.dataframe))
 
-    def __ne__(self, other: PandasDataFrame) -> PandasDataFrame:  # type: ignore[override]
+    def __ne__(self, other: DataFrame[DTypeT]) -> PandasDataFrame[Bool]:  # type: ignore[override]
         self._validate_comparand(other)
         return PandasDataFrame((self.dataframe.__ne__(other.dataframe)))
 
-    def __ge__(self, other: PandasDataFrame) -> PandasDataFrame:
-        self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__ge__(other.dataframe)))
+    def __ge__(self, other: DataFrame[DTypeT] | Scalar[DTypeT]) -> PandasDataFrame[Bool]:
+        if isinstance(other, PandasDataFrame):
+            self._validate_comparand(other)
+            return PandasDataFrame((self.dataframe.__ge__(other.dataframe)))
+        return PandasDataFrame((self.dataframe.__ge__(other)))
 
-    def __gt__(self, other: PandasDataFrame) -> PandasDataFrame:
-        self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__gt__(other.dataframe)))
+    def __gt__(self, other: DataFrame[DTypeT] | Scalar[DTypeT]) -> PandasDataFrame[Bool]:
+        if isinstance(other, PandasDataFrame):
+            self._validate_comparand(other)
+            return PandasDataFrame((self.dataframe.__gt__(other.dataframe)))
+        return PandasDataFrame((self.dataframe.__gt__(other)))
 
-    def __le__(self, other: PandasDataFrame) -> PandasDataFrame:
-        self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__le__(other.dataframe)))
+    def __le__(self, other: DataFrame[DTypeT] | Scalar[DTypeT]) -> PandasDataFrame[Bool]:
+        if isinstance(other, PandasDataFrame):
+            self._validate_comparand(other)
+            return PandasDataFrame((self.dataframe.__le__(other.dataframe)))
+        return PandasDataFrame((self.dataframe.__le__(other)))
 
-    def __lt__(self, other: PandasDataFrame) -> PandasDataFrame:
-        self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__lt__(other.dataframe)))
+    def __lt__(self, other: DataFrame[DTypeT] | Scalar[DTypeT]) -> PandasDataFrame[Bool]:
+        if isinstance(other, PandasDataFrame):
+            self._validate_comparand(other)
+            return PandasDataFrame((self.dataframe.__lt__(other.dataframe)))
+        return PandasDataFrame((self.dataframe.__lt__(other)))
 
-    def __add__(self, other: PandasDataFrame) -> PandasDataFrame:
-        self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__add__(other.dataframe)))
+    def __add__(self, other: DataFrame[DTypeT] | Scalar[DTypeT]) -> PandasDataFrame[Bool]:
+        if isinstance(other, PandasDataFrame):
+            self._validate_comparand(other)
+            return PandasDataFrame((self.dataframe.__add__(other.dataframe)))
+        return PandasDataFrame((self.dataframe.__add__(other)))
 
-    def __sub__(self, other: PandasDataFrame) -> PandasDataFrame:
-        self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__sub__(other.dataframe)))
+    def __sub__(self, other: DataFrame[DTypeT] | Scalar[DTypeT]) -> PandasDataFrame[Bool]:
+        if isinstance(other, PandasDataFrame):
+            self._validate_comparand(other)
+            return PandasDataFrame((self.dataframe.__sub__(other.dataframe)))
+        return PandasDataFrame((self.dataframe.__sub__(other)))
 
-    def __mul__(self, other: PandasDataFrame) -> PandasDataFrame:
-        self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__mul__(other.dataframe)))
+    def __mul__(self, other: DataFrame[DTypeT] | Scalar[DTypeT]) -> PandasDataFrame[Any]:
+        if isinstance(other, PandasDataFrame):
+            self._validate_comparand(other)
+            return PandasDataFrame((self.dataframe.__mul__(other.dataframe)))
+        return PandasDataFrame((self.dataframe.__mul__(other)))
 
-    def __truediv__(self, other: PandasDataFrame) -> PandasDataFrame:
-        self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__truediv__(other.dataframe)))
+    def __truediv__(self, other: DataFrame[Any] | Scalar[Any]) -> PandasDataFrame[Any]:
+        if isinstance(other, PandasDataFrame):
+            self._validate_comparand(other)
+            return PandasDataFrame((self.dataframe.__truediv__(other.dataframe)))
+        return PandasDataFrame((self.dataframe.__truediv__(other)))
 
-    def __floordiv__(self, other: PandasDataFrame) -> PandasDataFrame:
-        self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__floordiv__(other.dataframe)))
+    def __floordiv__(self, other: DataFrame[Any] | Scalar[DTypeT]) -> PandasDataFrame[Any]:
+        if isinstance(other, PandasDataFrame):
+            self._validate_comparand(other)
+            return PandasDataFrame((self.dataframe.__floordiv__(other.dataframe)))
+        return PandasDataFrame((self.dataframe.__floordiv__(other)))
 
-    def __pow__(self, other: PandasDataFrame) -> PandasDataFrame:
-        self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__pow__(other.dataframe)))
+    def __pow__(self, other: DataFrame[Any] | Scalar[DTypeT]) -> PandasDataFrame[Any]:
+        if isinstance(other, PandasDataFrame):
+            self._validate_comparand(other)
+            return PandasDataFrame((self.dataframe.__pow__(other.dataframe)))
+        return PandasDataFrame((self.dataframe.__pow__(other)))
 
-    def __mod__(self, other: PandasDataFrame) -> PandasDataFrame:
-        self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__mod__(other.dataframe)))
+    def __mod__(self, other: DataFrame[Any] | Scalar[DTypeT]) -> PandasDataFrame[Any]:
+        if isinstance(other, PandasDataFrame):
+            self._validate_comparand(other)
+            return PandasDataFrame((self.dataframe.__mod__(other.dataframe)))
+        return PandasDataFrame((self.dataframe.__mod__(other)))
 
     def __divmod__(
-        self, other: PandasDataFrame
-    ) -> tuple[PandasDataFrame, PandasDataFrame]:
-        self._validate_comparand(other)
-        quotient, remainder = self.dataframe.__divmod__(other.dataframe)
+        self, other: DataFrame[Any] | Scalar[DTypeT],
+    ) -> tuple[PandasDataFrame[Any], PandasDataFrame[Any]]:
+        if isinstance(other, PandasDataFrame):
+            self._validate_comparand(other)
+            quotient, remainder = self.dataframe.__divmod__(other.dataframe)
+        quotient, remainder = self.dataframe.__divmod__(other)
         return PandasDataFrame(quotient), PandasDataFrame(remainder)
 
-    def __invert__(self) -> PandasDataFrame:
+    def __invert__(self) -> PandasDataFrame[Bool]:
         self._validate_booleanness()
         return PandasDataFrame(self.dataframe.__invert__())
+
 
     def __iter__(self) -> NoReturn:
         raise NotImplementedError()
 
-    def any(self) -> PandasDataFrame:
+    def any(self, *, skip_nulls: bool = True) -> PandasDataFrame[Bool]:
         self._validate_booleanness()
         return PandasDataFrame(self.dataframe.any().to_frame().T)
 
-    def all(self) -> PandasDataFrame:
+    def all(self, *, skip_nulls: bool = True) -> PandasDataFrame[Bool]:
         self._validate_booleanness()
         return PandasDataFrame(self.dataframe.all().to_frame().T)
 
-    def any_rowwise(self) -> PandasColumn:
+    def any_rowwise(self, *, skip_nulls: bool = True) -> PandasColumn[Bool]:
         self._validate_booleanness()
         return PandasColumn(self.dataframe.any(axis=1))
 
-    def all_rowwise(self) -> PandasColumn:
+    def all_rowwise(self, *, skip_nulls: bool = True) -> PandasColumn[Bool]:
         self._validate_booleanness()
         return PandasColumn(self.dataframe.all(axis=1))
 
-    def min(self) -> PandasDataFrame:
+    def min(self, *, skip_nulls: bool = True) -> PandasDataFrame[DTypeT]:
         return PandasDataFrame(self.dataframe.min().to_frame().T)
 
-    def max(self) -> PandasDataFrame:
+    def max(self, *, skip_nulls: bool = True) -> PandasDataFrame[DTypeT]:
         return PandasDataFrame(self.dataframe.max().to_frame().T)
 
-    def sum(self) -> PandasDataFrame:
+    def sum(self, *, skip_nulls: bool = True) -> PandasDataFrame[DTypeT]:
         return PandasDataFrame(self.dataframe.sum().to_frame().T)
 
-    def prod(self) -> PandasDataFrame:
+    def prod(self, *, skip_nulls: bool = True) -> PandasDataFrame[Any]:
         return PandasDataFrame(self.dataframe.prod().to_frame().T)
 
-    def median(self) -> PandasDataFrame:
+    def median(self, *, skip_nulls: bool = True) -> PandasDataFrame[Any]:
         return PandasDataFrame(self.dataframe.median().to_frame().T)
 
-    def mean(self) -> PandasDataFrame:
+    def mean(self, *, skip_nulls: bool = True) -> PandasDataFrame[Any]:
         return PandasDataFrame(self.dataframe.mean().to_frame().T)
 
-    def std(self) -> PandasDataFrame:
+    def std(self, *, skip_nulls: bool = True) -> PandasDataFrame[Any]:
         return PandasDataFrame(self.dataframe.std().to_frame().T)
 
-    def var(self) -> PandasDataFrame:
+    def var(self, *, skip_nulls: bool = True) -> PandasDataFrame[Any]:
         return PandasDataFrame(self.dataframe.var().to_frame().T)
 
-    def is_null(self) -> PandasDataFrame:
+    def is_null(self, *, skip_nulls: bool = True) -> PandasDataFrame[Bool]:
         result = []
         for column in self.dataframe.columns:
             if is_extension_array_dtype(self.dataframe[column].dtype):
@@ -560,7 +585,7 @@ class PandasDataFrame(DataFrame[DTypeT]):
                 result.append(pd.Series(np.array([False] * self.shape()[0]), name=column))
         return PandasDataFrame(pd.concat(result, axis=1))
 
-    def is_nan(self) -> PandasDataFrame:
+    def is_nan(self) -> PandasDataFrame[Bool]:
         result = []
         for column in self.dataframe.columns:
             if is_extension_array_dtype(self.dataframe[column].dtype):
@@ -573,7 +598,7 @@ class PandasDataFrame(DataFrame[DTypeT]):
 
     def fill_nan(
         self, value: float | pd.NAType  # type: ignore[name-defined]
-    ) -> PandasDataFrame:
+    ) -> PandasDataFrame[DTypeT]:
         df = self.dataframe.copy()
         df[cast(pd.DataFrame, np.isnan(df)).fillna(False).to_numpy(bool)] = value
         return PandasDataFrame(df)
