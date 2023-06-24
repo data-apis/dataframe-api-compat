@@ -4,7 +4,17 @@ import numpy as np
 import pandas as pd
 from pandas.api.types import is_extension_array_dtype
 import collections
-from typing import Any, Sequence, Mapping, NoReturn, cast, Literal, TYPE_CHECKING, Generic, TypeVar
+from typing import (
+    Any,
+    Sequence,
+    Mapping,
+    NoReturn,
+    cast,
+    Literal,
+    TYPE_CHECKING,
+    Generic,
+    TypeVar,
+)
 
 if TYPE_CHECKING:
     from dataframe_api import (
@@ -21,22 +31,31 @@ if TYPE_CHECKING:
     )
 else:
     DTypeT = TypeVar("DTypeT")
+
     class DataFrame(Generic[DTypeT]):
         ...
+
     class IntDType:
         ...
+
     class Bool:
         ...
+
     class Column(Generic[DTypeT]):
         ...
+
     class Int64:
         ...
+
     class Float64:
         ...
+
     class DType:
         ...
+
     class Scalar:
         ...
+
     class GroupBy:
         ...
 
@@ -44,12 +63,18 @@ else:
 def convert_to_standard_compliant_dataframe(df: pd.DataFrame) -> PandasDataFrame[Any]:
     return PandasDataFrame(df)
 
+
 class PandasInt64(Int64):
     ...
+
+
 class PandasFloat64(Float64):
     ...
+
+
 class PandasBool(Bool):
     ...
+
 
 DTYPE_MAP = {
     "int64": PandasInt64(),
@@ -206,7 +231,7 @@ class PandasColumn(Column[DTypeT]):
     def __pow__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Any]:
         if isinstance(other, PandasColumn):
             return PandasColumn(self.column**other.column)
-        return PandasColumn(self.column ** other)  # type: ignore[operator]
+        return PandasColumn(self.column**other)  # type: ignore[operator]
 
     def __mod__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Any]:
         if isinstance(other, PandasColumn):
@@ -505,16 +530,20 @@ class PandasDataFrame(DataFrame[DTypeT]):
         return PandasColumn(df.sort_values(keys).index.to_series())
 
     def __eq__(
-        self, other: DataFrame[DTypeT]
+        self, other: DataFrame[DTypeT] | Scalar[DTypeT]
     ) -> PandasDataFrame[Bool]:  # type: ignore[override]
         self._validate_comparand(other)
-        return PandasDataFrame(self.dataframe.__eq__(other.dataframe))
+        if isinstance(other, PandasDataFrame):
+            return PandasDataFrame(self.dataframe.__eq__(other.dataframe))
+        return PandasDataFrame(self.dataframe.__eq__(other))
 
     def __ne__(
-        self, other: DataFrame[DTypeT]
+        self, other: DataFrame[DTypeT] | Scalar[DTypeT]
     ) -> PandasDataFrame[Bool]:  # type: ignore[override]
         self._validate_comparand(other)
-        return PandasDataFrame((self.dataframe.__ne__(other.dataframe)))
+        if isinstance(other, PandasDataFrame):
+            return PandasDataFrame((self.dataframe.__ne__(other.dataframe)))
+        return PandasDataFrame((self.dataframe.__ne__(other)))
 
     def __ge__(self, other: DataFrame[DTypeT] | Scalar[DTypeT]) -> PandasDataFrame[Bool]:
         if isinstance(other, PandasDataFrame):

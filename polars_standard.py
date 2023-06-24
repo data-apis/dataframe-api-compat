@@ -1,7 +1,7 @@
 from __future__ import annotations
 import collections
 
-from typing import Any, Sequence, Mapping, NoReturn, cast, Literal, TYPE_CHECKING, Generic, TypeVar
+from typing import Any, Sequence, Mapping, NoReturn, TYPE_CHECKING, Generic, TypeVar
 import polars as pl
 import polars
 
@@ -20,22 +20,31 @@ if TYPE_CHECKING:
     )
 else:
     DTypeT = TypeVar("DTypeT")
+
     class DataFrame(Generic[DTypeT]):
         ...
+
     class IntDType:
         ...
+
     class Bool:
         ...
+
     class Column(Generic[DTypeT]):
         ...
+
     class Int64:
         ...
+
     class Float64:
         ...
+
     class DType:
         ...
+
     class Scalar:
         ...
+
     class GroupBy:
         ...
 
