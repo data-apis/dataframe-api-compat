@@ -382,28 +382,44 @@ class PolarsDataFrame(DataFrame[DTypeT]):
         return PolarsDataFrame(self.dataframe.__ge__(other.dataframe))
 
     def __gt__(self, other: PolarsDataFrame) -> PolarsDataFrame:
-        return PolarsDataFrame(self.dataframe.__gt__(other.dataframe))
+        if isinstance(other, PolarsDataFrame):
+            return PolarsDataFrame(self.dataframe.__gt__(other.dataframe))
+        return PolarsDataFrame(self.dataframe.__gt__(other))
 
     def __le__(self, other: PolarsDataFrame) -> PolarsDataFrame:
-        return PolarsDataFrame(self.dataframe.__le__(other.dataframe))
+        if isinstance(other, PolarsDataFrame):
+            return PolarsDataFrame(self.dataframe.__le__(other.dataframe))
+        return PolarsDataFrame(self.dataframe.__le__(other))
 
     def __lt__(self, other: PolarsDataFrame) -> PolarsDataFrame:
-        return PolarsDataFrame(self.dataframe.__lt__(other.dataframe))
+        if isinstance(other, PolarsDataFrame):
+            return PolarsDataFrame(self.dataframe.__lt__(other.dataframe))
+        return PolarsDataFrame(self.dataframe.__lt__(other))
 
     def __add__(self, other: PolarsDataFrame) -> PolarsDataFrame:
-        return PolarsDataFrame(self.dataframe.__add__(other.dataframe))
+        if isinstance(other, PolarsDataFrame):
+            return PolarsDataFrame(self.dataframe.__add__(other.dataframe))
+        return PolarsDataFrame(self.dataframe.__add__(other))
 
     def __sub__(self, other: PolarsDataFrame) -> PolarsDataFrame:
-        return PolarsDataFrame(self.dataframe.__sub__(other.dataframe))
+        if isinstance(other, PolarsDataFrame):
+            return PolarsDataFrame(self.dataframe.__sub__(other.dataframe))
+        return PolarsDataFrame(self.dataframe.__sub__(other))
 
     def __mul__(self, other: PolarsDataFrame) -> PolarsDataFrame:
-        return PolarsDataFrame(self.dataframe.__mul__(other.dataframe))
+        if isinstance(other, PolarsDataFrame):
+            return PolarsDataFrame(self.dataframe.__mul__(other.dataframe))
+        return PolarsDataFrame(self.dataframe.__mul__(other))
 
     def __truediv__(self, other: PolarsDataFrame) -> PolarsDataFrame:
-        return PolarsDataFrame(self.dataframe.__truediv__(other.dataframe))
+        if isinstance(other, PolarsDataFrame):
+            return PolarsDataFrame(self.dataframe.__truediv__(other.dataframe))
+        return PolarsDataFrame(self.dataframe.__truediv__(other))
 
     def __floordiv__(self, other: PolarsDataFrame) -> PolarsDataFrame:
-        return PolarsDataFrame(self.dataframe.__floordiv__(other.dataframe))
+        if isinstance(other, PolarsDataFrame):
+            return PolarsDataFrame(self.dataframe.__floordiv__(other.dataframe))
+        return PolarsDataFrame(self.dataframe.__floordiv__(other))
 
     def __pow__(self, other: PolarsDataFrame) -> PolarsDataFrame:
         return PolarsDataFrame(
@@ -413,7 +429,9 @@ class PolarsDataFrame(DataFrame[DTypeT]):
         )
 
     def __mod__(self, other: PolarsDataFrame) -> PolarsDataFrame:
-        return PolarsDataFrame(self.dataframe.__mod__(other.dataframe))
+        if isinstance(other, PolarsDataFrame):
+            return PolarsDataFrame(self.dataframe.__mod__(other.dataframe))
+        return PolarsDataFrame(self.dataframe.__mod__(other))
 
     def __divmod__(
         self,
