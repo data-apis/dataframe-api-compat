@@ -58,3 +58,10 @@ Linting
 ```
 pre-commit run --all-files
 ```
+
+Type Checking
+-------------
+```
+MYPYPATH=<path to dataframe_standard> mypy pandas_standard.py
+MYPYPATH=<path to dataframe_standard> mypy polars_standard.py
+```

@@ -165,9 +165,9 @@ class PandasColumn(Column[DTypeT]):
             return PandasColumn(self.column == other.column)
         return PandasColumn(self.column == other)
 
-    def __ne__(
-        self, other: PandasColumn[DTypeT]
-    ) -> PandasColumn[Bool]:  # type: ignore[override]
+    def __ne__(  # type: ignore[override]
+        self, other: Column[DTypeT]
+    ) -> PandasColumn[Bool]:
         if isinstance(other, PandasColumn):
             return PandasColumn(self.column != other.column)
         return PandasColumn(self.column != other)
@@ -241,10 +241,10 @@ class PandasColumn(Column[DTypeT]):
     def __divmod__(
         self, other: Column[DTypeT] | Scalar[DTypeT]
     ) -> tuple[PandasColumn[Any], PandasColumn[Any]]:
-        # todo: fix scalar case
-        quotient, remainder = self.column.__divmod__(
-            other.column
-        )  # type: ignore[union-attr]
+        if isinstance(other, PandasColumn):
+            quotient, remainder = self.column.__divmod__(other.column)
+        else:
+            quotient, remainder = self.column.__divmod__(other)
         return PandasColumn(quotient), PandasColumn(remainder)
 
     def __invert__(self: PandasColumn[Bool]) -> PandasColumn[Bool]:
@@ -529,19 +529,19 @@ class PandasDataFrame(DataFrame[DTypeT]):
         df = self.dataframe.loc[:, list(keys)]
         return PandasColumn(df.sort_values(keys).index.to_series())
 
-    def __eq__(
+    def __eq__(  # type: ignore[override]
         self, other: DataFrame[DTypeT] | Scalar[DTypeT]
-    ) -> PandasDataFrame[Bool]:  # type: ignore[override]
-        self._validate_comparand(other)
+    ) -> PandasDataFrame[Bool]:
         if isinstance(other, PandasDataFrame):
+            self._validate_comparand(other)
             return PandasDataFrame(self.dataframe.__eq__(other.dataframe))
         return PandasDataFrame(self.dataframe.__eq__(other))
 
-    def __ne__(
+    def __ne__(  # type: ignore[override]
         self, other: DataFrame[DTypeT] | Scalar[DTypeT]
-    ) -> PandasDataFrame[Bool]:  # type: ignore[override]
-        self._validate_comparand(other)
+    ) -> PandasDataFrame[Bool]:
         if isinstance(other, PandasDataFrame):
+            self._validate_comparand(other)
             return PandasDataFrame((self.dataframe.__ne__(other.dataframe)))
         return PandasDataFrame((self.dataframe.__ne__(other)))
 
