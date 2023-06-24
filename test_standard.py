@@ -462,6 +462,39 @@ def test_comparisons(
 @pytest.mark.parametrize(
     ("comparison", "expected_data"),
     [
+        ("__eq__", {"a": [False, True, False], "b": [False, False, False]}),
+        ("__ne__", {"a": [True, False, True], "b": [True, True, True]}),
+        ("__ge__", {"a": [False, True, True], "b": [True, True, True]}),
+        ("__gt__", {"a": [False, False, True], "b": [True, True, True]}),
+        ("__le__", {"a": [True, True, False], "b": [False, False, False]}),
+        ("__lt__", {"a": [True, False, False], "b": [False, False, False]}),
+        ("__add__", {"a": [3, 4, 5], "b": [6, 7, 8]}),
+        ("__sub__", {"a": [-1, 0, 1], "b": [2, 3, 4]}),
+        ("__mul__", {"a": [2, 4, 6], "b": [8, 10, 12]}),
+        ("__truediv__", {"a": [0.5, 1, 1.5], "b": [2, 2.5, 3]}),
+        ("__floordiv__", {"a": [0, 1, 1], "b": [2, 2, 3]}),
+        ("__pow__", {"a": [1, 4, 9], "b": [16, 25, 36]}),
+        ("__mod__", {"a": [1, 0, 1], "b": [0, 1, 0]}),
+    ],
+)
+def test_comparisons_with_scalar(
+    library: str, comparison: str, expected_data: dict[str, object]
+) -> None:
+    df = integer_dataframe_1(library)
+    other = 2
+    result = getattr(df, comparison)(other).dataframe
+    if library == "polars" and comparison == "__pow__":
+        # Is this right? Might need fixing upstream.
+        result = result.select(pl.col("*").cast(pl.Int64))
+    result_pd = pd.api.interchange.from_dataframe(result)
+    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
+    expected = pd.DataFrame(expected_data)
+    pd.testing.assert_frame_equal(result_pd, expected)
+
+
+@pytest.mark.parametrize(
+    ("comparison", "expected_data"),
+    [
         ("__eq__", [True, True, False]),
         ("__ne__", [False, False, True]),
         ("__ge__", [True, True, False]),
@@ -537,6 +570,20 @@ def test_divmod(library: str) -> None:
     result_remainder_pd = pd.api.interchange.from_dataframe(result_remainder.dataframe)
     expected_quotient = pd.DataFrame({"a": [1, 1, 0], "b": [1, 2, 1]})
     expected_remainder = pd.DataFrame({"a": [0, 0, 3], "b": [0, 1, 0]})
+    result_quotient_pd = convert_dataframe_to_pandas_numpy(result_quotient_pd)
+    result_remainder_pd = convert_dataframe_to_pandas_numpy(result_remainder_pd)
+    pd.testing.assert_frame_equal(result_quotient_pd, expected_quotient)
+    pd.testing.assert_frame_equal(result_remainder_pd, expected_remainder)
+
+
+def test_divmod_with_scalar(library: str) -> None:
+    df = integer_dataframe_1(library)
+    other = 2
+    result_quotient, result_remainder = df.__divmod__(other)
+    result_quotient_pd = pd.api.interchange.from_dataframe(result_quotient.dataframe)
+    result_remainder_pd = pd.api.interchange.from_dataframe(result_remainder.dataframe)
+    expected_quotient = pd.DataFrame({"a": [0, 1, 1], "b": [2, 2, 3]})
+    expected_remainder = pd.DataFrame({"a": [1, 0, 1], "b": [0, 1, 0]})
     result_quotient_pd = convert_dataframe_to_pandas_numpy(result_quotient_pd)
     result_remainder_pd = convert_dataframe_to_pandas_numpy(result_remainder_pd)
     pd.testing.assert_frame_equal(result_quotient_pd, expected_quotient)

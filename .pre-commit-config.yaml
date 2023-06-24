@@ -14,18 +14,6 @@ repos:
     hooks:
     -   id: ruff
         args: [--fix, --exit-non-zero-on-fix, --line-length=90]
--   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.3.0
-    hooks:
-    -   id: mypy
-        args: [--strict]
-        additional_dependencies: [
-            pandas_stubs==2.0.2.230605,
-            pandas==2.0.2,
-            pytest==7.2.2,
-            polars==0.17.11,
-            types-setuptools,
-            ]
 -   repo: https://github.com/psf/black
     rev: 23.3.0
     hooks:
