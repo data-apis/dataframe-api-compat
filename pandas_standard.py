@@ -4,18 +4,59 @@ import numpy as np
 import pandas as pd
 from pandas.api.types import is_extension_array_dtype
 import collections
-from typing import Any, Sequence, Mapping, NoReturn, cast, Literal
+from typing import Any, Sequence, Mapping, NoReturn, cast, Literal, TYPE_CHECKING, Generic, TypeVar
 
-from dataframe_api import DataFrame, DTypeT, null, IntDType, FloatDType, Bool, Column, Int64, Int32, Float64, Float32, DType, Scalar, GroupBy
+if TYPE_CHECKING:
+    from dataframe_api import (
+        DataFrame,
+        DTypeT,
+        IntDType,
+        Bool,
+        Column,
+        Int64,
+        Float64,
+        DType,
+        Scalar,
+        GroupBy,
+    )
+else:
+    DTypeT = TypeVar("DTypeT")
+    class DataFrame(Generic[DTypeT]):
+        ...
+    class IntDType:
+        ...
+    class Bool:
+        ...
+    class Column(Generic[DTypeT]):
+        ...
+    class Int64:
+        ...
+    class Float64:
+        ...
+    class DType:
+        ...
+    class Scalar:
+        ...
+    class GroupBy:
+        ...
 
 
 def convert_to_standard_compliant_dataframe(df: pd.DataFrame) -> PandasDataFrame[Any]:
     return PandasDataFrame(df)
 
+class PandasInt64(Int64):
+    ...
+class PandasFloat64(Float64):
+    ...
+class PandasBool(Bool):
+    ...
+
 DTYPE_MAP = {
-    'int64': Int64(),
-    'float64': Float64(),
-    'bool': Bool(),
+    "int64": PandasInt64(),
+    "Int64": PandasInt64(),
+    "float64": PandasFloat64(),
+    "Float64": PandasFloat64(),
+    "bool": PandasBool(),
 }
 
 
@@ -40,12 +81,16 @@ class PandasNamespace:
         )
 
     @classmethod
-    def column_from_sequence(cls, sequence: Sequence[DTypeT], dtype: DTypeT) -> PandasColumn[DTypeT]:
+    def column_from_sequence(
+        cls, sequence: Sequence[DTypeT], dtype: DTypeT
+    ) -> PandasColumn[DTypeT]:
         ser = pd.Series(sequence, dtype=dtype)  # type: ignore[call-overload]
         return PandasColumn(ser)
 
     @classmethod
-    def dataframe_from_dict(cls, data: dict[str, PandasColumn[Any]]) -> PandasDataFrame[Any]:
+    def dataframe_from_dict(
+        cls, data: dict[str, PandasColumn[Any]]
+    ) -> PandasDataFrame[Any]:
         return PandasDataFrame(
             pd.DataFrame({label: column.column for label, column in data.items()})
         )
@@ -70,7 +115,7 @@ class PandasColumn(Column[DTypeT]):
 
     @property
     def column(self) -> pd.Series[Any]:
-        return self.column
+        return self._series
 
     def __len__(self) -> int:
         return len(self.column)
@@ -95,7 +140,9 @@ class PandasColumn(Column[DTypeT]):
             return PandasColumn(self.column == other.column)
         return PandasColumn(self.column == other)
 
-    def __ne__(self, other: PandasColumn[DTypeT]) -> PandasColumn[Bool]:  # type: ignore[override]
+    def __ne__(
+        self, other: PandasColumn[DTypeT]
+    ) -> PandasColumn[Bool]:  # type: ignore[override]
         if isinstance(other, PandasColumn):
             return PandasColumn(self.column != other.column)
         return PandasColumn(self.column != other)
@@ -139,36 +186,40 @@ class PandasColumn(Column[DTypeT]):
     def __sub__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[DTypeT]:
         if isinstance(other, PandasColumn):
             return PandasColumn(self.column - other.column)
-        return PandasColumn(self.column + other)  # type: ignore[operator]
+        return PandasColumn(self.column - other)  # type: ignore[operator]
 
     def __mul__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Any]:
         if isinstance(other, PandasColumn):
             return PandasColumn(self.column * other.column)
-        return PandasColumn(self.column + other)  # type: ignore[operator]
+        return PandasColumn(self.column * other)  # type: ignore[operator]
 
     def __truediv__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Any]:
         if isinstance(other, PandasColumn):
             return PandasColumn(self.column / other.column)
-        return PandasColumn(self.column + other)  # type: ignore[operator]
+        return PandasColumn(self.column / other)  # type: ignore[operator]
 
     def __floordiv__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Any]:
         if isinstance(other, PandasColumn):
             return PandasColumn(self.column // other.column)
-        return PandasColumn(self.column + other)  # type: ignore[operator]
+        return PandasColumn(self.column // other)  # type: ignore[operator]
 
     def __pow__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Any]:
         if isinstance(other, PandasColumn):
             return PandasColumn(self.column**other.column)
-        return PandasColumn(self.column + other)  # type: ignore[operator]
+        return PandasColumn(self.column ** other)  # type: ignore[operator]
 
     def __mod__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Any]:
         if isinstance(other, PandasColumn):
             return PandasColumn(self.column % other.column)
-        return PandasColumn(self.column + other)  # type: ignore[operator]
+        return PandasColumn(self.column % other)  # type: ignore[operator]
 
-    def __divmod__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> tuple[PandasColumn[Any], PandasColumn[Any]]:
+    def __divmod__(
+        self, other: Column[DTypeT] | Scalar[DTypeT]
+    ) -> tuple[PandasColumn[Any], PandasColumn[Any]]:
         # todo: fix scalar case
-        quotient, remainder = self.column.__divmod__(other.column)  # type: ignore[union-attr]
+        quotient, remainder = self.column.__divmod__(
+            other.column
+        )  # type: ignore[union-attr]
         return PandasColumn(quotient), PandasColumn(remainder)
 
     def __invert__(self: PandasColumn[Bool]) -> PandasColumn[Bool]:
@@ -215,7 +266,9 @@ class PandasColumn(Column[DTypeT]):
             return PandasColumn(np.isnan(self.column).replace(pd.NA, False).astype(bool))
         return PandasColumn(self.column.isna())
 
-    def sorted_indices(self, *, ascending: bool = True, nulls_position: Literal['first', 'last'] = 'last') -> PandasColumn[IntDType]:
+    def sorted_indices(
+        self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
+    ) -> PandasColumn[IntDType]:
         return PandasColumn(pd.Series(self.column.argsort()))
 
     def is_in(self, values: Column[DTypeT]) -> PandasColumn[Bool]:
@@ -441,15 +494,25 @@ class PandasDataFrame(DataFrame[DTypeT]):
     def get_column_names(self) -> Sequence[str]:
         return self.dataframe.columns.tolist()
 
-    def sorted_indices(self, keys: Sequence[str], *, ascending: Sequence[bool] | bool = True, nulls_position: Literal['first', 'last'] = 'last') -> PandasColumn[IntDType]:
+    def sorted_indices(
+        self,
+        keys: Sequence[str],
+        *,
+        ascending: Sequence[bool] | bool = True,
+        nulls_position: Literal["first", "last"] = "last",
+    ) -> PandasColumn[IntDType]:
         df = self.dataframe.loc[:, list(keys)]
         return PandasColumn(df.sort_values(keys).index.to_series())
 
-    def __eq__(self, other: DataFrame[DTypeT]) -> PandasDataFrame[Bool]:  # type: ignore[override]
+    def __eq__(
+        self, other: DataFrame[DTypeT]
+    ) -> PandasDataFrame[Bool]:  # type: ignore[override]
         self._validate_comparand(other)
         return PandasDataFrame(self.dataframe.__eq__(other.dataframe))
 
-    def __ne__(self, other: DataFrame[DTypeT]) -> PandasDataFrame[Bool]:  # type: ignore[override]
+    def __ne__(
+        self, other: DataFrame[DTypeT]
+    ) -> PandasDataFrame[Bool]:  # type: ignore[override]
         self._validate_comparand(other)
         return PandasDataFrame((self.dataframe.__ne__(other.dataframe)))
 
@@ -501,7 +564,9 @@ class PandasDataFrame(DataFrame[DTypeT]):
             return PandasDataFrame((self.dataframe.__truediv__(other.dataframe)))
         return PandasDataFrame((self.dataframe.__truediv__(other)))
 
-    def __floordiv__(self, other: DataFrame[Any] | Scalar[DTypeT]) -> PandasDataFrame[Any]:
+    def __floordiv__(
+        self, other: DataFrame[Any] | Scalar[DTypeT]
+    ) -> PandasDataFrame[Any]:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
             return PandasDataFrame((self.dataframe.__floordiv__(other.dataframe)))
@@ -520,18 +585,19 @@ class PandasDataFrame(DataFrame[DTypeT]):
         return PandasDataFrame((self.dataframe.__mod__(other)))
 
     def __divmod__(
-        self, other: DataFrame[Any] | Scalar[DTypeT],
+        self,
+        other: DataFrame[Any] | Scalar[DTypeT],
     ) -> tuple[PandasDataFrame[Any], PandasDataFrame[Any]]:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
             quotient, remainder = self.dataframe.__divmod__(other.dataframe)
-        quotient, remainder = self.dataframe.__divmod__(other)
+        else:
+            quotient, remainder = self.dataframe.__divmod__(other)
         return PandasDataFrame(quotient), PandasDataFrame(remainder)
 
     def __invert__(self) -> PandasDataFrame[Bool]:
         self._validate_booleanness()
         return PandasDataFrame(self.dataframe.__invert__())
-
 
     def __iter__(self) -> NoReturn:
         raise NotImplementedError()

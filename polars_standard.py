@@ -1,11 +1,43 @@
 from __future__ import annotations
 import collections
 
-from typing import Sequence, NoReturn, Any, Mapping
+from typing import Any, Sequence, Mapping, NoReturn, cast, Literal, TYPE_CHECKING, Generic, TypeVar
 import polars as pl
 import polars
 
-from dataframe_api import DataFrame, DTypeT
+if TYPE_CHECKING:
+    from dataframe_api import (
+        DataFrame,
+        DTypeT,
+        IntDType,
+        Bool,
+        Column,
+        Int64,
+        Float64,
+        DType,
+        Scalar,
+        GroupBy,
+    )
+else:
+    DTypeT = TypeVar("DTypeT")
+    class DataFrame(Generic[DTypeT]):
+        ...
+    class IntDType:
+        ...
+    class Bool:
+        ...
+    class Column(Generic[DTypeT]):
+        ...
+    class Int64:
+        ...
+    class Float64:
+        ...
+    class DType:
+        ...
+    class Scalar:
+        ...
+    class GroupBy:
+        ...
 
 
 def convert_to_standard_compliant_dataframe(df: pl.DataFrame) -> PolarsDataFrame:
