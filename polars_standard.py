@@ -79,17 +79,23 @@ class PolarsNamespace:
         return PolarsDataFrame(pl.concat(dfs))
 
     @classmethod
-    def dataframe_from_dict(cls, data: dict[str, PolarsColumn]) -> PolarsDataFrame[Any]:
+    def dataframe_from_dict(
+        cls, data: dict[str, PolarsColumn[Any]]
+    ) -> PolarsDataFrame[Any]:
         return PolarsDataFrame(
             pl.DataFrame({label: column.column for label, column in data.items()})
         )
 
     @classmethod
-    def column_from_sequence(cls, sequence: Sequence[object], dtype: str) -> PolarsColumn:
-        return PolarsColumn(pl.Series(sequence, dtype=DTYPE_MAPPING[dtype]))
+    def column_from_sequence(
+        cls, sequence: Sequence[DTypeT], dtype: DType
+    ) -> PolarsColumn[DTypeT]:
+        return PolarsColumn(
+            pl.Series(sequence, dtype=DTYPE_MAPPING[dtype])
+        )  # type: ignore[index]
 
 
-class PolarsColumn:
+class PolarsColumn(Column[DTypeT]):
     def __init__(self, column: pl.Series) -> None:
         self._series = column
 
@@ -105,165 +111,167 @@ class PolarsColumn:
         return len(self.column)
 
     @property
-    def dtype(self) -> object:
+    def dtype(self) -> Any:
         # todo change
         return self.column.dtype
 
-    def get_rows(self, indices: PolarsColumn) -> PolarsColumn:
+    def get_rows(self, indices: Column[IntDType]) -> PolarsColumn[DTypeT]:
         return PolarsColumn(self.column.take(indices.column))
 
-    def get_value(self, row: int) -> object:
-        return self.column[row]
+    def get_value(self, row: Scalar[IntDType]) -> Scalar[DTypeT]:
+        return self.column[row]  # type: ignore[no-any-return, call-overload]
 
     def __iter__(self) -> NoReturn:
         raise NotImplementedError()
 
-    def is_in(self, values: PolarsColumn) -> PolarsColumn:
+    def is_in(self, values: Column[DTypeT]) -> PolarsColumn[Bool]:
         if values.dtype != self.dtype:
             raise ValueError(f"`value` has dtype {values.dtype}, expected {self.dtype}")
         return PolarsColumn(self.column.is_in(values.column))
 
-    def unique_indices(self) -> PolarsColumn:
+    def unique_indices(self, *, skip_nulls: bool = True) -> PolarsColumn[IntDType]:
         df = self.column.to_frame()
         keys = df.columns
         return PolarsColumn(df.with_row_count().unique(keys)["row_nr"])
 
-    def is_null(self) -> PolarsColumn:
+    def is_null(self) -> PolarsColumn[Bool]:
         return PolarsColumn(self.column.is_null())
 
-    def is_nan(self) -> PolarsColumn:
+    def is_nan(self) -> PolarsColumn[Bool]:
         return PolarsColumn(self.column.is_nan())
 
-    def any(self) -> bool:
-        return self.column.any()
+    def any(self, *, skip_nulls: bool = True) -> Scalar[Bool]:
+        return self.column.any()  # type: ignore[return-value]
 
-    def all(self) -> bool:
-        return self.column.all()
+    def all(self, *, skip_nulls: bool = True) -> Scalar[Bool]:
+        return self.column.all()  # type: ignore[return-value]
 
-    def min(self) -> object:
-        return self.column.min()
+    def min(self, *, skip_nulls: bool = True) -> Scalar[DTypeT]:
+        return self.column.min()  # type: ignore[return-value]
 
-    def max(self) -> object:
-        return self.column.max()
+    def max(self, *, skip_nulls: bool = True) -> Scalar[DTypeT]:
+        return self.column.max()  # type: ignore[return-value]
 
-    def sum(self) -> object:
-        return self.column.sum()
+    def sum(self, *, skip_nulls: bool = True) -> Scalar[DTypeT]:
+        return self.column.sum()  # type: ignore[return-value]
 
-    def prod(self) -> object:
-        return self.column.product()
+    def prod(self, *, skip_nulls: bool = True) -> Scalar[Any]:
+        return self.column.product()  # type: ignore[return-value]
 
-    def mean(self) -> object:
-        return self.column.mean()
+    def mean(self, *, skip_nulls: bool = True) -> Scalar[Any]:
+        return self.column.mean()  # type: ignore[return-value]
 
-    def median(self) -> object:
-        return self.column.median()
+    def median(self, *, skip_nulls: bool = True) -> Scalar[Any]:
+        return self.column.median()  # type: ignore[return-value]
 
-    def std(self) -> object:
-        return self.column.std()
+    def std(self, *, skip_nulls: bool = True) -> Scalar[Any]:
+        return self.column.std()  # type: ignore[return-value]
 
-    def var(self) -> object:
-        return self.column.var()
+    def var(self, *, skip_nulls: bool = True) -> Scalar[Any]:
+        return self.column.var()  # type: ignore[return-value]
 
     def __eq__(  # type: ignore[override]
-        self, other: PolarsColumn | object
-    ) -> PolarsColumn:
+        self, other: Column[DTypeT] | Scalar[DTypeT]
+    ) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column == other.column)
         return PolarsColumn(self.column == other)
 
     def __ne__(  # type: ignore[override]
-        self, other: PolarsColumn | object
-    ) -> PolarsColumn:
+        self, other: Column[DTypeT] | Scalar[DTypeT]
+    ) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column != other.column)
         return PolarsColumn(self.column != other)
 
-    def __ge__(self, other: PolarsColumn | object) -> PolarsColumn:
+    def __ge__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column >= other.column)
         return PolarsColumn(self.column >= other)
 
-    def __gt__(self, other: PolarsColumn | object) -> PolarsColumn:
+    def __gt__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column > other.column)
         return PolarsColumn(self.column > other)
 
-    def __le__(self, other: PolarsColumn | object) -> PolarsColumn:
+    def __le__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column <= other.column)
         return PolarsColumn(self.column <= other)
 
-    def __lt__(self, other: PolarsColumn | object) -> PolarsColumn:
+    def __lt__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column < other.column)
         return PolarsColumn(self.column < other)
 
-    def __mul__(self, other: PolarsColumn | object) -> PolarsColumn:
+    def __mul__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column * other.column)
         return PolarsColumn(self.column * other)
 
-    def __floordiv__(self, other: PolarsColumn | object) -> PolarsColumn:
+    def __floordiv__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column // other.column)
         return PolarsColumn(self.column // other)
 
-    def __truediv__(self, other: PolarsColumn | object) -> PolarsColumn:
+    def __truediv__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column / other.column)
         return PolarsColumn(self.column / other)
 
-    def __pow__(self, other: PolarsColumn | float) -> PolarsColumn:
+    def __pow__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column.pow(other.column))
-        return PolarsColumn(self.column.pow(other))
+        return PolarsColumn(self.column.pow(other))  # type: ignore[arg-type]
 
-    def __mod__(self, other: PolarsColumn | object) -> PolarsColumn:
+    def __mod__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column % other.column)
         return PolarsColumn(self.column % other)
 
     def __divmod__(
         self,
-        other: PolarsColumn,
-    ) -> tuple[PolarsColumn, PolarsColumn]:
+        other: Column[DTypeT] | Scalar[DTypeT],
+    ) -> tuple[PolarsColumn[Any], PolarsColumn[Any]]:
         quotient = self // other
         remainder = self - quotient * other
         return quotient, remainder
 
-    def __and__(self, other: PolarsColumn | object) -> PolarsColumn:
+    def __and__(self, other: Column[Bool] | Scalar[Bool]) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column & other.column)
         return PolarsColumn(self.column & other)  # type: ignore[operator]
 
-    def __or__(self, other: PolarsColumn | object) -> PolarsColumn:
+    def __or__(self, other: Column[Bool] | Scalar[Bool]) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column | other.column)
         return PolarsColumn(self.column | other)  # type: ignore[operator]
 
-    def __invert__(self) -> PolarsColumn:
+    def __invert__(self) -> PolarsColumn[Bool]:
         return PolarsColumn(~self.column)
 
-    def __add__(self, other: PolarsColumn) -> PolarsColumn:
+    def __add__(self, other: Column[Any] | Scalar[Any]) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column + other.column)
         return PolarsColumn(self.column + other)
 
-    def __sub__(self, other: PolarsColumn) -> PolarsColumn:
+    def __sub__(self, other: Column[Any] | Scalar[Any]) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column - other.column)
         return PolarsColumn(self.column - other)
 
-    def sorted_indices(self) -> PolarsColumn:
+    def sorted_indices(
+        self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
+    ) -> PolarsColumn[IntDType]:
         df = self.column.to_frame()
         keys = df.columns
         return PolarsColumn(df.with_row_count().sort(keys, descending=False)["row_nr"])
 
-    def fill_nan(self, value: float) -> PolarsColumn:
-        return PolarsColumn(self.column.fill_nan(value))
+    def fill_nan(self, value: float | null) -> PolarsColumn[DTypeT]:
+        return PolarsColumn(self.column.fill_nan(value))  # type: ignore[arg-type]
 
 
-class PolarsGroupBy:
+class PolarsGroupBy(GroupBy):
     def __init__(self, df: pl.DataFrame, keys: Sequence[str]) -> None:
         for key in keys:
             if key not in df.columns:
@@ -275,43 +283,43 @@ class PolarsGroupBy:
         result = self.df.groupby(self.keys).count().rename({"count": "size"})
         return PolarsDataFrame(result)
 
-    def any(self, skipna: bool = True) -> PolarsDataFrame[Bool]:
+    def any(self, skip_nulls: bool = True) -> PolarsDataFrame[Bool]:
         result = self.df.groupby(self.keys).agg(pl.col("*").any())
         return PolarsDataFrame(result)
 
-    def all(self, skipna: bool = True) -> PolarsDataFrame[Bool]:
+    def all(self, skip_nulls: bool = True) -> PolarsDataFrame[Bool]:
         result = self.df.groupby(self.keys).agg(pl.col("*").all())
         return PolarsDataFrame(result)
 
-    def min(self, skipna: bool = True) -> PolarsDataFrame[DTypeT]:
+    def min(self, skip_nulls: bool = True) -> PolarsDataFrame[DTypeT]:
         result = self.df.groupby(self.keys).agg(pl.col("*").min())
         return PolarsDataFrame(result)
 
-    def max(self, skipna: bool = True) -> PolarsDataFrame[DTypeT]:
+    def max(self, skip_nulls: bool = True) -> PolarsDataFrame[DTypeT]:
         result = self.df.groupby(self.keys).agg(pl.col("*").max())
         return PolarsDataFrame(result)
 
-    def sum(self, skipna: bool = True) -> PolarsDataFrame[DTypeT]:
+    def sum(self, skip_nulls: bool = True) -> PolarsDataFrame[DTypeT]:
         result = self.df.groupby(self.keys).agg(pl.col("*").sum())
         return PolarsDataFrame(result)
 
-    def prod(self, skipna: bool = True) -> PolarsDataFrame[Any]:
+    def prod(self, skip_nulls: bool = True) -> PolarsDataFrame[Any]:
         result = self.df.groupby(self.keys).agg(pl.col("*").product())
         return PolarsDataFrame(result)
 
-    def median(self, skipna: bool = True) -> PolarsDataFrame[Any]:
+    def median(self, skip_nulls: bool = True) -> PolarsDataFrame[Any]:
         result = self.df.groupby(self.keys).agg(pl.col("*").median())
         return PolarsDataFrame(result)
 
-    def mean(self, skipna: bool = True) -> PolarsDataFrame[Any]:
+    def mean(self, skip_nulls: bool = True) -> PolarsDataFrame[Any]:
         result = self.df.groupby(self.keys).agg(pl.col("*").mean())
         return PolarsDataFrame(result)
 
-    def std(self, skipna: bool = True) -> PolarsDataFrame[Any]:
+    def std(self, skip_nulls: bool = True) -> PolarsDataFrame[Any]:
         result = self.df.groupby(self.keys).agg(pl.col("*").std())
         return PolarsDataFrame(result)
 
-    def var(self, skipna: bool = True) -> PolarsDataFrame[Any]:
+    def var(self, skip_nulls: bool = True) -> PolarsDataFrame[Any]:
         result = self.df.groupby(self.keys).agg(pl.col("*").var())
         return PolarsDataFrame(result)
 
@@ -335,7 +343,7 @@ class PolarsDataFrame(DataFrame[DTypeT]):
     def groupby(self, keys: Sequence[str]) -> PolarsGroupBy:
         return PolarsGroupBy(self.df, keys)
 
-    def get_column_by_name(self, name: str) -> PolarsColumn:
+    def get_column_by_name(self, name: str) -> PolarsColumn[DTypeT]:
         return PolarsColumn(self.df[name])
 
     def get_columns_by_name(self, names: Sequence[str]) -> PolarsDataFrame[DTypeT]:
@@ -382,18 +390,18 @@ class PolarsDataFrame(DataFrame[DTypeT]):
     def get_column_names(self) -> Sequence[str]:
         return self.dataframe.columns
 
-    def __eq__(
+    def __eq__(  # type: ignore[override]
         self,
-        other: DataFrame[DTypeT],
-    ) -> PolarsDataFrame[Bool]:  # type: ignore[override]
+        other: DataFrame[DTypeT] | Scalar[DTypeT],
+    ) -> PolarsDataFrame[Bool]:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__eq__(other.dataframe))
         return PolarsDataFrame(self.dataframe.__eq__(other))
 
-    def __ne__(
+    def __ne__(  # type: ignore[override]
         self,
         other: DataFrame[DTypeT],
-    ) -> PolarsDataFrame[Bool]:  # type: ignore[override]
+    ) -> PolarsDataFrame[Bool]:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__ne__(other.dataframe))
         return PolarsDataFrame(self.dataframe.__ne__(other))
@@ -441,15 +449,15 @@ class PolarsDataFrame(DataFrame[DTypeT]):
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__truediv__(other.dataframe))
         return PolarsDataFrame(
-            self.dataframe.__truediv__(other)
-        )  # type: ignore[operator]
+            self.dataframe.__truediv__(other)  # type: ignore[operator]
+        )
 
     def __floordiv__(self, other: DataFrame[Any] | Scalar[Any]) -> PolarsDataFrame[Any]:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__floordiv__(other.dataframe))
         return PolarsDataFrame(
-            self.dataframe.__floordiv__(other)
-        )  # type: ignore[operator]
+            self.dataframe.__floordiv__(other)  # type: ignore[operator]
+        )
 
     def __pow__(self, other: DataFrame[Any] | Scalar[Any]) -> PolarsDataFrame[Any]:
         if isinstance(other, PolarsDataFrame):
@@ -463,8 +471,8 @@ class PolarsDataFrame(DataFrame[DTypeT]):
             )
         return PolarsDataFrame(
             self.dataframe.select(
-                pl.col(col).pow(other)
-                for col in self.get_column_names()  # type: ignore[arg-type]
+                pl.col(col).pow(other)  # type: ignore[arg-type]
+                for col in self.get_column_names()
             )
         )
 
@@ -539,8 +547,8 @@ class PolarsDataFrame(DataFrame[DTypeT]):
         self,
         keys: Sequence[Any],
         *,
-        ascending: Sequence[bool] | bool,
-        nulls_position: Literal["first", "last"],
+        ascending: Sequence[bool] | bool = True,
+        nulls_position: Literal["first", "last"] = "last",
     ) -> PolarsColumn[IntDType]:
         df = self.dataframe.select(keys)
         return PolarsColumn(df.with_row_count().sort(keys, descending=False)["row_nr"])
