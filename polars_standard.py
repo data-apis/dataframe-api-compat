@@ -91,8 +91,8 @@ class PolarsNamespace:
         cls, sequence: Sequence[DTypeT], dtype: DType
     ) -> PolarsColumn[DTypeT]:
         return PolarsColumn(
-            pl.Series(sequence, dtype=DTYPE_MAPPING[dtype])
-        )  # type: ignore[index]
+            pl.Series(sequence, dtype=DTYPE_MAPPING[dtype])  # type: ignore[index]
+        )
 
 
 class PolarsColumn(Column[DTypeT]):
