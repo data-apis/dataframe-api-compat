@@ -663,7 +663,7 @@ def test_get_columns_by_name_invalid(library: str) -> None:
 def test_get_rows(library: str) -> None:
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
-    indices = namespace.column_from_sequence([0, 2, 1], dtype="int64")
+    indices = namespace.column_from_sequence([0, 2, 1], dtype=namespace.Int64())
     result = df.get_rows(indices).dataframe
     result_pd = pd.api.interchange.from_dataframe(result)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
@@ -674,7 +674,7 @@ def test_get_rows(library: str) -> None:
 def test_column_get_rows(library: str) -> None:
     ser = integer_series_1(library)
     namespace = ser.__column_namespace__()
-    indices = namespace.column_from_sequence([0, 2, 1], dtype="int64")
+    indices = namespace.column_from_sequence([0, 2, 1], dtype=namespace.Int64())
     result = namespace.dataframe_from_dict({"result": ser.get_rows(indices)})
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     result_pd = convert_series_to_pandas_numpy(result_pd)
@@ -708,7 +708,7 @@ def test_slice_rows(
 def test_get_rows_by_mask(library: str) -> None:
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
-    mask = namespace.column_from_sequence([True, False, True], dtype="bool")
+    mask = namespace.column_from_sequence([True, False, True], dtype=namespace.Bool())
     result = df.get_rows_by_mask(mask)
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
