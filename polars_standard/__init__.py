@@ -1,3 +1,4 @@
+from __future__ import annotations
 from polars_standard.polars_standard import PolarsDataFrame, PolarsColumn
 
 import polars as pl
