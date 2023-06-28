@@ -1,6 +1,6 @@
-[![Build Status](https://github.com/MarcoGorelli/impl-dataframe-api/workflows/tox/badge.svg)](https://github.com/MarcoGorelli/impl-dataframe-api/actions?workflow=tox)
-[![Coverage](https://codecov.io/gh/MarcoGorelli/cython-lint/branch/main/graph/badge.svg)](https://codecov.io/gh/MarcoGorelli/impl-dataframe-api)
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/MarcoGorelli/impl-dataframe-api/main.svg)](https://results.pre-commit.ci/latest/github/MarcoGorelli/impl-dataframe-api/main)
+[![Build Status](https://github.com/MarcoGorelli/dataframe-api-compat/workflows/tox/badge.svg)](https://github.com/MarcoGorelli/dataframe-api-compat/actions?workflow=tox)
+[![Coverage](https://codecov.io/gh/MarcoGorelli/cython-lint/branch/main/graph/badge.svg)](https://codecov.io/gh/MarcoGorelli/dataframe-api-compat)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/MarcoGorelli/dataframe-api-compat/main.svg)](https://results.pre-commit.ci/latest/github/MarcoGorelli/dataframe-api-compat/main)
 
 # DataFrame Standard POC
 
@@ -8,7 +8,7 @@
 	<img
 		width="400"
 		alt="standard-compliant DataFrame"
-		src="https://github.com/MarcoGorelli/impl-dataframe-api/assets/33491632/fb4bc907-2b85-4ad7-8d13-c2b9912b97f5">
+		src="https://github.com/MarcoGorelli/dataframe-api-compat/assets/33491632/fb4bc907-2b85-4ad7-8d13-c2b9912b97f5">
 </h1>
 
 Work-in-progress POC of what the [DataFrame Standard](https://data-apis.org/dataframe-api/draft/index.html)
@@ -43,7 +43,7 @@ The object `df_std` is a Standard-compliant DataFrame.
 Installation
 ------------
 ```
-pip install git+https://github.com/MarcoGorelli/impl-dataframe-api
+pip install git+https://github.com/MarcoGorelli/dataframe-api-compat
 ```
 
 Testing
