@@ -4,7 +4,7 @@
 	<img
 		width="400"
 		alt="standard-compliant DataFrame"
-		src="https://github.com/MarcoGorelli/dataframe-api-compat/assets/33491632/fb4bc907-2b85-4ad7-8d13-c2b9912b97f5">
+		src="https://github.com/data-apis/dataframe-api-compat/assets/33491632/fb4bc907-2b85-4ad7-8d13-c2b9912b97f5">
 </h1>
 
 Tired of getting lost in if-then statements when dealing with API differences
@@ -131,4 +131,4 @@ what plans lie ahead - the Standard is in active development, so please watch th
 ## Resources
 
 - Read more on the [official website](https://data-apis.org/dataframe-api/)
-- Try out the [proof-of-concept implementation for pandas and polars](https://github.com/MarcoGorelli/dataframe-api-compat)!
+- Try out the [proof-of-concept implementation for pandas and polars](https://github.com/data-apis/dataframe-api-compat)!
