@@ -24,8 +24,8 @@ How to try this out
 Here's an example of how you can try this out:
 ```python
 import pandas as pd
-import pandas_standard
-import polars_standard
+from dataframe_api_compat import pandas_standard
+from dataframe_api_compat import polars_standard
 
 def convert_to_standard_compliant_dataframe(df):
     if isinstance(df, pd.DataFrame):
