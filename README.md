@@ -2,7 +2,7 @@
 [![Coverage](https://codecov.io/gh/MarcoGorelli/cython-lint/branch/main/graph/badge.svg)](https://codecov.io/gh/MarcoGorelli/dataframe-api-compat)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/MarcoGorelli/dataframe-api-compat/main.svg)](https://results.pre-commit.ci/latest/github/MarcoGorelli/dataframe-api-compat/main)
 
-# DataFrame Standard POC
+# DataFrame API Compat
 
 <h1 align="center">
 	<img
