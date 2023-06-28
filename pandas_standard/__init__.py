@@ -6,52 +6,25 @@ from typing import (
     Any,
     Sequence,
     TYPE_CHECKING,
-    Generic,
-    TypeVar,
 )
 
 if TYPE_CHECKING:
     from dataframe_api import (
-        DataFrame,
         DTypeT,
-        IntDType,
-        Bool,
-        Column,
-        Int64,
-        Float64,
         DType,
-        Scalar,
-        GroupBy,
     )
-else:
-    DTypeT = TypeVar("DTypeT")
 
-    class DataFrame(Generic[DTypeT]):
-        ...
 
-    class IntDType:
-        ...
+class Int64:
+    ...
 
-    class Bool:
-        ...
 
-    class Column(Generic[DTypeT]):
-        ...
+class Float64:
+    ...
 
-    class Int64:
-        ...
 
-    class Float64:
-        ...
-
-    class DType:
-        ...
-
-    class Scalar:
-        ...
-
-    class GroupBy:
-        ...
+class Bool:
+    ...
 
 
 def _map_standard_dtype_to_pandas_dtype(dtype: DType) -> Any:

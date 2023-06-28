@@ -2,50 +2,26 @@ from __future__ import annotations
 from polars_standard.polars_standard import PolarsDataFrame, PolarsColumn
 
 import polars as pl
-from typing import Any, Sequence, TYPE_CHECKING, TypeVar, Generic
+from typing import Any, Sequence, TYPE_CHECKING
+
 
 if TYPE_CHECKING:
     from dataframe_api import (
-        DataFrame,
         DTypeT,
-        IntDType,
-        Bool,
-        Column,
-        Int64,
-        Float64,
         DType,
-        Scalar,
-        GroupBy,
     )
-else:
-    DTypeT = TypeVar("DTypeT")
 
-    class DataFrame(Generic[DTypeT]):
-        ...
 
-    class IntDType:
-        ...
+class Int64:
+    ...
 
-    class Bool:
-        ...
 
-    class Column(Generic[DTypeT]):
-        ...
+class Float64:
+    ...
 
-    class Int64:
-        ...
 
-    class Float64:
-        ...
-
-    class DType:
-        ...
-
-    class Scalar:
-        ...
-
-    class GroupBy:
-        ...
+class Bool:
+    ...
 
 
 def _map_standard_to_polars_dtypes(dtype: DType) -> pl.DataType:
