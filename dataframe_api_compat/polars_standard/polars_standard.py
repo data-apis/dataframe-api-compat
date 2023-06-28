@@ -1,5 +1,5 @@
 from __future__ import annotations
-import polars_standard
+import dataframe_api_compat.polars_standard
 import collections
 
 from typing import (
@@ -45,7 +45,7 @@ class PolarsColumn(Column[DTypeT]):
 
     # In the standard
     def __column_namespace__(self, *, api_version: str | None = None) -> Any:
-        return polars_standard
+        return dataframe_api_compat.polars_standard
 
     @property
     def column(self) -> pl.Series:
@@ -56,7 +56,9 @@ class PolarsColumn(Column[DTypeT]):
 
     @property
     def dtype(self) -> DType:
-        return polars_standard.DTYPE_MAP[self.column.dtype]  # type: ignore[index]
+        return dataframe_api_compat.polars_standard.DTYPE_MAP[  # type: ignore[index]
+            self.column.dtype
+        ]
 
     def get_rows(self, indices: Column[IntDType]) -> PolarsColumn[DTypeT]:
         return PolarsColumn(self.column.take(indices.column))
@@ -274,7 +276,7 @@ class PolarsDataFrame(DataFrame):
         self.df = df
 
     def __dataframe_namespace__(self, *, api_version: str | None = None) -> Any:
-        return polars_standard
+        return dataframe_api_compat.polars_standard
 
     @property
     def dataframe(self) -> pl.DataFrame:

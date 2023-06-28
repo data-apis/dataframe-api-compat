@@ -1,5 +1,8 @@
 from __future__ import annotations
-from pandas_standard.pandas_standard import PandasDataFrame, PandasColumn
+from dataframe_api_compat.pandas_standard.pandas_standard import (
+    PandasDataFrame,
+    PandasColumn,
+)
 import pandas as pd
 
 from typing import (

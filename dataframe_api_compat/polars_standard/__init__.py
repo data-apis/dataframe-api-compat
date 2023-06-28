@@ -1,5 +1,8 @@
 from __future__ import annotations
-from polars_standard.polars_standard import PolarsDataFrame, PolarsColumn
+from dataframe_api_compat.polars_standard.polars_standard import (
+    PolarsDataFrame,
+    PolarsColumn,
+)
 
 import polars as pl
 from typing import Any, Sequence, TYPE_CHECKING

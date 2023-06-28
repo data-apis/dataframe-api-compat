@@ -6,16 +6,24 @@ from typing import Any, Callable
 import pytest
 import pandas as pd
 import polars as pl
-import pandas_standard
-import polars_standard
+import dataframe_api_compat.pandas_standard
+import dataframe_api_compat.polars_standard
 
 
 def convert_to_standard_compliant_dataframe(df: pd.DataFrame | pl.DataFrame) -> Any:
     # todo: type return
     if isinstance(df, pd.DataFrame):
-        return pandas_standard.convert_to_standard_compliant_dataframe(df)
+        return (
+            dataframe_api_compat.pandas_standard.convert_to_standard_compliant_dataframe(
+                df
+            )
+        )
     elif isinstance(df, pl.DataFrame):
-        return polars_standard.convert_to_standard_compliant_dataframe(df)
+        return (
+            dataframe_api_compat.polars_standard.convert_to_standard_compliant_dataframe(
+                df
+            )
+        )
     else:
         raise AssertionError(f"Got unexpected type: {type(df)}")
 

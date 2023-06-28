@@ -1,5 +1,5 @@
 from __future__ import annotations
-import pandas_standard
+import dataframe_api_compat.pandas_standard
 import numpy as np
 
 import pandas as pd
@@ -56,7 +56,7 @@ class PandasColumn(Column[DTypeT]):
 
     # In the standard
     def __column_namespace__(self, *, api_version: str | None = None) -> Any:
-        return pandas_standard
+        return dataframe_api_compat.pandas_standard
 
     @property
     def column(self) -> pd.Series[Any]:
@@ -70,7 +70,7 @@ class PandasColumn(Column[DTypeT]):
 
     @property
     def dtype(self) -> DType:
-        return pandas_standard.DTYPE_MAP[self.column.dtype.name]
+        return dataframe_api_compat.pandas_standard.DTYPE_MAP[self.column.dtype.name]
 
     def get_rows(self, indices: Column[IntDType]) -> PandasColumn[DTypeT]:
         return PandasColumn(self.column.iloc[indices.column.to_numpy()])
@@ -369,7 +369,7 @@ class PandasDataFrame(DataFrame):
 
     # In the standard
     def __dataframe_namespace__(self, *, api_version: str | None = None) -> Any:
-        return pandas_standard
+        return dataframe_api_compat.pandas_standard
 
     @property
     def dataframe(self) -> pd.DataFrame:
