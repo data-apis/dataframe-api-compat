@@ -24,8 +24,6 @@ if TYPE_CHECKING:
         IntDType,
         Bool,
         Column,
-        Int64,
-        Float64,
         DType,
         Scalar,
         GroupBy,
@@ -36,50 +34,11 @@ else:
     class DataFrame(Generic[DTypeT]):
         ...
 
-    class IntDType:
-        ...
-
-    class Bool:
-        ...
-
     class Column(Generic[DTypeT]):
-        ...
-
-    class Int64:
-        ...
-
-    class Float64:
-        ...
-
-    class DType:
-        ...
-
-    class Scalar:
         ...
 
     class GroupBy:
         ...
-
-
-class PandasInt64(Int64):
-    ...
-
-
-class PandasFloat64(Float64):
-    ...
-
-
-class PandasBool(Bool):
-    ...
-
-
-DTYPE_MAP = {
-    "int64": PandasInt64(),
-    "Int64": PandasInt64(),
-    "float64": PandasFloat64(),
-    "Float64": PandasFloat64(),
-    "bool": PandasBool(),
-}
 
 
 class PandasColumn(Column[DTypeT]):
@@ -111,7 +70,7 @@ class PandasColumn(Column[DTypeT]):
 
     @property
     def dtype(self) -> DType:
-        return DTYPE_MAP[self.column.dtype.name]
+        return pandas_standard.DTYPE_MAP[self.column.dtype.name]
 
     def get_rows(self, indices: Column[IntDType]) -> PandasColumn[DTypeT]:
         return PandasColumn(self.column.iloc[indices.column.to_numpy()])

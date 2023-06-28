@@ -10,18 +10,29 @@ if TYPE_CHECKING:
         DTypeT,
         DType,
     )
+else:
+
+    class DType:
+        ...
 
 
-class Int64:
+class Int64(DType):
     ...
 
 
-class Float64:
+class Float64(DType):
     ...
 
 
-class Bool:
+class Bool(DType):
     ...
+
+
+DTYPE_MAP = {
+    pl.Int64: Int64(),
+    pl.Float64: Float64(),
+    pl.Boolean: Bool(),
+}
 
 
 def _map_standard_to_polars_dtypes(dtype: DType) -> pl.DataType:

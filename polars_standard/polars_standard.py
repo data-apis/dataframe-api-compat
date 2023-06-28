@@ -13,7 +13,6 @@ from typing import (
     Literal,
 )
 import polars as pl
-import polars
 
 if TYPE_CHECKING:
     from dataframe_api import (
@@ -22,12 +21,10 @@ if TYPE_CHECKING:
         IntDType,
         Bool,
         Column,
-        Int64,
-        Float64,
-        DType,
         Scalar,
         GroupBy,
         null,
+        DType,
     )
 else:
     DTypeT = TypeVar("DTypeT")
@@ -35,25 +32,7 @@ else:
     class DataFrame(Generic[DTypeT]):
         ...
 
-    class IntDType:
-        ...
-
-    class Bool:
-        ...
-
     class Column(Generic[DTypeT]):
-        ...
-
-    class Int64:
-        ...
-
-    class Float64:
-        ...
-
-    class DType:
-        ...
-
-    class Scalar:
         ...
 
     class GroupBy:
@@ -76,9 +55,8 @@ class PolarsColumn(Column[DTypeT]):
         return len(self.column)
 
     @property
-    def dtype(self) -> Any:
-        # todo change
-        return self.column.dtype
+    def dtype(self) -> DType:
+        return polars_standard.DTYPE_MAP[self.column.dtype]  # type: ignore[index]
 
     def get_rows(self, indices: Column[IntDType]) -> PolarsColumn[DTypeT]:
         return PolarsColumn(self.column.take(indices.column))

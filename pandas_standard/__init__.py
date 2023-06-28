@@ -13,21 +13,35 @@ if TYPE_CHECKING:
         DTypeT,
         DType,
     )
+else:
+
+    class DType:
+        ...
 
 
-class Int64:
+class Int64(DType):
     ...
 
 
-class Float64:
+class Float64(DType):
     ...
 
 
-class Bool:
+class Bool(DType):
     ...
 
 
-def _map_standard_dtype_to_pandas_dtype(dtype: DType) -> Any:
+DTYPE_MAP = {
+    "int64": Int64(),
+    "Int64": Int64(),
+    "float64": Float64(),
+    "Float64": Float64(),
+    "bool": Bool(),
+    "boolean": Bool(),
+}
+
+
+def map_standard_dtype_to_pandas_dtype(dtype: DType) -> Any:
     if isinstance(dtype, Int64):
         return pd.Int64Dtype()
     if isinstance(dtype, Float64):
@@ -39,27 +53,6 @@ def _map_standard_dtype_to_pandas_dtype(dtype: DType) -> Any:
 
 def convert_to_standard_compliant_dataframe(df: pd.DataFrame) -> PandasDataFrame:
     return PandasDataFrame(df)
-
-
-class PandasInt64(Int64):
-    ...
-
-
-class PandasFloat64(Float64):
-    ...
-
-
-class PandasBool(Bool):
-    ...
-
-
-DTYPE_MAP = {
-    "int64": PandasInt64(),
-    "Int64": PandasInt64(),
-    "float64": PandasFloat64(),
-    "Float64": PandasFloat64(),
-    "bool": PandasBool(),
-}
 
 
 def concat(dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:
@@ -84,7 +77,7 @@ def concat(dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:
 def column_from_sequence(
     sequence: Sequence[DTypeT], dtype: DTypeT
 ) -> PandasColumn[DTypeT]:
-    ser = pd.Series(sequence, dtype=_map_standard_dtype_to_pandas_dtype(dtype))
+    ser = pd.Series(sequence, dtype=map_standard_dtype_to_pandas_dtype(dtype))
     return PandasColumn(ser)
 
 
