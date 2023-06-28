@@ -1,4 +1,5 @@
 from __future__ import annotations
+import polars_standard
 import collections
 
 from typing import (
@@ -59,47 +60,13 @@ else:
         ...
 
 
-def convert_to_standard_compliant_dataframe(df: pl.DataFrame) -> PolarsDataFrame:
-    return PolarsDataFrame(df)
-
-
-DTYPE_MAPPING = {  # todo, expand
-    "bool": pl.Boolean,
-    "int64": pl.Int64,
-    "float64": pl.Float64,
-}
-
-
-class PolarsNamespace:
-    @classmethod
-    def concat(cls, dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
-        dfs = []
-        for _df in dataframes:
-            dfs.append(_df.dataframe)
-        return PolarsDataFrame(pl.concat(dfs))
-
-    @classmethod
-    def dataframe_from_dict(cls, data: dict[str, PolarsColumn[Any]]) -> PolarsDataFrame:
-        return PolarsDataFrame(
-            pl.DataFrame({label: column.column for label, column in data.items()})
-        )
-
-    @classmethod
-    def column_from_sequence(
-        cls, sequence: Sequence[DTypeT], dtype: DType
-    ) -> PolarsColumn[DTypeT]:
-        return PolarsColumn(
-            pl.Series(sequence, dtype=DTYPE_MAPPING[dtype])  # type: ignore[index]
-        )
-
-
 class PolarsColumn(Column[DTypeT]):
     def __init__(self, column: pl.Series) -> None:
         self._series = column
 
     # In the standard
     def __column_namespace__(self, *, api_version: str | None = None) -> Any:
-        return PolarsNamespace
+        return polars_standard
 
     @property
     def column(self) -> pl.Series:
@@ -329,7 +296,7 @@ class PolarsDataFrame(DataFrame):
         self.df = df
 
     def __dataframe_namespace__(self, *, api_version: str | None = None) -> Any:
-        return PolarsNamespace
+        return polars_standard
 
     @property
     def dataframe(self) -> pl.DataFrame:
