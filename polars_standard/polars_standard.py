@@ -84,7 +84,7 @@ class PolarsColumn(Column[DTypeT]):
         return PolarsColumn(self.column.take(indices.column))
 
     def get_value(self, row: int) -> Scalar:
-        return self.column[row]  # type: ignore[no-any-return, call-overload]
+        return self.column[row]  # type: ignore[no-any-return]
 
     def __iter__(self) -> NoReturn:
         raise NotImplementedError()
@@ -106,10 +106,10 @@ class PolarsColumn(Column[DTypeT]):
         return PolarsColumn(self.column.is_nan())
 
     def any(self, *, skip_nulls: bool = True) -> bool:
-        return self.column.any()  # type: ignore[return-value]
+        return self.column.any()
 
     def all(self, *, skip_nulls: bool = True) -> bool:
-        return self.column.all()  # type: ignore[return-value]
+        return self.column.all()
 
     def min(self, *, skip_nulls: bool = True) -> Scalar:
         return self.column.min()  # type: ignore[return-value]
