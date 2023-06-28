@@ -47,11 +47,14 @@ else:
         ...
 
 
-DTYPE_MAPPING = {  # todo, expand
-    "bool": pl.Boolean,
-    "int64": pl.Int64,
-    "float64": pl.Float64,
-}
+def _map_standard_to_polars_dtypes(dtype: DType) -> pl.DataType:
+    if isinstance(dtype, Int64):
+        return pl.Int64()
+    if isinstance(dtype, Float64):
+        return pl.Float64()
+    if isinstance(dtype, Bool):
+        return pl.Boolean()
+    raise AssertionError(f"Unknown dtype: {dtype}")
 
 
 def concat(dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
@@ -70,9 +73,7 @@ def dataframe_from_dict(data: dict[str, PolarsColumn[Any]]) -> PolarsDataFrame:
 def column_from_sequence(
     sequence: Sequence[DTypeT], dtype: DType
 ) -> PolarsColumn[DTypeT]:
-    return PolarsColumn(
-        pl.Series(sequence, dtype=DTYPE_MAPPING[dtype])  # type: ignore[index]
-    )
+    return PolarsColumn(pl.Series(sequence, dtype=_map_standard_to_polars_dtypes(dtype)))
 
 
 def convert_to_standard_compliant_dataframe(df: pl.DataFrame) -> PolarsDataFrame:
