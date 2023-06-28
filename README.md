@@ -43,7 +43,7 @@ The object `df_std` is a Standard-compliant DataFrame.
 Installation
 ------------
 ```
-pip install git+https://github.com/data-apis/dataframe-api-compat
+pip install dataframe-api-compat
 ```
 
 Testing
