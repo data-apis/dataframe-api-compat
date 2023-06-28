@@ -49,7 +49,7 @@ pip install git+https://github.com/MarcoGorelli/dataframe-api-compat
 Testing
 -------
 ```
-pytest --cov=pandas_standard --cov=polars_standard --cov=test_standard --cov-fail-under=100
+pytest --cov=dataframe_api_compat --cov=test_standard --cov-fail-under=100
 ```
 100% branch coverage isn't the objective - it's the bare minimum.
 
@@ -65,11 +65,11 @@ Type Checking
 First, clone the [dataframe_standard](https://github.com/data-apis/dataframe-api) to some
 local path. Then, run:
 ```console
-MYPYPATH=<path to dataframe-api/spec/API_specification> mypy pandas_standard.py
+MYPYPATH=<path to dataframe-api/spec/API_specification> mypy dataframe_api_compat
 MYPYPATH=<path to dataframe-api/spec/API_specification> mypy polars_standard.py
 ```
 
 For example, if you cloned both repos in the same place, this could be:
 ```console
-MYPYPATH=../dataframe-api/spec/API_specification/ mypy pandas_standard.py
+MYPYPATH=../dataframe-api/spec/API_specification/ mypy dataframe_api_compat
 ```
