@@ -116,11 +116,11 @@ class PandasColumn(Column[DTypeT]):
     def get_rows(self, indices: Column[IntDType]) -> PandasColumn[DTypeT]:
         return PandasColumn(self.column.iloc[indices.column.to_numpy()])
 
-    def get_value(self, row: Scalar[IntDType]) -> Scalar[DTypeT]:
-        return self.column.iloc[row]  # type: ignore[no-any-return, call-overload]
+    def get_value(self, row: int) -> Scalar:
+        return self.column.iloc[row]  # type: ignore[no-any-return]
 
     def __eq__(  # type: ignore[override]
-        self, other: PandasColumn[DTypeT] | Scalar[DTypeT]
+        self, other: PandasColumn[DTypeT] | Scalar
     ) -> PandasColumn[Bool]:
         if isinstance(other, PandasColumn):
             return PandasColumn(self.column == other.column)
@@ -133,74 +133,74 @@ class PandasColumn(Column[DTypeT]):
             return PandasColumn(self.column != other.column)
         return PandasColumn(self.column != other)
 
-    def __ge__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Bool]:
+    def __ge__(self, other: Column[DTypeT] | Scalar) -> PandasColumn[Bool]:
         if isinstance(other, PandasColumn):
             return PandasColumn(self.column >= other.column)
         return PandasColumn(self.column >= other)
 
-    def __gt__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Bool]:
+    def __gt__(self, other: Column[DTypeT] | Scalar) -> PandasColumn[Bool]:
         if isinstance(other, PandasColumn):
             return PandasColumn(self.column > other.column)
         return PandasColumn(self.column > other)
 
-    def __le__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Bool]:
+    def __le__(self, other: Column[DTypeT] | Scalar) -> PandasColumn[Bool]:
         if isinstance(other, PandasColumn):
             return PandasColumn(self.column <= other.column)
         return PandasColumn(self.column <= other)
 
-    def __lt__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Bool]:
+    def __lt__(self, other: Column[DTypeT] | Scalar) -> PandasColumn[Bool]:
         if isinstance(other, PandasColumn):
             return PandasColumn(self.column < other.column)
         return PandasColumn(self.column < other)
 
-    def __and__(self, other: Column[Bool] | Scalar[Bool]) -> PandasColumn[Bool]:
+    def __and__(self, other: Column[Bool] | bool) -> PandasColumn[Bool]:
         if isinstance(other, PandasColumn):
             return PandasColumn(self.column & other.column)
         result = self.column & other  # type: ignore[operator]
         return PandasColumn(result)
 
-    def __or__(self, other: Column[Bool] | Scalar[Bool]) -> PandasColumn[Bool]:
+    def __or__(self, other: Column[Bool] | bool) -> PandasColumn[Bool]:
         if isinstance(other, PandasColumn):
             return PandasColumn(self.column | other.column)
         return PandasColumn(self.column | other)  # type: ignore[operator]
 
-    def __add__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[DTypeT]:
+    def __add__(self, other: Column[DTypeT] | Scalar) -> PandasColumn[DTypeT]:
         if isinstance(other, PandasColumn):
             return PandasColumn(self.column + other.column)
         return PandasColumn(self.column + other)  # type: ignore[operator]
 
-    def __sub__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[DTypeT]:
+    def __sub__(self, other: Column[DTypeT] | Scalar) -> PandasColumn[DTypeT]:
         if isinstance(other, PandasColumn):
             return PandasColumn(self.column - other.column)
         return PandasColumn(self.column - other)  # type: ignore[operator]
 
-    def __mul__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Any]:
+    def __mul__(self, other: Column[DTypeT] | Scalar) -> PandasColumn[Any]:
         if isinstance(other, PandasColumn):
             return PandasColumn(self.column * other.column)
         return PandasColumn(self.column * other)  # type: ignore[operator]
 
-    def __truediv__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Any]:
+    def __truediv__(self, other: Column[DTypeT] | Scalar) -> PandasColumn[Any]:
         if isinstance(other, PandasColumn):
             return PandasColumn(self.column / other.column)
         return PandasColumn(self.column / other)  # type: ignore[operator]
 
-    def __floordiv__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Any]:
+    def __floordiv__(self, other: Column[DTypeT] | Scalar) -> PandasColumn[Any]:
         if isinstance(other, PandasColumn):
             return PandasColumn(self.column // other.column)
         return PandasColumn(self.column // other)  # type: ignore[operator]
 
-    def __pow__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Any]:
+    def __pow__(self, other: Column[DTypeT] | Scalar) -> PandasColumn[Any]:
         if isinstance(other, PandasColumn):
             return PandasColumn(self.column**other.column)
         return PandasColumn(self.column**other)  # type: ignore[operator]
 
-    def __mod__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PandasColumn[Any]:
+    def __mod__(self, other: Column[DTypeT] | Scalar) -> PandasColumn[Any]:
         if isinstance(other, PandasColumn):
             return PandasColumn(self.column % other.column)
         return PandasColumn(self.column % other)  # type: ignore[operator]
 
     def __divmod__(
-        self, other: Column[DTypeT] | Scalar[DTypeT]
+        self, other: Column[DTypeT] | Scalar
     ) -> tuple[PandasColumn[Any], PandasColumn[Any]]:
         if isinstance(other, PandasColumn):
             quotient, remainder = self.column.__divmod__(other.column)
@@ -211,34 +211,34 @@ class PandasColumn(Column[DTypeT]):
     def __invert__(self: PandasColumn[Bool]) -> PandasColumn[Bool]:
         return PandasColumn(~self.column)
 
-    def any(self, *, skip_nulls: bool = True) -> Scalar[Bool]:
-        return self.column.any()  # type: ignore[return-value]
+    def any(self, *, skip_nulls: bool = True) -> bool:
+        return self.column.any()
 
-    def all(self, *, skip_nulls: bool = True) -> Scalar[Bool]:
-        return self.column.all()  # type: ignore[return-value]
+    def all(self, *, skip_nulls: bool = True) -> bool:
+        return self.column.all()
 
-    def min(self, *, skip_nulls: bool = True) -> Scalar[DTypeT]:
+    def min(self, *, skip_nulls: bool = True) -> Scalar:
         return self.column.min()  # type: ignore[no-any-return]
 
-    def max(self, *, skip_nulls: bool = True) -> Scalar[DTypeT]:
+    def max(self, *, skip_nulls: bool = True) -> Scalar:
         return self.column.max()  # type: ignore[no-any-return]
 
-    def sum(self, *, skip_nulls: bool = True) -> Scalar[DTypeT]:
+    def sum(self, *, skip_nulls: bool = True) -> Scalar:
         return self.column.sum()  # type: ignore[no-any-return]
 
-    def prod(self, *, skip_nulls: bool = True) -> Scalar[Any]:
+    def prod(self, *, skip_nulls: bool = True) -> Scalar:
         return self.column.prod()  # type: ignore[return-value]
 
-    def median(self, *, skip_nulls: bool = True) -> Scalar[Any]:
+    def median(self, *, skip_nulls: bool = True) -> Scalar:
         return self.column.median()  # type: ignore[return-value]
 
-    def mean(self, *, skip_nulls: bool = True) -> Scalar[Any]:
+    def mean(self, *, skip_nulls: bool = True) -> Scalar:
         return self.column.mean()  # type: ignore[return-value]
 
-    def std(self, *, skip_nulls: bool = True) -> Scalar[Any]:
+    def std(self, *, skip_nulls: bool = True) -> Scalar:
         return self.column.std()  # type: ignore[return-value]
 
-    def var(self, *, skip_nulls: bool = True) -> Scalar[Any]:
+    def var(self, *, skip_nulls: bool = True) -> Scalar:
         return self.column.var()  # type: ignore[return-value]
 
     def is_null(self) -> PandasColumn[Bool]:
@@ -491,7 +491,7 @@ class PandasDataFrame(DataFrame):
         return PandasColumn(df.sort_values(keys).index.to_series())
 
     def __eq__(  # type: ignore[override]
-        self, other: DataFrame | Scalar[DTypeT]
+        self, other: DataFrame | Scalar
     ) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
@@ -499,74 +499,74 @@ class PandasDataFrame(DataFrame):
         return PandasDataFrame(self.dataframe.__eq__(other))
 
     def __ne__(  # type: ignore[override]
-        self, other: DataFrame | Scalar[DTypeT]
+        self, other: DataFrame | Scalar
     ) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
             return PandasDataFrame((self.dataframe.__ne__(other.dataframe)))
         return PandasDataFrame((self.dataframe.__ne__(other)))
 
-    def __ge__(self, other: DataFrame | Scalar[DTypeT]) -> PandasDataFrame:
+    def __ge__(self, other: DataFrame | Scalar) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
             return PandasDataFrame((self.dataframe.__ge__(other.dataframe)))
         return PandasDataFrame((self.dataframe.__ge__(other)))
 
-    def __gt__(self, other: DataFrame | Scalar[DTypeT]) -> PandasDataFrame:
+    def __gt__(self, other: DataFrame | Scalar) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
             return PandasDataFrame((self.dataframe.__gt__(other.dataframe)))
         return PandasDataFrame((self.dataframe.__gt__(other)))
 
-    def __le__(self, other: DataFrame | Scalar[DTypeT]) -> PandasDataFrame:
+    def __le__(self, other: DataFrame | Scalar) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
             return PandasDataFrame((self.dataframe.__le__(other.dataframe)))
         return PandasDataFrame((self.dataframe.__le__(other)))
 
-    def __lt__(self, other: DataFrame | Scalar[DTypeT]) -> PandasDataFrame:
+    def __lt__(self, other: DataFrame | Scalar) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
             return PandasDataFrame((self.dataframe.__lt__(other.dataframe)))
         return PandasDataFrame((self.dataframe.__lt__(other)))
 
-    def __add__(self, other: DataFrame | Scalar[DTypeT]) -> PandasDataFrame:
+    def __add__(self, other: DataFrame | Scalar) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
             return PandasDataFrame((self.dataframe.__add__(other.dataframe)))
         return PandasDataFrame((self.dataframe.__add__(other)))
 
-    def __sub__(self, other: DataFrame | Scalar[DTypeT]) -> PandasDataFrame:
+    def __sub__(self, other: DataFrame | Scalar) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
             return PandasDataFrame((self.dataframe.__sub__(other.dataframe)))
         return PandasDataFrame((self.dataframe.__sub__(other)))
 
-    def __mul__(self, other: DataFrame | Scalar[DTypeT]) -> PandasDataFrame:
+    def __mul__(self, other: DataFrame | Scalar) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
             return PandasDataFrame((self.dataframe.__mul__(other.dataframe)))
         return PandasDataFrame((self.dataframe.__mul__(other)))
 
-    def __truediv__(self, other: DataFrame | Scalar[Any]) -> PandasDataFrame:
+    def __truediv__(self, other: DataFrame | Scalar) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
             return PandasDataFrame((self.dataframe.__truediv__(other.dataframe)))
         return PandasDataFrame((self.dataframe.__truediv__(other)))
 
-    def __floordiv__(self, other: DataFrame | Scalar[DTypeT]) -> PandasDataFrame:
+    def __floordiv__(self, other: DataFrame | Scalar) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
             return PandasDataFrame((self.dataframe.__floordiv__(other.dataframe)))
         return PandasDataFrame((self.dataframe.__floordiv__(other)))
 
-    def __pow__(self, other: DataFrame | Scalar[DTypeT]) -> PandasDataFrame:
+    def __pow__(self, other: DataFrame | Scalar) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
             return PandasDataFrame((self.dataframe.__pow__(other.dataframe)))
         return PandasDataFrame((self.dataframe.__pow__(other)))
 
-    def __mod__(self, other: DataFrame | Scalar[DTypeT]) -> PandasDataFrame:
+    def __mod__(self, other: DataFrame | Scalar) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
             return PandasDataFrame((self.dataframe.__mod__(other.dataframe)))
@@ -574,7 +574,7 @@ class PandasDataFrame(DataFrame):
 
     def __divmod__(
         self,
-        other: DataFrame | Scalar[DTypeT],
+        other: DataFrame | Scalar,
     ) -> tuple[PandasDataFrame, PandasDataFrame]:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)

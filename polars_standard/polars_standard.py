@@ -83,7 +83,7 @@ class PolarsColumn(Column[DTypeT]):
     def get_rows(self, indices: Column[IntDType]) -> PolarsColumn[DTypeT]:
         return PolarsColumn(self.column.take(indices.column))
 
-    def get_value(self, row: Scalar[IntDType]) -> Scalar[DTypeT]:
+    def get_value(self, row: int) -> Scalar:
         return self.column[row]  # type: ignore[no-any-return, call-overload]
 
     def __iter__(self) -> NoReturn:
@@ -105,109 +105,109 @@ class PolarsColumn(Column[DTypeT]):
     def is_nan(self) -> PolarsColumn[Bool]:
         return PolarsColumn(self.column.is_nan())
 
-    def any(self, *, skip_nulls: bool = True) -> Scalar[Bool]:
+    def any(self, *, skip_nulls: bool = True) -> bool:
         return self.column.any()  # type: ignore[return-value]
 
-    def all(self, *, skip_nulls: bool = True) -> Scalar[Bool]:
+    def all(self, *, skip_nulls: bool = True) -> bool:
         return self.column.all()  # type: ignore[return-value]
 
-    def min(self, *, skip_nulls: bool = True) -> Scalar[DTypeT]:
+    def min(self, *, skip_nulls: bool = True) -> Scalar:
         return self.column.min()  # type: ignore[return-value]
 
-    def max(self, *, skip_nulls: bool = True) -> Scalar[DTypeT]:
+    def max(self, *, skip_nulls: bool = True) -> Scalar:
         return self.column.max()  # type: ignore[return-value]
 
-    def sum(self, *, skip_nulls: bool = True) -> Scalar[DTypeT]:
+    def sum(self, *, skip_nulls: bool = True) -> Scalar:
         return self.column.sum()  # type: ignore[return-value]
 
-    def prod(self, *, skip_nulls: bool = True) -> Scalar[Any]:
+    def prod(self, *, skip_nulls: bool = True) -> Scalar:
         return self.column.product()  # type: ignore[return-value]
 
-    def mean(self, *, skip_nulls: bool = True) -> Scalar[Any]:
+    def mean(self, *, skip_nulls: bool = True) -> Scalar:
         return self.column.mean()  # type: ignore[return-value]
 
-    def median(self, *, skip_nulls: bool = True) -> Scalar[Any]:
+    def median(self, *, skip_nulls: bool = True) -> Scalar:
         return self.column.median()  # type: ignore[return-value]
 
-    def std(self, *, skip_nulls: bool = True) -> Scalar[Any]:
+    def std(self, *, skip_nulls: bool = True) -> Scalar:
         return self.column.std()  # type: ignore[return-value]
 
-    def var(self, *, skip_nulls: bool = True) -> Scalar[Any]:
+    def var(self, *, skip_nulls: bool = True) -> Scalar:
         return self.column.var()  # type: ignore[return-value]
 
     def __eq__(  # type: ignore[override]
-        self, other: Column[DTypeT] | Scalar[DTypeT]
+        self, other: Column[DTypeT] | Scalar
     ) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column == other.column)
         return PolarsColumn(self.column == other)
 
     def __ne__(  # type: ignore[override]
-        self, other: Column[DTypeT] | Scalar[DTypeT]
+        self, other: Column[DTypeT] | Scalar
     ) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column != other.column)
         return PolarsColumn(self.column != other)
 
-    def __ge__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PolarsColumn[Bool]:
+    def __ge__(self, other: Column[DTypeT] | Scalar) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column >= other.column)
         return PolarsColumn(self.column >= other)
 
-    def __gt__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PolarsColumn[Bool]:
+    def __gt__(self, other: Column[DTypeT] | Scalar) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column > other.column)
         return PolarsColumn(self.column > other)
 
-    def __le__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PolarsColumn[Bool]:
+    def __le__(self, other: Column[DTypeT] | Scalar) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column <= other.column)
         return PolarsColumn(self.column <= other)
 
-    def __lt__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PolarsColumn[Bool]:
+    def __lt__(self, other: Column[DTypeT] | Scalar) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column < other.column)
         return PolarsColumn(self.column < other)
 
-    def __mul__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PolarsColumn[Any]:
+    def __mul__(self, other: Column[DTypeT] | Scalar) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column * other.column)
         return PolarsColumn(self.column * other)
 
-    def __floordiv__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PolarsColumn[Any]:
+    def __floordiv__(self, other: Column[DTypeT] | Scalar) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column // other.column)
         return PolarsColumn(self.column // other)
 
-    def __truediv__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PolarsColumn[Any]:
+    def __truediv__(self, other: Column[DTypeT] | Scalar) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column / other.column)
         return PolarsColumn(self.column / other)
 
-    def __pow__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PolarsColumn[Any]:
+    def __pow__(self, other: Column[DTypeT] | Scalar) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column.pow(other.column))
         return PolarsColumn(self.column.pow(other))  # type: ignore[arg-type]
 
-    def __mod__(self, other: Column[DTypeT] | Scalar[DTypeT]) -> PolarsColumn[Any]:
+    def __mod__(self, other: Column[DTypeT] | Scalar) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column % other.column)
         return PolarsColumn(self.column % other)
 
     def __divmod__(
         self,
-        other: Column[DTypeT] | Scalar[DTypeT],
+        other: Column[DTypeT] | Scalar,
     ) -> tuple[PolarsColumn[Any], PolarsColumn[Any]]:
         quotient = self // other
         remainder = self - quotient * other
         return quotient, remainder
 
-    def __and__(self, other: Column[Bool] | Scalar[Bool]) -> PolarsColumn[Bool]:
+    def __and__(self, other: Column[Bool] | bool) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column & other.column)
         return PolarsColumn(self.column & other)  # type: ignore[operator]
 
-    def __or__(self, other: Column[Bool] | Scalar[Bool]) -> PolarsColumn[Bool]:
+    def __or__(self, other: Column[Bool] | bool) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column | other.column)
         return PolarsColumn(self.column | other)  # type: ignore[operator]
@@ -215,12 +215,12 @@ class PolarsColumn(Column[DTypeT]):
     def __invert__(self) -> PolarsColumn[Bool]:
         return PolarsColumn(~self.column)
 
-    def __add__(self, other: Column[Any] | Scalar[Any]) -> PolarsColumn[Any]:
+    def __add__(self, other: Column[Any] | Scalar) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column + other.column)
         return PolarsColumn(self.column + other)
 
-    def __sub__(self, other: Column[Any] | Scalar[Any]) -> PolarsColumn[Any]:
+    def __sub__(self, other: Column[Any] | Scalar) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(self.column - other.column)
         return PolarsColumn(self.column - other)
@@ -357,7 +357,7 @@ class PolarsDataFrame(DataFrame):
 
     def __eq__(  # type: ignore[override]
         self,
-        other: DataFrame | Scalar[DTypeT],
+        other: DataFrame | Scalar,
     ) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__eq__(other.dataframe))
@@ -371,56 +371,56 @@ class PolarsDataFrame(DataFrame):
             return PolarsDataFrame(self.dataframe.__ne__(other.dataframe))
         return PolarsDataFrame(self.dataframe.__ne__(other))
 
-    def __ge__(self, other: DataFrame | Scalar[DTypeT]) -> PolarsDataFrame:
+    def __ge__(self, other: DataFrame | Scalar) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__ge__(other.dataframe))
         return PolarsDataFrame(self.dataframe.__ge__(other))
 
-    def __gt__(self, other: DataFrame | Scalar[DTypeT]) -> PolarsDataFrame:
+    def __gt__(self, other: DataFrame | Scalar) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__gt__(other.dataframe))
         return PolarsDataFrame(self.dataframe.__gt__(other))
 
-    def __le__(self, other: DataFrame | Scalar[DTypeT]) -> PolarsDataFrame:
+    def __le__(self, other: DataFrame | Scalar) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__le__(other.dataframe))
         return PolarsDataFrame(self.dataframe.__le__(other))
 
-    def __lt__(self, other: DataFrame | Scalar[DTypeT]) -> PolarsDataFrame:
+    def __lt__(self, other: DataFrame | Scalar) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__lt__(other.dataframe))
         return PolarsDataFrame(self.dataframe.__lt__(other))
 
-    def __add__(self, other: DataFrame | Scalar[DTypeT]) -> PolarsDataFrame:
+    def __add__(self, other: DataFrame | Scalar) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__add__(other.dataframe))
         return PolarsDataFrame(self.dataframe.__add__(other))  # type: ignore[operator]
 
-    def __sub__(self, other: DataFrame | Scalar[DTypeT]) -> PolarsDataFrame:
+    def __sub__(self, other: DataFrame | Scalar) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__sub__(other.dataframe))
         return PolarsDataFrame(self.dataframe.__sub__(other))  # type: ignore[operator]
 
-    def __mul__(self, other: DataFrame | Scalar[Any]) -> PolarsDataFrame:
+    def __mul__(self, other: DataFrame | Scalar) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__mul__(other.dataframe))
         return PolarsDataFrame(self.dataframe.__mul__(other))  # type: ignore[operator]
 
-    def __truediv__(self, other: DataFrame | Scalar[Any]) -> PolarsDataFrame:
+    def __truediv__(self, other: DataFrame | Scalar) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__truediv__(other.dataframe))
         return PolarsDataFrame(
             self.dataframe.__truediv__(other)  # type: ignore[operator]
         )
 
-    def __floordiv__(self, other: DataFrame | Scalar[Any]) -> PolarsDataFrame:
+    def __floordiv__(self, other: DataFrame | Scalar) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__floordiv__(other.dataframe))
         return PolarsDataFrame(
             self.dataframe.__floordiv__(other)  # type: ignore[operator]
         )
 
-    def __pow__(self, other: DataFrame | Scalar[Any]) -> PolarsDataFrame:
+    def __pow__(self, other: DataFrame | Scalar) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(
                 self.dataframe.select(
@@ -437,14 +437,14 @@ class PolarsDataFrame(DataFrame):
             )
         )
 
-    def __mod__(self, other: DataFrame | Scalar[Any]) -> PolarsDataFrame:
+    def __mod__(self, other: DataFrame | Scalar) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__mod__(other.dataframe))
         return PolarsDataFrame(self.dataframe.__mod__(other))  # type: ignore[operator]
 
     def __divmod__(
         self,
-        other: DataFrame | Scalar[Any],
+        other: DataFrame | Scalar,
     ) -> tuple[PolarsDataFrame, PolarsDataFrame]:
         quotient = self // other
         remainder = self - quotient * other
