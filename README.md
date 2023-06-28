@@ -49,7 +49,7 @@ pip install git+https://github.com/MarcoGorelli/dataframe-api-compat
 Testing
 -------
 ```
-pytest --cov=dataframe_api_compat --cov=test_standard --cov-fail-under=100
+pytest test_standard.py --cov=dataframe_api_compat --cov=test_standard --cov-fail-under=100
 ```
 100% branch coverage isn't the objective - it's the bare minimum.
 

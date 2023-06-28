@@ -56,8 +56,8 @@ class PolarsColumn(Column[DTypeT]):
 
     @property
     def dtype(self) -> DType:
-        return dataframe_api_compat.polars_standard.DTYPE_MAP[  # type: ignore[index]
-            self.column.dtype
+        return dataframe_api_compat.polars_standard.DTYPE_MAP[
+            self.column.dtype  # type: ignore[index]
         ]
 
     def get_rows(self, indices: Column[IntDType]) -> PolarsColumn[DTypeT]:
