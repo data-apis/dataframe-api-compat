@@ -1230,3 +1230,32 @@ def test_column_column() -> None:
         .column
     )
     pd.testing.assert_series_equal(result, pd.Series([1, 2, 3], name="a"))
+
+
+@pytest.mark.parametrize(
+    ("values", "dtype", "expected"),
+    [
+        ([1, 2, 3], "Int64", pd.Series([1, 2, 3], dtype="int64", name="result")),
+        (
+            [1.0, 2.0, 3.0],
+            "Float64",
+            pd.Series([1, 2, 3], dtype="float64", name="result"),
+        ),
+        (
+            [True, False, True],
+            "Bool",
+            pd.Series([True, False, True], dtype=bool, name="result"),
+        ),
+    ],
+)
+def test_column_from_sequence(
+    library: str, values: list[Any], dtype: str, expected: pd.Series
+) -> None:
+    ser = integer_series_1(library)
+    namespace = ser.__column_namespace__()
+    result = namespace.dataframe_from_dict(
+        {"result": namespace.column_from_sequence(values, getattr(namespace, dtype)())}
+    )
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    result_pd = convert_series_to_pandas_numpy(result_pd)
+    pd.testing.assert_series_equal(result_pd, expected)
