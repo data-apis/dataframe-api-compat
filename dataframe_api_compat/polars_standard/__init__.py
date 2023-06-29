@@ -5,29 +5,18 @@ from dataframe_api_compat.polars_standard.polars_standard import (
 )
 
 import polars as pl
-from typing import Any, Sequence, TYPE_CHECKING
+from typing import Any, Sequence
 
 
-if TYPE_CHECKING:
-    from dataframe_api import (
-        DTypeT,
-        DType,
-    )
-else:
-
-    class DType:
-        ...
-
-
-class Int64(DType):
+class Int64:
     ...
 
 
-class Float64(DType):
+class Float64:
     ...
 
 
-class Bool(DType):
+class Bool:
     ...
 
 
@@ -38,7 +27,7 @@ DTYPE_MAP = {
 }
 
 
-def _map_standard_to_polars_dtypes(dtype: DType) -> pl.DataType:
+def _map_standard_to_polars_dtypes(dtype: Any) -> pl.DataType:
     if isinstance(dtype, Int64):
         return pl.Int64()
     if isinstance(dtype, Float64):
@@ -61,9 +50,7 @@ def dataframe_from_dict(data: dict[str, PolarsColumn[Any]]) -> PolarsDataFrame:
     )
 
 
-def column_from_sequence(
-    sequence: Sequence[DTypeT], dtype: DType
-) -> PolarsColumn[DTypeT]:
+def column_from_sequence(sequence: Sequence[Any], dtype: Any) -> PolarsColumn[Any]:
     return PolarsColumn(pl.Series(sequence, dtype=_map_standard_to_polars_dtypes(dtype)))
 
 

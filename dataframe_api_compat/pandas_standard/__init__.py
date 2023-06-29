@@ -8,29 +8,18 @@ import pandas as pd
 from typing import (
     Any,
     Sequence,
-    TYPE_CHECKING,
 )
 
-if TYPE_CHECKING:
-    from dataframe_api import (
-        DTypeT,
-        DType,
-    )
-else:
 
-    class DType:
-        ...
-
-
-class Int64(DType):
+class Int64:
     ...
 
 
-class Float64(DType):
+class Float64:
     ...
 
 
-class Bool(DType):
+class Bool:
     ...
 
 
@@ -44,7 +33,7 @@ DTYPE_MAP = {
 }
 
 
-def map_standard_dtype_to_pandas_dtype(dtype: DType) -> Any:
+def map_standard_dtype_to_pandas_dtype(dtype: Any) -> Any:
     if isinstance(dtype, Int64):
         return pd.Int64Dtype()
     if isinstance(dtype, Float64):
@@ -77,9 +66,7 @@ def concat(dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:
     )
 
 
-def column_from_sequence(
-    sequence: Sequence[DTypeT], dtype: DTypeT
-) -> PandasColumn[DTypeT]:
+def column_from_sequence(sequence: Sequence[Any], dtype: Any) -> PandasColumn[Any]:
     ser = pd.Series(sequence, dtype=map_standard_dtype_to_pandas_dtype(dtype))
     return PandasColumn(ser)
 
