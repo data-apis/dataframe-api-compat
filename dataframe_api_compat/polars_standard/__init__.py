@@ -12,7 +12,15 @@ class Int64:
     ...
 
 
+class Int32:
+    ...
+
+
 class Float64:
+    ...
+
+
+class Float32:
     ...
 
 
@@ -22,7 +30,9 @@ class Bool:
 
 DTYPE_MAP = {
     pl.Int64: Int64(),
+    pl.Int32: Int32(),
     pl.Float64: Float64(),
+    pl.Float32: Float32(),
     pl.Boolean: Bool(),
 }
 
@@ -30,8 +40,12 @@ DTYPE_MAP = {
 def _map_standard_to_polars_dtypes(dtype: Any) -> pl.DataType:
     if isinstance(dtype, Int64):
         return pl.Int64()
+    if isinstance(dtype, Int32):
+        return pl.Int32()
     if isinstance(dtype, Float64):
         return pl.Float64()
+    if isinstance(dtype, Float32):
+        return pl.Float32()
     if isinstance(dtype, Bool):
         return pl.Boolean()
     raise AssertionError(f"Unknown dtype: {dtype}")

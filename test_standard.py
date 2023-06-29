@@ -43,7 +43,9 @@ def convert_series_to_pandas_numpy(ser: pd.Series) -> pd.Series:  # type: ignore
     conversions = {
         "boolean": "bool",
         "Int64": "int64",
+        "Int32": "int32",
         "Float64": "float64",
+        "Float32": "float32",
     }
     for nullable, numpy in conversions.items():
         if ser.dtype == nullable:
@@ -1244,10 +1246,16 @@ def test_column_column() -> None:
     ("values", "dtype", "expected"),
     [
         ([1, 2, 3], "Int64", pd.Series([1, 2, 3], dtype="int64", name="result")),
+        ([1, 2, 3], "Int32", pd.Series([1, 2, 3], dtype="int32", name="result")),
         (
             [1.0, 2.0, 3.0],
             "Float64",
             pd.Series([1, 2, 3], dtype="float64", name="result"),
+        ),
+        (
+            [1.0, 2.0, 3.0],
+            "Float32",
+            pd.Series([1, 2, 3], dtype="float32", name="result"),
         ),
         (
             [True, False, True],
