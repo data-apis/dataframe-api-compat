@@ -63,7 +63,7 @@ def convert_to_standard_compliant_dataframe(df: pd.DataFrame) -> PandasDataFrame
     return PandasDataFrame(df)
 
 
-def convert_to_standard_compliant_column(df: pd.Series) -> PandasColumn:
+def convert_to_standard_compliant_column(df: pd.Series[Any]) -> PandasColumn[Any]:
     return PandasColumn(df)
 
 

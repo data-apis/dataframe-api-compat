@@ -77,7 +77,7 @@ class PandasColumn(Column[DType]):
 
     def slice_rows(
         self, start: int | None, stop: int | None, step: int | None
-    ) -> PandasColumn:
+    ) -> PandasColumn[DType]:
         if start is None:
             start = 0
         if stop is None:
@@ -86,7 +86,7 @@ class PandasColumn(Column[DType]):
             step = 1
         return PandasColumn(self.column.iloc[start:stop:step])
 
-    def get_rows_by_mask(self, mask: Column[Bool]) -> PandasColumn:
+    def get_rows_by_mask(self, mask: Column[Bool]) -> PandasColumn[DType]:
         series = mask.column
         self._validate_index(series.index)
         return PandasColumn(self.column.loc[series])
@@ -210,10 +210,10 @@ class PandasColumn(Column[DType]):
     def mean(self, *, skip_nulls: bool = True) -> Any:
         return self.column.mean()
 
-    def std(self, *, skip_nulls: bool = True) -> Any:
+    def std(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
         return self.column.std()
 
-    def var(self, *, skip_nulls: bool = True) -> Any:
+    def var(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
         return self.column.var()
 
     def is_null(self) -> PandasColumn[Bool]:
@@ -319,12 +319,16 @@ class PandasGroupBy(GroupBy):
         self._validate_result(result)
         return PandasDataFrame(result)
 
-    def std(self, *, skip_nulls: bool = True) -> PandasDataFrame:
+    def std(
+        self, *, correction: int | float = 1.0, skip_nulls: bool = True
+    ) -> PandasDataFrame:
         result = self.grouped.std()
         self._validate_result(result)
         return PandasDataFrame(result)
 
-    def var(self, *, skip_nulls: bool = True) -> PandasDataFrame:
+    def var(
+        self, *, correction: int | float = 1.0, skip_nulls: bool = True
+    ) -> PandasDataFrame:
         result = self.grouped.var()
         self._validate_result(result)
         return PandasDataFrame(result)
@@ -595,10 +599,14 @@ class PandasDataFrame(DataFrame):
     def mean(self, *, skip_nulls: bool = True) -> PandasDataFrame:
         return PandasDataFrame(self.dataframe.mean().to_frame().T)
 
-    def std(self, *, skip_nulls: bool = True) -> PandasDataFrame:
+    def std(
+        self, *, correction: int | float = 1.0, skip_nulls: bool = True
+    ) -> PandasDataFrame:
         return PandasDataFrame(self.dataframe.std().to_frame().T)
 
-    def var(self, *, skip_nulls: bool = True) -> PandasDataFrame:
+    def var(
+        self, *, correction: int | float = 1.0, skip_nulls: bool = True
+    ) -> PandasDataFrame:
         return PandasDataFrame(self.dataframe.var().to_frame().T)
 
     def is_null(self, *, skip_nulls: bool = True) -> PandasDataFrame:

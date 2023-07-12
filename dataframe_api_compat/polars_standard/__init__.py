@@ -72,5 +72,5 @@ def convert_to_standard_compliant_dataframe(df: pl.DataFrame) -> PolarsDataFrame
     return PolarsDataFrame(df)
 
 
-def convert_to_standard_compliant_column(ser: pl.Series) -> PolarsColumn:
+def convert_to_standard_compliant_column(ser: pl.Series) -> PolarsColumn[Any]:
     return PolarsColumn(ser)

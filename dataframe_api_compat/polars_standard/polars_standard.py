@@ -62,7 +62,7 @@ class PolarsColumn(Column[DType]):
 
     def slice_rows(
         self, start: int | None, stop: int | None, step: int | None
-    ) -> PolarsColumn:
+    ) -> PolarsColumn[DType]:
         if start is None:
             start = 0
         if stop is None:
@@ -71,7 +71,7 @@ class PolarsColumn(Column[DType]):
             step = 1
         return PolarsColumn(self.column[start:stop:step])
 
-    def get_rows_by_mask(self, mask: Column[Bool]) -> PolarsDataFrame:
+    def get_rows_by_mask(self, mask: Column[Bool]) -> PolarsColumn[DType]:
         name = self.column.name
         return PolarsColumn(self.column.to_frame().filter(mask.column)[name])
 
@@ -121,10 +121,10 @@ class PolarsColumn(Column[DType]):
     def median(self, *, skip_nulls: bool = True) -> Any:
         return self.column.median()
 
-    def std(self, *, skip_nulls: bool = True) -> Any:
+    def std(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
         return self.column.std()
 
-    def var(self, *, skip_nulls: bool = True) -> Any:
+    def var(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
         return self.column.var()
 
     def __eq__(  # type: ignore[override]
@@ -272,11 +272,15 @@ class PolarsGroupBy(GroupBy):
         result = self.df.groupby(self.keys).agg(pl.col("*").mean())
         return PolarsDataFrame(result)
 
-    def std(self, skip_nulls: bool = True) -> PolarsDataFrame:
+    def std(
+        self, correction: int | float = 1.0, skip_nulls: bool = True
+    ) -> PolarsDataFrame:
         result = self.df.groupby(self.keys).agg(pl.col("*").std())
         return PolarsDataFrame(result)
 
-    def var(self, skip_nulls: bool = True) -> PolarsDataFrame:
+    def var(
+        self, correction: int | float = 1.0, skip_nulls: bool = True
+    ) -> PolarsDataFrame:
         result = self.df.groupby(self.keys).agg(pl.col("*").var())
         return PolarsDataFrame(result)
 
@@ -486,10 +490,14 @@ class PolarsDataFrame(DataFrame):
     def median(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
         return PolarsDataFrame(self.dataframe.select(pl.col("*").median()))
 
-    def std(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
+    def std(
+        self, *, correction: int | float = 1.0, skip_nulls: bool = True
+    ) -> PolarsDataFrame:
         return PolarsDataFrame(self.dataframe.select(pl.col("*").std()))
 
-    def var(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
+    def var(
+        self, *, correction: int | float = 1.0, skip_nulls: bool = True
+    ) -> PolarsDataFrame:
         return PolarsDataFrame(self.dataframe.select(pl.col("*").var()))
 
     def sorted_indices(
