@@ -60,6 +60,20 @@ class PolarsColumn(Column[DType]):
     def get_rows(self, indices: Column[Any]) -> PolarsColumn[DType]:
         return PolarsColumn(self.column.take(indices.column))
 
+    def slice_rows(
+        self, start: int | None, stop: int | None, step: int | None
+    ) -> PolarsColumn:
+        if start is None:
+            start = 0
+        if stop is None:
+            stop = len(self.column)
+        if step is None:
+            step = 1
+        return PolarsColumn(self.column[start:stop:step])
+
+    def get_rows_by_mask(self, mask: Column[Bool]) -> PolarsDataFrame:
+        return PolarsDataFrame(self.df.filter(mask.column))
+
     def get_value(self, row: int) -> Any:
         return self.column[row]
 
@@ -305,11 +319,7 @@ class PolarsDataFrame(DataFrame):
             stop = len(self.dataframe)
         if step is None:
             step = 1
-        return PolarsDataFrame(
-            self.df.with_row_count("idx")
-            .filter(pl.col("idx").is_in(range(start, stop, step)))
-            .drop("idx")
-        )
+        return PolarsDataFrame(self.df[start:stop:step])
 
     def get_rows_by_mask(self, mask: Column[Bool]) -> PolarsDataFrame:
         return PolarsDataFrame(self.df.filter(mask.column))

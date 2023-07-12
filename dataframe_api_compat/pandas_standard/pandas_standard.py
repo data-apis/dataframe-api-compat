@@ -72,6 +72,22 @@ class PandasColumn(Column[DType]):
     def get_rows(self, indices: Column[Any]) -> PandasColumn[DType]:
         return PandasColumn(self.column.iloc[indices.column.to_numpy()])
 
+    def slice_rows(
+        self, start: int | None, stop: int | None, step: int | None
+    ) -> PandasColumn:
+        if start is None:
+            start = 0
+        if stop is None:
+            stop = len(self.column)
+        if step is None:
+            step = 1
+        return PandasColumn(self.column.iloc[start:stop:step])
+
+    def get_rows_by_mask(self, mask: Column[Bool]) -> PandasColumn:
+        series = mask.column
+        self._validate_index(series.index)
+        return PandasColumn(self.column.loc[series, :])
+
     def get_value(self, row: int) -> Any:
         return self.column.iloc[row]
 

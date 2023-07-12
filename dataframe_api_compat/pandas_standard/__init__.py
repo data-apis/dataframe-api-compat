@@ -63,6 +63,10 @@ def convert_to_standard_compliant_dataframe(df: pd.DataFrame) -> PandasDataFrame
     return PandasDataFrame(df)
 
 
+def convert_to_standard_compliant_column(df: pd.Series) -> PandasColumn:
+    return PandasColumn(df)
+
+
 def concat(dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:
     dtypes = dataframes[0].dataframe.dtypes
     dfs = []
