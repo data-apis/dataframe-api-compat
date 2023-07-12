@@ -51,6 +51,9 @@ class PandasColumn(Column[DType]):
         else:
             self._series = column.reset_index(drop=True)
 
+    def _validate_index(self, index: pd.Index) -> None:
+        pd.testing.assert_index_equal(self.column.index, index)
+
     # In the standard
     def __column_namespace__(self, *, api_version: str | None = None) -> Any:
         return dataframe_api_compat.pandas_standard
@@ -86,7 +89,7 @@ class PandasColumn(Column[DType]):
     def get_rows_by_mask(self, mask: Column[Bool]) -> PandasColumn:
         series = mask.column
         self._validate_index(series.index)
-        return PandasColumn(self.column.loc[series, :])
+        return PandasColumn(self.column.loc[series])
 
     def get_value(self, row: int) -> Any:
         return self.column.iloc[row]

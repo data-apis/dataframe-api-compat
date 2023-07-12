@@ -72,7 +72,8 @@ class PolarsColumn(Column[DType]):
         return PolarsColumn(self.column[start:stop:step])
 
     def get_rows_by_mask(self, mask: Column[Bool]) -> PolarsDataFrame:
-        return PolarsDataFrame(self.df.filter(mask.column))
+        name = self.column.name
+        return PolarsColumn(self.column.to_frame().filter(mask.column)[name])
 
     def get_value(self, row: int) -> Any:
         return self.column[row]

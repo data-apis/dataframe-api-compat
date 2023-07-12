@@ -28,6 +28,20 @@ def convert_to_standard_compliant_dataframe(df: pd.DataFrame | pl.DataFrame) -> 
         raise AssertionError(f"Got unexpected type: {type(df)}")
 
 
+def convert_to_standard_compliant_column(ser: pd.Series | pl.Series) -> Any:
+    # todo: type return
+    if isinstance(ser, pd.Series):
+        return dataframe_api_compat.pandas_standard.convert_to_standard_compliant_column(
+            ser
+        )
+    elif isinstance(ser, pl.Series):
+        return dataframe_api_compat.polars_standard.convert_to_standard_compliant_column(
+            ser
+        )
+    else:
+        raise AssertionError(f"Got unexpected type: {type(ser)}")
+
+
 def convert_dataframe_to_pandas_numpy(df: pd.DataFrame) -> pd.DataFrame:
     conversions = {
         "boolean": "bool",
@@ -59,16 +73,16 @@ def pytest_generate_tests(metafunc: Any) -> None:
 
 
 def integer_series_1(library: str) -> Any:
-    df: Any
+    ser: Any
     if library == "pandas-numpy":
-        df = pd.DataFrame({"a": [1, 2, 3]}, dtype="int64")
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
+        ser = pd.Series([1, 2, 3])
+        return convert_to_standard_compliant_column(ser)
     if library == "pandas-nullable":
-        df = pd.DataFrame({"a": [1, 2, 3]}, dtype="Int64")
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
+        ser = pd.Series([1, 2, 3], dtype="Int64")
+        return convert_to_standard_compliant_column(ser)
     if library == "polars":
-        df = pl.DataFrame({"a": [1, 2, 3]})
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
+        ser = pl.Series([1, 2, 3])
+        return convert_to_standard_compliant_column(ser)
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -750,6 +764,19 @@ def test_get_rows_by_mask(library: str) -> None:
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"a": [1, 3], "b": [4, 6]})
     pd.testing.assert_frame_equal(result_pd, expected)
+
+
+def test_column_get_rows_by_mask(library: str) -> None:
+    ser = integer_series_1(library)
+    namespace = ser.__column_namespace__()
+    mask = namespace.column_from_sequence([True, False, True], dtype=namespace.Bool())
+    result = ser.get_rows_by_mask(mask)
+    result_pd = pd.api.interchange.from_dataframe(
+        namespace.dataframe_from_dict({"result": result}).dataframe
+    )["result"]
+    result_pd = convert_series_to_pandas_numpy(result_pd)
+    expected = pd.Series([1, 3], name="result")
+    pd.testing.assert_series_equal(result_pd, expected)
 
 
 def test_insert(library: str) -> None:
