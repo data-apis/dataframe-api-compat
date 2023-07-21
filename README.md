@@ -11,8 +11,8 @@
 		src="https://github.com/data-apis/dataframe-api-compat/assets/33491632/fb4bc907-2b85-4ad7-8d13-c2b9912b97f5">
 </h1>
 
-Work-in-progress POC of what the [DataFrame Standard](https://data-apis.org/dataframe-api/draft/index.html)
-might look like for pandas and polars.
+Implementation of the [DataFrame Standard](https://data-apis.org/dataframe-api/draft/index.html)
+for pandas and polars.
 
 What's this?
 ------------
