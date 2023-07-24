@@ -1095,14 +1095,25 @@ def test_sorted_indices(library: str, ascending: bool, expected: list[int]) -> N
     pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_column_sorted_indices(library: str) -> None:
+@pytest.mark.parametrize(
+    ("ascending", "expected"),
+    [
+        (True, [0, 2, 1]),
+        (False, [1, 2, 0]),
+    ],
+)
+def test_column_sorted_indices(
+    library: str, ascending: bool, expected: list[int]
+) -> None:
     ser = integer_series_6(library)
     namespace = ser.__column_namespace__()
-    result = namespace.dataframe_from_dict({"result": ser.sorted_indices()})
+    result = namespace.dataframe_from_dict(
+        {"result": ser.sorted_indices(ascending=ascending)}
+    )
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     # TODO standardise return type?
     result_pd = result_pd.astype("int64")
-    expected = pd.Series([0, 2, 1], name="result")
+    expected = pd.Series(expected, name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 
 
