@@ -204,7 +204,7 @@ class PolarsColumn(Column[DType]):
                 ret = ret.cast(original_type)
         else:
             ret = self.column.pow(other)  # type: ignore[arg-type]
-            if _is_integer_dtype(original_type) and isinstance(other, (int, float)):
+            if _is_integer_dtype(original_type) and isinstance(other, int):
                 if other < 0:
                     raise ValueError("Cannot raise integer to negative power")
                 ret = ret.cast(original_type)
@@ -468,9 +468,7 @@ class PolarsDataFrame(DataFrame):
                 ]
             )
             for column in self.dataframe.columns:
-                if _is_integer_dtype(original_type[column]) and isinstance(
-                    other, (int, float)
-                ):
+                if _is_integer_dtype(original_type[column]) and isinstance(other, int):
                     if other < 0:
                         raise ValueError("Cannot raise integer to negative power")
                     ret = ret.with_columns(pl.col(column).cast(original_type[column]))
