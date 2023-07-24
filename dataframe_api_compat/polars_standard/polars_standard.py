@@ -222,7 +222,13 @@ class PolarsColumn(Column[DType]):
     ) -> PolarsColumn[Any]:
         df = self.column.to_frame()
         keys = df.columns
-        return PolarsColumn(df.with_row_count().sort(keys, descending=False)["row_nr"])
+        if ascending:
+            return PolarsColumn(
+                df.with_row_count().sort(keys, descending=False)["row_nr"]
+            )
+        return PolarsColumn(
+            df.with_row_count().sort(keys, descending=False)["row_nr"][::-1]
+        )
 
     def fill_nan(self, value: float | null) -> PolarsColumn[DType]:
         return PolarsColumn(self.column.fill_nan(value))  # type: ignore[arg-type]
@@ -508,7 +514,13 @@ class PolarsDataFrame(DataFrame):
         nulls_position: Literal["first", "last"] = "last",
     ) -> PolarsColumn[Any]:
         df = self.dataframe.select(keys)
-        return PolarsColumn(df.with_row_count().sort(keys, descending=False)["row_nr"])
+        if ascending:
+            return PolarsColumn(
+                df.with_row_count().sort(keys, descending=False)["row_nr"]
+            )
+        return PolarsColumn(
+            df.with_row_count().sort(keys, descending=False)["row_nr"][::-1]
+        )
 
     def fill_nan(
         self,

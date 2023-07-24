@@ -230,7 +230,9 @@ class PandasColumn(Column[DType]):
     def sorted_indices(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
     ) -> PandasColumn[Any]:
-        return PandasColumn(pd.Series(self.column.argsort()))
+        if ascending:
+            return PandasColumn(pd.Series(self.column.argsort()))
+        return PandasColumn(pd.Series(self.column.argsort()[::-1]))
 
     def is_in(self, values: Column[DType]) -> PandasColumn[Bool]:
         if values.dtype != self.dtype:
@@ -467,7 +469,9 @@ class PandasDataFrame(DataFrame):
         nulls_position: Literal["first", "last"] = "last",
     ) -> PandasColumn[Any]:
         df = self.dataframe.loc[:, list(keys)]
-        return PandasColumn(df.sort_values(keys).index.to_series())
+        if ascending:
+            return PandasColumn(df.sort_values(keys).index.to_series())
+        return PandasColumn(df.sort_values(keys).index.to_series()[::-1])
 
     def __eq__(self, other: DataFrame | Any) -> PandasDataFrame:  # type: ignore[override]
         if isinstance(other, PandasDataFrame):

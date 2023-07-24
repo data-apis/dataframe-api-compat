@@ -1075,14 +1075,23 @@ def test_std(library: str) -> None:
     assert abs(result - 1.7320508075688772) < 1e-8
 
 
-def test_sorted_indices(library: str) -> None:
+@pytest.mark.parametrize(
+    ("ascending", "expected"),
+    [
+        (True, [1, 0]),
+        (False, [0, 1]),
+    ],
+)
+def test_sorted_indices(library: str, ascending: bool, expected: list[int]) -> None:
     df = integer_dataframe_5(library)
     namespace = df.__dataframe_namespace__()
-    result = namespace.dataframe_from_dict({"result": df.sorted_indices(keys=["a", "b"])})
+    result = namespace.dataframe_from_dict(
+        {"result": df.sorted_indices(keys=["a", "b"], ascending=ascending)}
+    )
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     # TODO should we standardise on the return type?
     result_pd = result_pd.astype("int64")
-    expected = pd.Series([1, 0], name="result")
+    expected = pd.Series(expected, name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 
 
