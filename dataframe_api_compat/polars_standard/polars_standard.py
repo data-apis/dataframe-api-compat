@@ -36,6 +36,24 @@ else:
         ...
 
 
+def _is_integer_dtype(dtype: Any) -> bool:
+    return any(
+        [
+            dtype is _dtype
+            for _dtype in (
+                pl.Int64,
+                pl.Int32,
+                pl.Int16,
+                pl.Int8,
+                pl.UInt64,
+                pl.UInt32,
+                pl.UInt16,
+                pl.UInt8,
+            )
+        ]
+    )
+
+
 class PolarsColumn(Column[DType]):
     def __init__(self, column: pl.Series) -> None:
         self._series = column
@@ -177,9 +195,20 @@ class PolarsColumn(Column[DType]):
         return PolarsColumn(self.column / other)
 
     def __pow__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
+        original_type = self.column.dtype
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column.pow(other.column))
-        return PolarsColumn(self.column.pow(other))  # type: ignore[arg-type]
+            ret = self.column.pow(other.column)
+            if _is_integer_dtype(original_type) and _is_integer_dtype(other.column.dtype):
+                if (other.column < 0).any():
+                    raise ValueError("Cannot raise integer to negative power")
+                ret = ret.cast(original_type)
+        else:
+            ret = self.column.pow(other)  # type: ignore[arg-type]
+            if _is_integer_dtype(original_type) and isinstance(other, (int, float)):
+                if other < 0:
+                    raise ValueError("Cannot raise integer to negative power")
+                ret = ret.cast(original_type)
+        return PolarsColumn(ret)
 
     def __mod__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
@@ -419,21 +448,33 @@ class PolarsDataFrame(DataFrame):
         )
 
     def __pow__(self, other: DataFrame | Any) -> PolarsDataFrame:
+        original_type = self.dataframe.schema
         if isinstance(other, PolarsDataFrame):
-            return PolarsDataFrame(
-                self.dataframe.select(
-                    [
-                        pl.col(col).pow(other.dataframe[col])
-                        for col in self.get_column_names()
-                    ]
-                )
+            ret = self.dataframe.select(
+                [pl.col(col).pow(other.dataframe[col]) for col in self.get_column_names()]
             )
-        return PolarsDataFrame(
-            self.dataframe.select(
-                pl.col(col).pow(other)  # type: ignore[arg-type]
-                for col in self.get_column_names()
+            for column in self.dataframe.columns:
+                if _is_integer_dtype(original_type[column]) and _is_integer_dtype(
+                    other.dataframe[column].dtype
+                ):
+                    if (other.dataframe[column] < 0).any():
+                        raise ValueError("Cannot raise integer to negative power")
+                    ret = ret.with_columns(pl.col(column).cast(original_type[column]))
+        else:
+            ret = self.dataframe.select(
+                [
+                    pl.col(col).pow(other)  # type: ignore[arg-type]
+                    for col in self.get_column_names()
+                ]
             )
-        )
+            for column in self.dataframe.columns:
+                if _is_integer_dtype(original_type[column]) and isinstance(
+                    other, (int, float)
+                ):
+                    if other < 0:
+                        raise ValueError("Cannot raise integer to negative power")
+                    ret = ret.with_columns(pl.col(column).cast(original_type[column]))
+        return PolarsDataFrame(ret)
 
     def __mod__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):

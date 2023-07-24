@@ -474,9 +474,9 @@ def test_comparisons(
     df = integer_dataframe_1(library)
     other = integer_dataframe_2(library)
     result = getattr(df, comparison)(other).dataframe
-    if library == "polars" and comparison == "__pow__":
-        # Is this right? Might need fixing upstream.
-        result = result.select(pl.col("*").cast(pl.Int64))
+    # if library == "polars" and comparison == "__pow__":
+    #     # Is this right? Might need fixing upstream.
+    #     result = result.select(pl.col("*").cast(pl.Int64))
     result_pd = pd.api.interchange.from_dataframe(result)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame(expected_data)
@@ -507,13 +507,38 @@ def test_comparisons_with_scalar(
     df = integer_dataframe_1(library)
     other = 2
     result = getattr(df, comparison)(other).dataframe
-    if library == "polars" and comparison == "__pow__":
-        # Is this right? Might need fixing upstream.
-        result = result.select(pl.col("*").cast(pl.Int64))
     result_pd = pd.api.interchange.from_dataframe(result)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame(expected_data)
     pd.testing.assert_frame_equal(result_pd, expected)
+
+
+def test_negative_powers(library: str):
+    df = integer_dataframe_1(library)
+    other = integer_dataframe_1(library) * -1
+    with pytest.raises(ValueError):
+        df.__pow__(-1)
+    with pytest.raises(ValueError):
+        df.__pow__(other)
+
+
+def test_float_powers(library: str):
+    df = integer_dataframe_1(library)
+    other = integer_dataframe_1(library) * 1.0
+    result = df.__pow__(other)
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    expected = pd.DataFrame({"a": [1.0, 4.0, 27.0], "b": [256.0, 3125.0, 46656.0]})
+    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
+    pd.testing.assert_frame_equal(result_pd, expected)
+
+
+def test_negative_powers_column(library: str):
+    ser = integer_series_1(library)
+    other = integer_series_1(library) * -1
+    with pytest.raises(ValueError):
+        ser.__pow__(-1)
+    with pytest.raises(ValueError):
+        ser.__pow__(other)
 
 
 @pytest.mark.parametrize(
@@ -544,9 +569,6 @@ def test_column_comparisons(
     result = namespace.dataframe_from_dict({"result": getattr(ser, comparison)(other)})
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     expected = pd.Series(expected_data, name="result")
-    if library == "polars" and comparison == "__pow__":
-        # todo: fix
-        result_pd = result_pd.astype("int64")
     result_pd = convert_series_to_pandas_numpy(result_pd)
     pd.testing.assert_series_equal(result_pd, expected)
 
