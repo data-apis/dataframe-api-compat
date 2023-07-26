@@ -480,6 +480,14 @@ class PandasDataFrame(DataFrame):
             return PandasColumn(df.sort_values(keys).index.to_series())
         return PandasColumn(df.sort_values(keys).index.to_series()[::-1])
 
+    def unique_indices(
+        self,
+        keys: Sequence[str] | None = None,
+        *,
+        skip_nulls: bool = True,
+    ) -> PandasColumn[Any]:
+        return PandasColumn(self.dataframe.drop_duplicates(subset=keys).index.to_series())
+
     def __eq__(self, other: DataFrame | Any) -> PandasDataFrame:  # type: ignore[override]
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
@@ -666,11 +674,7 @@ class PandasDataFrame(DataFrame):
         column_names: list[str] | None = None,
     ) -> PandasDataFrame:
         if column_names is None:
-            column_names = self.dataframe.columns  # type: ignore[attr-defined]
+            column_names = self.dataframe.columns.tolist()
         df = self.dataframe.copy()
         df.loc[:, column_names] = df.loc[:, column_names].fillna(value)
         return PandasDataFrame(df)
-
-
-# missing: min, max, prod, etc...
-# ok, break, then do that?

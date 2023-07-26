@@ -596,6 +596,14 @@ class PolarsDataFrame(DataFrame):
             df.with_row_count().sort(keys, descending=False)["row_nr"][::-1]
         )
 
+    def unique_indices(
+        self, keys: Sequence[str] | None = None, *, skip_nulls: bool = True
+    ) -> PolarsColumn[Any]:
+        df = self.dataframe
+        if keys is None:
+            keys = df.columns
+        return PolarsColumn(df.with_row_count().unique(keys)["row_nr"])
+
     def fill_nan(
         self,
         value: float | null,

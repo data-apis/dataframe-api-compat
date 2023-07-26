@@ -292,6 +292,20 @@ def integer_dataframe_5(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
+def integer_dataframe_6(library: str) -> Any:
+    df: Any
+    if library == "pandas-numpy":
+        df = pd.DataFrame({"a": [1, 1, 1, 2, 2], "b": [4, 4, 3, 1, 2]}, dtype="int64")
+        return convert_to_standard_compliant_dataframe(df)
+    if library == "pandas-nullable":
+        df = pd.DataFrame({"a": [1, 1, 1, 2, 2], "b": [4, 4, 3, 1, 2]}, dtype="Int64")
+        return convert_to_standard_compliant_dataframe(df)
+    if library == "polars":
+        df = pl.DataFrame({"a": [1, 1, 1, 2, 2], "b": [4, 4, 3, 1, 2]})
+        return convert_to_standard_compliant_dataframe(df)
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
 def nan_dataframe_1(library: str) -> Any:
     df: Any
     if library == "pandas-numpy":
@@ -1185,7 +1199,28 @@ def test_get_value(library: str) -> None:
     assert result == 1
 
 
-def test_unique_indices(library: str) -> None:
+@pytest.mark.parametrize(
+    ("keys", "expected"),
+    [
+        (["a", "b"], {"a": [1, 1, 2, 2], "b": [3, 4, 1, 2]}),
+        (None, {"a": [1, 1, 2, 2], "b": [3, 4, 1, 2]}),
+        (["a"], {"a": [1, 2], "b": [4, 1]}),
+        (["b"], {"a": [2, 2, 1, 1], "b": [1, 2, 3, 4]}),
+    ],
+)
+def test_unique_indices(
+    library: str, keys: list[str] | None, expected: dict[str, list[int]]
+) -> None:
+    df = integer_dataframe_6(library)
+    df = df.get_rows(df.unique_indices(keys))
+    result = df.get_rows(df.sorted_indices(keys or ["a", "b"]))
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
+    expected = pd.DataFrame(expected)
+    pd.testing.assert_frame_equal(result_pd, expected)
+
+
+def test_unique_indices_column(library: str) -> None:
     ser = integer_series_5(library)
     namespace = ser.__column_namespace__()
     ser = ser.get_rows(ser.unique_indices())
