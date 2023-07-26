@@ -601,3 +601,16 @@ class PolarsDataFrame(DataFrame):
         value: float | null,
     ) -> PolarsDataFrame:
         return PolarsDataFrame(self.dataframe.fill_nan(value))  # type: ignore[arg-type]
+
+    def fill_null(
+        self,
+        value: Any,
+        *,
+        column_names: list[str] | None = None,
+    ) -> PolarsDataFrame:
+        if column_names is None:
+            column_names = self.dataframe.columns
+        df = self.dataframe.with_columns(
+            pl.col(col).fill_null(value) for col in column_names
+        )
+        return PolarsDataFrame(df)

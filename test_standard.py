@@ -336,6 +336,22 @@ def null_dataframe_1(library: str, request: pytest.FixtureRequest) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
+def null_dataframe_2(library: str, request: pytest.FixtureRequest) -> Any:
+    df: Any
+    if library == "pandas-numpy":
+        mark = pytest.mark.xfail()
+        request.node.add_marker(mark)
+    if library == "pandas-nullable":
+        df = pd.DataFrame(
+            {"a": [1.0, 0.0, pd.NA], "b": [1.0, 1.0, pd.NA]}, dtype="Float64"
+        )
+        return convert_to_standard_compliant_dataframe(df / df)
+    if library == "polars":
+        df = pl.DataFrame({"a": [1.0, 0.0, None], "b": [1.0, 1.0, None]})
+        return convert_to_standard_compliant_dataframe(df / df)
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
 def nan_series_1(library: str) -> Any:
     df: Any
     if library == "pandas-numpy":
@@ -1490,3 +1506,47 @@ def test_column_names(library: str) -> None:
     )
     with pytest.raises(ValueError):
         namespace.dataframe_from_dict({"result": ser})
+
+
+@pytest.mark.parametrize(
+    ("column_names", "expected_dict"),
+    [
+        (["a", "b"], {"a": [1.0, float("nan"), 0.0], "b": [1.0, 1.0, 0.0]}),
+        (None, {"a": [1.0, float("nan"), 0.0], "b": [1.0, 1.0, 0.0]}),
+        (["a"], {"a": [1.0, float("nan"), 0.0], "b": [1.0, 1.0, None]}),
+        (["b"], {"a": [1.0, float("nan"), None], "b": [1.0, 1.0, 0.0]}),
+    ],
+)
+def test_fill_null(
+    library: str,
+    request: pytest.FixtureRequest,
+    column_names: list[str] | None,
+    expected_dict: dict[str, list[float]],
+):
+    df = null_dataframe_2(library, request)
+    result = df.fill_null(0, column_names=column_names)
+    # friggin' impossible to test this due to pandas inconsistencies
+    # with handling nan and null
+    if column_names is None or column_names == ["a", "b"]:
+        if library == "polars":
+            assert result.dataframe["a"][2] == 0.0
+            assert result.dataframe["b"][2] == 0.0
+        else:
+            assert result.dataframe["a"][2] == 0.0
+            assert result.dataframe["b"][2] == 0.0
+    elif column_names == ["a"]:
+        if library == "polars":
+            assert result.dataframe["a"][2] == 0.0
+            assert result.dataframe["b"][2] is None
+        else:
+            assert result.dataframe["a"][2] == 0.0
+            assert result.dataframe["b"][2] is pd.NA
+    elif column_names == ["b"]:
+        if library == "polars":
+            assert result.dataframe["a"][2] is None
+            assert result.dataframe["b"][2] == 0.0
+        else:
+            assert result.dataframe["a"][2] is pd.NA
+            assert result.dataframe["b"][2] == 0.0
+    else:
+        raise AssertionError()

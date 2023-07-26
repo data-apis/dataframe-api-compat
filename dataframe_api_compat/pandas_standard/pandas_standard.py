@@ -659,6 +659,18 @@ class PandasDataFrame(DataFrame):
         df[cast(pd.DataFrame, np.isnan(df)).fillna(False).to_numpy(bool)] = value
         return PandasDataFrame(df)
 
+    def fill_null(
+        self,
+        value: Any,
+        *,
+        column_names: list[str] | None = None,
+    ) -> PandasDataFrame:
+        if column_names is None:
+            column_names = self.dataframe.columns  # type: ignore[attr-defined]
+        df = self.dataframe.copy()
+        df.loc[:, column_names] = df.loc[:, column_names].fillna(value)
+        return PandasDataFrame(df)
+
 
 # missing: min, max, prod, etc...
 # ok, break, then do that?
