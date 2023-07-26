@@ -267,6 +267,9 @@ class PolarsColumn(Column[DType]):
     def fill_nan(self, value: float | null) -> PolarsColumn[DType]:
         return PolarsColumn(self.column.fill_nan(value))  # type: ignore[arg-type]
 
+    def fill_null(self, value: Any) -> PolarsColumn[DType]:
+        return PolarsColumn(self.column.fill_null(value))  # type: ignore[arg-type]
+
 
 class PolarsGroupBy(GroupBy):
     def __init__(self, df: pl.DataFrame, keys: Sequence[str]) -> None:

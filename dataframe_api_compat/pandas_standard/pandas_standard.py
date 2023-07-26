@@ -256,6 +256,14 @@ class PandasColumn(Column[DType]):
         ser[cast("pd.Series[bool]", np.isnan(ser)).fillna(False).to_numpy(bool)] = value
         return PandasColumn(ser)
 
+    def fill_null(
+        self,
+        value: Any,
+    ) -> PandasColumn[DType]:
+        ser = self.column.copy()
+        ser = np.where(np.isnan(ser).fillna(False), ser, ser.fillna(value))
+        return PandasColumn(pd.Series(ser))
+
 
 class PandasGroupBy(GroupBy):
     def __init__(self, df: pd.DataFrame, keys: Sequence[str]) -> None:
