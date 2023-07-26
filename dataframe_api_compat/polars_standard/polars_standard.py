@@ -423,6 +423,34 @@ class PolarsDataFrame(DataFrame):
             return PolarsDataFrame(self.dataframe.__lt__(other.dataframe))
         return PolarsDataFrame(self.dataframe.__lt__(other))
 
+    def __and__(self, other: DataFrame | Any) -> PolarsDataFrame:
+        if isinstance(other, PolarsDataFrame):
+            return PolarsDataFrame(
+                self.dataframe.with_columns(
+                    self.dataframe[col] & other.dataframe[col]
+                    for col in self.dataframe.columns
+                )
+            )
+        return PolarsDataFrame(
+            self.dataframe.with_columns(
+                self.dataframe[col] & other for col in self.dataframe.columns
+            )
+        )
+
+    def __or__(self, other: DataFrame | Any) -> PolarsDataFrame:
+        if isinstance(other, PolarsDataFrame):
+            return PolarsDataFrame(
+                self.dataframe.with_columns(
+                    self.dataframe[col] | other.dataframe[col]
+                    for col in self.dataframe.columns
+                )
+            )
+        return PolarsDataFrame(
+            self.dataframe.with_columns(
+                self.dataframe[col] | other for col in self.dataframe.columns
+            )
+        )
+
     def __add__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__add__(other.dataframe))

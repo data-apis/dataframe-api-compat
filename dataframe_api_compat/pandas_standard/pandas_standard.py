@@ -516,6 +516,18 @@ class PandasDataFrame(DataFrame):
             return PandasDataFrame((self.dataframe.__lt__(other.dataframe)))
         return PandasDataFrame((self.dataframe.__lt__(other)))
 
+    def __and__(self, other: DataFrame | Any) -> PandasDataFrame:
+        if isinstance(other, PandasDataFrame):
+            self._validate_comparand(other)
+            return PandasDataFrame((self.dataframe.__and__(other.dataframe)))
+        return PandasDataFrame((self.dataframe.__and__(other)))
+
+    def __or__(self, other: DataFrame | Any) -> PandasDataFrame:
+        if isinstance(other, PandasDataFrame):
+            self._validate_comparand(other)
+            return PandasDataFrame((self.dataframe.__or__(other.dataframe)))
+        return PandasDataFrame((self.dataframe.__or__(other)))
+
     def __add__(self, other: DataFrame | Any) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)

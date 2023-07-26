@@ -433,6 +433,24 @@ def bool_dataframe_3(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
+def bool_dataframe_4(library: str) -> Any:
+    df: Any
+    if library == "pandas-numpy":
+        df = pd.DataFrame(
+            {"a": [False, True, False], "b": [True, True, True]}, dtype="bool"
+        )
+        return convert_to_standard_compliant_dataframe(df)
+    if library == "pandas-nullable":
+        df = pd.DataFrame(
+            {"a": [False, True, False], "b": [True, True, True]}, dtype="boolean"
+        )
+        return convert_to_standard_compliant_dataframe(df)
+    if library == "polars":
+        df = pl.DataFrame({"a": [False, True, False], "b": [True, True, True]})
+        return convert_to_standard_compliant_dataframe(df)
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
 @pytest.mark.parametrize(
     ("reduction", "expected_data"),
     [
@@ -978,6 +996,16 @@ def test_all(library: str) -> None:
     result = df.all()
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)
     expected = pd.DataFrame({"a": [False], "b": [False], "c": [True]})
+    pd.testing.assert_frame_equal(result_pd, expected)
+
+
+def test_and(library: str) -> None:
+    df = bool_dataframe_1(library)
+    other = bool_dataframe_4(library)
+    result = df & other
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
+    expected = pd.DataFrame({"a": [False, True, False], "b": [True, True, True]})
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
