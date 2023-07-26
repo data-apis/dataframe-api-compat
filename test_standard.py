@@ -1401,8 +1401,34 @@ def test_column_from_sequence(
     ser = integer_series_1(library)
     namespace = ser.__column_namespace__()
     result = namespace.dataframe_from_dict(
-        {"result": namespace.column_from_sequence(values, getattr(namespace, dtype)())}
+        {
+            "result": namespace.column_from_sequence(
+                values, dtype=getattr(namespace, dtype)()
+            )
+        }
     )
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     result_pd = convert_series_to_pandas_numpy(result_pd)
     pd.testing.assert_series_equal(result_pd, expected)
+
+
+def test_column_names(library: str) -> None:
+    # nameless column
+    ser = integer_series_1(library)
+    namespace = ser.__column_namespace__()
+    result = namespace.dataframe_from_dict({"result": ser})
+    assert result.get_column_names() == ["result"]
+
+    # named column
+    ser = namespace.column_from_sequence(
+        [1, 2, 3], dtype=namespace.Float64(), name="result"
+    )
+    result = namespace.dataframe_from_dict({"result": ser})
+    assert result.get_column_names() == ["result"]
+
+    # named column (different name)
+    ser = namespace.column_from_sequence(
+        [1, 2, 3], dtype=namespace.Float64(), name="result2"
+    )
+    with pytest.raises(ValueError):
+        namespace.dataframe_from_dict({"result": ser})

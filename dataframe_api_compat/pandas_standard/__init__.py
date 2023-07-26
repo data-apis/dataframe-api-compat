@@ -86,12 +86,19 @@ def concat(dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:
     )
 
 
-def column_from_sequence(sequence: Sequence[Any], dtype: Any) -> PandasColumn[Any]:
+def column_from_sequence(
+    sequence: Sequence[Any], *, dtype: Any, name: str | None = None
+) -> PandasColumn[Any]:
     ser = pd.Series(sequence, dtype=map_standard_dtype_to_pandas_dtype(dtype))
-    return PandasColumn(ser)
+    return PandasColumn(ser, name=name)
 
 
 def dataframe_from_dict(data: dict[str, PandasColumn[Any]]) -> PandasDataFrame:
+    for col_name, col in data.items():
+        if not isinstance(col, PandasColumn):  # pragma: no cover
+            raise TypeError(f"Expected PandasColumn, got {type(col)}")
+        if col.name is not None and col_name != col.name:
+            raise ValueError(f"Expected column name {col_name}, got {col.name}")
     return PandasDataFrame(
         pd.DataFrame({label: column.column for label, column in data.items()})
     )

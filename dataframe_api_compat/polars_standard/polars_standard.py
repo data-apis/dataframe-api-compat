@@ -55,12 +55,17 @@ def _is_integer_dtype(dtype: Any) -> bool:
 
 
 class PolarsColumn(Column[DType]):
-    def __init__(self, column: pl.Series) -> None:
+    def __init__(self, column: pl.Series, *, name: str | None = None) -> None:
         self._series = column
+        self._name = name
 
     # In the standard
     def __column_namespace__(self, *, api_version: str | None = None) -> Any:
         return dataframe_api_compat.polars_standard
+
+    @property
+    def name(self) -> str | None:
+        return self._name
 
     @property
     def column(self) -> pl.Series:

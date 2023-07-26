@@ -59,13 +59,22 @@ def concat(dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
 
 
 def dataframe_from_dict(data: dict[str, PolarsColumn[Any]]) -> PolarsDataFrame:
+    for col_name, col in data.items():
+        if not isinstance(col, PolarsColumn):  # pragma: no cover
+            raise TypeError(f"Expected PolarsColumn, got {type(col)}")
+        if col.name is not None and col_name != col.name:
+            raise ValueError(f"Expected column name {col_name}, got {col.name}")
     return PolarsDataFrame(
         pl.DataFrame({label: column.column for label, column in data.items()})
     )
 
 
-def column_from_sequence(sequence: Sequence[Any], dtype: Any) -> PolarsColumn[Any]:
-    return PolarsColumn(pl.Series(sequence, dtype=_map_standard_to_polars_dtypes(dtype)))
+def column_from_sequence(
+    sequence: Sequence[Any], *, dtype: Any, name: str | None = None
+) -> PolarsColumn[Any]:
+    return PolarsColumn(
+        pl.Series(sequence, dtype=_map_standard_to_polars_dtypes(dtype)), name=name
+    )
 
 
 def convert_to_standard_compliant_dataframe(df: pl.DataFrame) -> PolarsDataFrame:

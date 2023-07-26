@@ -40,7 +40,9 @@ else:
 
 class PandasColumn(Column[DType]):
     # private, not technically part of the standard
-    def __init__(self, column: pd.Series) -> None:  # type: ignore[type-arg]
+    def __init__(
+        self, column: pd.Series, *, name: str | None = None
+    ) -> None:  # type: ignore[type-arg]
         if (
             isinstance(column.index, pd.RangeIndex)
             and column.index.start == 0  # type: ignore[comparison-overlap]
@@ -50,6 +52,7 @@ class PandasColumn(Column[DType]):
             self._series = column
         else:
             self._series = column.reset_index(drop=True)
+        self._name = name
 
     def _validate_index(self, index: pd.Index) -> None:
         pd.testing.assert_index_equal(self.column.index, index)
@@ -57,6 +60,10 @@ class PandasColumn(Column[DType]):
     # In the standard
     def __column_namespace__(self, *, api_version: str | None = None) -> Any:
         return dataframe_api_compat.pandas_standard
+
+    @property
+    def name(self) -> str | None:
+        return self._name
 
     @property
     def column(self) -> pd.Series[Any]:
