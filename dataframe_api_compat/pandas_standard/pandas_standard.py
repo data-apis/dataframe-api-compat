@@ -41,8 +41,8 @@ else:
 class PandasColumn(Column[DType]):
     # private, not technically part of the standard
     def __init__(
-        self, column: pd.Series, *, name: str | None = None
-    ) -> None:  # type: ignore[type-arg]
+        self, column: pd.Series, *, name: str | None = None  # type: ignore[type-arg]
+    ) -> None:
         if (
             isinstance(column.index, pd.RangeIndex)
             and column.index.start == 0  # type: ignore[comparison-overlap]
