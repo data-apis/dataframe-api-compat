@@ -433,7 +433,8 @@ class PolarsDataFrame(DataFrame):
             )
         return PolarsDataFrame(
             self.dataframe.with_columns(
-                self.dataframe[col] & other for col in self.dataframe.columns
+                self.dataframe[col] & other  # type: ignore[operator]
+                for col in self.dataframe.columns
             )
         )
 
@@ -447,7 +448,8 @@ class PolarsDataFrame(DataFrame):
             )
         return PolarsDataFrame(
             self.dataframe.with_columns(
-                self.dataframe[col] | other for col in self.dataframe.columns
+                self.dataframe[col] | other  # type: ignore[operator]
+                for col in self.dataframe.columns
             )
         )
 
