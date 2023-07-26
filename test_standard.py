@@ -1603,6 +1603,13 @@ def test_fill_null_column(
         assert result.column[2] == 0.0
 
 
+def test_fill_null_noop(library: str):
+    df = nan_dataframe_1(library)
+    result = df.fill_null(0)
+    # nan should not have changed!
+    assert result.dataframe["a"][2] != result.dataframe["a"][2]
+
+
 def test_fill_null_noop_column(library: str):
     ser = nan_series_1(library)
     result = ser.fill_null(0)

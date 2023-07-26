@@ -261,7 +261,9 @@ class PandasColumn(Column[DType]):
         value: Any,
     ) -> PandasColumn[DType]:
         ser = self.column.copy()
-        ser = np.where(np.isnan(ser).fillna(False), ser, ser.fillna(value))
+        ser = np.where(
+            np.isnan(ser).fillna(False), ser, ser.fillna(value)
+        )  # type: ignore[assignment]
         return PandasColumn(pd.Series(ser))
 
 
@@ -684,5 +686,10 @@ class PandasDataFrame(DataFrame):
         if column_names is None:
             column_names = self.dataframe.columns.tolist()
         df = self.dataframe.copy()
-        df.loc[:, column_names] = df.loc[:, column_names].fillna(value)
+        for column in column_names:
+            col = df[column]
+            col = np.where(
+                np.isnan(col).fillna(False), col, col.fillna(value)
+            )  # type: ignore[assignment]
+            df[column] = col
         return PandasDataFrame(df)
