@@ -1544,24 +1544,23 @@ def test_column_names(library: str) -> None:
 
 
 @pytest.mark.parametrize(
-    ("column_names", "expected_dict"),
+    "column_names",
     [
-        (["a", "b"], {"a": [1.0, float("nan"), 0.0], "b": [1.0, 1.0, 0.0]}),
-        (None, {"a": [1.0, float("nan"), 0.0], "b": [1.0, 1.0, 0.0]}),
-        (["a"], {"a": [1.0, float("nan"), 0.0], "b": [1.0, 1.0, None]}),
-        (["b"], {"a": [1.0, float("nan"), None], "b": [1.0, 1.0, 0.0]}),
+        ["a", "b"],
+        None,
+        ["a"],
+        ["b"],
     ],
 )
 def test_fill_null(
     library: str,
     request: pytest.FixtureRequest,
     column_names: list[str] | None,
-    expected_dict: dict[str, list[float]],
 ) -> None:
     df = null_dataframe_2(library, request)
+    namespace = df.__dataframe_namespace__()
     result = df.fill_null(0, column_names=column_names)
-    # friggin' impossible to test this due to pandas inconsistencies
-    # with handling nan and null
+    # todo: is there a way to test test this without if/then statements?
     if column_names is None or column_names == ["a", "b"]:
         if library == "polars":
             assert result.dataframe["a"][2] == 0.0
@@ -1570,19 +1569,11 @@ def test_fill_null(
             assert result.dataframe["a"][2] == 0.0
             assert result.dataframe["b"][2] == 0.0
     elif column_names == ["a"]:
-        if library == "polars":
-            assert result.dataframe["a"][2] == 0.0
-            assert result.dataframe["b"][2] is None
-        else:
-            assert result.dataframe["a"][2] == 0.0
-            assert result.dataframe["b"][2] is pd.NA
+        assert result.dataframe["a"][2] == 0.0
+        assert namespace.is_null(result.dataframe["b"][2])
     elif column_names == ["b"]:
-        if library == "polars":
-            assert result.dataframe["a"][2] is None
-            assert result.dataframe["b"][2] == 0.0
-        else:
-            assert result.dataframe["a"][2] is pd.NA
-            assert result.dataframe["b"][2] == 0.0
+        assert namespace.is_null(result.dataframe["a"][2])
+        assert result.dataframe["b"][2] == 0.0
     else:
         raise AssertionError()
 

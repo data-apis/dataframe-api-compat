@@ -29,6 +29,21 @@ for i in spec:
     if i not in polars_spec:
         print(f"Series.{i} missing from polars spec!")
 
+# groupby
+spec = dataframe_api.GroupBy().__dir__()
+pandas_spec = (
+    pandas_standard.PandasDataFrame(pd.DataFrame({"a": [1]})).groupby(["a"]).__dir__()
+)
+polars_spec = (
+    polars_standard.PolarsDataFrame(pl.DataFrame({"a": [1]})).groupby(["a"]).__dir__()
+)
+
+for i in spec:
+    if i not in pandas_spec:
+        print(f"GroupBy.{i} missing from pandas spec!")
+    if i not in polars_spec:
+        print(f"GroupBy.{i} missing from polars spec!")
+
 # namespace
 exclude = {
     "Mapping",
