@@ -266,6 +266,18 @@ class PandasColumn(Column[DType]):
         )  # type: ignore[assignment]
         return PandasColumn(pd.Series(ser))
 
+    def cumulative_sum(self, *, skip_nulls: bool = True) -> PandasColumn[DType]:
+        return PandasColumn(self.column.cumsum())
+
+    def cumulative_prod(self, *, skip_nulls: bool = True) -> PandasColumn[DType]:
+        return PandasColumn(self.column.cumprod())
+
+    def cumulative_max(self, *, skip_nulls: bool = True) -> PandasColumn[DType]:
+        return PandasColumn(self.column.cummax())
+
+    def cumulative_min(self, *, skip_nulls: bool = True) -> PandasColumn[DType]:
+        return PandasColumn(self.column.cummin())
+
 
 class PandasGroupBy(GroupBy):
     def __init__(self, df: pd.DataFrame, keys: Sequence[str]) -> None:

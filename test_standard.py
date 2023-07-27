@@ -28,7 +28,7 @@ def convert_to_standard_compliant_dataframe(df: pd.DataFrame | pl.DataFrame) -> 
         raise AssertionError(f"Got unexpected type: {type(df)}")
 
 
-def convert_to_standard_compliant_column(ser: pd.Series | pl.Series) -> Any:
+def convert_to_standard_compliant_column(ser: pd.Series[Any] | pl.Series) -> Any:
     # todo: type return
     if isinstance(ser, pd.Series):
         return dataframe_api_compat.pandas_standard.convert_to_standard_compliant_column(
@@ -561,7 +561,7 @@ def test_comparisons_with_scalar(
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_negative_powers(library: str):
+def test_negative_powers(library: str) -> None:
     df = integer_dataframe_1(library)
     other = integer_dataframe_1(library) * -1
     with pytest.raises(ValueError):
@@ -570,7 +570,7 @@ def test_negative_powers(library: str):
         df.__pow__(other)
 
 
-def test_float_powers(library: str):
+def test_float_powers(library: str) -> None:
     df = integer_dataframe_1(library)
     other = integer_dataframe_1(library) * 1.0
     result = df.__pow__(other)
@@ -580,7 +580,7 @@ def test_float_powers(library: str):
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_float_scalar_powers(library: str):
+def test_float_scalar_powers(library: str) -> None:
     df = integer_dataframe_1(library)
     other = 1.0
     result = df.__pow__(other)
@@ -590,7 +590,7 @@ def test_float_scalar_powers(library: str):
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_float_powers_column(library: str):
+def test_float_powers_column(library: str) -> None:
     ser = integer_series_1(library)
     other = integer_series_1(library) * 1.0
     result = ser.__pow__(other)
@@ -603,7 +603,7 @@ def test_float_powers_column(library: str):
     pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_float_powers_scalar_column(library: str):
+def test_float_powers_scalar_column(library: str) -> None:
     ser = integer_series_1(library)
     other = 1.0
     result = ser.__pow__(other)
@@ -616,7 +616,7 @@ def test_float_powers_scalar_column(library: str):
     pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_negative_powers_column(library: str):
+def test_negative_powers_column(library: str) -> None:
     ser = integer_series_1(library)
     other = integer_series_1(library) * -1
     with pytest.raises(ValueError):
@@ -849,7 +849,7 @@ def test_column_slice_rows(
     start: int | None,
     stop: int | None,
     step: int | None,
-    expected: pd.Series,
+    expected: pd.Series[Any],
 ) -> None:
     ser = integer_dataframe_3(library).get_column_by_name("a")
     namespace = ser.__column_namespace__()
@@ -1200,7 +1200,7 @@ def test_get_value(library: str) -> None:
 
 
 @pytest.mark.parametrize(
-    ("keys", "expected"),
+    ("keys", "expected_data"),
     [
         (["a", "b"], {"a": [1, 1, 2, 2], "b": [3, 4, 1, 2]}),
         (None, {"a": [1, 1, 2, 2], "b": [3, 4, 1, 2]}),
@@ -1209,14 +1209,14 @@ def test_get_value(library: str) -> None:
     ],
 )
 def test_unique_indices(
-    library: str, keys: list[str] | None, expected: dict[str, list[int]]
+    library: str, keys: list[str] | None, expected_data: dict[str, list[int]]
 ) -> None:
     df = integer_dataframe_6(library)
     df = df.get_rows(df.unique_indices(keys))
     result = df.get_rows(df.sorted_indices(keys or ["a", "b"]))
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
-    expected = pd.DataFrame(expected)
+    expected = pd.DataFrame(expected_data)
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
@@ -1243,13 +1243,13 @@ def test_std(library: str) -> None:
 
 
 @pytest.mark.parametrize(
-    ("ascending", "expected"),
+    ("ascending", "expected_data"),
     [
         (True, [1, 0]),
         (False, [0, 1]),
     ],
 )
-def test_sorted_indices(library: str, ascending: bool, expected: list[int]) -> None:
+def test_sorted_indices(library: str, ascending: bool, expected_data: list[int]) -> None:
     df = integer_dataframe_5(library)
     namespace = df.__dataframe_namespace__()
     result = namespace.dataframe_from_dict(
@@ -1258,19 +1258,19 @@ def test_sorted_indices(library: str, ascending: bool, expected: list[int]) -> N
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     # TODO should we standardise on the return type?
     result_pd = result_pd.astype("int64")
-    expected = pd.Series(expected, name="result")
+    expected = pd.Series(expected_data, name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 
 
 @pytest.mark.parametrize(
-    ("ascending", "expected"),
+    ("ascending", "expected_data"),
     [
         (True, [0, 2, 1]),
         (False, [1, 2, 0]),
     ],
 )
 def test_column_sorted_indices(
-    library: str, ascending: bool, expected: list[int]
+    library: str, ascending: bool, expected_data: list[int]
 ) -> None:
     ser = integer_series_6(library)
     namespace = ser.__column_namespace__()
@@ -1280,7 +1280,7 @@ def test_column_sorted_indices(
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     # TODO standardise return type?
     result_pd = result_pd.astype("int64")
-    expected = pd.Series(expected, name="result")
+    expected = pd.Series(expected_data, name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 
 
@@ -1505,7 +1505,7 @@ def test_column_column() -> None:
     ],
 )
 def test_column_from_sequence(
-    library: str, values: list[Any], dtype: str, expected: pd.Series
+    library: str, values: list[Any], dtype: str, expected: pd.Series[Any]
 ) -> None:
     ser = integer_series_1(library)
     namespace = ser.__column_namespace__()
@@ -1557,7 +1557,7 @@ def test_fill_null(
     request: pytest.FixtureRequest,
     column_names: list[str] | None,
     expected_dict: dict[str, list[float]],
-):
+) -> None:
     df = null_dataframe_2(library, request)
     result = df.fill_null(0, column_names=column_names)
     # friggin' impossible to test this due to pandas inconsistencies
@@ -1590,7 +1590,7 @@ def test_fill_null(
 def test_fill_null_column(
     library: str,
     request: pytest.FixtureRequest,
-):
+) -> None:
     df = null_dataframe_2(library, request).get_column_by_name("a")
     result = df.fill_null(0)
     # friggin' impossible to test this due to pandas inconsistencies
@@ -1603,15 +1603,36 @@ def test_fill_null_column(
         assert result.column[2] == 0.0
 
 
-def test_fill_null_noop(library: str):
+def test_fill_null_noop(library: str) -> None:
     df = nan_dataframe_1(library)
     result = df.fill_null(0)
     # nan should not have changed!
     assert result.dataframe["a"][2] != result.dataframe["a"][2]
 
 
-def test_fill_null_noop_column(library: str):
+def test_fill_null_noop_column(library: str) -> None:
     ser = nan_series_1(library)
     result = ser.fill_null(0)
     # nan should not have changed!
     assert result.column[2] != result.column[2]
+
+
+@pytest.mark.parametrize(
+    ("func", "expected_data"),
+    [
+        ("cumulative_sum", [1, 3, 6]),
+        ("cumulative_prod", [1, 2, 6]),
+        ("cumulative_max", [1, 2, 3]),
+        ("cumulative_min", [1, 1, 1]),
+    ],
+)
+def test_cumulative_functions_column(
+    library: str, func: str, expected_data: list[float]
+) -> None:
+    ser = integer_series_1(library)
+    namespace = ser.__column_namespace__()
+    expected = pd.Series(expected_data, name="result")
+    result = namespace.dataframe_from_dict({"result": getattr(ser, func)()})
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    result_pd = convert_series_to_pandas_numpy(result_pd)
+    pd.testing.assert_series_equal(result_pd, expected)

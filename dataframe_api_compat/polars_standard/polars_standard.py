@@ -270,6 +270,18 @@ class PolarsColumn(Column[DType]):
     def fill_null(self, value: Any) -> PolarsColumn[DType]:
         return PolarsColumn(self.column.fill_null(value))
 
+    def cumulative_sum(self, *, skip_nulls: bool = True) -> PolarsColumn[DType]:
+        return PolarsColumn(self.column.cumsum())
+
+    def cumulative_prod(self, *, skip_nulls: bool = True) -> PolarsColumn[DType]:
+        return PolarsColumn(self.column.cumprod())
+
+    def cumulative_max(self, *, skip_nulls: bool = True) -> PolarsColumn[DType]:
+        return PolarsColumn(self.column.cummax())
+
+    def cumulative_min(self, *, skip_nulls: bool = True) -> PolarsColumn[DType]:
+        return PolarsColumn(self.column.cummin())
+
 
 class PolarsGroupBy(GroupBy):
     def __init__(self, df: pl.DataFrame, keys: Sequence[str]) -> None:
