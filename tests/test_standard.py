@@ -84,11 +84,6 @@ def convert_series_to_pandas_numpy(ser: pd.Series) -> pd.Series:  # type: ignore
     return ser
 
 
-def pytest_generate_tests(metafunc: Any) -> None:
-    if "library" in metafunc.fixturenames:
-        metafunc.parametrize("library", ["pandas-numpy", "pandas-nullable", "polars"])
-
-
 def integer_series_1(library: str) -> Any:
     ser: Any
     if library == "pandas-numpy":
