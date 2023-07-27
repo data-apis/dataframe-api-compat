@@ -19,6 +19,30 @@ class Int32:
     ...
 
 
+class Int16:
+    ...
+
+
+class Int8:
+    ...
+
+
+class UInt64:
+    ...
+
+
+class UInt32:
+    ...
+
+
+class UInt16:
+    ...
+
+
+class UInt8:
+    ...
+
+
 class Float64:
     ...
 
@@ -31,11 +55,25 @@ class Bool:
     ...
 
 
+null = pd.NA
+
 DTYPE_MAP = {
     "int64": Int64(),
     "Int64": Int64(),
     "int32": Int32(),
     "Int32": Int32(),
+    "int16": Int16(),
+    "Int16": Int16(),
+    "int8": Int8(),
+    "Int8": Int8(),
+    "uint64": UInt64(),
+    "UInt64": UInt64(),
+    "uint32": UInt32(),
+    "UInt32": UInt32(),
+    "uint16": UInt16(),
+    "UInt16": UInt16(),
+    "uint8": UInt8(),
+    "UInt8": UInt8(),
     "float64": Float64(),
     "Float64": Float64(),
     "float32": Float32(),
@@ -102,3 +140,7 @@ def dataframe_from_dict(data: dict[str, PandasColumn[Any]]) -> PandasDataFrame:
     return PandasDataFrame(
         pd.DataFrame({label: column.column for label, column in data.items()})
     )
+
+
+def is_null(value: Any) -> bool:
+    return value is pd.NA

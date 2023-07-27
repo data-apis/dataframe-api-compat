@@ -16,6 +16,30 @@ class Int32:
     ...
 
 
+class Int16:
+    ...
+
+
+class Int8:
+    ...
+
+
+class UInt64:
+    ...
+
+
+class UInt32:
+    ...
+
+
+class UInt16:
+    ...
+
+
+class UInt8:
+    ...
+
+
 class Float64:
     ...
 
@@ -31,10 +55,22 @@ class Bool:
 DTYPE_MAP = {
     pl.Int64: Int64(),
     pl.Int32: Int32(),
+    pl.Int16: Int16(),
+    pl.Int8: Int8(),
+    pl.UInt64: UInt64(),
+    pl.UInt32: UInt32(),
+    pl.UInt16: UInt16(),
+    pl.UInt8: UInt8(),
     pl.Float64: Float64(),
     pl.Float32: Float32(),
     pl.Boolean: Bool(),
 }
+
+null = None
+
+
+def is_null(value: Any) -> bool:
+    return value is None
 
 
 def _map_standard_to_polars_dtypes(dtype: Any) -> pl.DataType:

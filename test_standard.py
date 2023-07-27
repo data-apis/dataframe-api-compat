@@ -1213,7 +1213,7 @@ def test_unique_indices(
 ) -> None:
     df = integer_dataframe_6(library)
     df = df.get_rows(df.unique_indices(keys))
-    result = df.get_rows(df.sorted_indices(keys or ["a", "b"]))
+    result = df.get_rows(df.sorted_indices(keys))
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame(expected_data)
@@ -1636,3 +1636,12 @@ def test_cumulative_functions_column(
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     result_pd = convert_series_to_pandas_numpy(result_pd)
     pd.testing.assert_series_equal(result_pd, expected)
+
+
+def test_is_null(library: str) -> None:
+    df = integer_dataframe_1(library)
+    namespace = df.__dataframe_namespace__()
+    null = namespace.null
+    assert namespace.is_null(null)
+    assert not namespace.is_null(float("nan"))
+    assert not namespace.is_null(0)

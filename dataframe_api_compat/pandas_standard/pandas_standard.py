@@ -492,11 +492,13 @@ class PandasDataFrame(DataFrame):
 
     def sorted_indices(
         self,
-        keys: Sequence[str],
+        keys: Sequence[str] | None = None,
         *,
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
     ) -> PandasColumn[Any]:
+        if keys is None:
+            keys = self.dataframe.columns.tolist()
         df = self.dataframe.loc[:, list(keys)]
         if ascending:
             return PandasColumn(df.sort_values(keys).index.to_series())

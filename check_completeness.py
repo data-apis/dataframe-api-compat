@@ -16,7 +16,7 @@ for i in spec:
     if i not in pandas_spec:
         print(f"DataFrame.{i} missing from pandas spec!")
     if i not in polars_spec:
-        print(f"DataFrame.{i} missing from pandas spec!")
+        print(f"DataFrame.{i} missing from polars spec!")
 
 # series
 spec = dataframe_api.Column().__dir__()
@@ -27,16 +27,25 @@ for i in spec:
     if i not in pandas_spec:
         print(f"Series.{i} missing from pandas spec!")
     if i not in polars_spec:
-        print(f"Series.{i} missing from pandas spec!")
+        print(f"Series.{i} missing from polars spec!")
 
 # namespace
-exclude = {"Mapping", "column_object", "dataframe_object", "groupby_object", "DType"}
+exclude = {
+    "Mapping",
+    "Column",
+    "DataFrame",
+    "GroupBy",
+    "column_object",
+    "dataframe_object",
+    "groupby_object",
+    "DType",
+}
 spec = [i for i in dataframe_api.__dir__() if i not in exclude and not i.startswith("_")]
 pandas_spec = pandas_standard.__dir__()
 polars_spec = polars_standard.__dir__()
 
 for i in spec:
     if i not in pandas_spec:
-        print(f"Series.{i} missing from pandas spec!")
+        print(f"namespace.{i} missing from pandas spec!")
     if i not in polars_spec:
-        print(f"Series.{i} missing from pandas spec!")
+        print(f"namespace.{i} missing from polars spec!")

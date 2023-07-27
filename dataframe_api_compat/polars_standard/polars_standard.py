@@ -597,11 +597,13 @@ class PolarsDataFrame(DataFrame):
 
     def sorted_indices(
         self,
-        keys: Sequence[Any],
+        keys: Sequence[Any] | None = None,
         *,
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
     ) -> PolarsColumn[Any]:
+        if keys is None:
+            keys = self.dataframe.columns
         df = self.dataframe.select(keys)
         if ascending:
             return PolarsColumn(
