@@ -1,6 +1,8 @@
 import pytest
 import pandas as pd
 
+from tests.utils import bool_dataframe_1
+
 
 @pytest.mark.parametrize(
     ("reduction", "expected_data"),
@@ -10,9 +12,11 @@ import pandas as pd
     ],
 )
 def test_reductions(
-    reduction: str, expected_data: dict[str, object], bool_dataframe_1
+    library: str,
+    reduction: str,
+    expected_data: dict[str, object],
 ) -> None:
-    df = bool_dataframe_1
+    df = bool_dataframe_1(library)
     result = getattr(df, reduction)()
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)
     expected = pd.DataFrame(expected_data)
