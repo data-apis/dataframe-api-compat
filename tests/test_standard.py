@@ -6,8 +6,6 @@ from typing import Any, Callable
 import pytest
 import pandas as pd
 import polars as pl
-import dataframe_api_compat.pandas_standard
-import dataframe_api_compat.polars_standard
 
 from tests.utils import (
     integer_dataframe_1,
@@ -24,64 +22,11 @@ from tests.utils import (
     bool_dataframe_2,
     bool_dataframe_3,
     bool_dataframe_4,
+    convert_series_to_pandas_numpy,
+    convert_dataframe_to_pandas_numpy,
+    convert_to_standard_compliant_column,
+    convert_to_standard_compliant_dataframe,
 )
-
-
-def convert_to_standard_compliant_dataframe(df: pd.DataFrame | pl.DataFrame) -> Any:
-    # todo: type return
-    if isinstance(df, pd.DataFrame):
-        return (
-            dataframe_api_compat.pandas_standard.convert_to_standard_compliant_dataframe(
-                df
-            )
-        )
-    elif isinstance(df, pl.DataFrame):
-        return (
-            dataframe_api_compat.polars_standard.convert_to_standard_compliant_dataframe(
-                df
-            )
-        )
-    else:
-        raise AssertionError(f"Got unexpected type: {type(df)}")
-
-
-def convert_to_standard_compliant_column(ser: pd.Series[Any] | pl.Series) -> Any:
-    # todo: type return
-    if isinstance(ser, pd.Series):
-        return dataframe_api_compat.pandas_standard.convert_to_standard_compliant_column(
-            ser
-        )
-    elif isinstance(ser, pl.Series):
-        return dataframe_api_compat.polars_standard.convert_to_standard_compliant_column(
-            ser
-        )
-    else:
-        raise AssertionError(f"Got unexpected type: {type(ser)}")
-
-
-def convert_dataframe_to_pandas_numpy(df: pd.DataFrame) -> pd.DataFrame:
-    conversions = {
-        "boolean": "bool",
-        "Int64": "int64",
-        "Float64": "float64",
-    }
-    for nullable, numpy in conversions.items():
-        df = df.astype({key: numpy for key in df.columns[df.dtypes == nullable]})
-    return df
-
-
-def convert_series_to_pandas_numpy(ser: pd.Series) -> pd.Series:  # type: ignore[type-arg]
-    conversions = {
-        "boolean": "bool",
-        "Int64": "int64",
-        "Int32": "int32",
-        "Float64": "float64",
-        "Float32": "float32",
-    }
-    for nullable, numpy in conversions.items():
-        if ser.dtype == nullable:
-            ser = ser.astype(numpy)  # type: ignore[call-overload]
-    return ser
 
 
 def integer_series_1(library: str) -> Any:
