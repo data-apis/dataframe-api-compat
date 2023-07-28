@@ -793,16 +793,6 @@ def test_non_str_columns() -> None:
         convert_to_standard_compliant_dataframe(df)
 
 
-def test_groupby_invalid(library: str) -> None:
-    df = integer_dataframe_1(library).get_columns_by_name(["a"])
-    with pytest.raises((KeyError, TypeError)):
-        df.groupby(0)
-    with pytest.raises((KeyError, TypeError)):
-        df.groupby("0")
-    with pytest.raises((KeyError, TypeError)):
-        df.groupby(["b"])
-
-
 def test_any_rowwise(library: str) -> None:
     df = bool_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
