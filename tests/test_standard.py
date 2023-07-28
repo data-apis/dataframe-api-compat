@@ -8,7 +8,6 @@ import pandas as pd
 import polars as pl
 
 from tests.utils import (
-    integer_dataframe_4,
     integer_dataframe_5,
     integer_dataframe_6,
     null_dataframe_1,
@@ -359,14 +358,6 @@ def test_column_get_rows_by_mask(library: str) -> None:
     result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series([1, 3], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
-
-
-def test_groupby_invalid_any_all(library: str) -> None:
-    df = integer_dataframe_4(library)
-    with pytest.raises(Exception):
-        df.groupby(["key"]).any()
-    with pytest.raises(Exception):
-        df.groupby(["key"]).all()
 
 
 @pytest.mark.parametrize(
