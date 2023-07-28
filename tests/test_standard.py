@@ -582,15 +582,6 @@ def test_column_is_null_2(library: str, request: pytest.FixtureRequest) -> None:
     pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_concat_mismatch(library: str) -> None:
-    df1 = integer_dataframe_1(library)
-    df2 = integer_dataframe_4(library)
-    namespace = df1.__dataframe_namespace__()
-    # todo check the error
-    with pytest.raises((ValueError, pl.exceptions.ShapeError)):
-        namespace.concat([df1, df2]).dataframe
-
-
 @pytest.mark.parametrize(
     ("ser_factory", "other_factory", "expected_values"),
     [
@@ -800,15 +791,6 @@ def test_non_str_columns() -> None:
         match=r"Expected column names to be of type str, got 0 of type <class 'int'>",
     ):
         convert_to_standard_compliant_dataframe(df)
-
-
-def test_comparison_invalid(library: str) -> None:
-    df = integer_dataframe_1(library).get_columns_by_name(["a"])
-    other = integer_dataframe_1(library).get_columns_by_name(["b"])
-    with pytest.raises(
-        (ValueError, pl.exceptions.DuplicateError),
-    ):
-        df > other
 
 
 def test_groupby_invalid(library: str) -> None:

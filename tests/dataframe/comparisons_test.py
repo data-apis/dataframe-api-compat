@@ -1,4 +1,5 @@
 import pytest
+import polars as pl
 import pandas as pd
 from tests.utils import (
     integer_dataframe_1,
@@ -65,3 +66,12 @@ def test_comparisons_with_scalar(
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame(expected_data)
     pd.testing.assert_frame_equal(result_pd, expected)
+
+
+def test_comparison_invalid(library: str) -> None:
+    df = integer_dataframe_1(library).get_columns_by_name(["a"])
+    other = integer_dataframe_1(library).get_columns_by_name(["b"])
+    with pytest.raises(
+        (ValueError, pl.exceptions.DuplicateError),
+    ):
+        df > other
