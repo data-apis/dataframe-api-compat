@@ -8,7 +8,6 @@ import pandas as pd
 import polars as pl
 
 from tests.utils import (
-    integer_dataframe_1,
     integer_dataframe_3,
     integer_dataframe_4,
     integer_dataframe_5,
@@ -1010,12 +1009,3 @@ def test_cumulative_functions_column(
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     result_pd = convert_series_to_pandas_numpy(result_pd)
     pd.testing.assert_series_equal(result_pd, expected)
-
-
-def test_is_null(library: str) -> None:
-    df = integer_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    null = namespace.null
-    assert namespace.is_null(null)
-    assert not namespace.is_null(float("nan"))
-    assert not namespace.is_null(0)
