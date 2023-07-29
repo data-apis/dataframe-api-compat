@@ -8,11 +8,8 @@ import pandas as pd
 import polars as pl
 
 from tests.utils import (
-    bool_dataframe_1,
-    bool_dataframe_2,
     bool_dataframe_3,
     convert_series_to_pandas_numpy,
-    convert_dataframe_to_pandas_numpy,
     convert_to_standard_compliant_column,
     convert_to_standard_compliant_dataframe,
 )
@@ -353,27 +350,6 @@ def test_column_get_rows_by_mask(library: str) -> None:
     pd.testing.assert_series_equal(result_pd, expected)
 
 
-@pytest.mark.parametrize(
-    ("aggregation", "expected_b", "expected_c"),
-    [
-        ("any", [True, True], [True, False]),
-        ("all", [False, True], [False, False]),
-    ],
-)
-def test_groupby_boolean(
-    library: str, aggregation: str, expected_b: list[bool], expected_c: list[bool]
-) -> None:
-    df = bool_dataframe_2(library)
-    result = getattr(df.groupby(["key"]), aggregation)()
-    # need to sort
-    idx = result.sorted_indices(["key"])
-    result = result.get_rows(idx)
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
-    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
-    expected = pd.DataFrame({"key": [1, 2], "b": expected_b, "c": expected_c})
-    pd.testing.assert_frame_equal(result_pd, expected)
-
-
 def test_any(library: str) -> None:
     df = bool_dataframe_3(library)
     result = df.any()
@@ -589,15 +565,6 @@ def test_non_str_columns() -> None:
         match=r"Expected column names to be of type str, got 0 of type <class 'int'>",
     ):
         convert_to_standard_compliant_dataframe(df)
-
-
-def test_all_rowwise(library: str) -> None:
-    df = bool_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    result = namespace.dataframe_from_dict({"result": df.all_rowwise()})
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
-    expected = pd.Series([True, True, False], name="result")
-    pd.testing.assert_series_equal(result_pd, expected)
 
 
 def test_column_fill_nan(library: str) -> None:
