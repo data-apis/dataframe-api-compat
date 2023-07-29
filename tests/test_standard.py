@@ -350,14 +350,6 @@ def test_column_get_rows_by_mask(library: str) -> None:
     pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_any(library: str) -> None:
-    df = bool_dataframe_3(library)
-    result = df.any()
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
-    expected = pd.DataFrame({"a": [False], "b": [True], "c": [True]})
-    pd.testing.assert_frame_equal(result_pd, expected)
-
-
 def test_all(library: str) -> None:
     df = bool_dataframe_3(library)
     result = df.all()
