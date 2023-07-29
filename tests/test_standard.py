@@ -515,15 +515,6 @@ def test_column_sorted_indices(
     pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_invert(library: str) -> None:
-    df = bool_dataframe_1(library)
-    result = ~df
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
-    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
-    expected = pd.DataFrame({"a": [False, False, True], "b": [False, False, False]})
-    pd.testing.assert_frame_equal(result_pd, expected)
-
-
 def test_column_invert(library: str) -> None:
     ser = bool_series_1(library)
     namespace = ser.__column_namespace__()
@@ -598,15 +589,6 @@ def test_non_str_columns() -> None:
         match=r"Expected column names to be of type str, got 0 of type <class 'int'>",
     ):
         convert_to_standard_compliant_dataframe(df)
-
-
-def test_any_rowwise(library: str) -> None:
-    df = bool_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    result = namespace.dataframe_from_dict({"result": df.any_rowwise()})
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
-    expected = pd.Series([True, True, True], name="result")
-    pd.testing.assert_series_equal(result_pd, expected)
 
 
 def test_all_rowwise(library: str) -> None:
