@@ -30,3 +30,11 @@ def test_any(library: str) -> None:
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)
     expected = pd.DataFrame({"a": [False], "b": [True], "c": [True]})
     pd.testing.assert_frame_equal(result_pd, expected)
+
+
+def test_all(library: str) -> None:
+    df = bool_dataframe_3(library)
+    result = df.all()
+    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    expected = pd.DataFrame({"a": [False], "b": [False], "c": [True]})
+    pd.testing.assert_frame_equal(result_pd, expected)

@@ -8,7 +8,6 @@ import pandas as pd
 import polars as pl
 
 from tests.utils import (
-    bool_dataframe_3,
     convert_series_to_pandas_numpy,
     convert_to_standard_compliant_column,
     convert_to_standard_compliant_dataframe,
@@ -348,14 +347,6 @@ def test_column_get_rows_by_mask(library: str) -> None:
     result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series([1, 3], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
-
-
-def test_all(library: str) -> None:
-    df = bool_dataframe_3(library)
-    result = df.all()
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
-    expected = pd.DataFrame({"a": [False], "b": [False], "c": [True]})
-    pd.testing.assert_frame_equal(result_pd, expected)
 
 
 def test_column_any(library: str) -> None:
