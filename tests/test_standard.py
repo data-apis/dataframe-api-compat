@@ -8,7 +8,6 @@ import pandas as pd
 import polars as pl
 
 from tests.utils import (
-    nan_dataframe_1,
     bool_dataframe_1,
     bool_dataframe_2,
     bool_dataframe_3,
@@ -392,26 +391,6 @@ def test_all(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_and(library: str) -> None:
-    df = bool_dataframe_1(library)
-    other = bool_dataframe_4(library)
-    result = df & other
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
-    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
-    expected = pd.DataFrame({"a": [False, True, False], "b": [True, True, True]})
-    pd.testing.assert_frame_equal(result_pd, expected)
-
-
-def test_and_with_scalar(library: str) -> None:
-    df = bool_dataframe_1(library)
-    other = True
-    result = df & other
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
-    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
-    expected = pd.DataFrame({"a": [True, True, False], "b": [True, True, True]})
-    pd.testing.assert_frame_equal(result_pd, expected)
-
-
 def test_or(library: str) -> None:
     df = bool_dataframe_1(library)
     other = bool_dataframe_4(library)
@@ -764,13 +743,6 @@ def test_column_names(library: str) -> None:
     )
     with pytest.raises(ValueError):
         namespace.dataframe_from_dict({"result": ser})
-
-
-def test_fill_null_noop(library: str) -> None:
-    df = nan_dataframe_1(library)
-    result = df.fill_null(0)
-    # nan should not have changed!
-    assert result.dataframe["a"][2] != result.dataframe["a"][2]
 
 
 def test_fill_null_noop_column(library: str) -> None:

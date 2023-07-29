@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 from tests.utils import null_dataframe_2
+from tests.utils import nan_dataframe_1
 
 
 @pytest.mark.parametrize(
@@ -37,3 +38,10 @@ def test_fill_null(
         assert result.dataframe["b"][2] == 0.0
     else:
         raise AssertionError()
+
+
+def test_fill_null_noop(library: str) -> None:
+    df = nan_dataframe_1(library)
+    result = df.fill_null(0)
+    # nan should not have changed!
+    assert result.dataframe["a"][2] != result.dataframe["a"][2]
