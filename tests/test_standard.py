@@ -8,7 +8,6 @@ import pandas as pd
 import polars as pl
 
 from tests.utils import (
-    null_dataframe_2,
     nan_dataframe_1,
     bool_dataframe_1,
     bool_dataframe_2,
@@ -782,22 +781,6 @@ def test_column_names(library: str) -> None:
     )
     with pytest.raises(ValueError):
         namespace.dataframe_from_dict({"result": ser})
-
-
-def test_fill_null_column(
-    library: str,
-    request: pytest.FixtureRequest,
-) -> None:
-    df = null_dataframe_2(library, request).get_column_by_name("a")
-    result = df.fill_null(0)
-    # friggin' impossible to test this due to pandas inconsistencies
-    # with handling nan and null
-    if library == "polars":
-        assert result.column[2] == 0.0
-        assert result.column[2] == 0.0
-    else:
-        assert result.column[2] == 0.0
-        assert result.column[2] == 0.0
 
 
 def test_fill_null_noop(library: str) -> None:
