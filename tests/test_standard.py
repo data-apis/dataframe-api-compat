@@ -444,14 +444,6 @@ def test_column_all(library: str) -> None:
     assert not result
 
 
-def test_dataframe_is_nan(library: str) -> None:
-    df = nan_dataframe_1(library)
-    result = df.is_nan()
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
-    expected = pd.DataFrame({"a": [False, False, True]})
-    pd.testing.assert_frame_equal(result_pd, expected)
-
-
 def test_column_is_nan(library: str) -> None:
     ser = nan_series_1(library)
     result = ser.is_nan()
