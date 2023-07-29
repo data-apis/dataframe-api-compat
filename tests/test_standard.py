@@ -8,10 +8,8 @@ import pandas as pd
 import polars as pl
 
 from tests.utils import (
-    null_dataframe_1,
     null_dataframe_2,
     nan_dataframe_1,
-    nan_dataframe_2,
     bool_dataframe_1,
     bool_dataframe_2,
     bool_dataframe_3,
@@ -463,22 +461,6 @@ def test_column_is_nan(library: str) -> None:
     result_pd = pd.api.interchange.from_dataframe(result_df.dataframe)["result"]
     expected = pd.Series([False, False, True], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
-
-
-def test_is_null_1(library: str) -> None:
-    df = nan_dataframe_2(library)
-    result = df.is_null().dataframe
-    result_pd = pd.api.interchange.from_dataframe(result)
-    expected = pd.DataFrame({"a": [False, False, False]})
-    pd.testing.assert_frame_equal(result_pd, expected)
-
-
-def test_is_null_2(library: str, request: pytest.FixtureRequest) -> None:
-    df = null_dataframe_1(library, request)
-    result = df.is_null().dataframe
-    result_pd = pd.api.interchange.from_dataframe(result)
-    expected = pd.DataFrame({"a": [False, False, True]})
-    pd.testing.assert_frame_equal(result_pd, expected)
 
 
 def test_column_is_null_1(library: str) -> None:

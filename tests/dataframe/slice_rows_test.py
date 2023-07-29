@@ -1,3 +1,4 @@
+from __future__ import annotations
 import pytest
 import pandas as pd
 from tests.utils import integer_dataframe_3, convert_dataframe_to_pandas_numpy
