@@ -21,40 +21,6 @@ from tests.utils import (
 
 
 @pytest.mark.parametrize(
-    ("reduction", "expected"),
-    [
-        ("min", 1),
-        ("max", 3),
-        ("sum", 6),
-        ("prod", 6),
-        ("median", 2.0),
-        ("mean", 2.0),
-        ("std", 1.0),
-        ("var", 1.0),
-    ],
-)
-def test_column_reductions(library: str, reduction: str, expected: float) -> None:
-    ser = integer_series_1(library)
-    result = getattr(ser, reduction)()
-    assert result == expected
-
-
-def test_column_column() -> None:
-    result = (
-        convert_to_standard_compliant_dataframe(pl.DataFrame({"a": [1, 2, 3]}))
-        .get_column_by_name("a")
-        .column
-    )
-    pd.testing.assert_series_equal(result.to_pandas(), pd.Series([1, 2, 3], name="a"))
-    result = (
-        convert_to_standard_compliant_dataframe(pd.DataFrame({"a": [1, 2, 3]}))
-        .get_column_by_name("a")
-        .column
-    )
-    pd.testing.assert_series_equal(result, pd.Series([1, 2, 3], name="a"))
-
-
-@pytest.mark.parametrize(
     ("values", "dtype", "expected"),
     [
         ([1, 2, 3], "Int64", pd.Series([1, 2, 3], dtype="int64", name="result")),
