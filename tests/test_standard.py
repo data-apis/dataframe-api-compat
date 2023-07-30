@@ -20,50 +20,6 @@ from tests.utils import (
 )
 
 
-def test_unique_indices_column(library: str) -> None:
-    ser = integer_series_5(library)
-    namespace = ser.__column_namespace__()
-    ser = ser.get_rows(ser.unique_indices())
-    ser = ser.get_rows(ser.sorted_indices())
-    result = namespace.dataframe_from_dict({"result": ser})
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
-    result_pd = convert_series_to_pandas_numpy(result_pd)
-    expected = pd.Series([1, 4], name="result")
-    pd.testing.assert_series_equal(result_pd, expected)
-
-
-def test_mean(library: str) -> None:
-    result = integer_series_5(library).mean()
-    assert result == 2.0
-
-
-def test_std(library: str) -> None:
-    result = integer_series_5(library).std()
-    assert abs(result - 1.7320508075688772) < 1e-8
-
-
-@pytest.mark.parametrize(
-    ("ascending", "expected_data"),
-    [
-        (True, [0, 2, 1]),
-        (False, [1, 2, 0]),
-    ],
-)
-def test_column_sorted_indices(
-    library: str, ascending: bool, expected_data: list[int]
-) -> None:
-    ser = integer_series_6(library)
-    namespace = ser.__column_namespace__()
-    result = namespace.dataframe_from_dict(
-        {"result": ser.sorted_indices(ascending=ascending)}
-    )
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
-    # TODO standardise return type?
-    result_pd = result_pd.astype("int64")
-    expected = pd.Series(expected_data, name="result")
-    pd.testing.assert_series_equal(result_pd, expected)
-
-
 def test_column_invert(library: str) -> None:
     ser = bool_series_1(library)
     namespace = ser.__column_namespace__()
