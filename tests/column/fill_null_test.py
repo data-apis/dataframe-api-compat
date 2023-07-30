@@ -1,5 +1,5 @@
 import pytest
-from tests.utils import null_dataframe_2
+from tests.utils import null_dataframe_2, nan_series_1
 
 
 def test_fill_null_column(
@@ -16,3 +16,10 @@ def test_fill_null_column(
     else:
         assert result.column[2] == 0.0
         assert result.column[2] == 0.0
+
+
+def test_fill_null_noop_column(library: str) -> None:
+    ser = nan_series_1(library)
+    result = ser.fill_null(0)
+    # nan should not have changed!
+    assert result.column[2] != result.column[2]

@@ -18,10 +18,3 @@ from tests.utils import (
     integer_series_1,
     integer_series_3,
 )
-
-
-def test_fill_null_noop_column(library: str) -> None:
-    ser = nan_series_1(library)
-    result = ser.fill_null(0)
-    # nan should not have changed!
-    assert result.column[2] != result.column[2]
