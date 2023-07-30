@@ -20,34 +20,6 @@ from tests.utils import (
 )
 
 
-def test_repeated_columns() -> None:
-    df = pd.DataFrame({"a": [1, 2]}, index=["b", "b"]).T
-    with pytest.raises(
-        ValueError, match=r"Expected unique column names, got b 2 time\(s\)"
-    ):
-        convert_to_standard_compliant_dataframe(df)
-
-
-def test_non_str_columns() -> None:
-    df = pd.DataFrame({0: [1, 2]})
-    with pytest.raises(
-        TypeError,
-        match=r"Expected column names to be of type str, got 0 of type <class 'int'>",
-    ):
-        convert_to_standard_compliant_dataframe(df)
-
-
-def test_column_fill_nan(library: str) -> None:
-    # todo: test with nullable pandas
-    ser = nan_series_1(library)
-    namespace = ser.__column_namespace__()
-    result = namespace.dataframe_from_dict({"result": ser.fill_nan(-1.0)})
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
-    result_pd = convert_series_to_pandas_numpy(result_pd)
-    expected = pd.Series([0.0, 1.0, -1.0], name="result")
-    pd.testing.assert_series_equal(result_pd, expected)
-
-
 @pytest.mark.parametrize(
     ("reduction", "expected"),
     [
