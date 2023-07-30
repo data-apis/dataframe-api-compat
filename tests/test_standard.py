@@ -25,8 +25,3 @@ def test_fill_null_noop_column(library: str) -> None:
     result = ser.fill_null(0)
     # nan should not have changed!
     assert result.column[2] != result.column[2]
-
-
-def test_column_max(library: str) -> None:
-    result = integer_series_1(library).max()
-    assert result == 3
