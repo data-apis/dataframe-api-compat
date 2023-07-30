@@ -20,11 +20,6 @@ from tests.utils import (
 )
 
 
-def test_column_max(library: str) -> None:
-    result = integer_series_1(library).max()
-    assert result == 3
-
-
 def test_repeated_columns() -> None:
     df = pd.DataFrame({"a": [1, 2]}, index=["b", "b"]).T
     with pytest.raises(
@@ -174,3 +169,8 @@ def test_cumulative_functions_column(
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     result_pd = convert_series_to_pandas_numpy(result_pd)
     pd.testing.assert_series_equal(result_pd, expected)
+
+
+def test_column_max(library: str) -> None:
+    result = integer_series_1(library).max()
+    assert result == 3
