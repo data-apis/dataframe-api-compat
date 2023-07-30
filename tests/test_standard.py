@@ -20,11 +20,6 @@ from tests.utils import (
 )
 
 
-def test_get_value(library: str) -> None:
-    result = integer_series_1(library).get_value(0)
-    assert result == 1
-
-
 def test_unique_indices_column(library: str) -> None:
     ser = integer_series_5(library)
     namespace = ser.__column_namespace__()
