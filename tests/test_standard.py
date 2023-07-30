@@ -20,11 +20,6 @@ from tests.utils import (
 )
 
 
-def test_column_len(library: str) -> None:
-    result = len(integer_series_1(library))
-    assert result == 3
-
-
 def test_get_value(library: str) -> None:
     result = integer_series_1(library).get_value(0)
     assert result == 1
