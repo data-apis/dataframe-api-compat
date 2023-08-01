@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import pytest
 import polars as pl
 import pandas as pd

@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Callable, Any
 import pytest
 import pandas as pd

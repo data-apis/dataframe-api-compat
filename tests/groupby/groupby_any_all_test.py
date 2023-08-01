@@ -1,3 +1,4 @@
+from __future__ import annotations
 import pandas as pd
 from tests.utils import integer_dataframe_4
 from tests.utils import bool_dataframe_2

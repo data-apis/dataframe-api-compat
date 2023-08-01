@@ -1,3 +1,4 @@
+from __future__ import annotations
 import pytest
 from tests.utils import integer_series_1, convert_series_to_pandas_numpy
 import pandas as pd

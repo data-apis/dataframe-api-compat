@@ -1,3 +1,4 @@
+from __future__ import annotations
 import pytest
 from tests.utils import integer_dataframe_5
 import pandas as pd
