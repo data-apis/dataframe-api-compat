@@ -1,3 +1,10 @@
 notes.md
 *.pyc
 .coverage
+.hypothesis
+.ipynb_checkpoints/*
+*.ipynb
+build/*
+dataframe_api_compat.egg-info/*
+dist/*
+repl.sh
