@@ -1,5 +1,6 @@
-from tests.utils import nan_dataframe_1
 import pandas as pd
+
+from tests.utils import nan_dataframe_1
 
 
 def test_dataframe_is_nan(library: str) -> None:

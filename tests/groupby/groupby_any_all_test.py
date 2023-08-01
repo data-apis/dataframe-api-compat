@@ -1,9 +1,14 @@
 from __future__ import annotations
+
 import pandas as pd
-from tests.utils import integer_dataframe_4
-from tests.utils import bool_dataframe_2
-from tests.utils import convert_dataframe_to_pandas_numpy
 import pytest
+from polars.exceptions import SchemaError
+
+from tests.utils import (
+    bool_dataframe_2,
+    convert_dataframe_to_pandas_numpy,
+    integer_dataframe_4,
+)
 
 
 @pytest.mark.parametrize(
@@ -29,7 +34,7 @@ def test_groupby_boolean(
 
 def test_groupby_invalid_any_all(library: str) -> None:
     df = integer_dataframe_4(library)
-    with pytest.raises(Exception):
+    with pytest.raises((ValueError, SchemaError)):
         df.groupby(["key"]).any()
-    with pytest.raises(Exception):
+    with pytest.raises((ValueError, SchemaError)):
         df.groupby(["key"]).all()

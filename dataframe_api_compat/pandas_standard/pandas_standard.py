@@ -1,21 +1,21 @@
 from __future__ import annotations
-import dataframe_api_compat.pandas_standard
-import numpy as np
 
-import pandas as pd
-from pandas.api.types import is_extension_array_dtype
 import collections
 from typing import (
-    Any,
-    Sequence,
-    Mapping,
-    NoReturn,
-    cast,
-    Literal,
     TYPE_CHECKING,
+    Any,
     Generic,
+    Literal,
+    NoReturn,
     TypeVar,
+    cast,
 )
+
+import numpy as np
+import pandas as pd
+from pandas.api.types import is_extension_array_dtype
+
+import dataframe_api_compat.pandas_standard
 
 DType = TypeVar("DType")
 
@@ -36,10 +36,12 @@ _ARRAY_API_DTYPES = frozenset(
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
     from dataframe_api import (
-        DataFrame,
         Bool,
         Column,
+        DataFrame,
         GroupBy,
     )
 else:
@@ -326,7 +328,7 @@ class PandasGroupBy(GroupBy):
             (self.df.drop(columns=self.keys).dtypes == "bool")
             | (self.df.drop(columns=self.keys).dtypes == "boolean")
         ).all():
-            raise NotImplementedError(
+            raise ValueError(
                 "'function' can only be called on DataFrame "
                 "where all dtypes are 'bool'"
             )
@@ -544,86 +546,86 @@ class PandasDataFrame(DataFrame):
     def __ne__(self, other: DataFrame | Any) -> PandasDataFrame:  # type: ignore[override]
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
-            return PandasDataFrame((self.dataframe.__ne__(other.dataframe)))
-        return PandasDataFrame((self.dataframe.__ne__(other)))
+            return PandasDataFrame(self.dataframe.__ne__(other.dataframe))
+        return PandasDataFrame(self.dataframe.__ne__(other))
 
     def __ge__(self, other: DataFrame | Any) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
-            return PandasDataFrame((self.dataframe.__ge__(other.dataframe)))
-        return PandasDataFrame((self.dataframe.__ge__(other)))
+            return PandasDataFrame(self.dataframe.__ge__(other.dataframe))
+        return PandasDataFrame(self.dataframe.__ge__(other))
 
     def __gt__(self, other: DataFrame | Any) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
-            return PandasDataFrame((self.dataframe.__gt__(other.dataframe)))
-        return PandasDataFrame((self.dataframe.__gt__(other)))
+            return PandasDataFrame(self.dataframe.__gt__(other.dataframe))
+        return PandasDataFrame(self.dataframe.__gt__(other))
 
     def __le__(self, other: DataFrame | Any) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
-            return PandasDataFrame((self.dataframe.__le__(other.dataframe)))
-        return PandasDataFrame((self.dataframe.__le__(other)))
+            return PandasDataFrame(self.dataframe.__le__(other.dataframe))
+        return PandasDataFrame(self.dataframe.__le__(other))
 
     def __lt__(self, other: DataFrame | Any) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
-            return PandasDataFrame((self.dataframe.__lt__(other.dataframe)))
-        return PandasDataFrame((self.dataframe.__lt__(other)))
+            return PandasDataFrame(self.dataframe.__lt__(other.dataframe))
+        return PandasDataFrame(self.dataframe.__lt__(other))
 
     def __and__(self, other: DataFrame | Any) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
-            return PandasDataFrame((self.dataframe.__and__(other.dataframe)))
-        return PandasDataFrame((self.dataframe.__and__(other)))
+            return PandasDataFrame(self.dataframe.__and__(other.dataframe))
+        return PandasDataFrame(self.dataframe.__and__(other))
 
     def __or__(self, other: DataFrame | Any) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
-            return PandasDataFrame((self.dataframe.__or__(other.dataframe)))
-        return PandasDataFrame((self.dataframe.__or__(other)))
+            return PandasDataFrame(self.dataframe.__or__(other.dataframe))
+        return PandasDataFrame(self.dataframe.__or__(other))
 
     def __add__(self, other: DataFrame | Any) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
-            return PandasDataFrame((self.dataframe.__add__(other.dataframe)))
-        return PandasDataFrame((self.dataframe.__add__(other)))
+            return PandasDataFrame(self.dataframe.__add__(other.dataframe))
+        return PandasDataFrame(self.dataframe.__add__(other))
 
     def __sub__(self, other: DataFrame | Any) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
-            return PandasDataFrame((self.dataframe.__sub__(other.dataframe)))
-        return PandasDataFrame((self.dataframe.__sub__(other)))
+            return PandasDataFrame(self.dataframe.__sub__(other.dataframe))
+        return PandasDataFrame(self.dataframe.__sub__(other))
 
     def __mul__(self, other: DataFrame | Any) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
-            return PandasDataFrame((self.dataframe.__mul__(other.dataframe)))
-        return PandasDataFrame((self.dataframe.__mul__(other)))
+            return PandasDataFrame(self.dataframe.__mul__(other.dataframe))
+        return PandasDataFrame(self.dataframe.__mul__(other))
 
     def __truediv__(self, other: DataFrame | Any) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
-            return PandasDataFrame((self.dataframe.__truediv__(other.dataframe)))
-        return PandasDataFrame((self.dataframe.__truediv__(other)))
+            return PandasDataFrame(self.dataframe.__truediv__(other.dataframe))
+        return PandasDataFrame(self.dataframe.__truediv__(other))
 
     def __floordiv__(self, other: DataFrame | Any) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
-            return PandasDataFrame((self.dataframe.__floordiv__(other.dataframe)))
-        return PandasDataFrame((self.dataframe.__floordiv__(other)))
+            return PandasDataFrame(self.dataframe.__floordiv__(other.dataframe))
+        return PandasDataFrame(self.dataframe.__floordiv__(other))
 
     def __pow__(self, other: DataFrame | Any) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
-            return PandasDataFrame((self.dataframe.__pow__(other.dataframe)))
-        return PandasDataFrame((self.dataframe.__pow__(other)))
+            return PandasDataFrame(self.dataframe.__pow__(other.dataframe))
+        return PandasDataFrame(self.dataframe.__pow__(other))
 
     def __mod__(self, other: DataFrame | Any) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
-            return PandasDataFrame((self.dataframe.__mod__(other.dataframe)))
-        return PandasDataFrame((self.dataframe.__mod__(other)))
+            return PandasDataFrame(self.dataframe.__mod__(other.dataframe))
+        return PandasDataFrame(self.dataframe.__mod__(other))
 
     def __divmod__(
         self,

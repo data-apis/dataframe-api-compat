@@ -1,11 +1,13 @@
 from __future__ import annotations
-import pytest
-import polars as pl
+
 import pandas as pd
+import polars as pl
+import pytest
+
 from tests.utils import (
+    convert_dataframe_to_pandas_numpy,
     integer_dataframe_1,
     integer_dataframe_2,
-    convert_dataframe_to_pandas_numpy,
 )
 
 
@@ -75,4 +77,4 @@ def test_comparison_invalid(library: str) -> None:
     with pytest.raises(
         (ValueError, pl.exceptions.DuplicateError),
     ):
-        df > other
+        assert df > other

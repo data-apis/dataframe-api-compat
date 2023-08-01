@@ -1,5 +1,6 @@
-from tests.utils import bool_dataframe_1
 import pandas as pd
+
+from tests.utils import bool_dataframe_1
 
 
 def test_all_rowwise(library: str) -> None:

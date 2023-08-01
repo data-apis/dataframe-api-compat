@@ -1,7 +1,8 @@
 import pandas as pd
+
 from tests.utils import (
-    integer_dataframe_1,
     convert_dataframe_to_pandas_numpy,
+    integer_dataframe_1,
     integer_dataframe_2,
 )
 

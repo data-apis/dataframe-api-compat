@@ -1,6 +1,6 @@
 import pandas as pd
-from tests.utils import integer_series_1
-from tests.utils import convert_series_to_pandas_numpy
+
+from tests.utils import convert_series_to_pandas_numpy, integer_series_1
 
 
 def test_column_get_rows(library: str) -> None:

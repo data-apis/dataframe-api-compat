@@ -1,5 +1,6 @@
-import pytest
 import pandas as pd
+import pytest
+
 from tests.utils import integer_dataframe_1
 
 

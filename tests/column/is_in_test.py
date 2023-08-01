@@ -1,13 +1,21 @@
 from __future__ import annotations
-from typing import Callable, Any
-import pytest
+
+from typing import TYPE_CHECKING, Any
+
 import pandas as pd
-from tests.utils import float_series_1
-from tests.utils import float_series_2
-from tests.utils import float_series_3
-from tests.utils import float_series_4
-from tests.utils import integer_series_1
-from tests.utils import convert_series_to_pandas_numpy
+import pytest
+
+from tests.utils import (
+    convert_series_to_pandas_numpy,
+    float_series_1,
+    float_series_2,
+    float_series_3,
+    float_series_4,
+    integer_series_1,
+)
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 @pytest.mark.parametrize(

@@ -1,5 +1,6 @@
-from tests.utils import integer_dataframe_4, convert_dataframe_to_pandas_numpy
 import pandas as pd
+
+from tests.utils import convert_dataframe_to_pandas_numpy, integer_dataframe_4
 
 
 def test_groupby_size(library: str) -> None:

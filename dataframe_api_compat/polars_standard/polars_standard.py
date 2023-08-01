@@ -1,19 +1,18 @@
 from __future__ import annotations
-import numpy as np
-import dataframe_api_compat.polars_standard
-import collections
 
+import collections
 from typing import (
-    Any,
-    Sequence,
-    Mapping,
-    NoReturn,
     TYPE_CHECKING,
+    Any,
     Generic,
-    TypeVar,
     Literal,
+    NoReturn,
+    TypeVar,
 )
+
 import polars as pl
+
+import dataframe_api_compat.polars_standard
 
 _ARRAY_API_DTYPES = frozenset(
     (
@@ -33,10 +32,13 @@ _ARRAY_API_DTYPES = frozenset(
 DType = TypeVar("DType")
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
+    import numpy as np
     from dataframe_api import (
-        DataFrame,
         Bool,
         Column,
+        DataFrame,
         GroupBy,
         null,
     )
@@ -54,19 +56,17 @@ else:
 
 def _is_integer_dtype(dtype: Any) -> bool:
     return any(
-        [
-            dtype is _dtype
-            for _dtype in (
-                pl.Int64,
-                pl.Int32,
-                pl.Int16,
-                pl.Int8,
-                pl.UInt64,
-                pl.UInt32,
-                pl.UInt16,
-                pl.UInt8,
-            )
-        ]
+        dtype is _dtype
+        for _dtype in (
+            pl.Int64,
+            pl.Int32,
+            pl.Int16,
+            pl.Int8,
+            pl.UInt64,
+            pl.UInt32,
+            pl.UInt16,
+            pl.UInt8,
+        )
     )
 
 

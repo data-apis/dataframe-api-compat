@@ -1,6 +1,7 @@
 import pandas as pd
 import pytest
-from tests.utils import integer_dataframe_1, convert_dataframe_to_pandas_numpy
+
+from tests.utils import convert_dataframe_to_pandas_numpy, integer_dataframe_1
 
 
 def test_rename_columns(library: str) -> None:

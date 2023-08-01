@@ -1,5 +1,6 @@
-from tests.utils import nan_series_1
 import pandas as pd
+
+from tests.utils import nan_series_1
 
 
 def test_column_is_nan(library: str) -> None:

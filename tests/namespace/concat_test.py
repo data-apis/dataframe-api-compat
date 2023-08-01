@@ -1,11 +1,12 @@
 import pandas as pd
-import pytest
 import polars as pl
+import pytest
+
 from tests.utils import (
+    convert_dataframe_to_pandas_numpy,
     integer_dataframe_1,
     integer_dataframe_2,
     integer_dataframe_4,
-    convert_dataframe_to_pandas_numpy,
 )
 
 
@@ -26,4 +27,4 @@ def test_concat_mismatch(library: str) -> None:
     namespace = df1.__dataframe_namespace__()
     # todo check the error
     with pytest.raises((ValueError, pl.exceptions.ShapeError)):
-        namespace.concat([df1, df2]).dataframe
+        _ = namespace.concat([df1, df2]).dataframe

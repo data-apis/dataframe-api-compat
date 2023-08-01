@@ -1,6 +1,8 @@
+from typing import Any
+
 import pandas as pd
 import polars as pl
-from typing import Any
+
 import dataframe_api_compat
 
 

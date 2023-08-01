@@ -1,5 +1,6 @@
-from tests.utils import integer_series_1
 import pytest
+
+from tests.utils import integer_series_1
 
 
 def test_column_names(library: str) -> None:

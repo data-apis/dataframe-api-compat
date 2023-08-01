@@ -1,6 +1,7 @@
-from tests.utils import nan_dataframe_2, null_dataframe_1
 import pandas as pd
 import pytest
+
+from tests.utils import nan_dataframe_2, null_dataframe_1
 
 
 def test_is_null_1(library: str) -> None:

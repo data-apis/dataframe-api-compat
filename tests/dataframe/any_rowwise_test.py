@@ -1,4 +1,5 @@
 import pandas as pd
+
 from tests.utils import bool_dataframe_1
 
 

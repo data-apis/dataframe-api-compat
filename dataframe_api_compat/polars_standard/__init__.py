@@ -1,12 +1,17 @@
 from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
+import polars as pl
+
 from dataframe_api_compat.polars_standard.polars_standard import (
-    PolarsDataFrame,
     PolarsColumn,
+    PolarsDataFrame,
     PolarsGroupBy,
 )
 
-import polars as pl
-from typing import Any, Sequence
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 Column = PolarsColumn
 DataFrame = PolarsDataFrame

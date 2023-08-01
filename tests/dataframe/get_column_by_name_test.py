@@ -1,6 +1,7 @@
 import pandas as pd
 import pytest
-from tests.utils import integer_dataframe_1, convert_series_to_pandas_numpy
+
+from tests.utils import convert_series_to_pandas_numpy, integer_dataframe_1
 
 
 def test_get_column_by_name(library: str) -> None:

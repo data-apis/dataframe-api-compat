@@ -1,4 +1,5 @@
 import pytest
+
 from tests.utils import integer_series_1
 
 

@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 
-import pytest
 import pandas as pd
 import polars as pl
+import pytest
+
 import dataframe_api_compat.pandas_standard
 import dataframe_api_compat.polars_standard
 

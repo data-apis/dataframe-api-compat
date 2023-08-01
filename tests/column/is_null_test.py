@@ -1,7 +1,7 @@
-import pytest
 import pandas as pd
-from tests.utils import null_series_1
-from tests.utils import nan_series_1
+import pytest
+
+from tests.utils import nan_series_1, null_series_1
 
 
 def test_column_is_null_1(library: str) -> None:

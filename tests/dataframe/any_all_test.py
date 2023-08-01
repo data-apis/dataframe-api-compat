@@ -1,9 +1,9 @@
 from __future__ import annotations
-import pytest
-import pandas as pd
 
-from tests.utils import bool_dataframe_1
-from tests.utils import bool_dataframe_3
+import pandas as pd
+import pytest
+
+from tests.utils import bool_dataframe_1, bool_dataframe_3
 
 
 @pytest.mark.parametrize(

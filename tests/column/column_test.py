@@ -1,6 +1,7 @@
-from dataframe_api_compat.polars_standard import convert_to_standard_compliant_dataframe
 import pandas as pd
 import polars as pl
+
+from dataframe_api_compat.polars_standard import convert_to_standard_compliant_dataframe
 
 
 def test_column_column() -> None:

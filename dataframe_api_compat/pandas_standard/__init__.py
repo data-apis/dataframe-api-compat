@@ -1,15 +1,20 @@
 from __future__ import annotations
-from dataframe_api_compat.pandas_standard.pandas_standard import (
-    PandasDataFrame,
-    PandasColumn,
-    PandasGroupBy,
-)
-import pandas as pd
 
 from typing import (
+    TYPE_CHECKING,
     Any,
-    Sequence,
 )
+
+import pandas as pd
+
+from dataframe_api_compat.pandas_standard.pandas_standard import (
+    PandasColumn,
+    PandasDataFrame,
+    PandasGroupBy,
+)
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 Column = PandasColumn
 DataFrame = PandasDataFrame

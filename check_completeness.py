@@ -1,11 +1,10 @@
-"""
-PYTHONPATH=../dataframe-api/spec/API_specification/ python check_completeness.py
-"""
+"""PYTHONPATH=../dataframe-api/spec/API_specification/ python check_completeness.py."""
 
 import dataframe_api
-from dataframe_api_compat import pandas_standard, polars_standard
 import pandas as pd
 import polars as pl
+
+from dataframe_api_compat import pandas_standard, polars_standard
 
 # dataframe
 spec = dataframe_api.DataFrame().__dir__()

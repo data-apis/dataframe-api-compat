@@ -1,6 +1,6 @@
 import pandas as pd
-from tests.utils import bool_series_1
-from tests.utils import convert_series_to_pandas_numpy
+
+from tests.utils import bool_series_1, convert_series_to_pandas_numpy
 
 
 def test_column_invert(library: str) -> None:

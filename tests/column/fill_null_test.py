@@ -1,5 +1,6 @@
 import pytest
-from tests.utils import null_dataframe_2, nan_series_1
+
+from tests.utils import nan_series_1, null_dataframe_2
 
 
 def test_fill_null_column(
