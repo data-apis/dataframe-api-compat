@@ -1,4 +1,5 @@
 from __future__ import annotations
+import numpy as np
 import dataframe_api_compat.polars_standard
 import collections
 
@@ -14,6 +15,21 @@ from typing import (
 )
 import polars as pl
 
+_ARRAY_API_DTYPES = frozenset(
+    (
+        "bool",
+        "int8",
+        "int16",
+        "int32",
+        "int64",
+        "uint8",
+        "uint16",
+        "uint32",
+        "uint64",
+        "float32",
+        "float64",
+    )
+)
 DType = TypeVar("DType")
 
 if TYPE_CHECKING:
@@ -281,6 +297,13 @@ class PolarsColumn(Column[DType]):
 
     def cumulative_min(self, *, skip_nulls: bool = True) -> PolarsColumn[DType]:
         return PolarsColumn(self.column.cummin())
+
+    def to_array_object(self, dtype: str) -> np.ndarray:
+        if dtype not in _ARRAY_API_DTYPES:
+            raise ValueError(
+                f"Invalid dtype {dtype}. Expected one of {_ARRAY_API_DTYPES}"
+            )
+        return self.column.to_numpy().astype(dtype)
 
 
 class PolarsGroupBy(GroupBy):
@@ -639,3 +662,10 @@ class PolarsDataFrame(DataFrame):
             pl.col(col).fill_null(value) for col in column_names
         )
         return PolarsDataFrame(df)
+
+    def to_array_object(self, dtype: str) -> np.ndarray:
+        if dtype not in _ARRAY_API_DTYPES:
+            raise ValueError(
+                f"Invalid dtype {dtype}. Expected one of {_ARRAY_API_DTYPES}"
+            )
+        return self.dataframe.to_numpy().astype(dtype)

@@ -19,6 +19,22 @@ from typing import (
 
 DType = TypeVar("DType")
 
+_ARRAY_API_DTYPES = frozenset(
+    (
+        "bool",
+        "int8",
+        "int16",
+        "int32",
+        "int64",
+        "uint8",
+        "uint16",
+        "uint32",
+        "uint64",
+        "float32",
+        "float64",
+    )
+)
+
 if TYPE_CHECKING:
     from dataframe_api import (
         DataFrame,
@@ -277,6 +293,13 @@ class PandasColumn(Column[DType]):
 
     def cumulative_min(self, *, skip_nulls: bool = True) -> PandasColumn[DType]:
         return PandasColumn(self.column.cummin())
+
+    def to_array_object(self, dtype: str):
+        if dtype not in _ARRAY_API_DTYPES:
+            raise ValueError(
+                f"Invalid dtype {dtype}. Expected one of {_ARRAY_API_DTYPES}"
+            )
+        return self.column.to_numpy(dtype=dtype)
 
 
 class PandasGroupBy(GroupBy):
@@ -707,3 +730,10 @@ class PandasDataFrame(DataFrame):
             )  # type: ignore[assignment]
             df[column] = col
         return PandasDataFrame(df)
+
+    def to_array_object(self, dtype: str) -> np.ndarray:
+        if dtype not in _ARRAY_API_DTYPES:
+            raise ValueError(
+                f"Invalid dtype {dtype}. Expected one of {_ARRAY_API_DTYPES}"
+            )
+        return self.dataframe.to_numpy(dtype=dtype)
