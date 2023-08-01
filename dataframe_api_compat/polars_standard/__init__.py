@@ -8,6 +8,7 @@ from dataframe_api_compat.polars_standard.polars_standard import (
     PolarsColumn,
     PolarsDataFrame,
     PolarsGroupBy,
+    null,  # noqa: F401
 )
 
 if TYPE_CHECKING:
