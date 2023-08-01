@@ -2,10 +2,15 @@ from __future__ import annotations
 from dataframe_api_compat.polars_standard.polars_standard import (
     PolarsDataFrame,
     PolarsColumn,
+    PolarsGroupBy,
 )
 
 import polars as pl
 from typing import Any, Sequence
+
+Column = PolarsColumn
+DataFrame = PolarsDataFrame
+GroupBy = PolarsGroupBy
 
 
 class Int64:

@@ -47,9 +47,6 @@ for i in spec:
 # namespace
 exclude = {
     "Mapping",
-    "Column",
-    "DataFrame",
-    "GroupBy",
     "column_object",
     "dataframe_object",
     "groupby_object",

@@ -1,11 +1,29 @@
+import pandas as pd
 import polars as pl
-from datetime import date
+from typing import Any
+import dataframe_api_compat
 
-df = pl.DataFrame(
-    {
-        "date": pl.date_range(date(2020, 10, 30), date(2021, 6, 1), eager=True),
-    }
-)
-df = df.with_columns(values=pl.arange(0, len(df)))
 
-print(df.groupby_dynamic("date", every="3mo").agg(pl.col("values").sum()))
+def convert_to_standard_compliant_dataframe(df: pd.DataFrame | pl.DataFrame) -> Any:
+    # todo: type return
+    if isinstance(df, pd.DataFrame):
+        return (
+            dataframe_api_compat.pandas_standard.convert_to_standard_compliant_dataframe(
+                df
+            )
+        )
+    elif isinstance(df, pl.DataFrame):
+        return (
+            dataframe_api_compat.polars_standard.convert_to_standard_compliant_dataframe(
+                df
+            )
+        )
+    else:
+        raise AssertionError(f"Got unexpected type: {type(df)}")
+
+
+dfpd = pd.DataFrame({"a": [1, 2, 3]})
+dfpl = pl.DataFrame({"a": [1, 2, 3]})
+
+dfpd = convert_to_standard_compliant_dataframe(dfpd)
+dfpl = convert_to_standard_compliant_dataframe(dfpl)

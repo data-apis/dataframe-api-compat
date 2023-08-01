@@ -2,6 +2,7 @@ from __future__ import annotations
 from dataframe_api_compat.pandas_standard.pandas_standard import (
     PandasDataFrame,
     PandasColumn,
+    PandasGroupBy,
 )
 import pandas as pd
 
@@ -9,6 +10,10 @@ from typing import (
     Any,
     Sequence,
 )
+
+Column = PandasColumn
+DataFrame = PandasDataFrame
+GroupBy = PandasGroupBy
 
 
 class Int64:
