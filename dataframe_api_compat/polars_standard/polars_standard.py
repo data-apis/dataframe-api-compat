@@ -585,10 +585,10 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(self.dataframe.select(pl.col("*").all()))
 
     def any_rowwise(self, *, skip_nulls: bool = True) -> PolarsColumn[Bool]:
-        return PolarsColumn(self.dataframe.select(pl.any(pl.col("*")))["any"])
+        return PolarsColumn(self.dataframe.select(pl.any_horizontal(pl.col("*")))["any"])
 
     def all_rowwise(self, *, skip_nulls: bool = True) -> PolarsColumn[Bool]:
-        return PolarsColumn(self.dataframe.select(pl.all(pl.col("*")))["all"])
+        return PolarsColumn(self.dataframe.select(pl.all_horizontal(pl.col("*")))["all"])
 
     def min(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
         return PolarsDataFrame(self.dataframe.select(pl.col("*").min()))
