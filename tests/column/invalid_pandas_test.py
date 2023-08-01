@@ -9,7 +9,7 @@ def test_repeated_columns() -> None:
     with pytest.raises(
         ValueError, match=r"Expected unique column names, got b 2 time\(s\)"
     ):
-        convert_to_standard_compliant_dataframe(df)
+        convert_to_standard_compliant_dataframe(df, "2023.08")
 
 
 def test_non_str_columns() -> None:
@@ -18,4 +18,4 @@ def test_non_str_columns() -> None:
         TypeError,
         match=r"Expected column names to be of type str, got 0 of type <class 'int'>",
     ):
-        convert_to_standard_compliant_dataframe(df)
+        convert_to_standard_compliant_dataframe(df, "2023.08")

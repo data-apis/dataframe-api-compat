@@ -107,11 +107,27 @@ def map_standard_dtype_to_pandas_dtype(dtype: Any) -> Any:
     raise AssertionError(f"Unknown dtype: {dtype}")
 
 
-def convert_to_standard_compliant_dataframe(df: pd.DataFrame) -> PandasDataFrame:
+def convert_to_standard_compliant_dataframe(
+    df: pd.DataFrame, api_version: str | None = None
+) -> PandasDataFrame:
+    if api_version is None:
+        api_version = "2023.08"
+    if api_version != "2023.08":  # pragma: no cover
+        raise ValueError(
+            f"Unknown api_version: {api_version}. Expected: '2023.08', or None"
+        )
     return PandasDataFrame(df)
 
 
-def convert_to_standard_compliant_column(df: pd.Series[Any]) -> PandasColumn[Any]:
+def convert_to_standard_compliant_column(
+    df: pd.Series[Any], api_version: str | None = None
+) -> PandasColumn[Any]:
+    if api_version is None:
+        api_version = "2023.08"
+    if api_version != "2023.08":  # pragma: no cover
+        raise ValueError(
+            f"Unknown api_version: {api_version}. Expected: '2023.08', or None"
+        )
     return PandasColumn(df)
 
 

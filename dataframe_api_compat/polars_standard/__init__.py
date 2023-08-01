@@ -76,8 +76,6 @@ DTYPE_MAP = {
     pl.Boolean: Bool(),
 }
 
-null = None
-
 
 def is_null(value: Any) -> bool:
     return value is None
@@ -123,9 +121,25 @@ def column_from_sequence(
     )
 
 
-def convert_to_standard_compliant_dataframe(df: pl.DataFrame) -> PolarsDataFrame:
+def convert_to_standard_compliant_dataframe(
+    df: pl.DataFrame, api_version: str | None = None
+) -> PolarsDataFrame:
+    if api_version is None:
+        api_version = "2023.08"
+    if api_version != "2023.08":  # pragma: no cover
+        raise ValueError(
+            f"Unknown api_version: {api_version}. Expected: '2023.08', or None"
+        )
     return PolarsDataFrame(df)
 
 
-def convert_to_standard_compliant_column(ser: pl.Series) -> PolarsColumn[Any]:
+def convert_to_standard_compliant_column(
+    ser: pl.Series, api_version: str | None = None
+) -> PolarsColumn[Any]:
+    if api_version is None:
+        api_version = "2023.08"
+    if api_version != "2023.08":  # pragma: no cover
+        raise ValueError(
+            f"Unknown api_version: {api_version}. Expected: '2023.08', or None"
+        )
     return PolarsColumn(ser)

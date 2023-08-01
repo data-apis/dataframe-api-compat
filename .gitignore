@@ -8,3 +8,4 @@ build/*
 dataframe_api_compat.egg-info/*
 dist/*
 repl.sh
+.venv/*

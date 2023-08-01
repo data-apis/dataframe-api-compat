@@ -34,13 +34,11 @@ DType = TypeVar("DType")
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
-    import numpy as np
     from dataframe_api import (
         Bool,
         Column,
         DataFrame,
         GroupBy,
-        null,
     )
 else:
 
@@ -52,6 +50,10 @@ else:
 
     class GroupBy:
         ...
+
+
+null = None
+NullType = type[None]
 
 
 def _is_integer_dtype(dtype: Any) -> bool:
@@ -136,10 +138,11 @@ class PolarsColumn(Column[DType]):
     def is_nan(self) -> PolarsColumn[Bool]:
         return PolarsColumn(self.column.is_nan())
 
-    def any(self, *, skip_nulls: bool = True) -> bool:
+    def any(self, *, skip_nulls: bool = True) -> bool | None:
+        # todo: this is wrong!
         return self.column.any()
 
-    def all(self, *, skip_nulls: bool = True) -> bool:
+    def all(self, *, skip_nulls: bool = True) -> bool | None:
         return self.column.all()
 
     def min(self, *, skip_nulls: bool = True) -> Any:
@@ -280,7 +283,7 @@ class PolarsColumn(Column[DType]):
             df.with_row_count().sort(keys, descending=False)["row_nr"][::-1]
         )
 
-    def fill_nan(self, value: float | null) -> PolarsColumn[DType]:
+    def fill_nan(self, value: float | NullType) -> PolarsColumn[DType]:
         return PolarsColumn(self.column.fill_nan(value))  # type: ignore[arg-type]
 
     def fill_null(self, value: Any) -> PolarsColumn[DType]:
@@ -298,7 +301,7 @@ class PolarsColumn(Column[DType]):
     def cumulative_min(self, *, skip_nulls: bool = True) -> PolarsColumn[DType]:
         return PolarsColumn(self.column.cummin())
 
-    def to_array_object(self, dtype: str) -> np.ndarray:
+    def to_array_object(self, dtype: str) -> Any:
         if dtype not in _ARRAY_API_DTYPES:
             raise ValueError(
                 f"Invalid dtype {dtype}. Expected one of {_ARRAY_API_DTYPES}"
@@ -646,7 +649,7 @@ class PolarsDataFrame(DataFrame):
 
     def fill_nan(
         self,
-        value: float | null,
+        value: float | NullType,
     ) -> PolarsDataFrame:
         return PolarsDataFrame(self.dataframe.fill_nan(value))  # type: ignore[arg-type]
 
@@ -663,7 +666,7 @@ class PolarsDataFrame(DataFrame):
         )
         return PolarsDataFrame(df)
 
-    def to_array_object(self, dtype: str) -> np.ndarray:
+    def to_array_object(self, dtype: str) -> Any:
         if dtype not in _ARRAY_API_DTYPES:
             raise ValueError(
                 f"Invalid dtype {dtype}. Expected one of {_ARRAY_API_DTYPES}"

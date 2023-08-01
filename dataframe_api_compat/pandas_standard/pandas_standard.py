@@ -296,7 +296,7 @@ class PandasColumn(Column[DType]):
     def cumulative_min(self, *, skip_nulls: bool = True) -> PandasColumn[DType]:
         return PandasColumn(self.column.cummin())
 
-    def to_array_object(self, dtype: str):
+    def to_array_object(self, dtype: str) -> Any:
         if dtype not in _ARRAY_API_DTYPES:
             raise ValueError(
                 f"Invalid dtype {dtype}. Expected one of {_ARRAY_API_DTYPES}"
@@ -733,7 +733,7 @@ class PandasDataFrame(DataFrame):
             df[column] = col
         return PandasDataFrame(df)
 
-    def to_array_object(self, dtype: str) -> np.ndarray:
+    def to_array_object(self, dtype: str) -> Any:
         if dtype not in _ARRAY_API_DTYPES:
             raise ValueError(
                 f"Invalid dtype {dtype}. Expected one of {_ARRAY_API_DTYPES}"
