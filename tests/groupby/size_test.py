@@ -4,6 +4,7 @@ import pandas as pd
 
 from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import integer_dataframe_4
+from tests.utils import interchange_to_pandas
 
 
 def test_groupby_size(library: str) -> None:
@@ -12,7 +13,7 @@ def test_groupby_size(library: str) -> None:
     # got to sort
     idx = result.sorted_indices(["key"])
     result = result.get_rows(idx)
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    result_pd = interchange_to_pandas(result, library)
     expected = pd.DataFrame({"key": [1, 2], "size": [2, 2]})
     # TODO polars returns uint32. what do we standardise to?
     result_pd["size"] = result_pd["size"].astype("int64")

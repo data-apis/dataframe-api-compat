@@ -5,6 +5,7 @@ import pytest
 
 from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import integer_dataframe_3
+from tests.utils import interchange_to_pandas
 
 
 @pytest.mark.parametrize(
@@ -25,6 +26,6 @@ def test_slice_rows(
 ) -> None:
     df = integer_dataframe_3(library)
     result = df.slice_rows(start, stop, step)
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     pd.testing.assert_frame_equal(result_pd, expected)

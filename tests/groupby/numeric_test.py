@@ -5,6 +5,7 @@ import pytest
 
 from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import integer_dataframe_4
+from tests.utils import interchange_to_pandas
 
 
 @pytest.mark.parametrize(
@@ -31,7 +32,7 @@ def test_groupby_numeric(
     result = getattr(df.groupby(["key"]), aggregation)()
     sorted_indices = result.sorted_indices(["key"])
     result = result.get_rows(sorted_indices)
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"key": [1, 2], "b": expected_b, "c": expected_c})
     pd.testing.assert_frame_equal(result_pd, expected)

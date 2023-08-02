@@ -6,8 +6,8 @@ from tests.utils import convert_series_to_pandas_numpy
 from tests.utils import integer_series_1
 
 
-def test_column_get_rows_by_mask(library: str) -> None:
-    ser = integer_series_1(library)
+def test_column_get_rows_by_mask(library: str, request) -> None:
+    ser = integer_series_1(library, request)
     namespace = ser.__column_namespace__()
     mask = namespace.column_from_sequence(
         [True, False, True], dtype=namespace.Bool(), name="result"

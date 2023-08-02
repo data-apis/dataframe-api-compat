@@ -7,6 +7,7 @@ from polars.exceptions import SchemaError
 from tests.utils import bool_dataframe_2
 from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import integer_dataframe_4
+from tests.utils import interchange_to_pandas
 
 
 @pytest.mark.parametrize(
@@ -24,7 +25,7 @@ def test_groupby_boolean(
     # need to sort
     idx = result.sorted_indices(["key"])
     result = result.get_rows(idx)
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"key": [1, 2], "b": expected_b, "c": expected_c})
     pd.testing.assert_frame_equal(result_pd, expected)

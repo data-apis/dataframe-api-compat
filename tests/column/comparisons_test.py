@@ -29,11 +29,11 @@ from tests.utils import integer_series_3
     ],
 )
 def test_column_comparisons(
-    library: str, comparison: str, expected_data: list[object]
+    library: str, comparison: str, expected_data: list[object], request
 ) -> None:
     ser: Any
-    ser = integer_series_1(library)
-    other = integer_series_3(library)
+    ser = integer_series_1(library, request)
+    other = integer_series_3(library, request)
     namespace = ser.__column_namespace__()
     result = namespace.dataframe_from_dict(
         {"result": (getattr(ser, comparison)(other)).rename("result")}
@@ -63,10 +63,10 @@ def test_column_comparisons(
     ],
 )
 def test_column_comparisons_scalar(
-    library: str, comparison: str, expected_data: list[object]
+    library: str, comparison: str, expected_data: list[object], request
 ) -> None:
     ser: Any
-    ser = integer_series_1(library)
+    ser = integer_series_1(library, request)
     other = 3
     namespace = ser.__column_namespace__()
     result = namespace.dataframe_from_dict(

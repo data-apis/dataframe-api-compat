@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 
 from tests.utils import integer_dataframe_5
+from tests.utils import interchange_to_pandas
 
 
 @pytest.mark.parametrize(
@@ -23,7 +24,7 @@ def test_sorted_indices(library: str, ascending: bool, expected_data: list[int])
             )
         }
     )
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    result_pd = interchange_to_pandas(result, library)["result"]
     # TODO should we standardise on the return type?
     result_pd = result_pd.astype("int64")
     expected = pd.Series(expected_data, name="result")

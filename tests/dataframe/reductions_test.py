@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 
 from tests.utils import integer_dataframe_1
+from tests.utils import interchange_to_pandas
 
 
 @pytest.mark.parametrize(
@@ -24,5 +25,5 @@ def test_dataframe_reductions(
 ) -> None:
     df = integer_dataframe_1(library)
     result = getattr(df, reduction)()
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    result_pd = interchange_to_pandas(result, library)
     pd.testing.assert_frame_equal(result_pd, expected)

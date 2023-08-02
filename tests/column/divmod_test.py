@@ -7,9 +7,9 @@ from tests.utils import integer_series_1
 from tests.utils import integer_series_3
 
 
-def test_column_divmod(library: str) -> None:
-    ser = integer_series_1(library)
-    other = integer_series_3(library)
+def test_column_divmod(library: str, request) -> None:
+    ser = integer_series_1(library, request)
+    other = integer_series_3(library, request)
     namespace = ser.__column_namespace__()
     result_quotient, result_remainder = ser.__divmod__(other)
     result_quotient_pd = pd.api.interchange.from_dataframe(
@@ -30,8 +30,8 @@ def test_column_divmod(library: str) -> None:
     pd.testing.assert_series_equal(result_remainder_pd, expected_remainder)
 
 
-def test_column_divmod_with_scalar(library: str) -> None:
-    ser = integer_series_1(library)
+def test_column_divmod_with_scalar(library: str, request) -> None:
+    ser = integer_series_1(library, request)
     other = 2
     namespace = ser.__column_namespace__()
     result_quotient, result_remainder = ser.__divmod__(other)

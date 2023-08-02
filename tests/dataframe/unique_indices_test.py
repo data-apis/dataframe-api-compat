@@ -5,6 +5,7 @@ import pytest
 
 from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import integer_dataframe_6
+from tests.utils import interchange_to_pandas
 
 
 @pytest.mark.parametrize(
@@ -22,7 +23,7 @@ def test_unique_indices(
     df = integer_dataframe_6(library)
     df = df.get_rows(df.unique_indices(keys))
     result = df.get_rows(df.sorted_indices(keys))
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)
+    result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame(expected_data)
     pd.testing.assert_frame_equal(result_pd, expected)

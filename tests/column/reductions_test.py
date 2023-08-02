@@ -18,7 +18,9 @@ from tests.utils import integer_series_1
         ("var", 1.0),
     ],
 )
-def test_column_reductions(library: str, reduction: str, expected: float) -> None:
-    ser = integer_series_1(library)
+def test_column_reductions(
+    library: str, reduction: str, expected: float, request
+) -> None:
+    ser = integer_series_1(library, request)
     result = getattr(ser, reduction)()
     assert result == expected
