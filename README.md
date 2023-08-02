@@ -8,7 +8,7 @@
 	<img
 		width="400"
 		alt="standard-compliant DataFrame"
-		src="https://github.com/data-apis/dataframe-api-compat/assets/33491632/fb4bc907-2b85-4ad7-8d13-c2b9912b97f5">
+		src="https://github.com/data-apis/dataframe-api-compat/assets/33491632/2997cb92-fd10-4426-bd41-8dfd1e466ee2">
 </h1>
 
 Implementation of the [DataFrame Standard](https://data-apis.org/dataframe-api/draft/index.html)
