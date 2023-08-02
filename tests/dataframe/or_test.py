@@ -9,7 +9,7 @@ from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import interchange_to_pandas
 
 
-def test_or(library: str, request) -> None:
+def test_or(library: str, request: pytest.FixtureRequest) -> None:
     if library == "polars-lazy":
         request.node.add_marker(pytest.mark.xfail())
     df = bool_dataframe_1(library)
@@ -21,7 +21,7 @@ def test_or(library: str, request) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_or_with_scalar(library: str, request) -> None:
+def test_or_with_scalar(library: str, request: pytest.FixtureRequest) -> None:
     if library == "polars-lazy":
         request.node.add_marker(pytest.mark.xfail())
     df = bool_dataframe_1(library)

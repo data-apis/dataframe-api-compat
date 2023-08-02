@@ -22,7 +22,7 @@ def test_concat(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_concat_mismatch(library: str, request) -> None:
+def test_concat_mismatch(library: str, request: pytest.FixtureRequest) -> None:
     if library == "polars-lazy":
         request.node.add_marker(pytest.mark.xfail())
     df1 = integer_dataframe_1(library)

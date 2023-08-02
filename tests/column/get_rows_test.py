@@ -1,13 +1,18 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pandas as pd
 
 from tests.utils import convert_series_to_pandas_numpy
 from tests.utils import integer_series_1
 from tests.utils import interchange_to_pandas
 
+if TYPE_CHECKING:
+    import pytest
 
-def test_column_get_rows(library: str, request) -> None:
+
+def test_column_get_rows(library: str, request: pytest.FixtureRequest) -> None:
     ser = integer_series_1(library, request)
     namespace = ser.__column_namespace__()
     indices = namespace.column_from_sequence(

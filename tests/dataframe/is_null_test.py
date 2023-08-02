@@ -7,7 +7,7 @@ from tests.utils import nan_dataframe_2
 from tests.utils import null_dataframe_1
 
 
-def test_is_null_1(library: str, request) -> None:
+def test_is_null_1(library: str, request: pytest.FixtureRequest) -> None:
     if library == "polars-lazy":
         request.node.add_marker(pytest.mark.xfail())
     df = nan_dataframe_2(library)

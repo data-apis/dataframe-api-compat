@@ -43,7 +43,7 @@ def test_fill_null(
         raise AssertionError()
 
 
-def test_fill_null_noop(library: str, request) -> None:
+def test_fill_null_noop(library: str, request: pytest.FixtureRequest) -> None:
     if library == "polars-lazy":
         request.node.add_marker(pytest.mark.xfail())
     df = nan_dataframe_1(library)

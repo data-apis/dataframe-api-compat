@@ -18,7 +18,10 @@ from tests.utils import interchange_to_pandas
     ],
 )
 def test_unique_indices(
-    library: str, keys: list[str] | None, expected_data: dict[str, list[int]], request
+    library: str,
+    keys: list[str] | None,
+    expected_data: dict[str, list[int]],
+    request: pytest.FixtureRequest,
 ) -> None:
     if library == "polars-lazy":
         request.node.add_marker(pytest.mark.xfail())

@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     import pytest
 
 
-def test_column_is_null_1(library: str, request) -> None:
+def test_column_is_null_1(library: str, request: pytest.FixtureRequest) -> None:
     ser = nan_series_1(library, request)
     namespace = ser.__column_namespace__()
     result = namespace.dataframe_from_dict({"result": (ser.is_null()).rename("result")})

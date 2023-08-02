@@ -19,7 +19,7 @@ from tests.utils import integer_series_1
     ],
 )
 def test_column_reductions(
-    library: str, reduction: str, expected: float, request
+    library: str, reduction: str, expected: float, request: pytest.FixtureRequest
 ) -> None:
     ser = integer_series_1(library, request)
     result = getattr(ser, reduction)()

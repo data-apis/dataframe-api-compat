@@ -29,7 +29,10 @@ from tests.utils import interchange_to_pandas
     ],
 )
 def test_comparisons(
-    library: str, comparison: str, expected_data: dict[str, object], request
+    library: str,
+    comparison: str,
+    expected_data: dict[str, object],
+    request: pytest.FixtureRequest,
 ) -> None:
     if library == "polars-lazy":
         request.node.add_marker(pytest.mark.xfail())
@@ -61,7 +64,10 @@ def test_comparisons(
     ],
 )
 def test_comparisons_with_scalar(
-    library: str, comparison: str, expected_data: dict[str, object], request
+    library: str,
+    comparison: str,
+    expected_data: dict[str, object],
+    request: pytest.FixtureRequest,
 ) -> None:
     if library == "polars-lazy":
         request.node.add_marker(pytest.mark.xfail())
@@ -74,7 +80,7 @@ def test_comparisons_with_scalar(
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_comparison_invalid(library: str, request) -> None:
+def test_comparison_invalid(library: str, request: pytest.FixtureRequest) -> None:
     if library == "polars-lazy":
         request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_1(library).get_columns_by_name(["a"])

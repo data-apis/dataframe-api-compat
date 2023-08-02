@@ -23,14 +23,18 @@ from tests.utils import integer_series_1
         "float64",
     ],
 )
-def test_column_to_array_object(library: str, dtype: str, request) -> None:
+def test_column_to_array_object(
+    library: str, dtype: str, request: pytest.FixtureRequest
+) -> None:
     ser = integer_series_1(library, request)
     result = np.asarray(ser.to_array_object(dtype=dtype))
     expected = np.array([1, 2, 3], dtype=np.int64)
     np.testing.assert_array_equal(result, expected)
 
 
-def test_column_to_array_object_bool(library: str, request) -> None:
+def test_column_to_array_object_bool(
+    library: str, request: pytest.FixtureRequest
+) -> None:
     dtype = "bool"
     df = bool_series_1(library, request)
     result = np.asarray(df.to_array_object(dtype=dtype))
@@ -38,7 +42,9 @@ def test_column_to_array_object_bool(library: str, request) -> None:
     np.testing.assert_array_equal(result, expected)
 
 
-def test_column_to_array_object_invalid(library: str, request) -> None:
+def test_column_to_array_object_invalid(
+    library: str, request: pytest.FixtureRequest
+) -> None:
     dtype = "object"
     df = integer_dataframe_1(library)
     with pytest.raises(ValueError):

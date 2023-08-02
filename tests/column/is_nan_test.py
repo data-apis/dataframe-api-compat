@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pandas as pd
 
 from tests.utils import nan_series_1
 
+if TYPE_CHECKING:
+    import pytest
 
-def test_column_is_nan(library: str, request) -> None:
+
+def test_column_is_nan(library: str, request: pytest.FixtureRequest) -> None:
     ser = nan_series_1(library, request)
     result = ser.is_nan()
     namespace = ser.__column_namespace__()

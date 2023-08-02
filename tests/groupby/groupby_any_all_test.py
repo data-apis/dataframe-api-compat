@@ -22,7 +22,7 @@ def test_groupby_boolean(
     aggregation: str,
     expected_b: list[bool],
     expected_c: list[bool],
-    request,
+    request: pytest.FixtureRequest,
 ) -> None:
     if library == "polars-lazy":
         request.node.add_marker(pytest.mark.xfail())
@@ -37,7 +37,7 @@ def test_groupby_boolean(
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_groupby_invalid_any_all(library: str, request) -> None:
+def test_groupby_invalid_any_all(library: str, request: pytest.FixtureRequest) -> None:
     if library == "polars-lazy":
         request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_4(library)

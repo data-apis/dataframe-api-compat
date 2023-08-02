@@ -6,7 +6,7 @@ import pytest
 from tests.utils import integer_dataframe_1
 
 
-def test_to_array_object(library: str, request) -> None:
+def test_to_array_object(library: str, request: pytest.FixtureRequest) -> None:
     if library == "polars-lazy":
         request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_1(library)

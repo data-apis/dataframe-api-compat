@@ -30,7 +30,7 @@ def test_groupby_numeric(
     aggregation: str,
     expected_b: list[float],
     expected_c: list[float],
-    request,
+    request: pytest.FixtureRequest,
 ) -> None:
     if library == "polars-lazy":
         request.node.add_marker(pytest.mark.xfail())

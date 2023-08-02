@@ -1,13 +1,18 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pandas as pd
 
 from tests.utils import convert_series_to_pandas_numpy
 from tests.utils import integer_series_1
 from tests.utils import integer_series_3
 
+if TYPE_CHECKING:
+    import pytest
 
-def test_column_divmod(library: str, request) -> None:
+
+def test_column_divmod(library: str, request: pytest.FixtureRequest) -> None:
     ser = integer_series_1(library, request)
     other = integer_series_3(library, request)
     namespace = ser.__column_namespace__()
@@ -30,7 +35,7 @@ def test_column_divmod(library: str, request) -> None:
     pd.testing.assert_series_equal(result_remainder_pd, expected_remainder)
 
 
-def test_column_divmod_with_scalar(library: str, request) -> None:
+def test_column_divmod_with_scalar(library: str, request: pytest.FixtureRequest) -> None:
     ser = integer_series_1(library, request)
     other = 2
     namespace = ser.__column_namespace__()

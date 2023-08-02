@@ -23,7 +23,7 @@ def test_slice_rows(
     stop: int | None,
     step: int | None,
     expected: pd.DataFrame,
-    request,
+    request: pytest.FixtureRequest,
 ) -> None:
     if library == "polars-lazy":
         request.node.add_marker(pytest.mark.xfail())

@@ -33,7 +33,11 @@ from tests.utils import interchange_to_pandas
     ],
 )
 def test_column_from_sequence(
-    library: str, values: list[Any], dtype: str, expected: pd.Series[Any], request
+    library: str,
+    values: list[Any],
+    dtype: str,
+    expected: pd.Series[Any],
+    request: pytest.FixtureRequest,
 ) -> None:
     ser = integer_series_1(library, request)
     namespace = ser.__column_namespace__()

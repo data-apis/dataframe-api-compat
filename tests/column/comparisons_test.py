@@ -29,7 +29,10 @@ from tests.utils import integer_series_3
     ],
 )
 def test_column_comparisons(
-    library: str, comparison: str, expected_data: list[object], request
+    library: str,
+    comparison: str,
+    expected_data: list[object],
+    request: pytest.FixtureRequest,
 ) -> None:
     ser: Any
     ser = integer_series_1(library, request)
@@ -63,7 +66,10 @@ def test_column_comparisons(
     ],
 )
 def test_column_comparisons_scalar(
-    library: str, comparison: str, expected_data: list[object], request
+    library: str,
+    comparison: str,
+    expected_data: list[object],
+    request: pytest.FixtureRequest,
 ) -> None:
     ser: Any
     ser = integer_series_1(library, request)

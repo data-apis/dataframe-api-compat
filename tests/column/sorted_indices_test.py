@@ -15,7 +15,10 @@ from tests.utils import interchange_to_pandas
     ],
 )
 def test_column_sorted_indices(
-    library: str, ascending: bool, expected_data: list[int], request
+    library: str,
+    ascending: bool,
+    expected_data: list[int],
+    request: pytest.FixtureRequest,
 ) -> None:
     ser = integer_series_6(library, request)
     namespace = ser.__column_namespace__()

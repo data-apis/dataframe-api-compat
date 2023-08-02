@@ -24,7 +24,7 @@ def test_column_slice_rows(
     stop: int | None,
     step: int | None,
     expected: pd.Series[Any],
-    request,
+    request: pytest.FixtureRequest,
 ) -> None:
     if library == "polars-lazy":
         request.node.add_marker(pytest.mark.xfail())

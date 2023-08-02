@@ -18,7 +18,7 @@ from tests.utils import interchange_to_pandas
     ],
 )
 def test_cumulative_functions_column(
-    library: str, func: str, expected_data: list[float], request
+    library: str, func: str, expected_data: list[float], request: pytest.FixtureRequest
 ) -> None:
     ser = integer_series_1(library, request)
     namespace = ser.__column_namespace__()

@@ -28,10 +28,10 @@ if TYPE_CHECKING:
 )
 def test_is_in(
     library: str,
-    ser_factory: Callable[[str], Any],
-    other_factory: Callable[[str], Any],
+    ser_factory: Callable[[str, pytest.FixtureRequest], Any],
+    other_factory: Callable[[str, pytest.FixtureRequest], Any],
     expected_values: list[bool],
-    request,
+    request: pytest.FixtureRequest,
 ) -> None:
     other = other_factory(library, request)
     ser = ser_factory(library, request)
@@ -45,7 +45,7 @@ def test_is_in(
     pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_is_in_raises(library: str, request) -> None:
+def test_is_in_raises(library: str, request: pytest.FixtureRequest) -> None:
     ser = float_series_1(library, request)
     other = integer_series_1(library, request)
     with pytest.raises(ValueError):

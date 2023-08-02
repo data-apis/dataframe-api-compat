@@ -15,7 +15,10 @@ from tests.utils import interchange_to_pandas
     ],
 )
 def test_sorted_indices(
-    library: str, ascending: bool, expected_data: list[int], request
+    library: str,
+    ascending: bool,
+    expected_data: list[int],
+    request: pytest.FixtureRequest,
 ) -> None:
     if library == "polars-lazy":
         request.node.add_marker(pytest.mark.xfail())

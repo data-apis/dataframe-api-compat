@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from tests.utils import integer_series_1
 
+if TYPE_CHECKING:
+    import pytest
 
-def test_column_names(library: str, request) -> None:
+
+def test_column_names(library: str, request: pytest.FixtureRequest) -> None:
     # nameless column
     ser = integer_series_1(library, request)
     namespace = ser.__column_namespace__()
