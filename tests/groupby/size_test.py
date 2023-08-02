@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import pandas as pd
+import pytest
 
 from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import integer_dataframe_4
 from tests.utils import interchange_to_pandas
 
 
-def test_groupby_size(library: str) -> None:
+def test_groupby_size(library: str, request) -> None:
+    if library == "polars-lazy":
+        request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_4(library)
     result = df.groupby(["key"]).size()
     # got to sort

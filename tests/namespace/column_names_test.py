@@ -3,9 +3,9 @@ from __future__ import annotations
 from tests.utils import integer_series_1
 
 
-def test_column_names(library: str) -> None:
+def test_column_names(library: str, request) -> None:
     # nameless column
-    ser = integer_series_1(library)
+    ser = integer_series_1(library, request)
     namespace = ser.__column_namespace__()
     result = namespace.dataframe_from_dict({"result": ser})
     assert result.get_column_names() == ["result"]

@@ -23,7 +23,10 @@ def test_slice_rows(
     stop: int | None,
     step: int | None,
     expected: pd.DataFrame,
+    request,
 ) -> None:
+    if library == "polars-lazy":
+        request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_3(library)
     result = df.slice_rows(start, stop, step)
     result_pd = interchange_to_pandas(result, library)

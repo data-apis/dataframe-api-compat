@@ -672,4 +672,6 @@ class PolarsDataFrame(DataFrame):
             raise ValueError(
                 f"Invalid dtype {dtype}. Expected one of {_ARRAY_API_DTYPES}"
             )
+        if isinstance(self.dataframe, pl.LazyFrame):
+            return self.dataframe.collect().to_numpy().astype(dtype)
         return self.dataframe.to_numpy().astype(dtype)

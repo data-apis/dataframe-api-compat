@@ -14,7 +14,11 @@ from tests.utils import interchange_to_pandas
         (False, [0, 1]),
     ],
 )
-def test_sorted_indices(library: str, ascending: bool, expected_data: list[int]) -> None:
+def test_sorted_indices(
+    library: str, ascending: bool, expected_data: list[int], request
+) -> None:
+    if library == "polars-lazy":
+        request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_5(library)
     namespace = df.__dataframe_namespace__()
     result = namespace.dataframe_from_dict(

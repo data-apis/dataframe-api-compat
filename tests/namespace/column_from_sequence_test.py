@@ -33,9 +33,9 @@ from tests.utils import interchange_to_pandas
     ],
 )
 def test_column_from_sequence(
-    library: str, values: list[Any], dtype: str, expected: pd.Series[Any]
+    library: str, values: list[Any], dtype: str, expected: pd.Series[Any], request
 ) -> None:
-    ser = integer_series_1(library)
+    ser = integer_series_1(library, request)
     namespace = ser.__column_namespace__()
     result = namespace.dataframe_from_dict(
         {

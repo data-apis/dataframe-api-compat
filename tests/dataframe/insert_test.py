@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import pandas as pd
+import pytest
 
 from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import integer_dataframe_1
 from tests.utils import interchange_to_pandas
 
 
-def test_insert(library: str) -> None:
+def test_insert(library: str, request) -> None:
+    if library == "polars-lazy":
+        request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
     new_col = namespace.column_from_sequence(

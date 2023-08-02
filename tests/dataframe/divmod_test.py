@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import pandas as pd
+import pytest
 
 from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import integer_dataframe_1
 from tests.utils import integer_dataframe_2
 
 
-def test_divmod(library: str) -> None:
+def test_divmod(library: str, request) -> None:
+    if library == "polars-lazy":
+        request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_1(library)
     other = integer_dataframe_2(library)
     result_quotient, result_remainder = df.__divmod__(other)
@@ -21,7 +24,9 @@ def test_divmod(library: str) -> None:
     pd.testing.assert_frame_equal(result_remainder_pd, expected_remainder)
 
 
-def test_divmod_with_scalar(library: str) -> None:
+def test_divmod_with_scalar(library: str, request) -> None:
+    if library == "polars-lazy":
+        request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_1(library)
     other = 2
     result_quotient, result_remainder = df.__divmod__(other)

@@ -8,7 +8,9 @@ from tests.utils import integer_dataframe_1
 from tests.utils import interchange_to_pandas
 
 
-def test_negative_powers(library: str) -> None:
+def test_negative_powers(library: str, request) -> None:
+    if library == "polars-lazy":
+        request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_1(library)
     other = integer_dataframe_1(library) * -1
     with pytest.raises(ValueError):
@@ -27,7 +29,9 @@ def test_float_scalar_powers(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_float_powers(library: str) -> None:
+def test_float_powers(library: str, request) -> None:
+    if library == "polars-lazy":
+        request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_1(library)
     other = integer_dataframe_1(library) * 1.0
     result = df.__pow__(other)

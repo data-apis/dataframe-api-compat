@@ -8,7 +8,9 @@ from tests.utils import integer_dataframe_1
 from tests.utils import interchange_to_pandas
 
 
-def test_get_column_by_name(library: str) -> None:
+def test_get_column_by_name(library: str, request) -> None:
+    if library == "polars-lazy":
+        request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_1(library)
     result = df.get_column_by_name("a")
     namespace = df.__dataframe_namespace__()
@@ -19,7 +21,9 @@ def test_get_column_by_name(library: str) -> None:
     pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_get_column_by_name_invalid(library: str) -> None:
+def test_get_column_by_name_invalid(library: str, request) -> None:
+    if library == "polars-lazy":
+        request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_1(library)
     with pytest.raises(ValueError):
         df.get_column_by_name([True, False])

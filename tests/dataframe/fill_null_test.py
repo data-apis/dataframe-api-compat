@@ -20,6 +20,8 @@ def test_fill_null(
     request: pytest.FixtureRequest,
     column_names: list[str] | None,
 ) -> None:
+    if library == "polars-lazy":
+        request.node.add_marker(pytest.mark.xfail())
     df = null_dataframe_2(library, request)
     namespace = df.__dataframe_namespace__()
     result = df.fill_null(0, column_names=column_names)
@@ -41,7 +43,9 @@ def test_fill_null(
         raise AssertionError()
 
 
-def test_fill_null_noop(library: str) -> None:
+def test_fill_null_noop(library: str, request) -> None:
+    if library == "polars-lazy":
+        request.node.add_marker(pytest.mark.xfail())
     df = nan_dataframe_1(library)
     result = df.fill_null(0)
     # nan should not have changed!

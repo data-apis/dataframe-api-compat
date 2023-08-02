@@ -18,8 +18,14 @@ from tests.utils import interchange_to_pandas
     ],
 )
 def test_groupby_boolean(
-    library: str, aggregation: str, expected_b: list[bool], expected_c: list[bool]
+    library: str,
+    aggregation: str,
+    expected_b: list[bool],
+    expected_c: list[bool],
+    request,
 ) -> None:
+    if library == "polars-lazy":
+        request.node.add_marker(pytest.mark.xfail())
     df = bool_dataframe_2(library)
     result = getattr(df.groupby(["key"]), aggregation)()
     # need to sort
@@ -31,7 +37,9 @@ def test_groupby_boolean(
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_groupby_invalid_any_all(library: str) -> None:
+def test_groupby_invalid_any_all(library: str, request) -> None:
+    if library == "polars-lazy":
+        request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_4(library)
     with pytest.raises((ValueError, SchemaError)):
         df.groupby(["key"]).any()

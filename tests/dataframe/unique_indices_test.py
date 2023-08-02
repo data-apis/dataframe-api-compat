@@ -18,8 +18,10 @@ from tests.utils import interchange_to_pandas
     ],
 )
 def test_unique_indices(
-    library: str, keys: list[str] | None, expected_data: dict[str, list[int]]
+    library: str, keys: list[str] | None, expected_data: dict[str, list[int]], request
 ) -> None:
+    if library == "polars-lazy":
+        request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_6(library)
     df = df.get_rows(df.unique_indices(keys))
     result = df.get_rows(df.sorted_indices(keys))

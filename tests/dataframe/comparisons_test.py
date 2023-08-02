@@ -7,6 +7,7 @@ import pytest
 from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import integer_dataframe_1
 from tests.utils import integer_dataframe_2
+from tests.utils import interchange_to_pandas
 
 
 @pytest.mark.parametrize(
@@ -28,12 +29,14 @@ from tests.utils import integer_dataframe_2
     ],
 )
 def test_comparisons(
-    library: str, comparison: str, expected_data: dict[str, object]
+    library: str, comparison: str, expected_data: dict[str, object], request
 ) -> None:
+    if library == "polars-lazy":
+        request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_1(library)
     other = integer_dataframe_2(library)
-    result = getattr(df, comparison)(other).dataframe
-    result_pd = pd.api.interchange.from_dataframe(result)
+    result = getattr(df, comparison)(other)
+    result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame(expected_data)
     pd.testing.assert_frame_equal(result_pd, expected)
@@ -58,18 +61,22 @@ def test_comparisons(
     ],
 )
 def test_comparisons_with_scalar(
-    library: str, comparison: str, expected_data: dict[str, object]
+    library: str, comparison: str, expected_data: dict[str, object], request
 ) -> None:
+    if library == "polars-lazy":
+        request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_1(library)
     other = 2
-    result = getattr(df, comparison)(other).dataframe
-    result_pd = pd.api.interchange.from_dataframe(result)
+    result = getattr(df, comparison)(other)
+    result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame(expected_data)
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_comparison_invalid(library: str) -> None:
+def test_comparison_invalid(library: str, request) -> None:
+    if library == "polars-lazy":
+        request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_1(library).get_columns_by_name(["a"])
     other = integer_dataframe_1(library).get_columns_by_name(["b"])
     with pytest.raises(

@@ -2,13 +2,16 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import integer_dataframe_1
 from tests.utils import interchange_to_pandas
 
 
-def test_dataframe_from_2d_array(library: str) -> None:
+def test_dataframe_from_2d_array(library: str, request) -> None:
+    if library == "polars-lazy":
+        request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
     arr = np.array([[1, 4], [2, 5], [3, 6]])
