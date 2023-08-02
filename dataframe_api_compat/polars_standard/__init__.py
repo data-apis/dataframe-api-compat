@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 import polars as pl
 
+from dataframe_api_compat.polars_standard.polars_standard import null  # noqa: F401
 from dataframe_api_compat.polars_standard.polars_standard import PolarsColumn
 from dataframe_api_compat.polars_standard.polars_standard import PolarsDataFrame
 from dataframe_api_compat.polars_standard.polars_standard import PolarsGroupBy
