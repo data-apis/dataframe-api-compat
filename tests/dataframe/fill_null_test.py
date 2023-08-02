@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from tests.utils import nan_dataframe_1, null_dataframe_2
+from tests.utils import nan_dataframe_1
+from tests.utils import null_dataframe_2
 
 
 @pytest.mark.parametrize(

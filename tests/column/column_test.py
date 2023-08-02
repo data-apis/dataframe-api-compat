@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import pandas as pd
 import polars as pl
 
-from dataframe_api_compat import pandas_standard, polars_standard
+from dataframe_api_compat import pandas_standard
+from dataframe_api_compat import polars_standard
 
 
 def test_column_column() -> None:

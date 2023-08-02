@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import numpy as np
 
-from tests.utils import integer_dataframe_1, integer_series_1
+from tests.utils import integer_dataframe_1
+from tests.utils import integer_series_1
 
 
 def test_to_array_object(library: str) -> None:

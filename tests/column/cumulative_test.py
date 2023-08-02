@@ -3,7 +3,8 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from tests.utils import convert_series_to_pandas_numpy, integer_series_1
+from tests.utils import convert_series_to_pandas_numpy
+from tests.utils import integer_series_1
 
 
 @pytest.mark.parametrize(

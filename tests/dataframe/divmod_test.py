@@ -1,10 +1,10 @@
+from __future__ import annotations
+
 import pandas as pd
 
-from tests.utils import (
-    convert_dataframe_to_pandas_numpy,
-    integer_dataframe_1,
-    integer_dataframe_2,
-)
+from tests.utils import convert_dataframe_to_pandas_numpy
+from tests.utils import integer_dataframe_1
+from tests.utils import integer_dataframe_2
 
 
 def test_divmod(library: str) -> None:

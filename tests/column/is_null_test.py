@@ -1,7 +1,14 @@
-import pandas as pd
-import pytest
+from __future__ import annotations
 
-from tests.utils import nan_series_1, null_series_1
+from typing import TYPE_CHECKING
+
+import pandas as pd
+
+from tests.utils import nan_series_1
+from tests.utils import null_series_1
+
+if TYPE_CHECKING:
+    import pytest
 
 
 def test_column_is_null_1(library: str) -> None:

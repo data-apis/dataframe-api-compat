@@ -5,7 +5,9 @@ from typing import Any
 import pandas as pd
 import pytest
 
-from tests.utils import convert_series_to_pandas_numpy, integer_series_1, integer_series_3
+from tests.utils import convert_series_to_pandas_numpy
+from tests.utils import integer_series_1
+from tests.utils import integer_series_3
 
 
 @pytest.mark.parametrize(

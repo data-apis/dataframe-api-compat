@@ -1,10 +1,10 @@
+from __future__ import annotations
+
 import pandas as pd
 
-from tests.utils import (
-    bool_dataframe_1,
-    bool_dataframe_4,
-    convert_dataframe_to_pandas_numpy,
-)
+from tests.utils import bool_dataframe_1
+from tests.utils import bool_dataframe_4
+from tests.utils import convert_dataframe_to_pandas_numpy
 
 
 def test_and(library: str) -> None:

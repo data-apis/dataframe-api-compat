@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 import collections
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Generic,
-    Literal,
-    NoReturn,
-    TypeVar,
-    cast,
-)
+from typing import Any
+from typing import cast
+from typing import Generic
+from typing import Literal
+from typing import NoReturn
+from typing import TYPE_CHECKING
+from typing import TypeVar
 
 import numpy as np
 import pandas as pd

@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import pandas as pd
 
-from tests.utils import convert_series_to_pandas_numpy, integer_series_5
+from tests.utils import convert_series_to_pandas_numpy
+from tests.utils import integer_series_5
 
 
 def test_unique_indices_column(library: str) -> None:

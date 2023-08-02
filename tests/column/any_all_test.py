@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from tests.utils import bool_series_1
 
 

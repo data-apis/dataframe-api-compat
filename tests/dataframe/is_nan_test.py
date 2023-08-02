@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pandas as pd
 
 from tests.utils import nan_dataframe_1

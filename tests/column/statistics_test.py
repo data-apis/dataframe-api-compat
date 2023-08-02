@@ -1,4 +1,7 @@
-from tests.utils import integer_series_1, integer_series_5
+from __future__ import annotations
+
+from tests.utils import integer_series_1
+from tests.utils import integer_series_5
 
 
 def test_mean(library: str) -> None:

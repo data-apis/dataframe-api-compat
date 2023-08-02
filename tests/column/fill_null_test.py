@@ -1,6 +1,12 @@
-import pytest
+from __future__ import annotations
 
-from tests.utils import nan_series_1, null_dataframe_2
+from typing import TYPE_CHECKING
+
+from tests.utils import nan_series_1
+from tests.utils import null_dataframe_2
+
+if TYPE_CHECKING:
+    import pytest
 
 
 def test_fill_null_column(

@@ -1,6 +1,10 @@
+from __future__ import annotations
+
 import pandas as pd
 
-from tests.utils import bool_series_1, bool_series_2, convert_series_to_pandas_numpy
+from tests.utils import bool_series_1
+from tests.utils import bool_series_2
+from tests.utils import convert_series_to_pandas_numpy
 
 
 def test_column_and(library: str) -> None:

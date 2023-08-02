@@ -1,14 +1,12 @@
 from __future__ import annotations
 
 import collections
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Generic,
-    Literal,
-    NoReturn,
-    TypeVar,
-)
+from typing import Any
+from typing import Generic
+from typing import Literal
+from typing import NoReturn
+from typing import TYPE_CHECKING
+from typing import TypeVar
 
 import polars as pl
 

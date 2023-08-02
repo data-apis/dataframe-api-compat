@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
+from typing import TYPE_CHECKING
 
 import polars as pl
 
-from dataframe_api_compat.polars_standard.polars_standard import (
-    PolarsColumn,
-    PolarsDataFrame,
-    PolarsGroupBy,
-    null,  # noqa: F401
-)
+from dataframe_api_compat.polars_standard.polars_standard import PolarsColumn
+from dataframe_api_compat.polars_standard.polars_standard import PolarsDataFrame
+from dataframe_api_compat.polars_standard.polars_standard import PolarsGroupBy
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

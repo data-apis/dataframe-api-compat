@@ -1,17 +1,13 @@
 from __future__ import annotations
 
-from typing import (
-    TYPE_CHECKING,
-    Any,
-)
+from typing import Any
+from typing import TYPE_CHECKING
 
 import pandas as pd
 
-from dataframe_api_compat.pandas_standard.pandas_standard import (
-    PandasColumn,
-    PandasDataFrame,
-    PandasGroupBy,
-)
+from dataframe_api_compat.pandas_standard.pandas_standard import PandasColumn
+from dataframe_api_compat.pandas_standard.pandas_standard import PandasDataFrame
+from dataframe_api_compat.pandas_standard.pandas_standard import PandasGroupBy
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
