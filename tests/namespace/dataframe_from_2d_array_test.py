@@ -7,7 +7,7 @@ from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import integer_dataframe_1
 
 
-def test_dataframe_from_2d_array(library) -> None:
+def test_dataframe_from_2d_array(library: str) -> None:
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
     arr = np.array([[1, 4], [2, 5], [3, 6]])

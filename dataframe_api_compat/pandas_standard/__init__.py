@@ -154,16 +154,16 @@ def column_from_sequence(
 
 
 def column_from_1d_array(
-    array, *, dtype: Any, name: str | None = None
+    data: Any, *, dtype: Any, name: str | None = None
 ) -> PandasColumn[Any]:  # pragma: no cover
-    ser = pd.Series(array, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
+    ser = pd.Series(data, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
     return PandasColumn(ser)
 
 
 def dataframe_from_2d_array(
-    array, *, names: Sequence[str], dtypes: dict[str, Any]
-) -> PandasColumn[Any]:  # pragma: no cover
-    df = pd.DataFrame(array, columns=names).astype(
+    data: Any, *, names: Sequence[str], dtypes: dict[str, Any]
+) -> PandasDataFrame:  # pragma: no cover
+    df = pd.DataFrame(data, columns=names).astype(  # type: ignore[call-overload]
         {key: map_standard_dtype_to_pandas_dtype(value) for key, value in dtypes.items()}
     )
     return PandasDataFrame(df)
