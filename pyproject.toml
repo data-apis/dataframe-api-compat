@@ -1,6 +1,7 @@
 [tool.ruff]
 line-length = 90
 fix = true
+target-version = "py38"
 
 select = [
   "E", # pycodestyle

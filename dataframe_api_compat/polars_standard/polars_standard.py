@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import collections
-import sys
 from typing import Any
 from typing import Generic
 from typing import Literal
@@ -52,7 +51,7 @@ else:
 
 
 null = None
-NullType = type[None] if sys.version_info > (3, 9) else type[None]
+NullType = type[None]
 
 
 def _is_integer_dtype(dtype: Any) -> bool:
