@@ -52,7 +52,7 @@ else:
 
 
 null = None
-NullType = type[None] if sys.version > (3, 9) else type[None]
+NullType = type[None] if sys.version_info > (3, 9) else type[None]
 
 
 def _is_integer_dtype(dtype: Any) -> bool:
