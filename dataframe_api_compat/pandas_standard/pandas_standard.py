@@ -68,7 +68,7 @@ class PandasColumn(Column[DType]):
             self._series = column
         else:
             self._series = column.reset_index(drop=True)
-        self._name = name
+        self._name = name  # or column.name
 
     def _validate_index(self, index: pd.Index) -> None:
         pd.testing.assert_index_equal(self.column.index, index)

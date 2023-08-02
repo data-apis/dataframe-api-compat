@@ -74,7 +74,7 @@ def _is_integer_dtype(dtype: Any) -> bool:
 class PolarsColumn(Column[DType]):
     def __init__(self, column: pl.Series, *, name: str | None = None) -> None:
         self._series = column
-        self._name = name
+        self._name = name  # or column.name
 
     # In the standard
     def __column_namespace__(self, *, api_version: str | None = None) -> Any:
