@@ -114,7 +114,7 @@ def dataframe_from_dict(data: dict[str, PolarsColumn[Any]]) -> PolarsDataFrame:
 
 
 def column_from_1d_array(
-    data: Any, *, dtype: Any, name: str | None = None
+    data: Any, *, dtype: Any, name: str
 ) -> PolarsColumn[Any]:  # pragma: no cover
     ser = pl.Series(values=data, dtype=_map_standard_to_polars_dtypes(dtype), name=name)
     return PolarsColumn(ser)

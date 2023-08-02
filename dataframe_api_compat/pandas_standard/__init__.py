@@ -147,7 +147,10 @@ def concat(dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:
 
 
 def column_from_sequence(
-    sequence: Sequence[Any], *, dtype: Any, name: str | None = None
+    sequence: Sequence[Any],
+    *,
+    dtype: Any,
+    name: str,
 ) -> PandasColumn[Any]:
     ser = pd.Series(sequence, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
     return PandasColumn(ser)

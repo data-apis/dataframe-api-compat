@@ -80,7 +80,7 @@ class PolarsColumn(Column[DType]):
         return dataframe_api_compat.polars_standard
 
     @property
-    def name(self) -> str | None:
+    def name(self) -> str:
         return self.column.name
 
     @property

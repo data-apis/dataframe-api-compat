@@ -9,7 +9,9 @@ from tests.utils import integer_series_1
 def test_column_get_rows(library: str) -> None:
     ser = integer_series_1(library)
     namespace = ser.__column_namespace__()
-    indices = namespace.column_from_sequence([0, 2, 1], dtype=namespace.Int64())
+    indices = namespace.column_from_sequence(
+        [0, 2, 1], dtype=namespace.Int64(), name="result"
+    )
     result = namespace.dataframe_from_dict(
         {"result": (ser.get_rows(indices)).rename("result")}
     )

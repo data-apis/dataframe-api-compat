@@ -9,7 +9,9 @@ from tests.utils import integer_dataframe_1
 def test_get_rows_by_mask(library: str) -> None:
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
-    mask = namespace.column_from_sequence([True, False, True], dtype=namespace.Bool())
+    mask = namespace.column_from_sequence(
+        [True, False, True], dtype=namespace.Bool(), name="result"
+    )
     result = df.get_rows_by_mask(mask)
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
