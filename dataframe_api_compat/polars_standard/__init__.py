@@ -141,7 +141,7 @@ def column_from_sequence(
 
 
 def convert_to_standard_compliant_dataframe(
-    df: pl.DataFrame, api_version: str | None = None
+    df: pl.DataFrame | pl.LazyFrame, api_version: str | None = None
 ) -> PolarsDataFrame:
     if api_version is None:
         api_version = "2023.08"
