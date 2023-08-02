@@ -113,6 +113,18 @@ def dataframe_from_dict(data: dict[str, PolarsColumn[Any]]) -> PolarsDataFrame:
     )
 
 
+def dataframe_from_2d_array(
+    array, *, names: Sequence[str], dtypes: dict[str, Any]
+) -> PolarsColumn[Any]:  # pragma: no cover
+    df = pl.DataFrame(
+        array,
+        schema={
+            key: _map_standard_to_polars_dtypes(value) for key, value in dtypes.items()
+        },
+    )
+    return PolarsDataFrame(df)
+
+
 def column_from_sequence(
     sequence: Sequence[Any], *, dtype: Any, name: str | None = None
 ) -> PolarsColumn[Any]:
