@@ -12,7 +12,7 @@ def test_column_get_rows_by_mask(library: str) -> None:
     mask = namespace.column_from_sequence([True, False, True], dtype=namespace.Bool())
     result = ser.get_rows_by_mask(mask)
     result_pd = pd.api.interchange.from_dataframe(
-        namespace.dataframe_from_dict({"result": result}).dataframe
+        namespace.dataframe_from_dict({"result": (result).rename("result")}).dataframe
     )["result"]
     result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series([1, 3], name="result")

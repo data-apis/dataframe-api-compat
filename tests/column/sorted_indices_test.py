@@ -19,7 +19,7 @@ def test_column_sorted_indices(
     ser = integer_series_6(library)
     namespace = ser.__column_namespace__()
     result = namespace.dataframe_from_dict(
-        {"result": ser.sorted_indices(ascending=ascending)}
+        {"result": (ser.sorted_indices(ascending=ascending)).rename("result")}
     )
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     # TODO standardise return type?

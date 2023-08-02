@@ -13,7 +13,7 @@ def test_float_powers_column(library: str) -> None:
     result = ser.__pow__(other)
     namespace = ser.__column_namespace__()
     result_pd = pd.api.interchange.from_dataframe(
-        namespace.dataframe_from_dict({"result": result}).dataframe
+        namespace.dataframe_from_dict({"result": (result).rename("result")}).dataframe
     )["result"]
     expected = pd.Series([1.0, 4.0, 27.0], name="result")
     result_pd = convert_series_to_pandas_numpy(result_pd)
@@ -26,7 +26,7 @@ def test_float_powers_scalar_column(library: str) -> None:
     result = ser.__pow__(other)
     namespace = ser.__column_namespace__()
     result_pd = pd.api.interchange.from_dataframe(
-        namespace.dataframe_from_dict({"result": result}).dataframe
+        namespace.dataframe_from_dict({"result": (result).rename("result")}).dataframe
     )["result"]
     expected = pd.Series([1.0, 2.0, 3.0], name="result")
     result_pd = convert_series_to_pandas_numpy(result_pd)

@@ -34,7 +34,9 @@ def test_is_in(
     other = other_factory(library)
     ser = ser_factory(library)
     namespace = ser.__column_namespace__()
-    result = namespace.dataframe_from_dict({"result": ser.is_in(other)})
+    result = namespace.dataframe_from_dict(
+        {"result": (ser.is_in(other)).rename("result")}
+    )
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series(expected_values, name="result")

@@ -29,7 +29,7 @@ def test_column_slice_rows(
     namespace = ser.__column_namespace__()
     result = ser.slice_rows(start, stop, step)
     result_pd = pd.api.interchange.from_dataframe(
-        namespace.dataframe_from_dict({"result": result}).dataframe
+        namespace.dataframe_from_dict({"result": (result).rename("result")}).dataframe
     )["result"]
     result_pd = convert_series_to_pandas_numpy(result_pd)
     pd.testing.assert_series_equal(result_pd, expected)

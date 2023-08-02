@@ -35,7 +35,9 @@ def test_column_comparisons(
     ser = integer_series_1(library)
     other = integer_series_3(library)
     namespace = ser.__column_namespace__()
-    result = namespace.dataframe_from_dict({"result": getattr(ser, comparison)(other)})
+    result = namespace.dataframe_from_dict(
+        {"result": (getattr(ser, comparison)(other)).rename("result")}
+    )
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     expected = pd.Series(expected_data, name="result")
     result_pd = convert_series_to_pandas_numpy(result_pd)
@@ -67,7 +69,9 @@ def test_column_comparisons_scalar(
     ser = integer_series_1(library)
     other = 3
     namespace = ser.__column_namespace__()
-    result = namespace.dataframe_from_dict({"result": getattr(ser, comparison)(other)})
+    result = namespace.dataframe_from_dict(
+        {"result": (getattr(ser, comparison)(other)).rename("result")}
+    )
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     expected = pd.Series(expected_data, name="result")
     if library == "polars" and comparison == "__pow__":

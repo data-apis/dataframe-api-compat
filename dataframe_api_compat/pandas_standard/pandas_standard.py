@@ -79,7 +79,7 @@ class PandasColumn(Column[DType]):
 
     @property
     def name(self) -> str | None:
-        return self._name
+        return self.column.name  # type: ignore[return-value]
 
     @property
     def column(self) -> pd.Series[Any]:
@@ -300,6 +300,9 @@ class PandasColumn(Column[DType]):
                 f"Invalid dtype {dtype}. Expected one of {_ARRAY_API_DTYPES}"
             )
         return self.column.to_numpy(dtype=dtype)
+
+    def rename(self, name: str | None) -> PandasColumn[DType]:
+        return PandasColumn(self.column.rename(name))
 
 
 class PandasGroupBy(GroupBy):

@@ -11,7 +11,7 @@ def test_get_column_by_name(library: str) -> None:
     df = integer_dataframe_1(library)
     result = df.get_column_by_name("a")
     namespace = df.__dataframe_namespace__()
-    result = namespace.dataframe_from_dict({"result": result})
+    result = namespace.dataframe_from_dict({"result": (result).rename("result")})
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series([1, 2, 3], name="result")

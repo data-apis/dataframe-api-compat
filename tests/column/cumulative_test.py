@@ -22,7 +22,9 @@ def test_cumulative_functions_column(
     ser = integer_series_1(library)
     namespace = ser.__column_namespace__()
     expected = pd.Series(expected_data, name="result")
-    result = namespace.dataframe_from_dict({"result": getattr(ser, func)()})
+    result = namespace.dataframe_from_dict(
+        {"result": (getattr(ser, func)()).rename("result")}
+    )
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     result_pd = convert_series_to_pandas_numpy(result_pd)
     pd.testing.assert_series_equal(result_pd, expected)

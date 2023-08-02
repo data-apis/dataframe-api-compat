@@ -17,7 +17,11 @@ def test_sorted_indices(library: str, ascending: bool, expected_data: list[int])
     df = integer_dataframe_5(library)
     namespace = df.__dataframe_namespace__()
     result = namespace.dataframe_from_dict(
-        {"result": df.sorted_indices(keys=["a", "b"], ascending=ascending)}
+        {
+            "result": (df.sorted_indices(keys=["a", "b"], ascending=ascending)).rename(
+                "result"
+            )
+        }
     )
     result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
     # TODO should we standardise on the return type?

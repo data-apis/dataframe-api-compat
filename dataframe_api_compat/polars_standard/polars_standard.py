@@ -72,9 +72,8 @@ def _is_integer_dtype(dtype: Any) -> bool:
 
 
 class PolarsColumn(Column[DType]):
-    def __init__(self, column: pl.Series, *, name: str | None = None) -> None:
+    def __init__(self, column: pl.Series) -> None:
         self._series = column
-        self._name = name  # or column.name
 
     # In the standard
     def __column_namespace__(self, *, api_version: str | None = None) -> Any:
@@ -82,7 +81,7 @@ class PolarsColumn(Column[DType]):
 
     @property
     def name(self) -> str | None:
-        return self._name
+        return self.column.name
 
     @property
     def column(self) -> pl.Series:
@@ -306,6 +305,9 @@ class PolarsColumn(Column[DType]):
                 f"Invalid dtype {dtype}. Expected one of {_ARRAY_API_DTYPES}"
             )
         return self.column.to_numpy().astype(dtype)
+
+    def rename(self, name: str | None) -> PolarsColumn[DType]:
+        return PolarsColumn(self.column.rename(name or ""))
 
 
 class PolarsGroupBy(GroupBy):

@@ -39,7 +39,7 @@ def test_column_from_sequence(
     result = namespace.dataframe_from_dict(
         {
             "result": namespace.column_from_sequence(
-                values, dtype=getattr(namespace, dtype)()
+                values, dtype=getattr(namespace, dtype)(), name="result"
             )
         }
     )

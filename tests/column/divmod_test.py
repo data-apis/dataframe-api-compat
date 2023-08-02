@@ -13,10 +13,14 @@ def test_column_divmod(library: str) -> None:
     namespace = ser.__column_namespace__()
     result_quotient, result_remainder = ser.__divmod__(other)
     result_quotient_pd = pd.api.interchange.from_dataframe(
-        namespace.dataframe_from_dict({"result": result_quotient}).dataframe
+        namespace.dataframe_from_dict(
+            {"result": (result_quotient).rename("result")}
+        ).dataframe
     )["result"]
     result_remainder_pd = pd.api.interchange.from_dataframe(
-        namespace.dataframe_from_dict({"result": result_remainder}).dataframe
+        namespace.dataframe_from_dict(
+            {"result": (result_remainder).rename("result")}
+        ).dataframe
     )["result"]
     expected_quotient = pd.Series([1, 1, 0], name="result")
     expected_remainder = pd.Series([0, 0, 3], name="result")
@@ -32,10 +36,14 @@ def test_column_divmod_with_scalar(library: str) -> None:
     namespace = ser.__column_namespace__()
     result_quotient, result_remainder = ser.__divmod__(other)
     result_quotient_pd = pd.api.interchange.from_dataframe(
-        namespace.dataframe_from_dict({"result": result_quotient}).dataframe
+        namespace.dataframe_from_dict(
+            {"result": (result_quotient).rename("result")}
+        ).dataframe
     )["result"]
     result_remainder_pd = pd.api.interchange.from_dataframe(
-        namespace.dataframe_from_dict({"result": result_remainder}).dataframe
+        namespace.dataframe_from_dict(
+            {"result": (result_remainder).rename("result")}
+        ).dataframe
     )["result"]
     expected_quotient = pd.Series([0, 1, 1], name="result")
     expected_remainder = pd.Series([1, 0, 1], name="result")

@@ -29,5 +29,9 @@ def convert_to_standard_compliant_dataframe(df: pd.DataFrame | pl.DataFrame) -> 
 dfpd = pd.DataFrame({"a": [1, 2, 3]})
 dfpl = pl.DataFrame({"a": [1, 2, 3]})
 
+
 dfpd = convert_to_standard_compliant_dataframe(dfpd)
 dfpl = convert_to_standard_compliant_dataframe(dfpl)
+
+# what do we need to test about names? when are they preserved?
+# just return the underlying series' name? yeah, easy enough
