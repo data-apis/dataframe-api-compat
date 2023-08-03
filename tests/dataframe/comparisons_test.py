@@ -69,7 +69,7 @@ def test_comparisons_with_scalar(
     expected_data: dict[str, object],
     request: pytest.FixtureRequest,
 ) -> None:
-    if library == "polars-lazy":
+    if library == "polars-lazy" and comparison != "__pow__":
         request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_1(library)
     other = 2

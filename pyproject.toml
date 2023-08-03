@@ -19,3 +19,10 @@ select = [
   "RUF", # Ruff-specific rules
   "PTH", # flake8-use-pathlib
 ]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+  # Fail on warnings...
+  "error",
+]
+xfail_strict = true
