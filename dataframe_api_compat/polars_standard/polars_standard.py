@@ -128,7 +128,7 @@ class PolarsColumn(Column[DType]):
     def unique_indices(self, *, skip_nulls: bool = True) -> PolarsColumn[Any]:
         df = self.column.to_frame()
         keys = df.columns
-        return PolarsColumn(df.with_row_count().unique(keys)["row_nr"])
+        return PolarsColumn(df.with_row_count().unique(keys).get_column("row_nr"))
 
     def is_null(self) -> PolarsColumn[Bool]:
         return PolarsColumn(self.column.is_null())
@@ -275,10 +275,10 @@ class PolarsColumn(Column[DType]):
         keys = df.columns
         if ascending:
             return PolarsColumn(
-                df.with_row_count().sort(keys, descending=False)["row_nr"]
+                df.with_row_count().sort(keys, descending=False).get_column("row_nr")
             )
         return PolarsColumn(
-            df.with_row_count().sort(keys, descending=False)["row_nr"][::-1]
+            df.with_row_count().sort(keys, descending=False).get_column("row_nr")[::-1]
         )
 
     def fill_nan(self, value: float | NullType) -> PolarsColumn[DType]:
@@ -311,7 +311,7 @@ class PolarsColumn(Column[DType]):
 
 
 class PolarsGroupBy(GroupBy):
-    def __init__(self, df: pl.DataFrame, keys: Sequence[str]) -> None:
+    def __init__(self, df: pl.DataFrame | pl.LazyFrame, keys: Sequence[str]) -> None:
         for key in keys:
             if key not in df.columns:
                 raise KeyError(f"key {key} not present in DataFrame's columns")
@@ -381,13 +381,14 @@ class PolarsDataFrame(DataFrame):
         return self.df
 
     def shape(self) -> tuple[int, int]:
-        return self.df.shape
+        return self.df.shape  # type: ignore[union-attr]
 
     def groupby(self, keys: Sequence[str]) -> PolarsGroupBy:
         return PolarsGroupBy(self.df, keys)
 
     def get_column_by_name(self, name: str) -> PolarsColumn[DType]:
-        return PolarsColumn(self.df[name])
+        # todo: make single-column df so it can work with lazyframe?
+        return PolarsColumn(self.df.get_column(name))  # type: ignore[union-attr]
 
     def get_columns_by_name(self, names: Sequence[str]) -> PolarsDataFrame:
         if isinstance(names, str):
@@ -407,7 +408,8 @@ class PolarsDataFrame(DataFrame):
 
     def insert(self, loc: int, label: str, value: Column[Any]) -> PolarsDataFrame:
         df = self.df.clone()
-        df.insert_at_idx(loc, pl.Series(label, value.column))
+        # how to do this for lazy frame?
+        df.insert_at_idx(loc, pl.Series(label, value.column))  # type: ignore[union-attr]
         return PolarsDataFrame(df)
 
     def drop_column(self, label: str) -> PolarsDataFrame:
@@ -428,48 +430,48 @@ class PolarsDataFrame(DataFrame):
         other: DataFrame | Any,
     ) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
-            return PolarsDataFrame(self.dataframe.__eq__(other.dataframe))
-        return PolarsDataFrame(self.dataframe.__eq__(other))
+            return PolarsDataFrame(self.dataframe.__eq__(other.dataframe))  # type: ignore[arg-type]
+        return PolarsDataFrame(self.dataframe.__eq__(other))  # type: ignore[arg-type]
 
     def __ne__(  # type: ignore[override]
         self,
         other: DataFrame,
     ) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
-            return PolarsDataFrame(self.dataframe.__ne__(other.dataframe))
-        return PolarsDataFrame(self.dataframe.__ne__(other))
+            return PolarsDataFrame(self.dataframe.__ne__(other.dataframe))  # type: ignore[arg-type]
+        return PolarsDataFrame(self.dataframe.__ne__(other))  # type: ignore[arg-type]
 
     def __ge__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
-            return PolarsDataFrame(self.dataframe.__ge__(other.dataframe))
-        return PolarsDataFrame(self.dataframe.__ge__(other))
+            return PolarsDataFrame(self.dataframe.__ge__(other.dataframe))  # type: ignore[operator]
+        return PolarsDataFrame(self.dataframe.__ge__(other))  # type: ignore[operator]
 
     def __gt__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
-            return PolarsDataFrame(self.dataframe.__gt__(other.dataframe))
-        return PolarsDataFrame(self.dataframe.__gt__(other))
+            return PolarsDataFrame(self.dataframe.__gt__(other.dataframe))  # type: ignore[operator]
+        return PolarsDataFrame(self.dataframe.__gt__(other))  # type: ignore[operator]
 
     def __le__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
-            return PolarsDataFrame(self.dataframe.__le__(other.dataframe))
-        return PolarsDataFrame(self.dataframe.__le__(other))
+            return PolarsDataFrame(self.dataframe.__le__(other.dataframe))  # type: ignore[operator]
+        return PolarsDataFrame(self.dataframe.__le__(other))  # type: ignore[operator]
 
     def __lt__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
-            return PolarsDataFrame(self.dataframe.__lt__(other.dataframe))
-        return PolarsDataFrame(self.dataframe.__lt__(other))
+            return PolarsDataFrame(self.dataframe.__lt__(other.dataframe))  # type: ignore[operator]
+        return PolarsDataFrame(self.dataframe.__lt__(other))  # type: ignore[operator]
 
     def __and__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(
                 self.dataframe.with_columns(
-                    self.dataframe[col] & other.dataframe[col]
+                    self.dataframe.get_column(col) & other.dataframe.get_column(col)  # type: ignore[union-attr]
                     for col in self.dataframe.columns
                 )
             )
         return PolarsDataFrame(
             self.dataframe.with_columns(
-                self.dataframe[col] & other  # type: ignore[operator]
+                self.dataframe.get_column(col) & other  # type: ignore[operator,union-attr]
                 for col in self.dataframe.columns
             )
         )
@@ -478,42 +480,42 @@ class PolarsDataFrame(DataFrame):
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(
                 self.dataframe.with_columns(
-                    self.dataframe[col] | other.dataframe[col]
+                    self.dataframe.get_column(col) | other.dataframe.get_column(col)  # type: ignore[union-attr]
                     for col in self.dataframe.columns
                 )
             )
         return PolarsDataFrame(
             self.dataframe.with_columns(
-                self.dataframe[col] | other  # type: ignore[operator]
+                self.dataframe.get_column(col) | other  # type: ignore[operator, union-attr]
                 for col in self.dataframe.columns
             )
         )
 
     def __add__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
-            return PolarsDataFrame(self.dataframe.__add__(other.dataframe))
+            return PolarsDataFrame(self.dataframe.__add__(other.dataframe))  # type: ignore[operator]
         return PolarsDataFrame(self.dataframe.__add__(other))  # type: ignore[operator]
 
     def __sub__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
-            return PolarsDataFrame(self.dataframe.__sub__(other.dataframe))
+            return PolarsDataFrame(self.dataframe.__sub__(other.dataframe))  # type: ignore[operator]
         return PolarsDataFrame(self.dataframe.__sub__(other))  # type: ignore[operator]
 
     def __mul__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
-            return PolarsDataFrame(self.dataframe.__mul__(other.dataframe))
+            return PolarsDataFrame(self.dataframe.__mul__(other.dataframe))  # type: ignore[operator]
         return PolarsDataFrame(self.dataframe.__mul__(other))  # type: ignore[operator]
 
     def __truediv__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
-            return PolarsDataFrame(self.dataframe.__truediv__(other.dataframe))
+            return PolarsDataFrame(self.dataframe.__truediv__(other.dataframe))  # type: ignore[operator]
         return PolarsDataFrame(
             self.dataframe.__truediv__(other)  # type: ignore[operator]
         )
 
     def __floordiv__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
-            return PolarsDataFrame(self.dataframe.__floordiv__(other.dataframe))
+            return PolarsDataFrame(self.dataframe.__floordiv__(other.dataframe))  # type: ignore[operator]
         return PolarsDataFrame(
             self.dataframe.__floordiv__(other)  # type: ignore[operator]
         )
@@ -522,13 +524,13 @@ class PolarsDataFrame(DataFrame):
         original_type = self.dataframe.schema
         if isinstance(other, PolarsDataFrame):
             ret = self.dataframe.select(
-                [pl.col(col).pow(other.dataframe[col]) for col in self.get_column_names()]
+                [pl.col(col).pow(other.dataframe.get_column(col)) for col in self.get_column_names()]  # type: ignore[union-attr]
             )
             for column in self.dataframe.columns:
                 if _is_integer_dtype(original_type[column]) and _is_integer_dtype(
-                    other.dataframe[column].dtype
+                    other.dataframe.get_column(column).dtype  # type: ignore[union-attr]
                 ):
-                    if (other.dataframe[column] < 0).any():
+                    if (other.dataframe.get_column(column) < 0).any():  # type: ignore[union-attr]
                         raise ValueError("Cannot raise integer to negative power")
                     ret = ret.with_columns(pl.col(column).cast(original_type[column]))
         else:
@@ -547,6 +549,9 @@ class PolarsDataFrame(DataFrame):
 
     def __mod__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
+            assert isinstance(self.dataframe, pl.DataFrame) and isinstance(
+                other.dataframe, pl.DataFrame
+            )
             return PolarsDataFrame(self.dataframe.__mod__(other.dataframe))
         return PolarsDataFrame(self.dataframe.__mod__(other))  # type: ignore[operator]
 
@@ -567,13 +572,13 @@ class PolarsDataFrame(DataFrame):
     def is_null(self) -> PolarsDataFrame:
         result = {}
         for column in self.dataframe.columns:
-            result[column] = self.dataframe[column].is_null()
+            result[column] = self.dataframe.get_column(column).is_null()  # type: ignore[union-attr]
         return PolarsDataFrame(pl.DataFrame(result))
 
     def is_nan(self) -> PolarsDataFrame:
         result = {}
         for column in self.dataframe.columns:
-            result[column] = self.dataframe[column].is_nan()
+            result[column] = self.dataframe.get_column(column).is_nan()  # type: ignore[union-attr]
         return PolarsDataFrame(pl.DataFrame(result))
 
     def any(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
@@ -583,10 +588,10 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(self.dataframe.select(pl.col("*").all()))
 
     def any_rowwise(self, *, skip_nulls: bool = True) -> PolarsColumn[Bool]:
-        return PolarsColumn(self.dataframe.select(pl.any_horizontal(pl.col("*")))["any"])
+        return PolarsColumn(self.dataframe.select(pl.any_horizontal(pl.col("*"))).get_column("any"))  # type: ignore[union-attr]
 
     def all_rowwise(self, *, skip_nulls: bool = True) -> PolarsColumn[Bool]:
-        return PolarsColumn(self.dataframe.select(pl.all_horizontal(pl.col("*")))["all"])
+        return PolarsColumn(self.dataframe.select(pl.all_horizontal(pl.col("*"))).get_column("all"))  # type: ignore[union-attr]
 
     def min(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
         return PolarsDataFrame(self.dataframe.select(pl.col("*").min()))
@@ -628,10 +633,10 @@ class PolarsDataFrame(DataFrame):
         df = self.dataframe.select(keys)
         if ascending:
             return PolarsColumn(
-                df.with_row_count().sort(keys, descending=False)["row_nr"]
+                df.with_row_count().sort(keys, descending=False).get_column("row_nr")  # type: ignore[union-attr]
             )
         return PolarsColumn(
-            df.with_row_count().sort(keys, descending=False)["row_nr"][::-1]
+            df.with_row_count().sort(keys, descending=False).get_column("row_nr")[::-1]  # type: ignore[union-attr]
         )
 
     def unique_indices(
@@ -640,7 +645,8 @@ class PolarsDataFrame(DataFrame):
         df = self.dataframe
         if keys is None:
             keys = df.columns
-        return PolarsColumn(df.with_row_count().unique(keys)["row_nr"])
+        # TODO support lazyframe
+        return PolarsColumn(df.with_row_count().unique(keys).get_column("row_nr"))  # type: ignore[union-attr]
 
     def fill_nan(
         self,

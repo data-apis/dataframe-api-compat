@@ -12,7 +12,10 @@
 </h1>
 
 Implementation of the [DataFrame Standard](https://data-apis.org/dataframe-api/draft/index.html)
-for pandas and polars.
+for pandas and polars-eager
+
+Note: there is ongoing discussion about lazy engines in the Standard. Until that has been resolved,
+this package should not be relied upon for polars-lazy.
 
 What's this?
 ------------

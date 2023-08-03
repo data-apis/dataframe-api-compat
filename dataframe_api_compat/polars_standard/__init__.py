@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 from typing import TYPE_CHECKING
+from typing import TypeVar
 
 import polars as pl
 
@@ -16,6 +17,8 @@ if TYPE_CHECKING:
 Column = PolarsColumn
 DataFrame = PolarsDataFrame
 GroupBy = PolarsGroupBy
+
+PolarsType = TypeVar("PolarsType", pl.DataFrame, pl.LazyFrame)
 
 
 class Int64:
@@ -99,7 +102,7 @@ def concat(dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
     dfs = []
     for _df in dataframes:
         dfs.append(_df.dataframe)
-    return PolarsDataFrame(pl.concat(dfs))
+    return PolarsDataFrame(pl.concat(dfs))  # type: ignore[type-var]
 
 
 def dataframe_from_dict(data: dict[str, PolarsColumn[Any]]) -> PolarsDataFrame:

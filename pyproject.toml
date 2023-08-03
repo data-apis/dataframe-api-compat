@@ -19,6 +19,7 @@ select = [
   "RUF", # Ruff-specific rules
   "PTH", # flake8-use-pathlib
 ]
+ignore = ['E501']
 
 [tool.pytest.ini_options]
 filterwarnings = [
