@@ -400,12 +400,6 @@ class PolarsDataFrame(DataFrame):
     def slice_rows(
         self, start: int | None, stop: int | None, step: int | None
     ) -> PolarsDataFrame:
-        if start is None:
-            start = 0
-        if stop is None:
-            stop = len(self.dataframe)
-        if step is None:
-            step = 1
         return PolarsDataFrame(self.df[start:stop:step])
 
     def get_rows_by_mask(self, mask: Column[Bool]) -> PolarsDataFrame:
