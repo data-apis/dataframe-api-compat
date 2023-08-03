@@ -368,7 +368,7 @@ class PolarsGroupBy(GroupBy):
 
 
 class PolarsDataFrame(DataFrame):
-    def __init__(self, df: pl.DataFrame) -> None:
+    def __init__(self, df: pl.DataFrame | pl.LazyFrame) -> None:
         # columns already have to be strings, and duplicates aren't
         # allowed, so no validation required
         self.df = df
@@ -377,7 +377,7 @@ class PolarsDataFrame(DataFrame):
         return dataframe_api_compat.polars_standard
 
     @property
-    def dataframe(self) -> pl.DataFrame:
+    def dataframe(self) -> pl.DataFrame | pl.LazyFrame:
         return self.df
 
     def shape(self) -> tuple[int, int]:
