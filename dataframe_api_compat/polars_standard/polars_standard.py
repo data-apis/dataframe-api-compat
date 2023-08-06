@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import collections
+import secrets
 from typing import Any
 from typing import Generic
 from typing import Literal
@@ -77,11 +78,11 @@ def _is_integer_dtype(dtype: Any) -> bool:
 
 
 class PolarsColumn(Column[DType]):
-    def __init__(self, column: pl.Series, *, _df: str | None = None) -> None:
+    def __init__(self, column: pl.Series, *, hash: str | None = None) -> None:
         # _df only necessary in the lazy case
         # keep track of which dataframe the column came from
         self._series = column
-        self._df = _df
+        self._hash = hash
 
     # In the standard
     def __column_namespace__(self, *, api_version: str | None = None) -> Any:
@@ -197,8 +198,8 @@ class PolarsColumn(Column[DType]):
     def __gt__(self, other: Column[DType] | Any) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             # todo: validate other column's ._df
-            return PolarsColumn(self.column > other.column, _df=self._df)
-        return PolarsColumn(self.column > other, _df=self._df)
+            return PolarsColumn(self.column > other.column, hash=self._hash)
+        return PolarsColumn(self.column > other, hash=self._hash)
 
     def __le__(self, other: Column[DType] | Any) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
@@ -381,13 +382,14 @@ class PolarsDataFrame(DataFrame):
         # columns already have to be strings, and duplicates aren't
         # allowed, so no validation required
         self.df = df
+        self._hash = secrets.token_hex(3)
 
     def _validate_column(self, column) -> None:
-        if isinstance(column.column, pl.Expr) and column._df != self.dataframe:
+        if isinstance(column.column, pl.Expr) and column._hash != self._hash:
             raise ValueError(
                 "Column was created from a different dataframe!",
-                column._df,
-                self.dataframe,
+                column._hash,
+                self._hash,
             )
 
     def __dataframe_namespace__(self, *, api_version: str | None = None) -> Any:
@@ -406,7 +408,7 @@ class PolarsDataFrame(DataFrame):
     def get_column_by_name(self, name: str) -> PolarsColumn[DType]:
         # todo: make single-column df so it can work with lazyframe?
         if isinstance(self.dataframe, pl.LazyFrame):
-            return PolarsColumn(pl.col(name), _df=self.dataframe)
+            return PolarsColumn(pl.col(name), hash=self._hash)
         return PolarsColumn(self.df.get_column(name))  # type: ignore[union-attr]
 
     def get_columns_by_name(self, names: Sequence[str]) -> PolarsDataFrame:
