@@ -180,20 +180,20 @@ class PolarsColumn(Column[DType]):
         self, other: Column[DType] | Any
     ) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column == other.column)
-        return PolarsColumn(self.column == other)
+            return PolarsColumn(self.column == other.column, hash=self._hash)
+        return PolarsColumn(self.column == other, hash=self._hash)
 
     def __ne__(  # type: ignore[override]
         self, other: Column[DType] | Any
     ) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column != other.column)
-        return PolarsColumn(self.column != other)
+            return PolarsColumn(self.column != other.column, hash=self._hash)
+        return PolarsColumn(self.column != other, hash=self._hash)
 
     def __ge__(self, other: Column[DType] | Any) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column >= other.column)
-        return PolarsColumn(self.column >= other)
+            return PolarsColumn(self.column >= other.column, hash=self._hash)
+        return PolarsColumn(self.column >= other, hash=self._hash)
 
     def __gt__(self, other: Column[DType] | Any) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
@@ -203,28 +203,28 @@ class PolarsColumn(Column[DType]):
 
     def __le__(self, other: Column[DType] | Any) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column <= other.column)
-        return PolarsColumn(self.column <= other)
+            return PolarsColumn(self.column <= other.column, hash=self._hash)
+        return PolarsColumn(self.column <= other, hash=self._hash)
 
     def __lt__(self, other: Column[DType] | Any) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column < other.column)
-        return PolarsColumn(self.column < other)
+            return PolarsColumn(self.column < other.column, hash=self._hash)
+        return PolarsColumn(self.column < other, hash=self._hash)
 
     def __mul__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column * other.column)
-        return PolarsColumn(self.column * other)
+            return PolarsColumn(self.column * other.column, hash=self._hash)
+        return PolarsColumn(self.column * other, hash=self._hash)
 
     def __floordiv__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column // other.column)
-        return PolarsColumn(self.column // other)
+            return PolarsColumn(self.column // other.column, hash=self._hash)
+        return PolarsColumn(self.column // other, hash=self._hash)
 
     def __truediv__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column / other.column)
-        return PolarsColumn(self.column / other)
+            return PolarsColumn(self.column / other.column, hash=self._hash)
+        return PolarsColumn(self.column / other, hash=self._hash)
 
     def __pow__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
         original_type = self.column.dtype
@@ -257,26 +257,26 @@ class PolarsColumn(Column[DType]):
 
     def __and__(self, other: Column[Bool] | bool) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column & other.column)
-        return PolarsColumn(self.column & other)  # type: ignore[operator]
+            return PolarsColumn(self.column & other.column, hash=self._hash)
+        return PolarsColumn(self.column & other, hash=self._hash)  # type: ignore[operator]
 
     def __or__(self, other: Column[Bool] | bool) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column | other.column)
-        return PolarsColumn(self.column | other)  # type: ignore[operator]
+            return PolarsColumn(self.column | other.column, hash=self._hash)
+        return PolarsColumn(self.column | other, hash=self._hash)  # type: ignore[operator]
 
     def __invert__(self) -> PolarsColumn[Bool]:
-        return PolarsColumn(~self.column)
+        return PolarsColumn(~self.column, hash=self._hash)
 
     def __add__(self, other: Column[Any] | Any) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column + other.column)
-        return PolarsColumn(self.column + other)
+            return PolarsColumn(self.column + other.column, hash=self._hash)
+        return PolarsColumn(self.column + other, hash=self._hash)
 
     def __sub__(self, other: Column[Any] | Any) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column - other.column)
-        return PolarsColumn(self.column - other)
+            return PolarsColumn(self.column - other.column, hash=self._hash)
+        return PolarsColumn(self.column - other, hash=self._hash)
 
     def sorted_indices(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
@@ -317,7 +317,9 @@ class PolarsColumn(Column[DType]):
         return self.column.to_numpy().astype(dtype)
 
     def rename(self, name: str | None) -> PolarsColumn[DType]:
-        return PolarsColumn(self.column.rename(name or ""))
+        if isinstance(self.column, pl.Series):
+            return PolarsColumn(self.column.rename(name or ""))
+        return PolarsColumn(self.column.alias(name or ""), hash=self._hash)
 
 
 class PolarsGroupBy(GroupBy):
@@ -610,10 +612,16 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(self.dataframe.select(pl.col("*").all()))
 
     def any_rowwise(self, *, skip_nulls: bool = True) -> PolarsColumn[Bool]:
-        return PolarsColumn(self.dataframe.select(pl.any_horizontal(pl.col("*"))).get_column("any"))  # type: ignore[union-attr]
+        expr = pl.any_horizontal(pl.col("*"))
+        if isinstance(self.dataframe, pl.LazyFrame):
+            return PolarsColumn(expr, hash=self._hash)
+        return PolarsColumn(self.dataframe.select(expr).get_column("any"))  # type: ignore[union-attr]
 
     def all_rowwise(self, *, skip_nulls: bool = True) -> PolarsColumn[Bool]:
-        return PolarsColumn(self.dataframe.select(pl.all_horizontal(pl.col("*"))).get_column("all"))  # type: ignore[union-attr]
+        expr = pl.all_horizontal(pl.col("*"))
+        if isinstance(self.dataframe, pl.LazyFrame):
+            return PolarsColumn(expr, hash=self._hash)
+        return PolarsColumn(self.dataframe.select(expr).get_column("all"))  # type: ignore[union-attr]
 
     def min(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
         return PolarsDataFrame(self.dataframe.select(pl.col("*").min()))
@@ -695,5 +703,6 @@ class PolarsDataFrame(DataFrame):
                 f"Invalid dtype {dtype}. Expected one of {_ARRAY_API_DTYPES}"
             )
         if isinstance(self.dataframe, pl.LazyFrame):
+            # todo - remove this? should it raise?
             return self.dataframe.collect().to_numpy().astype(dtype)
         return self.dataframe.to_numpy().astype(dtype)
