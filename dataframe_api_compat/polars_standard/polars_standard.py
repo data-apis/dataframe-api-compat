@@ -13,6 +13,11 @@ import polars as pl
 
 import dataframe_api_compat.polars_standard
 
+# do we need a separate class for polars lazy?
+# might be best - after all, we can't mix lazy
+# and eager
+# BUT most things will probably work the same way?
+
 _ARRAY_API_DTYPES = frozenset(
     (
         "bool",
@@ -72,8 +77,11 @@ def _is_integer_dtype(dtype: Any) -> bool:
 
 
 class PolarsColumn(Column[DType]):
-    def __init__(self, column: pl.Series) -> None:
+    def __init__(self, column: pl.Series, *, _df: str | None = None) -> None:
+        # _df only necessary in the lazy case
+        # keep track of which dataframe the column came from
         self._series = column
+        self._df = _df
 
     # In the standard
     def __column_namespace__(self, *, api_version: str | None = None) -> Any:
@@ -111,6 +119,7 @@ class PolarsColumn(Column[DType]):
         return PolarsColumn(self.column[start:stop:step])
 
     def get_rows_by_mask(self, mask: Column[Bool]) -> PolarsColumn[DType]:
+        self._validate_column(mask)
         name = self.column.name
         return PolarsColumn(self.column.to_frame().filter(mask.column)[name])
 
@@ -373,6 +382,10 @@ class PolarsDataFrame(DataFrame):
         # allowed, so no validation required
         self.df = df
 
+    def _validate_column(self, column) -> None:
+        if isinstance(column.column, pl.Expr) and column._df != self.dataframe:
+            raise ValueError("Column was created from a different dataframe!")
+
     def __dataframe_namespace__(self, *, api_version: str | None = None) -> Any:
         return dataframe_api_compat.polars_standard
 
@@ -388,6 +401,8 @@ class PolarsDataFrame(DataFrame):
 
     def get_column_by_name(self, name: str) -> PolarsColumn[DType]:
         # todo: make single-column df so it can work with lazyframe?
+        if isinstance(self.dataframe, pl.LazyFrame):
+            return PolarsColumn(pl.col(name), _df=self.dataframe)
         return PolarsColumn(self.df.get_column(name))  # type: ignore[union-attr]
 
     def get_columns_by_name(self, names: Sequence[str]) -> PolarsDataFrame:

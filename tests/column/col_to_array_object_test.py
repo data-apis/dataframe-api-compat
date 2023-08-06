@@ -50,6 +50,4 @@ def test_column_to_array_object_invalid(
     with pytest.raises(ValueError):
         np.asarray(df.to_array_object(dtype=dtype))
     with pytest.raises(ValueError):
-        if library == "polars-lazy":
-            request.node.add_marker(pytest.mark.xfail())
         np.asarray(df.get_column_by_name("a").to_array_object(dtype=dtype))
