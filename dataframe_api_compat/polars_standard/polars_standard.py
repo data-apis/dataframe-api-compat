@@ -119,7 +119,6 @@ class PolarsColumn(Column[DType]):
         return PolarsColumn(self.column[start:stop:step])
 
     def get_rows_by_mask(self, mask: Column[Bool]) -> PolarsColumn[DType]:
-        self._validate_column(mask)
         name = self.column.name
         return PolarsColumn(self.column.to_frame().filter(mask.column)[name])
 
@@ -197,8 +196,9 @@ class PolarsColumn(Column[DType]):
 
     def __gt__(self, other: Column[DType] | Any) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column > other.column)
-        return PolarsColumn(self.column > other)
+            # todo: validate other column's ._df
+            return PolarsColumn(self.column > other.column, _df=self._df)
+        return PolarsColumn(self.column > other, _df=self._df)
 
     def __le__(self, other: Column[DType] | Any) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
@@ -384,7 +384,11 @@ class PolarsDataFrame(DataFrame):
 
     def _validate_column(self, column) -> None:
         if isinstance(column.column, pl.Expr) and column._df != self.dataframe:
-            raise ValueError("Column was created from a different dataframe!")
+            raise ValueError(
+                "Column was created from a different dataframe!",
+                column._df,
+                self.dataframe,
+            )
 
     def __dataframe_namespace__(self, *, api_version: str | None = None) -> Any:
         return dataframe_api_compat.polars_standard
@@ -419,6 +423,7 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(self.df[start:stop:step])
 
     def get_rows_by_mask(self, mask: Column[Bool]) -> PolarsDataFrame:
+        self._validate_column(mask)
         return PolarsDataFrame(self.df.filter(mask.column))
 
     def insert(self, loc: int, label: str, value: Column[Any]) -> PolarsDataFrame:
