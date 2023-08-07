@@ -10,6 +10,7 @@ from tests.utils import interchange_to_pandas
 
 def test_get_rows(library: str, request: pytest.FixtureRequest) -> None:
     if library == "polars-lazy":
+        # intentionally not implemented in polars
         request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()

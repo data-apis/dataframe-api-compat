@@ -431,6 +431,7 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(self.df.filter(mask.column))
 
     def insert(self, loc: int, label: str, value: Column[Any]) -> PolarsDataFrame:
+        self._validate_column(value)
         columns = self.dataframe.columns
         new_columns = columns[:loc] + [label] + columns[loc:]
         df = self.dataframe.with_columns(value.column.alias(label)).select(new_columns)
