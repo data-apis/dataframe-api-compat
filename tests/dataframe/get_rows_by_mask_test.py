@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import pandas as pd
+import pytest
 
 from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import integer_dataframe_1
+from tests.utils import integer_dataframe_2
 from tests.utils import interchange_to_pandas
 
 
@@ -18,3 +20,12 @@ def test_get_rows_by_mask(library: str) -> None:
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"a": [1, 3], "b": [4, 6]})
     pd.testing.assert_frame_equal(result_pd, expected)
+
+
+def test_get_column_by_name_invalid_lazy() -> None:
+    df1 = integer_dataframe_1("polars-lazy")
+    df2 = integer_dataframe_2("polars-lazy")
+    with pytest.raises(
+        ValueError, match="Column was created from a different dataframe!"
+    ):
+        df1.get_rows_by_mask(df2.get_column_by_name("a") > 0)

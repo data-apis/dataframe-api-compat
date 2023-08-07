@@ -50,3 +50,6 @@ filterwarnings = [
   "error",
 ]
 xfail_strict = true
+
+[tool.coverage.run]
+plugins = ["covdefaults"]
