@@ -49,5 +49,5 @@ def test_column_to_array_object_invalid(
     df = integer_dataframe_1(library)
     with pytest.raises(ValueError):
         np.asarray(df.to_array_object(dtype=dtype))
-    with pytest.raises(ValueError):
+    with pytest.raises((ValueError, NotImplementedError)):
         np.asarray(df.get_column_by_name("a").to_array_object(dtype=dtype))

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import cast
+
 import pandas as pd
 import polars as pl
 
@@ -15,6 +17,7 @@ def test_column_column() -> None:
         .get_column_by_name("a")
         .column
     )
+    result_pl = cast(pl.Series, result_pl)
     pd.testing.assert_series_equal(result_pl.to_pandas(), pd.Series([1, 2, 3], name="a"))
     result_pd = (
         pandas_standard.convert_to_standard_compliant_dataframe(

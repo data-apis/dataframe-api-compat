@@ -22,7 +22,7 @@ for i in spec:
 # series
 spec = dataframe_api.Column().__dir__()
 pandas_spec = pandas_standard.PandasColumn(pd.Series()).__dir__()
-polars_spec = polars_standard.PolarsColumn(pl.Series()).__dir__()
+polars_spec = polars_standard.PolarsColumn(pl.Series(), dtype=pl.Float32()).__dir__()  # type: ignore[arg-type]
 
 for i in spec:
     if i not in pandas_spec:

@@ -78,11 +78,16 @@ def _is_integer_dtype(dtype: Any) -> bool:
 
 
 class PolarsColumn(Column[DType]):
-    def __init__(self, column: pl.Series, *, hash: str | None = None) -> None:
+    def __init__(
+        self, column: pl.Series | pl.Expr, *, dtype: pl.DataType, hash: str | None = None
+    ) -> None:
         # _df only necessary in the lazy case
         # keep track of which dataframe the column came from
         self._series = column
         self._hash = hash
+        self._dtype = dtype
+        if isinstance(column, pl.Series):
+            assert column.dtype == dtype
 
     # In the standard
     def __column_namespace__(self, *, api_version: str | None = None) -> Any:
@@ -90,40 +95,55 @@ class PolarsColumn(Column[DType]):
 
     @property
     def name(self) -> str:
-        return self.column.name
+        if isinstance(self.column, pl.Series):
+            return self.column.name
+        root_names = self.column.meta.root_names()
+        if len(root_names) == 1:
+            return root_names[0]
+        raise AssertionError("Column doesn't have a single root name")
 
     @property
-    def column(self) -> pl.Series:
+    def column(self) -> pl.Series | pl.Expr:
         return self._series
 
     def __len__(self) -> int:
-        return len(self.column)
+        if isinstance(self.column, pl.Series):
+            return len(self.column)
+        raise NotImplementedError(
+            "__len__ intentionally not implemented for lazy columns"
+        )
 
     @property
     def dtype(self) -> Any:
-        return dataframe_api_compat.polars_standard.DTYPE_MAP[
-            self.column.dtype  # type: ignore[index]
-        ]
+        return dataframe_api_compat.polars_standard.DTYPE_MAP[self._dtype]
 
     def get_rows(self, indices: Column[Any]) -> PolarsColumn[DType]:
-        return PolarsColumn(self.column.take(indices.column))
+        return PolarsColumn(self.column.take(indices.column), dtype=self._dtype)
 
     def slice_rows(
         self, start: int | None, stop: int | None, step: int | None
     ) -> PolarsColumn[DType]:
+        if isinstance(self.column, pl.Expr):
+            raise NotImplementedError("slice_rows not implemented for lazy columns")
         if start is None:
             start = 0
         if stop is None:
             stop = len(self.column)
         if step is None:
             step = 1
-        return PolarsColumn(self.column[start:stop:step])
+        return PolarsColumn(self.column[start:stop:step], dtype=self._dtype)
 
     def get_rows_by_mask(self, mask: Column[Bool]) -> PolarsColumn[DType]:
+        if isinstance(self.column, pl.Expr):
+            raise NotImplementedError("get_rows_by_mask not implemented for lazy columns")
         name = self.column.name
-        return PolarsColumn(self.column.to_frame().filter(mask.column)[name])
+        return PolarsColumn(
+            self.column.to_frame().filter(mask.column)[name], dtype=self._dtype
+        )
 
     def get_value(self, row: int) -> Any:
+        if isinstance(self.column, pl.Expr):
+            raise NotImplementedError("get_value not implemented for lazy columns")
         return self.column[row]
 
     def __iter__(self) -> NoReturn:
@@ -132,24 +152,31 @@ class PolarsColumn(Column[DType]):
     def is_in(self, values: Column[DType]) -> PolarsColumn[Bool]:
         if values.dtype != self.dtype:
             raise ValueError(f"`value` has dtype {values.dtype}, expected {self.dtype}")
-        return PolarsColumn(self.column.is_in(values.column))
+        return PolarsColumn(self.column.is_in(values.column), dtype=pl.Boolean())
 
     def unique_indices(self, *, skip_nulls: bool = True) -> PolarsColumn[Any]:
+        if isinstance(self.column, pl.Expr):
+            raise NotImplementedError("unique_indices not implemented for lazy columns")
         df = self.column.to_frame()
         keys = df.columns
-        return PolarsColumn(df.with_row_count().unique(keys).get_column("row_nr"))
+        return PolarsColumn(
+            df.with_row_count().unique(keys).get_column("row_nr"), dtype=pl.UInt32()
+        )
 
     def is_null(self) -> PolarsColumn[Bool]:
-        return PolarsColumn(self.column.is_null())
+        return PolarsColumn(self.column.is_null(), dtype=pl.Boolean())
 
     def is_nan(self) -> PolarsColumn[Bool]:
-        return PolarsColumn(self.column.is_nan())
+        return PolarsColumn(self.column.is_nan(), dtype=pl.Boolean())
 
     def any(self, *, skip_nulls: bool = True) -> bool | None:
-        # todo: this is wrong!
+        if isinstance(self.column, pl.Expr):
+            raise NotImplementedError("any not implemented for lazy columns")
         return self.column.any()
 
     def all(self, *, skip_nulls: bool = True) -> bool | None:
+        if isinstance(self.column, pl.Expr):
+            raise NotImplementedError("all not implemented for lazy columns")
         return self.column.all()
 
     def min(self, *, skip_nulls: bool = True) -> Any:
@@ -180,55 +207,86 @@ class PolarsColumn(Column[DType]):
         self, other: Column[DType] | Any
     ) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column == other.column, hash=self._hash)
-        return PolarsColumn(self.column == other, hash=self._hash)
+            return PolarsColumn(
+                self.column == other.column, dtype=pl.Boolean(), hash=self._hash
+            )
+        return PolarsColumn(self.column == other, dtype=pl.Boolean(), hash=self._hash)
 
     def __ne__(  # type: ignore[override]
         self, other: Column[DType] | Any
     ) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column != other.column, hash=self._hash)
-        return PolarsColumn(self.column != other, hash=self._hash)
+            return PolarsColumn(
+                self.column != other.column, dtype=pl.Boolean(), hash=self._hash
+            )
+        return PolarsColumn(self.column != other, dtype=pl.Boolean(), hash=self._hash)
 
     def __ge__(self, other: Column[DType] | Any) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column >= other.column, hash=self._hash)
-        return PolarsColumn(self.column >= other, hash=self._hash)
+            return PolarsColumn(
+                self.column >= other.column, dtype=pl.Boolean(), hash=self._hash
+            )
+        return PolarsColumn(self.column >= other, dtype=pl.Boolean(), hash=self._hash)
 
     def __gt__(self, other: Column[DType] | Any) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             # todo: validate other column's ._df
-            return PolarsColumn(self.column > other.column, hash=self._hash)
-        return PolarsColumn(self.column > other, hash=self._hash)
+            return PolarsColumn(
+                self.column > other.column, hash=self._hash, dtype=pl.Boolean()
+            )
+        return PolarsColumn(self.column > other, hash=self._hash, dtype=pl.Boolean())
 
     def __le__(self, other: Column[DType] | Any) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column <= other.column, hash=self._hash)
-        return PolarsColumn(self.column <= other, hash=self._hash)
+            return PolarsColumn(
+                self.column <= other.column, hash=self._hash, dtype=pl.Boolean()
+            )
+        return PolarsColumn(self.column <= other, hash=self._hash, dtype=pl.Boolean())
 
     def __lt__(self, other: Column[DType] | Any) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column < other.column, hash=self._hash)
-        return PolarsColumn(self.column < other, hash=self._hash)
+            return PolarsColumn(
+                self.column < other.column, hash=self._hash, dtype=pl.Boolean()
+            )
+        return PolarsColumn(self.column < other, hash=self._hash, dtype=pl.Boolean())
 
     def __mul__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
+        if isinstance(self.column, pl.Expr):
+            raise NotImplementedError("mul not implemented for lazy columns")
+        if isinstance(other, PolarsColumn) and isinstance(other.column, pl.Expr):
+            raise NotImplementedError("mul not implemented for lazy columns")
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column * other.column, hash=self._hash)
-        return PolarsColumn(self.column * other, hash=self._hash)
+            res = self.column * other.column
+            return PolarsColumn(res, dtype=res.dtype, hash=self._hash)  # type: ignore[arg-type]
+        res = self.column * other
+        return PolarsColumn(res, dtype=res.dtype, hash=self._hash)  # type: ignore[arg-type]
 
     def __floordiv__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column // other.column, hash=self._hash)
-        return PolarsColumn(self.column // other, hash=self._hash)
+            return PolarsColumn(
+                self.column // other.column, dtype=self._dtype, hash=self._hash
+            )
+        return PolarsColumn(self.column // other, dtype=self._dtype, hash=self._hash)
 
     def __truediv__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
+        if isinstance(self.column, pl.Expr) or (
+            isinstance(other, PolarsColumn) and isinstance(other.column, pl.Expr)
+        ):
+            raise NotImplementedError("truediv not implemented for lazy columns")
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column / other.column, hash=self._hash)
-        return PolarsColumn(self.column / other, hash=self._hash)
+            res = self.column / other.column
+            return PolarsColumn(res, dtype=res.dtype, hash=self._hash)  # type: ignore[arg-type]
+        res = self.column / other
+        return PolarsColumn(res, dtype=res.dtype, hash=self._hash)  # type: ignore[arg-type]
 
     def __pow__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
+        if isinstance(self.column, pl.Expr) or (
+            isinstance(other, PolarsColumn) and isinstance(other.column, pl.Expr)
+        ):
+            raise NotImplementedError("pow not implemented for lazy columns")
         original_type = self.column.dtype
         if isinstance(other, PolarsColumn):
+            assert isinstance(other.column, pl.Series)  # help mypy
             ret = self.column.pow(other.column)
             if _is_integer_dtype(original_type) and _is_integer_dtype(other.column.dtype):
                 if (other.column < 0).any():
@@ -240,76 +298,120 @@ class PolarsColumn(Column[DType]):
                 if other < 0:
                     raise ValueError("Cannot raise integer to negative power")
                 ret = ret.cast(original_type)
-        return PolarsColumn(ret)
+        return PolarsColumn(ret, dtype=ret.dtype)  # type: ignore[arg-type]
 
     def __mod__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
+        if isinstance(self.column, pl.Expr) or (
+            isinstance(other, PolarsColumn) and isinstance(other.column, pl.Expr)
+        ):
+            raise NotImplementedError("mod not implemented for lazy columns")
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column % other.column)
-        return PolarsColumn(self.column % other)
+            return PolarsColumn(self.column % other.column, dtype=self._dtype)
+        return PolarsColumn(self.column % other, dtype=self._dtype)
 
     def __divmod__(
         self,
         other: Column[DType] | Any,
     ) -> tuple[PolarsColumn[Any], PolarsColumn[Any]]:
+        if isinstance(self.column, pl.Expr) or (
+            isinstance(other, PolarsColumn) and isinstance(other.column, pl.Expr)
+        ):
+            raise NotImplementedError("divmod not implemented for lazy columns")
         quotient = self // other
         remainder = self - quotient * other
         return quotient, remainder
 
     def __and__(self, other: Column[Bool] | bool) -> PolarsColumn[Bool]:
+        if isinstance(self.column, pl.Expr) or (
+            isinstance(other, PolarsColumn) and isinstance(other.column, pl.Expr)
+        ):
+            raise NotImplementedError("__and__ not implemented for lazy columns")
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column & other.column, hash=self._hash)
-        return PolarsColumn(self.column & other, hash=self._hash)  # type: ignore[operator]
+            return PolarsColumn(
+                self.column & other.column, dtype=self._dtype, hash=self._hash
+            )
+        return PolarsColumn(self.column & other, dtype=self._dtype, hash=self._hash)  # type: ignore[operator]
 
     def __or__(self, other: Column[Bool] | bool) -> PolarsColumn[Bool]:
+        if isinstance(self.column, pl.Expr) or (
+            isinstance(other, PolarsColumn) and isinstance(other.column, pl.Expr)
+        ):
+            raise NotImplementedError("__or__ not implemented for lazy columns")
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column | other.column, hash=self._hash)
-        return PolarsColumn(self.column | other, hash=self._hash)  # type: ignore[operator]
+            return PolarsColumn(
+                self.column | other.column, dtype=self._dtype, hash=self._hash
+            )
+        return PolarsColumn(self.column | other, dtype=self._dtype, hash=self._hash)  # type: ignore[operator]
 
     def __invert__(self) -> PolarsColumn[Bool]:
-        return PolarsColumn(~self.column, hash=self._hash)
+        return PolarsColumn(~self.column, hash=self._hash, dtype=self._dtype)
 
     def __add__(self, other: Column[Any] | Any) -> PolarsColumn[Any]:
+        if isinstance(self.column, pl.Expr) or (
+            isinstance(other, PolarsColumn) and isinstance(other.column, pl.Expr)
+        ):
+            raise NotImplementedError("add not implemented for lazy columns")
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column + other.column, hash=self._hash)
-        return PolarsColumn(self.column + other, hash=self._hash)
+            if other.dtype != self.dtype:  # pragma: no cover
+                # temporary, this should be addressed
+                raise ValueError(
+                    f"Mismatched dtypes, left: {self.dtype}, right: {other.dtype}"
+                )
+            return PolarsColumn(
+                self.column + other.column, dtype=self._dtype, hash=self._hash
+            )
+        # todo: validate dtype
+        return PolarsColumn(self.column + other, dtype=self._dtype, hash=self._hash)
 
     def __sub__(self, other: Column[Any] | Any) -> PolarsColumn[Any]:
+        if isinstance(self.column, pl.Expr) or (
+            isinstance(other, PolarsColumn) and isinstance(other.column, pl.Expr)
+        ):
+            raise NotImplementedError("sub not implemented for lazy columns")
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column - other.column, hash=self._hash)
-        return PolarsColumn(self.column - other, hash=self._hash)
+            return PolarsColumn(
+                self.column - other.column, dtype=self._dtype, hash=self._hash
+            )
+        return PolarsColumn(self.column - other, dtype=self._dtype, hash=self._hash)
 
     def sorted_indices(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
     ) -> PolarsColumn[Any]:
+        if isinstance(self.column, pl.Expr):
+            raise NotImplementedError("sorted_indices not implemented for lazy columns")
         df = self.column.to_frame()
         keys = df.columns
         if ascending:
             return PolarsColumn(
-                df.with_row_count().sort(keys, descending=False).get_column("row_nr")
+                df.with_row_count().sort(keys, descending=False).get_column("row_nr"),
+                dtype=pl.UInt32(),
             )
         return PolarsColumn(
-            df.with_row_count().sort(keys, descending=False).get_column("row_nr")[::-1]
+            df.with_row_count().sort(keys, descending=False).get_column("row_nr")[::-1],
+            dtype=pl.UInt32(),
         )
 
     def fill_nan(self, value: float | NullType) -> PolarsColumn[DType]:
-        return PolarsColumn(self.column.fill_nan(value))  # type: ignore[arg-type]
+        return PolarsColumn(self.column.fill_nan(value), dtype=self._dtype)  # type: ignore[arg-type]
 
     def fill_null(self, value: Any) -> PolarsColumn[DType]:
-        return PolarsColumn(self.column.fill_null(value))
+        return PolarsColumn(self.column.fill_null(value), dtype=self._dtype)
 
     def cumulative_sum(self, *, skip_nulls: bool = True) -> PolarsColumn[DType]:
-        return PolarsColumn(self.column.cumsum())
+        return PolarsColumn(self.column.cumsum(), dtype=self._dtype)
 
     def cumulative_prod(self, *, skip_nulls: bool = True) -> PolarsColumn[DType]:
-        return PolarsColumn(self.column.cumprod())
+        return PolarsColumn(self.column.cumprod(), dtype=self._dtype)
 
     def cumulative_max(self, *, skip_nulls: bool = True) -> PolarsColumn[DType]:
-        return PolarsColumn(self.column.cummax())
+        return PolarsColumn(self.column.cummax(), dtype=self._dtype)
 
     def cumulative_min(self, *, skip_nulls: bool = True) -> PolarsColumn[DType]:
-        return PolarsColumn(self.column.cummin())
+        return PolarsColumn(self.column.cummin(), dtype=self._dtype)
 
     def to_array_object(self, dtype: str) -> Any:
+        if isinstance(self.column, pl.Expr):
+            raise NotImplementedError("to_array_object not implemented for lazy columns")
         if dtype not in _ARRAY_API_DTYPES:
             raise ValueError(
                 f"Invalid dtype {dtype}. Expected one of {_ARRAY_API_DTYPES}"
@@ -318,8 +420,10 @@ class PolarsColumn(Column[DType]):
 
     def rename(self, name: str | None) -> PolarsColumn[DType]:
         if isinstance(self.column, pl.Series):
-            return PolarsColumn(self.column.rename(name or ""))
-        return PolarsColumn(self.column.alias(name or ""), hash=self._hash)
+            return PolarsColumn(self.column.rename(name or ""), dtype=self._dtype)
+        return PolarsColumn(
+            self.column.alias(name or ""), hash=self._hash, dtype=self._dtype
+        )
 
 
 class PolarsGroupBy(GroupBy):
@@ -386,7 +490,7 @@ class PolarsDataFrame(DataFrame):
         self.df = df
         self._hash = secrets.token_hex(3)
 
-    def _validate_column(self, column) -> None:
+    def _validate_column(self, column: PolarsColumn[Any]) -> None:
         if isinstance(column.column, pl.Expr) and column._hash != self._hash:
             raise ValueError(
                 "Column was created from a different dataframe!",
@@ -408,10 +512,10 @@ class PolarsDataFrame(DataFrame):
         return PolarsGroupBy(self.df, keys)
 
     def get_column_by_name(self, name: str) -> PolarsColumn[DType]:
-        # todo: make single-column df so it can work with lazyframe?
+        dtype = self.dataframe.schema[name]
         if isinstance(self.dataframe, pl.LazyFrame):
-            return PolarsColumn(pl.col(name), hash=self._hash)
-        return PolarsColumn(self.df.get_column(name))  # type: ignore[union-attr]
+            return PolarsColumn(pl.col(name), dtype=dtype, hash=self._hash)  # type: ignore[arg-type]
+        return PolarsColumn(self.df.get_column(name), dtype=dtype)  # type: ignore[union-attr, arg-type]
 
     def get_columns_by_name(self, names: Sequence[str]) -> PolarsDataFrame:
         if isinstance(names, str):
@@ -427,11 +531,11 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(self.df[start:stop:step])
 
     def get_rows_by_mask(self, mask: Column[Bool]) -> PolarsDataFrame:
-        self._validate_column(mask)
+        self._validate_column(mask)  # type: ignore[arg-type]
         return PolarsDataFrame(self.df.filter(mask.column))
 
     def insert(self, loc: int, label: str, value: Column[Any]) -> PolarsDataFrame:
-        self._validate_column(value)
+        self._validate_column(value)  # type: ignore[arg-type]
         columns = self.dataframe.columns
         new_columns = columns[:loc] + [label] + columns[loc:]
         df = self.dataframe.with_columns(value.column.alias(label)).select(new_columns)
@@ -615,14 +719,18 @@ class PolarsDataFrame(DataFrame):
     def any_rowwise(self, *, skip_nulls: bool = True) -> PolarsColumn[Bool]:
         expr = pl.any_horizontal(pl.col("*"))
         if isinstance(self.dataframe, pl.LazyFrame):
-            return PolarsColumn(expr, hash=self._hash)
-        return PolarsColumn(self.dataframe.select(expr).get_column("any"))  # type: ignore[union-attr]
+            return PolarsColumn(expr, hash=self._hash, dtype=pl.Boolean())
+        return PolarsColumn(
+            self.dataframe.select(expr).get_column("any"), dtype=pl.Boolean()
+        )
 
     def all_rowwise(self, *, skip_nulls: bool = True) -> PolarsColumn[Bool]:
         expr = pl.all_horizontal(pl.col("*"))
         if isinstance(self.dataframe, pl.LazyFrame):
-            return PolarsColumn(expr, hash=self._hash)
-        return PolarsColumn(self.dataframe.select(expr).get_column("all"))  # type: ignore[union-attr]
+            return PolarsColumn(expr, hash=self._hash, dtype=pl.Boolean())
+        return PolarsColumn(
+            self.dataframe.select(expr).get_column("all"), dtype=pl.Boolean()
+        )
 
     def min(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
         return PolarsDataFrame(self.dataframe.select(pl.col("*").min()))
@@ -664,10 +772,12 @@ class PolarsDataFrame(DataFrame):
         df = self.dataframe.select(keys)
         if ascending:
             return PolarsColumn(
-                df.with_row_count().sort(keys, descending=False).get_column("row_nr")  # type: ignore[union-attr]
+                df.with_row_count().sort(keys, descending=False).get_column("row_nr"),  # type: ignore[union-attr]
+                dtype=pl.UInt32(),
             )
         return PolarsColumn(
-            df.with_row_count().sort(keys, descending=False).get_column("row_nr")[::-1]  # type: ignore[union-attr]
+            df.with_row_count().sort(keys, descending=False).get_column("row_nr")[::-1],  # type: ignore[union-attr]
+            dtype=pl.UInt32(),
         )
 
     def unique_indices(
@@ -677,7 +787,7 @@ class PolarsDataFrame(DataFrame):
         if keys is None:
             keys = df.columns
         # TODO support lazyframe
-        return PolarsColumn(df.with_row_count().unique(keys).get_column("row_nr"))  # type: ignore[union-attr]
+        return PolarsColumn(df.with_row_count().unique(keys).get_column("row_nr"), dtype=pl.UInt32())  # type: ignore[union-attr]
 
     def fill_nan(
         self,

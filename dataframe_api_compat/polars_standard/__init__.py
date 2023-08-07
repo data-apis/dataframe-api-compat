@@ -66,17 +66,17 @@ class Bool:
 
 
 DTYPE_MAP = {
-    pl.Int64: Int64(),
-    pl.Int32: Int32(),
-    pl.Int16: Int16(),
-    pl.Int8: Int8(),
-    pl.UInt64: UInt64(),
-    pl.UInt32: UInt32(),
-    pl.UInt16: UInt16(),
-    pl.UInt8: UInt8(),
-    pl.Float64: Float64(),
-    pl.Float32: Float32(),
-    pl.Boolean: Bool(),
+    pl.Int64(): Int64(),
+    pl.Int32(): Int32(),
+    pl.Int16(): Int16(),
+    pl.Int8(): Int8(),
+    pl.UInt64(): UInt64(),
+    pl.UInt32(): UInt32(),
+    pl.UInt16(): UInt16(),
+    pl.UInt8(): UInt8(),
+    pl.Float64(): Float64(),
+    pl.Float32(): Float32(),
+    pl.Boolean(): Bool(),
 }
 
 
@@ -109,9 +109,13 @@ def dataframe_from_dict(data: dict[str, PolarsColumn[Any]]) -> PolarsDataFrame:
     for _, col in data.items():
         if not isinstance(col, PolarsColumn):  # pragma: no cover
             raise TypeError(f"Expected PolarsColumn, got {type(col)}")
+        if isinstance(col.column, pl.Expr):
+            raise NotImplementedError(
+                "dataframe_from_dict not supported for lazy columns"
+            )
     return PolarsDataFrame(
         pl.DataFrame(
-            {label: column.column.rename(label) for label, column in data.items()}
+            {label: column.column.rename(label) for label, column in data.items()}  # type: ignore[union-attr]
         )
     )
 
@@ -120,7 +124,7 @@ def column_from_1d_array(
     data: Any, *, dtype: Any, name: str
 ) -> PolarsColumn[Any]:  # pragma: no cover
     ser = pl.Series(values=data, dtype=_map_standard_to_polars_dtypes(dtype), name=name)
-    return PolarsColumn(ser)
+    return PolarsColumn(ser, dtype=ser.dtype)  # type: ignore[arg-type]
 
 
 def dataframe_from_2d_array(
@@ -139,7 +143,10 @@ def column_from_sequence(
     sequence: Sequence[Any], *, dtype: Any, name: str | None = None
 ) -> PolarsColumn[Any]:
     return PolarsColumn(
-        pl.Series(values=sequence, dtype=_map_standard_to_polars_dtypes(dtype), name=name)
+        pl.Series(
+            values=sequence, dtype=_map_standard_to_polars_dtypes(dtype), name=name
+        ),
+        dtype=_map_standard_to_polars_dtypes(dtype),
     )
 
 
@@ -164,4 +171,4 @@ def convert_to_standard_compliant_column(
         raise ValueError(
             f"Unknown api_version: {api_version}. Expected: '2023.08', or None"
         )
-    return PolarsColumn(ser)
+    return PolarsColumn(ser, dtype=ser.dtype)  # type: ignore[arg-type]
