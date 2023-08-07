@@ -20,33 +20,33 @@ def test_fill_null(
     request: pytest.FixtureRequest,
     column_names: list[str] | None,
 ) -> None:
-    if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
     df = null_dataframe_2(library, request)
     namespace = df.__dataframe_namespace__()
     result = df.fill_null(0, column_names=column_names)
+    if hasattr(result.dataframe, "collect"):
+        result = result.dataframe.collect()
+    else:
+        result = result.dataframe
     # todo: is there a way to test test this without if/then statements?
     if column_names is None or column_names == ["a", "b"]:
-        if library == "polars":
-            assert result.dataframe["a"][2] == 0.0
-            assert result.dataframe["b"][2] == 0.0
-        else:
-            assert result.dataframe["a"][2] == 0.0
-            assert result.dataframe["b"][2] == 0.0
+        assert result["a"][2] == 0.0
+        assert result["b"][2] == 0.0
     elif column_names == ["a"]:
-        assert result.dataframe["a"][2] == 0.0
-        assert namespace.is_null(result.dataframe["b"][2])
+        assert result["a"][2] == 0.0
+        assert namespace.is_null(result["b"][2])
     elif column_names == ["b"]:
-        assert namespace.is_null(result.dataframe["a"][2])
-        assert result.dataframe["b"][2] == 0.0
+        assert namespace.is_null(result["a"][2])
+        assert result["b"][2] == 0.0
     else:
         raise AssertionError()
 
 
-def test_fill_null_noop(library: str, request: pytest.FixtureRequest) -> None:
-    if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
+def test_fill_null_noop(library: str) -> None:
     df = nan_dataframe_1(library)
     result = df.fill_null(0)
+    if hasattr(result.dataframe, "collect"):
+        result = result.dataframe.collect()
+    else:
+        result = result.dataframe
     # nan should not have changed!
-    assert result.dataframe["a"][2] != result.dataframe["a"][2]
+    assert result["a"][2] != result["a"][2]
