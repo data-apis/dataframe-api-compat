@@ -431,9 +431,9 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(self.df.filter(mask.column))
 
     def insert(self, loc: int, label: str, value: Column[Any]) -> PolarsDataFrame:
-        df = self.df.clone()
-        # how to do this for lazy frame?
-        df.insert_at_idx(loc, pl.Series(label, value.column))  # type: ignore[union-attr]
+        columns = self.dataframe.columns
+        new_columns = columns[:loc] + [label] + columns[loc:]
+        df = self.dataframe.with_columns(value.column.alias(label)).select(new_columns)
         return PolarsDataFrame(df)
 
     def drop_column(self, label: str) -> PolarsDataFrame:
