@@ -1,3 +1,26 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dataframe_api_compat"
+version = "0.1.7"
+authors = [
+  { name="Marco Gorelli", email="33491632+MarcoGorelli@users.noreply.github.com" },
+]
+description = "Implementation of the DataFrame Standard for pandas and Polars"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/data-apis/dataframe-api-compat"
+"Bug Tracker" = "https://github.com/pypa/sampleproject/issues"
+
 [tool.ruff]
 line-length = 90
 fix = true
