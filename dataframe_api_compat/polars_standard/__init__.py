@@ -154,8 +154,8 @@ def convert_to_standard_compliant_dataframe(
     df: pl.DataFrame | pl.LazyFrame, api_version: str | None = None
 ) -> PolarsDataFrame:
     if api_version is None:
-        api_version = "2023.08"
-    if api_version != "2023.08":  # pragma: no cover
+        api_version = "2023.08-beta"
+    if api_version != "2023.08-beta":  # pragma: no cover
         raise ValueError(
             f"Unknown api_version: {api_version}. Expected: '2023.08', or None"
         )
@@ -166,8 +166,8 @@ def convert_to_standard_compliant_column(
     ser: pl.Series, api_version: str | None = None
 ) -> PolarsColumn[Any]:
     if api_version is None:
-        api_version = "2023.08"
-    if api_version != "2023.08":  # pragma: no cover
+        api_version = "2023.08-beta"
+    if api_version != "2023.08-beta":  # pragma: no cover
         raise ValueError(
             f"Unknown api_version: {api_version}. Expected: '2023.08', or None"
         )

@@ -25,5 +25,9 @@ def test_fill_null_column(library: str, request: pytest.FixtureRequest) -> None:
 def test_fill_null_noop_column(library: str, request: pytest.FixtureRequest) -> None:
     ser = nan_series_1(library, request)
     result = ser.fill_null(0)
-    # nan should not have changed!
-    assert result.column[2] != result.column[2]
+    if library != "pandas-numpy":
+        # nan should not have changed!
+        assert result.column[2] != result.column[2]
+    else:
+        # nan was filled with 0
+        assert result.column[2] == 0

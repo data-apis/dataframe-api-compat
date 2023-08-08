@@ -281,7 +281,7 @@ class PandasColumn(Column[DType]):
         value: Any,
     ) -> PandasColumn[DType]:
         ser = self.column.copy()
-        if ser.dtype.is_extension_array_dtype():
+        if is_extension_array_dtype(ser.dtype):
             ser = np.where(
                 np.isnan(ser).fillna(False), ser, ser.fillna(value)
             )  # type: ignore[assignment]

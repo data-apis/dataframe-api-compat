@@ -12,7 +12,7 @@ from dataframe_api_compat import polars_standard
 def test_column_column() -> None:
     result_pl = (
         polars_standard.convert_to_standard_compliant_dataframe(
-            pl.DataFrame({"a": [1, 2, 3]}), "2023.08"
+            pl.DataFrame({"a": [1, 2, 3]}), "2023.08-beta"
         )
         .get_column_by_name("a")
         .column
@@ -21,7 +21,7 @@ def test_column_column() -> None:
     pd.testing.assert_series_equal(result_pl.to_pandas(), pd.Series([1, 2, 3], name="a"))
     result_pd = (
         pandas_standard.convert_to_standard_compliant_dataframe(
-            pd.DataFrame({"a": [1, 2, 3]}), "2023.08"
+            pd.DataFrame({"a": [1, 2, 3]}), "2023.08-beta"
         )
         .get_column_by_name("a")
         .column

@@ -62,7 +62,7 @@ class Null:
 
 
 null = Null()
-NullType = Type[None]
+NullType = Type[Null]
 
 
 def _is_integer_dtype(dtype: Any) -> bool:
@@ -795,7 +795,7 @@ class PolarsDataFrame(DataFrame):
         self,
         value: float | NullType,
     ) -> PolarsDataFrame:
-        if value is null:
+        if isinstance(value, Null):
             value = None
         return PolarsDataFrame(self.dataframe.fill_nan(value))  # type: ignore[arg-type]
 

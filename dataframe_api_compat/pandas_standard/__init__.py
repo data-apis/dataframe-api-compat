@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 
+from dataframe_api_compat.pandas_standard.pandas_standard import null
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasColumn
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasDataFrame
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasGroupBy
@@ -105,8 +106,8 @@ def convert_to_standard_compliant_dataframe(
     df: pd.DataFrame, api_version: str | None = None
 ) -> PandasDataFrame:
     if api_version is None:
-        api_version = "2023.08"
-    if api_version != "2023.08":  # pragma: no cover
+        api_version = "2023.08-beta"
+    if api_version != "2023.08-beta":  # pragma: no cover
         raise ValueError(
             f"Unknown api_version: {api_version}. Expected: '2023.08', or None"
         )
@@ -117,8 +118,8 @@ def convert_to_standard_compliant_column(
     df: pd.Series[Any], api_version: str | None = None
 ) -> PandasColumn[Any]:
     if api_version is None:
-        api_version = "2023.08"
-    if api_version != "2023.08":  # pragma: no cover
+        api_version = "2023.08-beta"
+    if api_version != "2023.08-beta":  # pragma: no cover
         raise ValueError(
             f"Unknown api_version: {api_version}. Expected: '2023.08', or None"
         )
@@ -182,4 +183,4 @@ def dataframe_from_dict(data: dict[str, PandasColumn[Any]]) -> PandasDataFrame:
 
 
 def is_null(value: Any) -> bool:
-    return value is pd.NA
+    return value is null
