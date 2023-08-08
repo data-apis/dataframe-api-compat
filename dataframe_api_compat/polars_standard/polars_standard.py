@@ -536,11 +536,13 @@ class PolarsDataFrame(DataFrame):
             raise TypeError(f"Expected sequence of str, got {type(names)}")
         return PolarsDataFrame(self.df.select(names))
 
-    def get_rows(self, indices: Column[Any]) -> PolarsDataFrame:
+    def get_rows(self, indices: PolarsColumn[Any]) -> PolarsDataFrame:  # type: ignore[override]
         assert "idx" not in self.dataframe.columns
-        self._validate_column(indices)
-        if isinstance(self.dataframe, pl.LazyFrame):
+        if isinstance(self.dataframe, pl.LazyFrame) or isinstance(
+            indices.column, pl.Expr
+        ):
             raise NotImplementedError("get_rows not supported for lazy dataframes")
+        self._validate_column(indices)
         return PolarsDataFrame(self.dataframe[indices.column])
 
     def slice_rows(
@@ -576,59 +578,67 @@ class PolarsDataFrame(DataFrame):
         self,
         other: DataFrame | Any,
     ) -> PolarsDataFrame:
-        if isinstance(self.dataframe, pl.LazyFrame) and (
-            isinstance(other, DataFrame) and isinstance(other.dataframe, pl.LazyFrame)
-        ):
-            raise NotImplementedError("operation not supported for lazyframes")
         if isinstance(other, PolarsDataFrame):
-            return PolarsDataFrame(self.dataframe.__eq__(other.dataframe))  # type: ignore[arg-type]
-        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__eq__(other)))  # type: ignore[arg-type]
+            if isinstance(self.dataframe, pl.LazyFrame) or isinstance(
+                other.dataframe, pl.LazyFrame
+            ):
+                raise NotImplementedError("operation not supported for lazyframes")
+            return PolarsDataFrame(self.dataframe.__eq__(other.dataframe))
+        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__eq__(other)))
 
     def __ne__(  # type: ignore[override]
         self,
         other: DataFrame,
     ) -> PolarsDataFrame:
-        if isinstance(self.dataframe, pl.LazyFrame) and (
-            isinstance(other, DataFrame) and isinstance(other.dataframe, pl.LazyFrame)
-        ):
-            raise NotImplementedError("operation not supported for lazyframes")
         if isinstance(other, PolarsDataFrame):
-            return PolarsDataFrame(self.dataframe.__ne__(other.dataframe))  # type: ignore[arg-type]
-        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__ne__(other)))  # type: ignore[arg-type]
+            if isinstance(self.dataframe, pl.LazyFrame) or isinstance(
+                other.dataframe, pl.LazyFrame
+            ):
+                raise NotImplementedError("operation not supported for lazyframes")
+            return PolarsDataFrame(self.dataframe.__ne__(other.dataframe))
+        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__ne__(other)))
 
     def __ge__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
-            res = self.dataframe.__ge__(other.dataframe)
-            if res is NotImplemented:
+            if isinstance(self.dataframe, pl.LazyFrame) or isinstance(
+                other.dataframe, pl.LazyFrame
+            ):
                 raise NotImplementedError("operation not supported for lazyframes")
-            return PolarsDataFrame(res)  # type: ignore[operator]
-        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__ge__(other)))  # type: ignore[operator]
+            res = self.dataframe.__ge__(other.dataframe)
+            return PolarsDataFrame(res)
+        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__ge__(other)))
 
     def __gt__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
-            res = self.dataframe.__gt__(other.dataframe)
-            if res is NotImplemented:
+            if isinstance(self.dataframe, pl.LazyFrame) or isinstance(
+                other.dataframe, pl.LazyFrame
+            ):
                 raise NotImplementedError("operation not supported for lazyframes")
-            return PolarsDataFrame(res)  # type: ignore[operator]
-        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__gt__(other)))  # type: ignore[operator]
+            res = self.dataframe.__gt__(other.dataframe)
+            return PolarsDataFrame(res)
+        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__gt__(other)))
 
     def __le__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
+            if isinstance(self.dataframe, pl.LazyFrame) or isinstance(
+                other.dataframe, pl.LazyFrame
+            ):
+                raise NotImplementedError("operation not supported for lazyframes")
             res = self.dataframe.__le__(other.dataframe)
-            if res is NotImplemented:
-                raise NotImplementedError("operation not supported for lazyframes")
-            return PolarsDataFrame(res)  # type: ignore[operator]
-        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__le__(other)))  # type: ignore[operator]
+            return PolarsDataFrame(res)
+        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__le__(other)))
 
-    def __lt__(self, other: DataFrame | Any) -> PolarsDataFrame:
+    def __lt__(self, other: PolarsDataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
-            res = self.dataframe.__lt__(other.dataframe)
-            if res is NotImplemented:
+            if isinstance(self.dataframe, pl.LazyFrame) or isinstance(
+                other.dataframe, pl.LazyFrame
+            ):
                 raise NotImplementedError("operation not supported for lazyframes")
-            return PolarsDataFrame(res)  # type: ignore[operator]
-        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__lt__(other)))  # type: ignore[operator]
+            res = self.dataframe.__lt__(other.dataframe)
+            return PolarsDataFrame(res)
+        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__lt__(other)))
 
-    def __and__(self, other: DataFrame | Any) -> PolarsDataFrame:
+    def __and__(self, other: PolarsDataFrame | Any) -> PolarsDataFrame:
         if isinstance(self.dataframe, pl.LazyFrame) and (
             isinstance(other, DataFrame) and isinstance(other.dataframe, pl.LazyFrame)
         ):
@@ -642,7 +652,7 @@ class PolarsDataFrame(DataFrame):
             )
         return PolarsDataFrame(self.dataframe.with_columns(pl.col("*") & other))
 
-    def __or__(self, other: DataFrame | Any) -> PolarsDataFrame:
+    def __or__(self, other: PolarsDataFrame | Any) -> PolarsDataFrame:
         if isinstance(self.dataframe, pl.LazyFrame) and (
             isinstance(other, DataFrame) and isinstance(other.dataframe, pl.LazyFrame)
         ):
@@ -667,7 +677,7 @@ class PolarsDataFrame(DataFrame):
             raise NotImplementedError("operation not supported for lazyframes")
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__add__(other.dataframe))  # type: ignore[operator]
-        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__add__(other)))  # type: ignore[operator]
+        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__add__(other)))
 
     def __sub__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(self.dataframe, pl.LazyFrame) and (
@@ -676,7 +686,7 @@ class PolarsDataFrame(DataFrame):
             raise NotImplementedError("operation not supported for lazyframes")
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__sub__(other.dataframe))  # type: ignore[operator]
-        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__sub__(other)))  # type: ignore[operator]
+        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__sub__(other)))
 
     def __mul__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(self.dataframe, pl.LazyFrame) and (
@@ -685,7 +695,7 @@ class PolarsDataFrame(DataFrame):
             raise NotImplementedError("operation not supported for lazyframes")
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__mul__(other.dataframe))  # type: ignore[operator]
-        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__mul__(other)))  # type: ignore[operator]
+        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__mul__(other)))
 
     def __truediv__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(self.dataframe, pl.LazyFrame) and (
@@ -695,7 +705,7 @@ class PolarsDataFrame(DataFrame):
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__truediv__(other.dataframe))  # type: ignore[operator]
         return PolarsDataFrame(
-            self.dataframe.with_columns(pl.col("*").__truediv__(other))  # type: ignore[operator]
+            self.dataframe.with_columns(pl.col("*").__truediv__(other))
         )
 
     def __floordiv__(self, other: DataFrame | Any) -> PolarsDataFrame:
@@ -746,11 +756,11 @@ class PolarsDataFrame(DataFrame):
         ):
             raise NotImplementedError("operation not supported for lazyframes")
         if isinstance(other, PolarsDataFrame):
-            res = self.dataframe.__mod__(other.dataframe)
+            res = self.dataframe.__mod__(other.dataframe)  # type: ignore[operator]
             if res is NotImplemented:
                 raise NotImplementedError("operation not supported for lazyframes")
-            return PolarsDataFrame(res)  # type: ignore[operator]
-        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*") % other))  # type: ignore[operator]
+            return PolarsDataFrame(res)
+        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*") % other))
 
     def __divmod__(
         self,
@@ -766,11 +776,11 @@ class PolarsDataFrame(DataFrame):
             quotient = self // other
             remainder = self - quotient * other
             return quotient, remainder
-        quotient = self.dataframe.with_columns(pl.col("*") // other)
-        remainder = self.dataframe.with_columns(
+        quotient_df = self.dataframe.with_columns(pl.col("*") // other)
+        remainder_df = self.dataframe.with_columns(
             pl.col("*") - (pl.col("*") // other) * other
         )
-        return PolarsDataFrame(quotient), PolarsDataFrame(remainder)
+        return PolarsDataFrame(quotient_df), PolarsDataFrame(remainder_df)
 
     def __invert__(self) -> PolarsDataFrame:
         return PolarsDataFrame(self.dataframe.select(~pl.col("*")))
@@ -855,12 +865,12 @@ class PolarsDataFrame(DataFrame):
         df = self.dataframe.select(keys)
         if ascending:
             return PolarsColumn(
-                df.with_row_count().sort(keys, descending=False).get_column("row_nr"),  # type: ignore[union-attr]
+                df.with_row_count().sort(keys, descending=False).get_column("row_nr"),
                 hash=self._hash,
                 dtype=pl.UInt32(),
             )
         return PolarsColumn(
-            df.with_row_count().sort(keys, descending=False).get_column("row_nr")[::-1],  # type: ignore[union-attr]
+            df.with_row_count().sort(keys, descending=False).get_column("row_nr")[::-1],
             hash=self._hash,
             dtype=pl.UInt32(),
         )
