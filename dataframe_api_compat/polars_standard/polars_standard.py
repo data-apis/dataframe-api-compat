@@ -551,12 +551,7 @@ class PolarsDataFrame(DataFrame):
         if isinstance(self.dataframe, pl.LazyFrame) and isinstance(
             indices.column, pl.Expr
         ):
-            if indices._method == "DataFrame.sorted_indices":
-                # todo HACK
-                return PolarsDataFrame(
-                    self.dataframe.sort(indices.column.meta.root_names()[0].split("tmp"))
-                )
-            elif indices._method == "Column.sorted_indices":
+            if indices._method.endswith("sorted_indices"):
                 return PolarsDataFrame(self.dataframe.sort(indices.column))
             elif indices._method == "DataFrame.unique_indices":
                 # todo HACK
