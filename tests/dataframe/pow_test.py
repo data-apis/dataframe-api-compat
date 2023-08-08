@@ -8,14 +8,12 @@ from tests.utils import integer_dataframe_1
 from tests.utils import interchange_to_pandas
 
 
-def test_negative_powers(library: str, request: pytest.FixtureRequest) -> None:
-    if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
+def test_negative_powers(library: str) -> None:
     df = integer_dataframe_1(library)
     other = integer_dataframe_1(library) * -1
-    with pytest.raises(ValueError):
+    with pytest.raises((ValueError, NotImplementedError)):
         df.__pow__(-1)
-    with pytest.raises(ValueError):
+    with pytest.raises((ValueError, NotImplementedError)):
         df.__pow__(other)
 
 
@@ -29,12 +27,15 @@ def test_float_scalar_powers(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_float_powers(library: str, request: pytest.FixtureRequest) -> None:
-    if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
+def test_float_powers(library: str) -> None:
     df = integer_dataframe_1(library)
     other = integer_dataframe_1(library) * 1.0
-    result = df.__pow__(other)
+    if library == "polars-lazy":
+        with pytest.raises(NotImplementedError):
+            result = df.__pow__(other)
+        return
+    else:
+        result = df.__pow__(other)
     result_pd = interchange_to_pandas(result, library)
     expected = pd.DataFrame({"a": [1.0, 4.0, 27.0], "b": [256.0, 3125.0, 46656.0]})
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
