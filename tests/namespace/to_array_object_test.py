@@ -1,14 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import numpy as np
+import pytest
 
 from tests.utils import integer_dataframe_1
-from tests.utils import integer_series_1
-
-if TYPE_CHECKING:
-    import pytest
 
 
 def test_to_array_object(library: str) -> None:
@@ -18,8 +13,13 @@ def test_to_array_object(library: str) -> None:
     np.testing.assert_array_equal(result, expected)
 
 
-def test_column_to_array_object(library: str, request: pytest.FixtureRequest) -> None:
-    df = integer_series_1(library, request)
-    result = np.asarray(df.to_array_object(dtype="int64"))
+def test_column_to_array_object(library: str) -> None:
+    col = integer_dataframe_1(library).get_column_by_name("a")
+    if library == "polars-lazy":
+        with pytest.raises(NotImplementedError):
+            col.to_array_object(dtype="int64")
+        return
+    result = np.asarray(col.to_array_object(dtype="int64"))
+    result = np.asarray(col.to_array_object(dtype="int64"))
     expected = np.array([1, 2, 3], dtype=np.int64)
     np.testing.assert_array_equal(result, expected)
