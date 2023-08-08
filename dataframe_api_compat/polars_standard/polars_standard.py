@@ -85,6 +85,8 @@ class PolarsColumn(Column[DType]):
     def __init__(
         self, column: pl.Series | pl.Expr, *, dtype: pl.DataType, hash: str | None = None
     ) -> None:
+        if column is NotImplemented:
+            raise NotImplementedError("operation not implemented")
         # _df only necessary in the lazy case
         # keep track of which dataframe the column came from
         self._series = column
@@ -234,7 +236,7 @@ class PolarsColumn(Column[DType]):
 
     def __gt__(self, other: Column[DType] | Any) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
-            # todo: validate other column's ._df
+            self._validate_column(other)
             return PolarsColumn(
                 self.column > other.column, hash=self._hash, dtype=pl.Boolean()
             )
@@ -242,6 +244,7 @@ class PolarsColumn(Column[DType]):
 
     def __le__(self, other: Column[DType] | Any) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
+            self._validate_column(other)
             return PolarsColumn(
                 self.column <= other.column, hash=self._hash, dtype=pl.Boolean()
             )
@@ -249,6 +252,7 @@ class PolarsColumn(Column[DType]):
 
     def __lt__(self, other: Column[DType] | Any) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
+            self._validate_column(other)
             return PolarsColumn(
                 self.column < other.column, hash=self._hash, dtype=pl.Boolean()
             )
@@ -267,6 +271,7 @@ class PolarsColumn(Column[DType]):
 
     def __floordiv__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
+            self._validate_column(other)
             return PolarsColumn(
                 self.column // other.column, dtype=self._dtype, hash=self._hash
             )
@@ -491,6 +496,8 @@ class PolarsDataFrame(DataFrame):
     def __init__(self, df: pl.DataFrame | pl.LazyFrame) -> None:
         # columns already have to be strings, and duplicates aren't
         # allowed, so no validation required
+        if df is NotImplemented:
+            raise NotImplementedError("operation not implemented")
         self.df = df
         self._hash = secrets.token_hex(3)
 
@@ -562,6 +569,10 @@ class PolarsDataFrame(DataFrame):
         self,
         other: DataFrame | Any,
     ) -> PolarsDataFrame:
+        if isinstance(self.dataframe, pl.LazyFrame) and (
+            isinstance(other, DataFrame) and isinstance(other.dataframe, pl.LazyFrame)
+        ):
+            raise NotImplementedError("operation not supported for lazyframes")
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__eq__(other.dataframe))  # type: ignore[arg-type]
         return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__eq__(other)))  # type: ignore[arg-type]
@@ -570,28 +581,60 @@ class PolarsDataFrame(DataFrame):
         self,
         other: DataFrame,
     ) -> PolarsDataFrame:
+        if isinstance(self.dataframe, pl.LazyFrame) and (
+            isinstance(other, DataFrame) and isinstance(other.dataframe, pl.LazyFrame)
+        ):
+            raise NotImplementedError("operation not supported for lazyframes")
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__ne__(other.dataframe))  # type: ignore[arg-type]
         return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__ne__(other)))  # type: ignore[arg-type]
 
     def __ge__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
-            return PolarsDataFrame(self.dataframe.__ge__(other.dataframe))  # type: ignore[operator]
+            if other.dataframe.columns != self.dataframe.columns:
+                raise ValueError(
+                    "columns mismatch", self.dataframe.columns, other.dataframe.columns
+                )
+            res = self.dataframe.__ge__(other.dataframe)
+            if res is NotImplemented:
+                raise NotImplementedError("operation not supported for lazyframes")
+            return PolarsDataFrame(res)  # type: ignore[operator]
         return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__ge__(other)))  # type: ignore[operator]
 
     def __gt__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
-            return PolarsDataFrame(self.dataframe.__gt__(other.dataframe))  # type: ignore[operator]
+            if other.dataframe.columns != self.dataframe.columns:
+                raise ValueError(
+                    "columns mismatch", self.dataframe.columns, other.dataframe.columns
+                )
+            res = self.dataframe.__gt__(other.dataframe)
+            if res is NotImplemented:
+                raise NotImplementedError("operation not supported for lazyframes")
+            return PolarsDataFrame(res)  # type: ignore[operator]
         return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__gt__(other)))  # type: ignore[operator]
 
     def __le__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
-            return PolarsDataFrame(self.dataframe.__le__(other.dataframe))  # type: ignore[operator]
+            if other.dataframe.columns != self.dataframe.columns:
+                raise ValueError(
+                    "columns mismatch", self.dataframe.columns, other.dataframe.columns
+                )
+            res = self.dataframe.__le__(other.dataframe)
+            if res is NotImplemented:
+                raise NotImplementedError("operation not supported for lazyframes")
+            return PolarsDataFrame(res)  # type: ignore[operator]
         return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__le__(other)))  # type: ignore[operator]
 
     def __lt__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
-            return PolarsDataFrame(self.dataframe.__lt__(other.dataframe))  # type: ignore[operator]
+            if other.dataframe.columns != self.dataframe.columns:
+                raise ValueError(
+                    "columns mismatch", self.dataframe.columns, other.dataframe.columns
+                )
+            res = self.dataframe.__lt__(other.dataframe)
+            if res is NotImplemented:
+                raise NotImplementedError("operation not supported for lazyframes")
+            return PolarsDataFrame(res)  # type: ignore[operator]
         return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__lt__(other)))  # type: ignore[operator]
 
     def __and__(self, other: DataFrame | Any) -> PolarsDataFrame:
@@ -619,21 +662,37 @@ class PolarsDataFrame(DataFrame):
         )
 
     def __add__(self, other: DataFrame | Any) -> PolarsDataFrame:
+        if isinstance(self.dataframe, pl.LazyFrame) and (
+            isinstance(other, DataFrame) and isinstance(other.dataframe, pl.LazyFrame)
+        ):
+            raise NotImplementedError("operation not supported for lazyframes")
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__add__(other.dataframe))  # type: ignore[operator]
         return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__add__(other)))  # type: ignore[operator]
 
     def __sub__(self, other: DataFrame | Any) -> PolarsDataFrame:
+        if isinstance(self.dataframe, pl.LazyFrame) and (
+            isinstance(other, DataFrame) and isinstance(other.dataframe, pl.LazyFrame)
+        ):
+            raise NotImplementedError("operation not supported for lazyframes")
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__sub__(other.dataframe))  # type: ignore[operator]
         return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__sub__(other)))  # type: ignore[operator]
 
     def __mul__(self, other: DataFrame | Any) -> PolarsDataFrame:
+        if isinstance(self.dataframe, pl.LazyFrame) and (
+            isinstance(other, DataFrame) and isinstance(other.dataframe, pl.LazyFrame)
+        ):
+            raise NotImplementedError("operation not supported for lazyframes")
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__mul__(other.dataframe))  # type: ignore[operator]
         return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__mul__(other)))  # type: ignore[operator]
 
     def __truediv__(self, other: DataFrame | Any) -> PolarsDataFrame:
+        if isinstance(self.dataframe, pl.LazyFrame) and (
+            isinstance(other, DataFrame) and isinstance(other.dataframe, pl.LazyFrame)
+        ):
+            raise NotImplementedError("operation not supported for lazyframes")
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__truediv__(other.dataframe))  # type: ignore[operator]
         return PolarsDataFrame(
@@ -641,6 +700,10 @@ class PolarsDataFrame(DataFrame):
         )
 
     def __floordiv__(self, other: DataFrame | Any) -> PolarsDataFrame:
+        if isinstance(self.dataframe, pl.LazyFrame) and (
+            isinstance(other, DataFrame) and isinstance(other.dataframe, pl.LazyFrame)
+        ):
+            raise NotImplementedError("operation not supported for lazyframes")
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__floordiv__(other.dataframe))  # type: ignore[operator]
         return PolarsDataFrame(
@@ -648,6 +711,10 @@ class PolarsDataFrame(DataFrame):
         )
 
     def __pow__(self, other: DataFrame | Any) -> PolarsDataFrame:
+        if isinstance(self.dataframe, pl.LazyFrame) and (
+            isinstance(other, DataFrame) and isinstance(other.dataframe, pl.LazyFrame)
+        ):
+            raise NotImplementedError("operation not supported for lazyframes")
         original_type = self.dataframe.schema
         if isinstance(other, PolarsDataFrame):
             ret = self.dataframe.select(
@@ -675,11 +742,19 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(ret)
 
     def __mod__(self, other: DataFrame | Any) -> PolarsDataFrame:
+        if isinstance(self.dataframe, pl.LazyFrame) and (
+            isinstance(other, DataFrame) and isinstance(other.dataframe, pl.LazyFrame)
+        ):
+            raise NotImplementedError("operation not supported for lazyframes")
         if isinstance(other, PolarsDataFrame):
-            assert isinstance(self.dataframe, pl.DataFrame) and isinstance(
-                other.dataframe, pl.DataFrame
-            )
-            return PolarsDataFrame(self.dataframe.__mod__(other.dataframe))
+            if other.dataframe.columns != self.dataframe.columns:
+                raise ValueError(
+                    "columns mismatch", self.dataframe.columns, other.dataframe.columns
+                )
+            res = self.dataframe.__mod__(other.dataframe)
+            if res is NotImplemented:
+                raise NotImplementedError("operation not supported for lazyframes")
+            return PolarsDataFrame(res)  # type: ignore[operator]
         return PolarsDataFrame(self.dataframe.with_columns(pl.col("*") % other))  # type: ignore[operator]
 
     def __divmod__(

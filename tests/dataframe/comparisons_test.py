@@ -32,13 +32,15 @@ def test_comparisons(
     library: str,
     comparison: str,
     expected_data: dict[str, object],
-    request: pytest.FixtureRequest,
 ) -> None:
-    if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_1(library)
     other = integer_dataframe_2(library)
-    result = getattr(df, comparison)(other)
+    if library == "polars-lazy":
+        with pytest.raises(NotImplementedError):
+            result = getattr(df, comparison)(other)
+        return
+    else:
+        result = getattr(df, comparison)(other)
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame(expected_data)
@@ -79,11 +81,9 @@ def test_comparisons_with_scalar(
 
 
 def test_comparison_invalid(library: str, request: pytest.FixtureRequest) -> None:
-    if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_1(library).get_columns_by_name(["a"])
     other = integer_dataframe_1(library).get_columns_by_name(["b"])
     with pytest.raises(
-        (ValueError, pl.exceptions.DuplicateError),
+        (ValueError, pl.exceptions.DuplicateError, NotImplementedError),
     ):
         assert df > other
