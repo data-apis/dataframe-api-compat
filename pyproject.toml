@@ -19,7 +19,7 @@ classifiers = [
 
 [project.urls]
 "Homepage" = "https://github.com/data-apis/dataframe-api-compat"
-"Bug Tracker" = "https://github.com/pypa/sampleproject/issues"
+"Bug Tracker" = "https://github.com/data-apis/dataframe-api-compat"
 
 [tool.ruff]
 line-length = 90
