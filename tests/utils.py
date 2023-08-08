@@ -213,11 +213,11 @@ def nan_dataframe_2(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def null_dataframe_1(library: str, request: pytest.FixtureRequest) -> Any:
+def null_dataframe_1(library: str) -> Any:
     df: Any
     if library == "pandas-numpy":
-        mark = pytest.mark.xfail()
-        request.node.add_marker(mark)
+        df = pd.DataFrame({"a": [1.0, 2.0, float("nan")]}, dtype="float64")
+        return convert_to_standard_compliant_dataframe(df)
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1.0, 2.0, pd.NA]}, dtype="Float64")
         return convert_to_standard_compliant_dataframe(df)
@@ -230,7 +230,7 @@ def null_dataframe_1(library: str, request: pytest.FixtureRequest) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def null_dataframe_2(library: str, request: pytest.FixtureRequest) -> Any:
+def null_dataframe_2(library: str) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame(

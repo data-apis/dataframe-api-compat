@@ -701,9 +701,10 @@ class PandasDataFrame(DataFrame):
         result = []
         for column in self.dataframe.columns:
             if is_extension_array_dtype(self.dataframe[column].dtype):
-                result.append(self.dataframe[column].isnull())
+                result.append(self.dataframe[column].isna())
             else:
-                result.append(pd.Series(np.array([False] * self.shape()[0]), name=column))
+                result.append(self.dataframe[column].isna())
+                # result.append(pd.Series(np.array([False] * self.shape()[0]), name=column))
         return PandasDataFrame(pd.concat(result, axis=1))
 
     def is_nan(self) -> PandasDataFrame:

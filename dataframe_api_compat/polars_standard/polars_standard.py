@@ -542,6 +542,8 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(self.df.select(names))
 
     def get_rows(self, indices: Column[Any]) -> PolarsDataFrame:
+        if isinstance(self.dataframe, pl.LazyFrame):
+            raise NotImplementedError("get_rows not implemented for lazyframes")
         return PolarsDataFrame(self.dataframe[indices.column])
 
     def slice_rows(
@@ -780,10 +782,7 @@ class PolarsDataFrame(DataFrame):
         raise NotImplementedError()
 
     def is_null(self) -> PolarsDataFrame:
-        result = {}
-        for column in self.dataframe.columns:
-            result[column] = self.dataframe.get_column(column).is_null()  # type: ignore[union-attr]
-        return PolarsDataFrame(pl.DataFrame(result))
+        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").is_null()))
 
     def is_nan(self) -> PolarsDataFrame:
         df = self.dataframe.with_columns(pl.col("*").is_nan())

@@ -10,7 +10,7 @@ def test_fill_null_column(library: str, request: pytest.FixtureRequest) -> None:
     if library == "polars-lazy":
         # todo: write test using null_series
         request.node.add_marker(pytest.mark.xfail())
-    df = null_dataframe_2(library, request).get_column_by_name("a")
+    df = null_dataframe_2(library).get_column_by_name("a")
     result = df.fill_null(0)
     # friggin' impossible to test this due to pandas inconsistencies
     # with handling nan and null

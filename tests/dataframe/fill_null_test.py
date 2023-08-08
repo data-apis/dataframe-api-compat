@@ -19,10 +19,9 @@ from tests.utils import null_dataframe_2
 )
 def test_fill_null(
     library: str,
-    request: pytest.FixtureRequest,
     column_names: list[str] | None,
 ) -> None:
-    df = null_dataframe_2(library, request)
+    df = null_dataframe_2(library)
     result = df.fill_null(0, column_names=column_names)
 
     if column_names is None or "a" in column_names:
