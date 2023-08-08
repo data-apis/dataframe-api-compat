@@ -39,14 +39,16 @@ def test_fill_null(
         assert interchange_to_pandas(result, library)["b"].iloc[2] == 0
 
 
-def test_fill_null_noop(library: str, request: pytest.FixtureRequest) -> None:
-    if library == "pandas-numpy":
-        request.node.add_marker(pytest.xfail())
+def test_fill_null_noop(library: str) -> None:
     df = nan_dataframe_1(library)
     result = df.fill_null(0)
     if hasattr(result.dataframe, "collect"):
         result = result.dataframe.collect()
     else:
         result = result.dataframe
-    # nan should not have changed!
-    assert result["a"][2] != result["a"][2]
+    if library != "pandas-numpy":
+        # nan should not have changed!
+        assert result["a"][2] != result["a"][2]
+    else:
+        # in pandas-numpy, null is nan, so it gets filled
+        assert result["a"][2] == 0
