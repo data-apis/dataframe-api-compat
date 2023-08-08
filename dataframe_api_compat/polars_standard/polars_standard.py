@@ -89,6 +89,7 @@ class PolarsColumn(Column[DType]):
         dtype: pl.DataType,
         hash: str | None = None,
         method: str | None = None,
+        **kwargs,
     ) -> None:
         if column is NotImplemented:
             raise NotImplementedError("operation not implemented")
@@ -98,6 +99,7 @@ class PolarsColumn(Column[DType]):
         self._dtype = dtype
         # keep track of which method this was called from
         self._method = method
+        self._meta = kwargs
         if isinstance(column, pl.Series):
             assert column.dtype == dtype
 
@@ -554,6 +556,8 @@ class PolarsDataFrame(DataFrame):
                 return PolarsDataFrame(
                     self.dataframe.sort(indices.column.meta.root_names()[0].split("tmp"))
                 )
+            elif indices._method == "Column.sorted_indices":
+                return PolarsDataFrame(self.dataframe.sort(indices.column))
             elif indices._method == "DataFrame.unique_indices":
                 # todo HACK
                 return PolarsDataFrame(

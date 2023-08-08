@@ -32,8 +32,6 @@ def test_groupby_numeric(
     expected_c: list[float],
     request: pytest.FixtureRequest,
 ) -> None:
-    if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_4(library)
     result = getattr(df.groupby(["key"]), aggregation)()
     sorted_indices = result.sorted_indices(["key"])

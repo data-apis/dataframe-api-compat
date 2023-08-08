@@ -24,8 +24,6 @@ def test_groupby_boolean(
     expected_c: list[bool],
     request: pytest.FixtureRequest,
 ) -> None:
-    if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
     df = bool_dataframe_2(library)
     result = getattr(df.groupby(["key"]), aggregation)()
     # need to sort
