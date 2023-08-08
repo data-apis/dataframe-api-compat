@@ -10,11 +10,14 @@ from tests.utils import interchange_to_pandas
 
 
 def test_and(library: str, request: pytest.FixtureRequest) -> None:
-    if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
     df = bool_dataframe_1(library)
     other = bool_dataframe_4(library)
-    result = df & other
+    if library == "polars-lazy":
+        with pytest.raises(NotImplementedError):
+            result = df & other
+        return
+    else:
+        result = df & other
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"a": [False, True, False], "b": [True, True, True]})

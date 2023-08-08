@@ -630,6 +630,10 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__lt__(other)))  # type: ignore[operator]
 
     def __and__(self, other: DataFrame | Any) -> PolarsDataFrame:
+        if isinstance(self.dataframe, pl.LazyFrame) and (
+            isinstance(other, DataFrame) and isinstance(other.dataframe, pl.LazyFrame)
+        ):
+            raise NotImplementedError("operation not supported for lazyframes")
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(
                 self.dataframe.with_columns(
@@ -640,6 +644,10 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(self.dataframe.with_columns(pl.col("*") & other))
 
     def __or__(self, other: DataFrame | Any) -> PolarsDataFrame:
+        if isinstance(self.dataframe, pl.LazyFrame) and (
+            isinstance(other, DataFrame) and isinstance(other.dataframe, pl.LazyFrame)
+        ):
+            raise NotImplementedError("operation not supported for lazyframes")
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(
                 self.dataframe.with_columns(
@@ -749,9 +757,21 @@ class PolarsDataFrame(DataFrame):
         self,
         other: DataFrame | Any,
     ) -> tuple[PolarsDataFrame, PolarsDataFrame]:
-        quotient = self // other
-        remainder = self - quotient * other
-        return quotient, remainder
+        # quotient = self // other
+        # remainder = self - quotient * other
+        if isinstance(self.dataframe, pl.LazyFrame) and (
+            isinstance(other, DataFrame) and isinstance(other.dataframe, pl.LazyFrame)
+        ):
+            raise NotImplementedError("operation not supported for lazyframes")
+        if isinstance(other, PolarsDataFrame):
+            quotient = self // other
+            remainder = self - quotient * other
+            return quotient, remainder
+        quotient = self.dataframe.with_columns(pl.col("*") // other)
+        remainder = self.dataframe.with_columns(
+            pl.col("*") - (pl.col("*") // other) * other
+        )
+        return PolarsDataFrame(quotient), PolarsDataFrame(remainder)
 
     def __invert__(self) -> PolarsDataFrame:
         return PolarsDataFrame(self.dataframe.select(~pl.col("*")))
