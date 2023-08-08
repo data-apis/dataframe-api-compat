@@ -920,6 +920,6 @@ class PolarsDataFrame(DataFrame):
                 f"Invalid dtype {dtype}. Expected one of {_ARRAY_API_DTYPES}"
             )
         if isinstance(self.dataframe, pl.LazyFrame):
-            # todo - remove this? should it raise?
+            # todo - document this in the spec?
             return self.dataframe.collect().to_numpy().astype(dtype)
         return self.dataframe.to_numpy().astype(dtype)
