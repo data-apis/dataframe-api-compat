@@ -83,15 +83,21 @@ def _is_integer_dtype(dtype: Any) -> bool:
 
 class PolarsColumn(Column[DType]):
     def __init__(
-        self, column: pl.Series | pl.Expr, *, dtype: pl.DataType, hash: str | None = None
+        self,
+        column: pl.Series | pl.Expr,
+        *,
+        dtype: pl.DataType,
+        hash: str | None = None,
+        method: str | None = None,
     ) -> None:
         if column is NotImplemented:
             raise NotImplementedError("operation not implemented")
-        # _df only necessary in the lazy case
-        # keep track of which dataframe the column came from
         self._series = column
+        # keep track of which dataframe the column came from
         self._hash = hash
         self._dtype = dtype
+        # keep track of which method this was called from
+        self._method = method
         if isinstance(column, pl.Series):
             assert column.dtype == dtype
 
@@ -401,6 +407,7 @@ class PolarsColumn(Column[DType]):
             expr,
             hash=self._hash,
             dtype=pl.UInt32(),
+            method="sorted_indices",
         )
 
     def fill_nan(self, value: float | NullType) -> PolarsColumn[DType]:
@@ -541,7 +548,12 @@ class PolarsDataFrame(DataFrame):
         if isinstance(self.dataframe, pl.LazyFrame) or isinstance(
             indices.column, pl.Expr
         ):
-            raise NotImplementedError("get_rows not supported for lazy dataframes")
+            if indices._method != "sorted_indices":
+                raise NotImplementedError(
+                    "get_rows only supported for lazyframes if called right after:\n"
+                    "- DataFrame.sorted_indices"
+                )
+            return PolarsDataFrame(self.dataframe.sort(indices.column))
         self._validate_column(indices)
         return PolarsDataFrame(self.dataframe[indices.column])
 
