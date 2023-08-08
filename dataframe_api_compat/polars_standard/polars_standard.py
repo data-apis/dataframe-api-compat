@@ -564,7 +564,7 @@ class PolarsDataFrame(DataFrame):
     ) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__eq__(other.dataframe))  # type: ignore[arg-type]
-        return PolarsDataFrame(self.dataframe.__eq__(other))  # type: ignore[arg-type]
+        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__eq__(other)))  # type: ignore[arg-type]
 
     def __ne__(  # type: ignore[override]
         self,
@@ -572,27 +572,27 @@ class PolarsDataFrame(DataFrame):
     ) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__ne__(other.dataframe))  # type: ignore[arg-type]
-        return PolarsDataFrame(self.dataframe.__ne__(other))  # type: ignore[arg-type]
+        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__ne__(other)))  # type: ignore[arg-type]
 
     def __ge__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__ge__(other.dataframe))  # type: ignore[operator]
-        return PolarsDataFrame(self.dataframe.__ge__(other))  # type: ignore[operator]
+        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__ge__(other)))  # type: ignore[operator]
 
     def __gt__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__gt__(other.dataframe))  # type: ignore[operator]
-        return PolarsDataFrame(self.dataframe.__gt__(other))  # type: ignore[operator]
+        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__gt__(other)))  # type: ignore[operator]
 
     def __le__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__le__(other.dataframe))  # type: ignore[operator]
-        return PolarsDataFrame(self.dataframe.__le__(other))  # type: ignore[operator]
+        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__le__(other)))  # type: ignore[operator]
 
     def __lt__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__lt__(other.dataframe))  # type: ignore[operator]
-        return PolarsDataFrame(self.dataframe.__lt__(other))  # type: ignore[operator]
+        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__lt__(other)))  # type: ignore[operator]
 
     def __and__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
@@ -621,30 +621,30 @@ class PolarsDataFrame(DataFrame):
     def __add__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__add__(other.dataframe))  # type: ignore[operator]
-        return PolarsDataFrame(self.dataframe.__add__(other))  # type: ignore[operator]
+        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__add__(other)))  # type: ignore[operator]
 
     def __sub__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__sub__(other.dataframe))  # type: ignore[operator]
-        return PolarsDataFrame(self.dataframe.__sub__(other))  # type: ignore[operator]
+        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__sub__(other)))  # type: ignore[operator]
 
     def __mul__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__mul__(other.dataframe))  # type: ignore[operator]
-        return PolarsDataFrame(self.dataframe.__mul__(other))  # type: ignore[operator]
+        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*").__mul__(other)))  # type: ignore[operator]
 
     def __truediv__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__truediv__(other.dataframe))  # type: ignore[operator]
         return PolarsDataFrame(
-            self.dataframe.__truediv__(other)  # type: ignore[operator]
+            self.dataframe.with_columns(pl.col("*").__truediv__(other))  # type: ignore[operator]
         )
 
     def __floordiv__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
             return PolarsDataFrame(self.dataframe.__floordiv__(other.dataframe))  # type: ignore[operator]
         return PolarsDataFrame(
-            self.dataframe.__floordiv__(other)  # type: ignore[operator]
+            self.dataframe.with_columns(pl.col("*").__floordiv__(other))
         )
 
     def __pow__(self, other: DataFrame | Any) -> PolarsDataFrame:
@@ -680,7 +680,7 @@ class PolarsDataFrame(DataFrame):
                 other.dataframe, pl.DataFrame
             )
             return PolarsDataFrame(self.dataframe.__mod__(other.dataframe))
-        return PolarsDataFrame(self.dataframe.__mod__(other))  # type: ignore[operator]
+        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*") % other))  # type: ignore[operator]
 
     def __divmod__(
         self,
