@@ -89,7 +89,7 @@ class PolarsColumn(Column[DType]):
         dtype: pl.DataType,
         hash: str | None = None,
         method: str | None = None,
-        **kwargs,
+        **kwargs: dict[str, Any],
     ) -> None:
         if column is NotImplemented:
             raise NotImplementedError("operation not implemented")
@@ -548,7 +548,7 @@ class PolarsDataFrame(DataFrame):
     def get_rows(self, indices: PolarsColumn[Any]) -> PolarsDataFrame:  # type: ignore[override]
         assert "idx" not in self.dataframe.columns
         self._validate_column(indices)
-        if isinstance(self.dataframe, pl.LazyFrame) or isinstance(
+        if isinstance(self.dataframe, pl.LazyFrame) and isinstance(
             indices.column, pl.Expr
         ):
             if indices._method == "DataFrame.sorted_indices":
@@ -570,7 +570,8 @@ class PolarsDataFrame(DataFrame):
                 "- DataFrame.sorted_indices\n"
                 "- DataFrame.unique_indices\n"
             )
-        self._validate_column(indices)
+        assert isinstance(indices.column, pl.Series)
+        assert isinstance(self.dataframe, pl.DataFrame)
         return PolarsDataFrame(self.dataframe[indices.column])
 
     def slice_rows(
@@ -882,25 +883,16 @@ class PolarsDataFrame(DataFrame):
     ) -> PolarsColumn[Any]:
         if keys is None:
             keys = self.dataframe.columns
+        expr = pl.arg_sort_by(keys, descending=not ascending)
         if isinstance(self.dataframe, pl.LazyFrame):
-            # TODO hack
             return PolarsColumn(
-                pl.col("tmp".join(keys)),
+                expr,
+                dtype=pl.UInt32(),
                 hash=self._hash,
-                dtype=pl.UInt32,
                 method="DataFrame.sorted_indices",
             )
-        df = self.dataframe.select(keys)
-        if ascending:
-            return PolarsColumn(
-                df.with_row_count().sort(keys, descending=False).get_column("row_nr"),
-                hash=self._hash,
-                dtype=pl.UInt32(),
-            )
         return PolarsColumn(
-            df.with_row_count().sort(keys, descending=False).get_column("row_nr")[::-1],
-            hash=self._hash,
-            dtype=pl.UInt32(),
+            self.dataframe.select(expr.alias("idx"))["idx"], dtype=pl.UInt32()
         )
 
     def unique_indices(
@@ -915,7 +907,7 @@ class PolarsDataFrame(DataFrame):
             return PolarsColumn(
                 pl.col("tmp".join(keys)),
                 hash=self._hash,
-                dtype=pl.UInt32,
+                dtype=pl.UInt32(),
                 method="DataFrame.unique_indices",
             )
         return PolarsColumn(df.with_row_count().unique(keys).get_column("row_nr"), dtype=pl.UInt32(), method="DataFrame.unique_indices")  # type: ignore[union-attr]
