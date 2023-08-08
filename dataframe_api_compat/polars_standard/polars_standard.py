@@ -394,17 +394,12 @@ class PolarsColumn(Column[DType]):
     def sorted_indices(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
     ) -> PolarsColumn[Any]:
-        if isinstance(self.column, pl.Expr):
-            raise NotImplementedError("sorted_indices not implemented for lazy columns")
-        df = self.column.to_frame()
-        keys = df.columns
-        if ascending:
-            return PolarsColumn(
-                df.with_row_count().sort(keys, descending=False).get_column("row_nr"),
-                dtype=pl.UInt32(),
-            )
+        # if isinstance(self.column, pl.Expr):
+        #     raise NotImplementedError("sorted_indices not implemented for lazy columns")
+        expr = self.column.arg_sort(descending=not ascending)
         return PolarsColumn(
-            df.with_row_count().sort(keys, descending=False).get_column("row_nr")[::-1],
+            expr,
+            hash=self._hash,
             dtype=pl.UInt32(),
         )
 
@@ -542,9 +537,14 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(self.df.select(names))
 
     def get_rows(self, indices: Column[Any]) -> PolarsDataFrame:
-        if isinstance(self.dataframe, pl.LazyFrame):
-            raise NotImplementedError("get_rows not implemented for lazyframes")
-        return PolarsDataFrame(self.dataframe[indices.column])
+        assert "idx" not in self.dataframe.columns
+        self._validate_column(indices)
+        return PolarsDataFrame(
+            self.dataframe.with_row_count("idx")
+            .with_columns(indices.column.alias("idx"))
+            .sort("idx")
+            .drop("idx")
+        )
 
     def slice_rows(
         self, start: int | None, stop: int | None, step: int | None

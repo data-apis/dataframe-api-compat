@@ -1,32 +1,41 @@
 from __future__ import annotations
 
 import pandas as pd
-import pytest
 
-from tests.utils import integer_series_6
+from tests.utils import convert_dataframe_to_pandas_numpy
+from tests.utils import integer_dataframe_6
 from tests.utils import interchange_to_pandas
 
 
-@pytest.mark.parametrize(
-    ("ascending", "expected_data"),
-    [
-        (True, [0, 2, 1]),
-        (False, [1, 2, 0]),
-    ],
-)
-def test_column_sorted_indices(
+def test_column_sorted_indices_ascending(
     library: str,
-    ascending: bool,
-    expected_data: list[int],
-    request: pytest.FixtureRequest,
 ) -> None:
-    ser = integer_series_6(library, request)
-    namespace = ser.__column_namespace__()
-    result = namespace.dataframe_from_dict(
-        {"result": (ser.sorted_indices(ascending=ascending)).rename("result")}
+    df = integer_dataframe_6(library)
+    sorted_indices = df.get_column_by_name("b").sorted_indices()
+    result = df.get_rows(sorted_indices)
+    result_pd = interchange_to_pandas(result, library)
+    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
+    expected = pd.DataFrame(
+        {
+            "a": [2, 2, 1, 1, 1],
+            "b": [1, 2, 3, 4, 4],
+        }
     )
-    result_pd = interchange_to_pandas(result, library)["result"]
-    # TODO standardise return type?
-    result_pd = result_pd.astype("int64")
-    expected = pd.Series(expected_data, name="result")
-    pd.testing.assert_series_equal(result_pd, expected)
+    pd.testing.assert_frame_equal(result_pd, expected)
+
+
+def test_column_sorted_indices_descending(
+    library: str,
+) -> None:
+    df = integer_dataframe_6(library)
+    sorted_indices = df.get_column_by_name("b").sorted_indices(ascending=False)
+    result = df.get_rows(sorted_indices)
+    result_pd = interchange_to_pandas(result, library)
+    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
+    expected = pd.DataFrame(
+        {
+            "a": [1, 1, 1, 2, 2],
+            "b": [4, 4, 3, 2, 1],
+        }
+    )
+    pd.testing.assert_frame_equal(result_pd, expected)

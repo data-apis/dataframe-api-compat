@@ -20,8 +20,6 @@ def test_sorted_indices(
     expected_data: list[int],
     request: pytest.FixtureRequest,
 ) -> None:
-    if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_5(library)
     namespace = df.__dataframe_namespace__()
     result = namespace.dataframe_from_dict(
