@@ -95,6 +95,14 @@ class PolarsColumn(Column[DType]):
         if isinstance(column, pl.Series):
             assert column.dtype == dtype
 
+    def _validate_column(self, column: PolarsColumn[Any]) -> None:
+        if isinstance(column.column, pl.Expr) and column._hash != self._hash:
+            raise ValueError(
+                "Column was created from a different dataframe!",
+                column._hash,
+                self._hash,
+            )
+
     # In the standard
     def __column_namespace__(self, *, api_version: str | None = None) -> Any:
         return dataframe_api_compat.polars_standard
@@ -591,10 +599,6 @@ class PolarsDataFrame(DataFrame):
 
     def __ge__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
-            if other.dataframe.columns != self.dataframe.columns:
-                raise ValueError(
-                    "columns mismatch", self.dataframe.columns, other.dataframe.columns
-                )
             res = self.dataframe.__ge__(other.dataframe)
             if res is NotImplemented:
                 raise NotImplementedError("operation not supported for lazyframes")
@@ -603,10 +607,6 @@ class PolarsDataFrame(DataFrame):
 
     def __gt__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
-            if other.dataframe.columns != self.dataframe.columns:
-                raise ValueError(
-                    "columns mismatch", self.dataframe.columns, other.dataframe.columns
-                )
             res = self.dataframe.__gt__(other.dataframe)
             if res is NotImplemented:
                 raise NotImplementedError("operation not supported for lazyframes")
@@ -615,10 +615,6 @@ class PolarsDataFrame(DataFrame):
 
     def __le__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
-            if other.dataframe.columns != self.dataframe.columns:
-                raise ValueError(
-                    "columns mismatch", self.dataframe.columns, other.dataframe.columns
-                )
             res = self.dataframe.__le__(other.dataframe)
             if res is NotImplemented:
                 raise NotImplementedError("operation not supported for lazyframes")
@@ -627,10 +623,6 @@ class PolarsDataFrame(DataFrame):
 
     def __lt__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
-            if other.dataframe.columns != self.dataframe.columns:
-                raise ValueError(
-                    "columns mismatch", self.dataframe.columns, other.dataframe.columns
-                )
             res = self.dataframe.__lt__(other.dataframe)
             if res is NotImplemented:
                 raise NotImplementedError("operation not supported for lazyframes")
@@ -747,10 +739,6 @@ class PolarsDataFrame(DataFrame):
         ):
             raise NotImplementedError("operation not supported for lazyframes")
         if isinstance(other, PolarsDataFrame):
-            if other.dataframe.columns != self.dataframe.columns:
-                raise ValueError(
-                    "columns mismatch", self.dataframe.columns, other.dataframe.columns
-                )
             res = self.dataframe.__mod__(other.dataframe)
             if res is NotImplemented:
                 raise NotImplementedError("operation not supported for lazyframes")

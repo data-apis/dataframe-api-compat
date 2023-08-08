@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 
 from tests.utils import convert_series_to_pandas_numpy
+from tests.utils import integer_dataframe_1
 from tests.utils import integer_series_1
 from tests.utils import integer_series_3
 
@@ -85,3 +86,10 @@ def test_column_comparisons_scalar(
         result_pd = result_pd.astype("int64")
     result_pd = convert_series_to_pandas_numpy(result_pd)
     pd.testing.assert_series_equal(result_pd, expected)
+
+
+def test_invalid_comparison() -> None:
+    df1 = integer_dataframe_1("polars-lazy")
+    df2 = integer_dataframe_1("polars-lazy")
+    with pytest.raises(ValueError):
+        _ = df1.get_column_by_name("a") > df2.get_column_by_name("a")
