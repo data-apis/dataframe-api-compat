@@ -57,7 +57,11 @@ else:
         ...
 
 
-null = None
+class Null:
+    ...
+
+
+null = Null()
 NullType = Type[None]
 
 
@@ -164,10 +168,10 @@ class PolarsColumn(Column[DType]):
         )
 
     def is_null(self) -> PolarsColumn[Bool]:
-        return PolarsColumn(self.column.is_null(), dtype=pl.Boolean())
+        return PolarsColumn(self.column.is_null(), dtype=pl.Boolean(), hash=self._hash)
 
     def is_nan(self) -> PolarsColumn[Bool]:
-        return PolarsColumn(self.column.is_nan(), dtype=pl.Boolean())
+        return PolarsColumn(self.column.is_nan(), dtype=pl.Boolean(), hash=self._hash)
 
     def any(self, *, skip_nulls: bool = True) -> bool | None:
         if isinstance(self.column, pl.Expr):
@@ -705,10 +709,8 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(pl.DataFrame(result))
 
     def is_nan(self) -> PolarsDataFrame:
-        result = {}
-        for column in self.dataframe.columns:
-            result[column] = self.dataframe.get_column(column).is_nan()  # type: ignore[union-attr]
-        return PolarsDataFrame(pl.DataFrame(result))
+        df = self.dataframe.with_columns(pl.col("*").is_nan())
+        return PolarsDataFrame(df)
 
     def any(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
         return PolarsDataFrame(self.dataframe.select(pl.col("*").any()))
@@ -793,6 +795,8 @@ class PolarsDataFrame(DataFrame):
         self,
         value: float | NullType,
     ) -> PolarsDataFrame:
+        if value is null:
+            value = None
         return PolarsDataFrame(self.dataframe.fill_nan(value))  # type: ignore[arg-type]
 
     def fill_null(

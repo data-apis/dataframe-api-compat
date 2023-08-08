@@ -233,8 +233,11 @@ def null_dataframe_1(library: str, request: pytest.FixtureRequest) -> Any:
 def null_dataframe_2(library: str, request: pytest.FixtureRequest) -> Any:
     df: Any
     if library == "pandas-numpy":
-        mark = pytest.mark.xfail()
-        request.node.add_marker(mark)
+        df = pd.DataFrame(
+            {"a": [1.0, -1.0, float("nan")], "b": [1.0, -1.0, float("nan")]},
+            dtype="float64",
+        )
+        return convert_to_standard_compliant_dataframe(df)
     if library == "pandas-nullable":
         df = pd.DataFrame(
             {"a": [1.0, 0.0, pd.NA], "b": [1.0, 1.0, pd.NA]}, dtype="Float64"
@@ -551,3 +554,8 @@ def null_series_1(library: str, request: pytest.FixtureRequest) -> Any:
 def interchange_to_pandas(result: Any, library: str) -> pd.DataFrame:
     df = result.dataframe.collect() if library == "polars-lazy" else result.dataframe
     return pd.api.interchange.from_dataframe(df)
+
+
+def maybe_collect(result: Any, library: str) -> Any:
+    df = result.dataframe.collect() if library == "polars-lazy" else result.dataframe
+    return df

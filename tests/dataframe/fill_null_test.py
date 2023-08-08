@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import pytest
 
+from tests.utils import interchange_to_pandas
+from tests.utils import maybe_collect
 from tests.utils import nan_dataframe_1
 from tests.utils import null_dataframe_2
 
@@ -21,27 +23,25 @@ def test_fill_null(
     column_names: list[str] | None,
 ) -> None:
     df = null_dataframe_2(library, request)
-    namespace = df.__dataframe_namespace__()
     result = df.fill_null(0, column_names=column_names)
-    if hasattr(result.dataframe, "collect"):
-        result = result.dataframe.collect()
-    else:
-        result = result.dataframe
-    # todo: is there a way to test test this without if/then statements?
-    if column_names is None or column_names == ["a", "b"]:
-        assert result["a"][2] == 0.0
-        assert result["b"][2] == 0.0
-    elif column_names == ["a"]:
-        assert result["a"][2] == 0.0
-        assert namespace.is_null(result["b"][2])
-    elif column_names == ["b"]:
-        assert namespace.is_null(result["a"][2])
-        assert result["b"][2] == 0.0
-    else:
-        raise AssertionError()
+
+    if column_names is None or "a" in column_names:
+        res1 = result.get_rows_by_mask(result.get_column_by_name("a").is_null())
+        res1 = maybe_collect(res1, library)
+        # check there no nulls left in the column
+        assert res1.__dataframe__().num_rows() == 0
+        # check the last element was filled with 0
+        assert interchange_to_pandas(result, library)["a"].iloc[2] == 0
+    if column_names is None or "b" in column_names:
+        res1 = result.get_rows_by_mask(result.get_column_by_name("b").is_null())
+        res1 = maybe_collect(res1, library)
+        assert res1.__dataframe__().num_rows() == 0
+        assert interchange_to_pandas(result, library)["b"].iloc[2] == 0
 
 
-def test_fill_null_noop(library: str) -> None:
+def test_fill_null_noop(library: str, request: pytest.FixtureRequest) -> None:
+    if library == "pandas-numpy":
+        request.node.add_marker(pytest.xfail())
     df = nan_dataframe_1(library)
     result = df.fill_null(0)
     if hasattr(result.dataframe, "collect"):

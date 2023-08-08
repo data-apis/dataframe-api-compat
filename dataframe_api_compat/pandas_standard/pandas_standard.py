@@ -17,6 +17,13 @@ import dataframe_api_compat.pandas_standard
 
 DType = TypeVar("DType")
 
+
+class Null:
+    ...
+
+
+null = Null()
+
 _ARRAY_API_DTYPES = frozenset(
     (
         "bool",
@@ -274,9 +281,12 @@ class PandasColumn(Column[DType]):
         value: Any,
     ) -> PandasColumn[DType]:
         ser = self.column.copy()
-        ser = np.where(
-            np.isnan(ser).fillna(False), ser, ser.fillna(value)
-        )  # type: ignore[assignment]
+        if ser.dtype.is_extension_array_dtype():
+            ser = np.where(
+                np.isnan(ser).fillna(False), ser, ser.fillna(value)
+            )  # type: ignore[assignment]
+        else:
+            ser = ser.fillna(value)
         return PandasColumn(pd.Series(ser))
 
     def cumulative_sum(self, *, skip_nulls: bool = True) -> PandasColumn[DType]:
@@ -710,8 +720,38 @@ class PandasDataFrame(DataFrame):
     def fill_nan(
         self, value: float | pd.NAType  # type: ignore[name-defined]
     ) -> PandasDataFrame:
-        df = self.dataframe.copy()
-        df[cast(pd.DataFrame, np.isnan(df)).fillna(False).to_numpy(bool)] = value
+        new_cols = {}
+        df = self.dataframe
+        for col in df.columns:
+            ser = df[col].copy()
+            if is_extension_array_dtype(ser.dtype):
+                if value is null:
+                    ser[
+                        cast("pd.Series[bool]", np.isnan(ser))
+                        .fillna(False)
+                        .to_numpy(bool)
+                    ] = pd.NA
+                else:
+                    ser[
+                        cast("pd.Series[bool]", np.isnan(ser))
+                        .fillna(False)
+                        .to_numpy(bool)
+                    ] = value
+            else:
+                if value is null:
+                    ser[
+                        cast("pd.Series[bool]", np.isnan(ser))
+                        .fillna(False)
+                        .to_numpy(bool)
+                    ] = np.nan
+                else:
+                    ser[
+                        cast("pd.Series[bool]", np.isnan(ser))
+                        .fillna(False)
+                        .to_numpy(bool)
+                    ] = value
+            new_cols[col] = ser
+        df = pd.DataFrame(new_cols)
         return PandasDataFrame(df)
 
     def fill_null(
@@ -725,9 +765,12 @@ class PandasDataFrame(DataFrame):
         df = self.dataframe.copy()
         for column in column_names:
             col = df[column]
-            col = np.where(
-                np.isnan(col).fillna(False), col, col.fillna(value)
-            )  # type: ignore[assignment]
+            if is_extension_array_dtype(col.dtype):
+                col = np.where(
+                    np.isnan(col).fillna(False), col, col.fillna(value)
+                )  # type: ignore[assignment]
+            else:
+                col = col.fillna(value)
             df[column] = col
         return PandasDataFrame(df)
 

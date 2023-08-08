@@ -61,8 +61,6 @@ class Bool:
     ...
 
 
-null = pd.NA
-
 DTYPE_MAP = {
     "int64": Int64(),
     "Int64": Int64(),
