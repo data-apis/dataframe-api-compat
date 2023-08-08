@@ -407,7 +407,7 @@ class PolarsColumn(Column[DType]):
             expr,
             hash=self._hash,
             dtype=pl.UInt32(),
-            method="sorted_indices",
+            method="Column.sorted_indices",
         )
 
     def fill_nan(self, value: float | NullType) -> PolarsColumn[DType]:
@@ -545,15 +545,27 @@ class PolarsDataFrame(DataFrame):
 
     def get_rows(self, indices: PolarsColumn[Any]) -> PolarsDataFrame:  # type: ignore[override]
         assert "idx" not in self.dataframe.columns
+        self._validate_column(indices)
         if isinstance(self.dataframe, pl.LazyFrame) or isinstance(
             indices.column, pl.Expr
         ):
-            if indices._method != "sorted_indices":
-                raise NotImplementedError(
-                    "get_rows only supported for lazyframes if called right after:\n"
-                    "- DataFrame.sorted_indices"
+            if indices._method == "DataFrame.sorted_indices":
+                # todo HACK
+                return PolarsDataFrame(
+                    self.dataframe.sort(indices.column.meta.root_names()[0].split("tmp"))
                 )
-            return PolarsDataFrame(self.dataframe.sort(indices.column))
+            elif indices._method == "DataFrame.unique_indices":
+                # todo HACK
+                return PolarsDataFrame(
+                    self.dataframe.unique(
+                        indices.column.meta.root_names()[0].split("tmp")
+                    )
+                )
+            raise NotImplementedError(
+                "get_rows only supported for lazyframes if called right after:\n"
+                "- DataFrame.sorted_indices\n"
+                "- DataFrame.unique_indices\n"
+            )
         self._validate_column(indices)
         return PolarsDataFrame(self.dataframe[indices.column])
 
@@ -866,13 +878,13 @@ class PolarsDataFrame(DataFrame):
     ) -> PolarsColumn[Any]:
         if keys is None:
             keys = self.dataframe.columns
-        if isinstance(self.dataframe, pl.LazyFrame) and len(keys) > 1:
-            raise NotImplementedError(
-                "sorted_indices with multiple keys not yet supported for lazyframes"
-            )
         if isinstance(self.dataframe, pl.LazyFrame):
+            # TODO hack
             return PolarsColumn(
-                pl.col(keys[0]).arg_sort(), dtype=pl.UInt32(), hash=self._hash
+                pl.col("tmp".join(keys)),
+                hash=self._hash,
+                dtype=pl.UInt32,
+                method="DataFrame.sorted_indices",
             )
         df = self.dataframe.select(keys)
         if ascending:
@@ -894,7 +906,15 @@ class PolarsDataFrame(DataFrame):
         if keys is None:
             keys = df.columns
         # TODO support lazyframe
-        return PolarsColumn(df.with_row_count().unique(keys).get_column("row_nr"), dtype=pl.UInt32())  # type: ignore[union-attr]
+        if isinstance(self.dataframe, pl.LazyFrame):
+            # TODO hack
+            return PolarsColumn(
+                pl.col("tmp".join(keys)),
+                hash=self._hash,
+                dtype=pl.UInt32,
+                method="DataFrame.unique_indices",
+            )
+        return PolarsColumn(df.with_row_count().unique(keys).get_column("row_nr"), dtype=pl.UInt32(), method="DataFrame.unique_indices")  # type: ignore[union-attr]
 
     def fill_nan(
         self,

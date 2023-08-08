@@ -23,8 +23,8 @@ def test_unique_indices(
     expected_data: dict[str, list[int]],
     request: pytest.FixtureRequest,
 ) -> None:
-    if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
+    # if library == "polars-lazy":
+    #     request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_6(library)
     df = df.get_rows(df.unique_indices(keys))
     result = df.get_rows(df.sorted_indices(keys))
