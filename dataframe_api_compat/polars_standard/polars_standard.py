@@ -89,7 +89,6 @@ class PolarsColumn(Column[DType]):
         dtype: pl.DataType,
         hash: str | None = None,
         method: str | None = None,
-        **kwargs: dict[str, Any],
     ) -> None:
         if column is NotImplemented:
             raise NotImplementedError("operation not implemented")
@@ -99,8 +98,8 @@ class PolarsColumn(Column[DType]):
         self._dtype = dtype
         # keep track of which method this was called from
         self._method = method
-        self._meta = kwargs
         if isinstance(column, pl.Series):
+            # just helps with defensiveness
             assert column.dtype == dtype
 
     def _validate_column(self, column: PolarsColumn[Any]) -> None:
@@ -551,19 +550,11 @@ class PolarsDataFrame(DataFrame):
         if isinstance(self.dataframe, pl.LazyFrame) and isinstance(
             indices.column, pl.Expr
         ):
-            if indices._method.endswith("sorted_indices"):
+            if indices._method is not None and indices._method.endswith("sorted_indices"):
                 return PolarsDataFrame(self.dataframe.sort(indices.column))
-            elif indices._method == "DataFrame.unique_indices":
-                # todo HACK
-                return PolarsDataFrame(
-                    self.dataframe.unique(
-                        indices.column.meta.root_names()[0].split("tmp")
-                    )
-                )
             raise NotImplementedError(
                 "get_rows only supported for lazyframes if called right after:\n"
                 "- DataFrame.sorted_indices\n"
-                "- DataFrame.unique_indices\n"
             )
         assert isinstance(indices.column, pl.Series)
         assert isinstance(self.dataframe, pl.DataFrame)
@@ -900,7 +891,7 @@ class PolarsDataFrame(DataFrame):
             raise NotImplementedError(
                 "unique_indices is not yet supported for lazyframes"
             )
-        return PolarsColumn(df.with_row_count().unique(keys).get_column("row_nr"), dtype=pl.UInt32(), method="DataFrame.unique_indices")  # type: ignore[union-attr]
+        return PolarsColumn(df.with_row_count().unique(keys).get_column("row_nr"), dtype=pl.UInt32())  # type: ignore[union-attr]
 
     def fill_nan(
         self,

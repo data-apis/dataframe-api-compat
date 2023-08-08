@@ -31,7 +31,7 @@ def test_sorted_indices_descending(
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_sorted_indices_with_insert(library: str):
+def test_sorted_indices_with_insert(library: str) -> None:
     df = integer_dataframe_5(library)
     result = df.insert(0, "idx", df.sorted_indices())
     result_pd = interchange_to_pandas(result, library)
