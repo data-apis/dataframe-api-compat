@@ -539,12 +539,9 @@ class PolarsDataFrame(DataFrame):
     def get_rows(self, indices: Column[Any]) -> PolarsDataFrame:
         assert "idx" not in self.dataframe.columns
         self._validate_column(indices)
-        return PolarsDataFrame(
-            self.dataframe.with_row_count("idx")
-            .with_columns(indices.column.alias("idx"))
-            .sort("idx")
-            .drop("idx")
-        )
+        if isinstance(self.dataframe, pl.LazyFrame):
+            raise NotImplementedError("get_rows not supported for lazy dataframes")
+        return PolarsDataFrame(self.dataframe[indices.column])
 
     def slice_rows(
         self, start: int | None, stop: int | None, step: int | None
@@ -847,14 +844,24 @@ class PolarsDataFrame(DataFrame):
     ) -> PolarsColumn[Any]:
         if keys is None:
             keys = self.dataframe.columns
+        if isinstance(self.dataframe, pl.LazyFrame) and len(keys) > 1:
+            raise NotImplementedError(
+                "sorted_indices with multiple keys not yet supported for lazyframes"
+            )
+        if isinstance(self.dataframe, pl.LazyFrame):
+            return PolarsColumn(
+                pl.col(keys[0]).arg_sort(), dtype=pl.UInt32(), hash=self._hash
+            )
         df = self.dataframe.select(keys)
         if ascending:
             return PolarsColumn(
                 df.with_row_count().sort(keys, descending=False).get_column("row_nr"),  # type: ignore[union-attr]
+                hash=self._hash,
                 dtype=pl.UInt32(),
             )
         return PolarsColumn(
             df.with_row_count().sort(keys, descending=False).get_column("row_nr")[::-1],  # type: ignore[union-attr]
+            hash=self._hash,
             dtype=pl.UInt32(),
         )
 

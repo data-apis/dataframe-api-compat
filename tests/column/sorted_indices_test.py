@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pandas as pd
+import pytest
 
 from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import integer_dataframe_6
@@ -8,8 +9,10 @@ from tests.utils import interchange_to_pandas
 
 
 def test_column_sorted_indices_ascending(
-    library: str,
+    library: str, request: pytest.FixtureRequest
 ) -> None:
+    if library == "polars-lazy":
+        request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_6(library)
     sorted_indices = df.get_column_by_name("b").sorted_indices()
     result = df.get_rows(sorted_indices)
@@ -25,8 +28,10 @@ def test_column_sorted_indices_ascending(
 
 
 def test_column_sorted_indices_descending(
-    library: str,
+    library: str, request: pytest.FixtureRequest
 ) -> None:
+    if library == "polars-lazy":
+        request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_6(library)
     sorted_indices = df.get_column_by_name("b").sorted_indices(ascending=False)
     result = df.get_rows(sorted_indices)

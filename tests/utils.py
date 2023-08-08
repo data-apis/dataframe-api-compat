@@ -154,7 +154,7 @@ def integer_dataframe_5(library: str) -> Any:
     if library == "polars":
         df = pl.DataFrame({"a": [1, 1], "b": [4, 3]})
         return convert_to_standard_compliant_dataframe(df)
-    if library == "polars-lazy":
+    if library == "polars-lazy":  # pragma: no cover
         df = pl.LazyFrame({"a": [1, 1], "b": [4, 3]})
         return convert_to_standard_compliant_dataframe(df)
     raise AssertionError(f"Got unexpected library: {library}")
@@ -398,22 +398,6 @@ def integer_series_5(library: str, request: pytest.FixtureRequest) -> Any:
         return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [1, 1, 4]})
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
-    if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
-    raise AssertionError(f"Got unexpected library: {library}")
-
-
-def integer_series_6(library: str, request: pytest.FixtureRequest) -> Any:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame({"a": [1, 3, 2]}, dtype="int64")
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
-    if library == "pandas-nullable":
-        df = pd.DataFrame({"a": [1, 3, 2]}, dtype="Int64")
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
-    if library == "polars":
-        df = pl.DataFrame({"a": [1, 3, 2]})
         return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "polars-lazy":
         request.node.add_marker(pytest.mark.xfail())
