@@ -896,14 +896,9 @@ class PolarsDataFrame(DataFrame):
         df = self.dataframe
         if keys is None:
             keys = df.columns
-        # TODO support lazyframe
         if isinstance(self.dataframe, pl.LazyFrame):
-            # TODO hack
-            return PolarsColumn(
-                pl.col("tmp".join(keys)),
-                hash=self._hash,
-                dtype=pl.UInt32(),
-                method="DataFrame.unique_indices",
+            raise NotImplementedError(
+                "unique_indices is not yet supported for lazyframes"
             )
         return PolarsColumn(df.with_row_count().unique(keys).get_column("row_nr"), dtype=pl.UInt32(), method="DataFrame.unique_indices")  # type: ignore[union-attr]
 
