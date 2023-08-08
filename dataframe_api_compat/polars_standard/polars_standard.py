@@ -602,12 +602,7 @@ class PolarsDataFrame(DataFrame):
                     for col in self.dataframe.columns
                 )
             )
-        return PolarsDataFrame(
-            self.dataframe.with_columns(
-                self.dataframe.get_column(col) & other  # type: ignore[operator,union-attr]
-                for col in self.dataframe.columns
-            )
-        )
+        return PolarsDataFrame(self.dataframe.with_columns(pl.col("*") & other))
 
     def __or__(self, other: DataFrame | Any) -> PolarsDataFrame:
         if isinstance(other, PolarsDataFrame):
@@ -619,8 +614,7 @@ class PolarsDataFrame(DataFrame):
             )
         return PolarsDataFrame(
             self.dataframe.with_columns(
-                self.dataframe.get_column(col) | other  # type: ignore[operator, union-attr]
-                for col in self.dataframe.columns
+                (pl.col(col) | other).alias(col) for col in self.dataframe.columns
             )
         )
 

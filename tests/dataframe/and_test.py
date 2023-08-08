@@ -22,8 +22,6 @@ def test_and(library: str, request: pytest.FixtureRequest) -> None:
 
 
 def test_and_with_scalar(library: str, request: pytest.FixtureRequest) -> None:
-    if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
     df = bool_dataframe_1(library)
     other = True
     result = df & other
