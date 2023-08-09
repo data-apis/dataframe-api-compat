@@ -244,10 +244,7 @@ class PandasColumn(Column[DType]):
         return self.column.var()
 
     def is_null(self) -> PandasColumn[Bool]:
-        if is_extension_array_dtype(self.column.dtype):
-            return PandasColumn(self.column.isnull())
-        else:
-            return PandasColumn(pd.Series(np.array([False] * len(self))))
+        return PandasColumn(self.column.isnull())
 
     def is_nan(self) -> PandasColumn[Bool]:
         if is_extension_array_dtype(self.column.dtype):
@@ -700,11 +697,7 @@ class PandasDataFrame(DataFrame):
     def is_null(self, *, skip_nulls: bool = True) -> PandasDataFrame:
         result = []
         for column in self.dataframe.columns:
-            if is_extension_array_dtype(self.dataframe[column].dtype):
-                result.append(self.dataframe[column].isna())
-            else:
-                result.append(self.dataframe[column].isna())
-                # result.append(pd.Series(np.array([False] * self.shape()[0]), name=column))
+            result.append(self.dataframe[column].isna())
         return PandasDataFrame(pd.concat(result, axis=1))
 
     def is_nan(self) -> PandasDataFrame:
