@@ -442,7 +442,9 @@ class PolarsColumn(Column[DType]):
         return PolarsColumn(self.column.fill_nan(value), dtype=self._dtype, hash=self._hash)  # type: ignore[arg-type]
 
     def fill_null(self, value: Any) -> PolarsColumn[DType]:
-        return PolarsColumn(self.column.fill_null(value), dtype=self._dtype)
+        return PolarsColumn(
+            self.column.fill_null(value), dtype=self._dtype, hash=self._hash
+        )
 
     def cumulative_sum(self, *, skip_nulls: bool = True) -> PolarsColumn[DType]:
         return PolarsColumn(self.column.cumsum(), dtype=self._dtype, hash=self._hash)
