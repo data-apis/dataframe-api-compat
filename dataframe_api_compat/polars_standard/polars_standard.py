@@ -296,10 +296,22 @@ class PolarsColumn(Column[DType]):
     def __floordiv__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
             self._validate_column(other)
-            return PolarsColumn(
-                self.column // other.column, dtype=self._dtype, hash=self._hash
+            res_dtype = (
+                pl.DataFrame(
+                    {"a": [1], "b": [1]}, schema={"a": self._dtype, "b": other._dtype}
+                )
+                .select(result=pl.col("a") // other.column)
+                .schema["result"]
             )
-        return PolarsColumn(self.column // other, dtype=self._dtype, hash=self._hash)
+            return PolarsColumn(
+                self.column // other.column, dtype=res_dtype, hash=self._hash  # type: ignore[arg-type]
+            )
+        res_dtype = (
+            pl.DataFrame({"a": [1]}, schema={"a": self._dtype})
+            .select(result=pl.col("a") // other)
+            .schema["result"]
+        )
+        return PolarsColumn(self.column // other, dtype=res_dtype, hash=self._hash)  # type: ignore[arg-type]
 
     def __truediv__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
@@ -350,10 +362,22 @@ class PolarsColumn(Column[DType]):
     def __mod__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
             self._validate_column(other)
-            return PolarsColumn(
-                self.column % other.column, dtype=self._dtype, hash=self._hash
+            res_dtype = (
+                pl.DataFrame(
+                    {"a": [1], "b": [1]}, schema={"a": self._dtype, "b": other._dtype}
+                )
+                .select(result=pl.col("a") % other.column)
+                .schema["result"]
             )
-        return PolarsColumn(self.column % other, dtype=self._dtype, hash=self._hash)
+            return PolarsColumn(
+                self.column % other.column, dtype=res_dtype, hash=self._hash  # type: ignore[arg-type]
+            )
+        res_dtype = (
+            pl.DataFrame({"a": [1]}, schema={"a": self._dtype})
+            .select(result=pl.col("a") % other)
+            .schema["result"]
+        )
+        return PolarsColumn(self.column % other, dtype=res_dtype, hash=self._hash)  # type: ignore[arg-type]
 
     def __divmod__(
         self,
@@ -470,7 +494,9 @@ class PolarsColumn(Column[DType]):
 
     def rename(self, name: str | None) -> PolarsColumn[DType]:
         if isinstance(self.column, pl.Series):
-            return PolarsColumn(self.column.rename(name or ""), dtype=self._dtype)
+            return PolarsColumn(
+                self.column.rename(name or ""), hash=self._hash, dtype=self._dtype
+            )
         return PolarsColumn(
             self.column.alias(name or ""), hash=self._hash, dtype=self._dtype
         )
