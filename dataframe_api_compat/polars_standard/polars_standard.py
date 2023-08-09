@@ -154,10 +154,10 @@ class PolarsColumn(Column[DType]):
             step = 1
         return PolarsColumn(self.column[start:stop:step], dtype=self._dtype)
 
-    def get_rows_by_mask(self, mask: Column[Bool]) -> PolarsColumn[DType]:
+    def get_rows_by_mask(self, mask: PolarsColumn[Bool]) -> PolarsColumn[DType]:  # type: ignore[override]
         self._validate_column(mask)
         return PolarsColumn(
-            self.column.filter(mask.column), dtype=self._dtype, hash=self._hash
+            self.column.filter(mask.column), dtype=self._dtype, hash=self._hash  # type: ignore[arg-type]
         )
 
     def get_value(self, row: int) -> Any:
@@ -168,12 +168,12 @@ class PolarsColumn(Column[DType]):
     def __iter__(self) -> NoReturn:
         raise NotImplementedError()
 
-    def is_in(self, values: Column[DType]) -> PolarsColumn[Bool]:
+    def is_in(self, values: PolarsColumn[DType]) -> PolarsColumn[Bool]:  # type: ignore[override]
         self._validate_column(values)
         if values.dtype != self.dtype:
             raise ValueError(f"`value` has dtype {values.dtype}, expected {self.dtype}")
         return PolarsColumn(
-            self.column.is_in(values.column), dtype=pl.Boolean(), hash=self._hash
+            self.column.is_in(values.column), dtype=pl.Boolean(), hash=self._hash  # type: ignore[arg-type]
         )
 
     def unique_indices(self, *, skip_nulls: bool = True) -> PolarsColumn[Any]:
@@ -397,14 +397,14 @@ class PolarsColumn(Column[DType]):
                 .schema["result"]
             )
             return PolarsColumn(
-                self.column + other.column, dtype=res_dtype, hash=self._hash
+                self.column + other.column, dtype=res_dtype, hash=self._hash  # type: ignore[arg-type]
             )
         res_dtype = (
             pl.DataFrame({"a": [1]}, schema={"a": self._dtype})
             .select(result=pl.col("a") + other)
             .schema["result"]
         )
-        return PolarsColumn(self.column + other, dtype=res_dtype, hash=self._hash)
+        return PolarsColumn(self.column + other, dtype=res_dtype, hash=self._hash)  # type: ignore[arg-type]
 
     def __sub__(self, other: Column[Any] | Any) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
@@ -417,14 +417,14 @@ class PolarsColumn(Column[DType]):
                 .schema["result"]
             )
             return PolarsColumn(
-                self.column - other.column, dtype=res_dtype, hash=self._hash
+                self.column - other.column, dtype=res_dtype, hash=self._hash  # type: ignore[arg-type]
             )
         res_dtype = (
             pl.DataFrame({"a": [1]}, schema={"a": self._dtype})
             .select(result=pl.col("a") - other)
             .schema["result"]
         )
-        return PolarsColumn(self.column - other, dtype=res_dtype, hash=self._hash)
+        return PolarsColumn(self.column - other, dtype=res_dtype, hash=self._hash)  # type: ignore[arg-type]
 
     def sorted_indices(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"

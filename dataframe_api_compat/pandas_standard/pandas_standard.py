@@ -244,7 +244,7 @@ class PandasColumn(Column[DType]):
         return self.column.var()
 
     def is_null(self) -> PandasColumn[Bool]:
-        return PandasColumn(self.column.isnull())
+        return PandasColumn(self.column.isna())
 
     def is_nan(self) -> PandasColumn[Bool]:
         if is_extension_array_dtype(self.column.dtype):
@@ -279,9 +279,15 @@ class PandasColumn(Column[DType]):
     ) -> PandasColumn[DType]:
         ser = self.column.copy()
         if is_extension_array_dtype(ser.dtype):
-            ser = np.where(
-                np.isnan(ser).fillna(False), ser, ser.fillna(value)
-            )  # type: ignore[assignment]
+            # crazy hack to preserve nan...
+            num = pd.Series(
+                np.where(np.isnan(ser).fillna(False), 0, ser.fillna(value)),
+                dtype=ser.dtype,
+            )
+            other = pd.Series(
+                np.where(np.isnan(ser).fillna(False), 0, 1), dtype=ser.dtype
+            )
+            ser = num / other
         else:
             ser = ser.fillna(value)
         return PandasColumn(pd.Series(ser))
@@ -760,9 +766,15 @@ class PandasDataFrame(DataFrame):
         for column in column_names:
             col = df[column]
             if is_extension_array_dtype(col.dtype):
-                col = np.where(
-                    np.isnan(col).fillna(False), col, col.fillna(value)
-                )  # type: ignore[assignment]
+                # crazy hack to preserve nan...
+                num = pd.Series(
+                    np.where(np.isnan(col).fillna(False), 0, col.fillna(value)),
+                    dtype=col.dtype,
+                )
+                other = pd.Series(
+                    np.where(np.isnan(col).fillna(False), 0, 1), dtype=col.dtype
+                )
+                col = num / other
             else:
                 col = col.fillna(value)
             df[column] = col

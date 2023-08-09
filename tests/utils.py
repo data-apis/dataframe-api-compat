@@ -480,24 +480,6 @@ def float_dataframe_3(library: str, request: pytest.FixtureRequest) -> object:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def float_dataframe_4(library: str, request: pytest.FixtureRequest) -> object:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame({"a": [1.0, float("nan")]}, dtype="float64")
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "pandas-nullable":
-        df = pd.DataFrame({"a": [1.0, 0.0]}, dtype="Float64")
-        other = pd.DataFrame({"a": [1.0, 0.0]}, dtype="Float64")
-        return convert_to_standard_compliant_dataframe(df / other)
-    if library == "polars":
-        df = pl.DataFrame({"a": [1.0, float("nan")]})
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "polars-lazy":
-        df = pl.LazyFrame({"a": [1.0, float("nan")]})
-        return convert_to_standard_compliant_dataframe(df)
-    raise AssertionError(f"Got unexpected library: {library}")
-
-
 def bool_series_1(library: str, request: pytest.FixtureRequest) -> Any:
     df: Any
     if library == "pandas-numpy":
@@ -508,39 +490,6 @@ def bool_series_1(library: str, request: pytest.FixtureRequest) -> Any:
         return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "polars":
         df = pl.DataFrame({"a": [True, False, True]})
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
-    if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
-    raise AssertionError(f"Got unexpected library: {library}")
-
-
-def nan_series_1(library: str, request: pytest.FixtureRequest) -> Any:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame({"a": [0.0, 1.0, float("nan")]}, dtype="float64")
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
-    if library == "pandas-nullable":
-        df = pd.DataFrame({"a": [0.0, 1.0, 0.0]}, dtype="Float64")
-        other = pd.DataFrame({"a": [1.0, 1.0, 0.0]}, dtype="Float64")
-        return convert_to_standard_compliant_dataframe(df / other).get_column_by_name("a")
-    if library == "polars":
-        df = pl.DataFrame({"a": [0.0, 1.0, float("nan")]})
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
-    if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
-    raise AssertionError(f"Got unexpected library: {library}")
-
-
-def null_series_1(library: str, request: pytest.FixtureRequest) -> Any:
-    df: Any
-    if library == "pandas-numpy":
-        mark = pytest.mark.xfail()
-        request.node.add_marker(mark)
-    if library == "pandas-nullable":
-        df = pd.DataFrame({"a": [1.0, 2.0, pd.NA]}, dtype="Float64")
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
-    if library == "polars":
-        df = pl.DataFrame({"a": [1.0, 2.0, None]})
         return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "polars-lazy":
         request.node.add_marker(pytest.mark.xfail())
