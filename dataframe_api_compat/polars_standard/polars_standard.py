@@ -359,22 +359,16 @@ class PolarsColumn(Column[DType]):
         return quotient, remainder
 
     def __and__(self, other: Column[Bool] | bool) -> PolarsColumn[Bool]:
-        if isinstance(self.column, pl.Expr) or (
-            isinstance(other, PolarsColumn) and isinstance(other.column, pl.Expr)
-        ):
-            raise NotImplementedError("__and__ not implemented for lazy columns")
         if isinstance(other, PolarsColumn):
+            self._validate_column(other)
             return PolarsColumn(
                 self.column & other.column, dtype=self._dtype, hash=self._hash
             )
         return PolarsColumn(self.column & other, dtype=self._dtype, hash=self._hash)  # type: ignore[operator]
 
     def __or__(self, other: Column[Bool] | bool) -> PolarsColumn[Bool]:
-        if isinstance(self.column, pl.Expr) or (
-            isinstance(other, PolarsColumn) and isinstance(other.column, pl.Expr)
-        ):
-            raise NotImplementedError("__or__ not implemented for lazy columns")
         if isinstance(other, PolarsColumn):
+            self._validate_column(other)
             return PolarsColumn(
                 self.column | other.column, dtype=self._dtype, hash=self._hash
             )
