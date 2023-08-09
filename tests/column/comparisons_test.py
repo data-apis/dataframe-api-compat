@@ -8,7 +8,6 @@ import pytest
 from tests.utils import convert_series_to_pandas_numpy
 from tests.utils import integer_dataframe_1
 from tests.utils import integer_dataframe_7
-from tests.utils import integer_series_1
 from tests.utils import interchange_to_pandas
 
 
@@ -34,7 +33,6 @@ def test_column_comparisons(
     library: str,
     comparison: str,
     expected_data: list[object],
-    request: pytest.FixtureRequest,
 ) -> None:
     ser: Any
     df = integer_dataframe_7(library)
@@ -69,20 +67,14 @@ def test_column_comparisons_scalar(
     library: str,
     comparison: str,
     expected_data: list[object],
-    request: pytest.FixtureRequest,
 ) -> None:
     ser: Any
-    ser = integer_series_1(library, request)
+    df = integer_dataframe_1(library)
+    ser = df.get_column_by_name("a")
     other = 3
-    namespace = ser.__column_namespace__()
-    result = namespace.dataframe_from_dict(
-        {"result": (getattr(ser, comparison)(other)).rename("result")}
-    )
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    result = df.insert(0, "result", (getattr(ser, comparison)(other)))
+    result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series(expected_data, name="result")
-    if library == "polars" and comparison == "__pow__":
-        # todo: fix
-        result_pd = result_pd.astype("int64")
     result_pd = convert_series_to_pandas_numpy(result_pd)
     pd.testing.assert_series_equal(result_pd, expected)
 
