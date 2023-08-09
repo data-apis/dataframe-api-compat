@@ -425,16 +425,16 @@ class PolarsColumn(Column[DType]):
         return PolarsColumn(self.column.fill_null(value), dtype=self._dtype)
 
     def cumulative_sum(self, *, skip_nulls: bool = True) -> PolarsColumn[DType]:
-        return PolarsColumn(self.column.cumsum(), dtype=self._dtype)
+        return PolarsColumn(self.column.cumsum(), dtype=self._dtype, hash=self._hash)
 
     def cumulative_prod(self, *, skip_nulls: bool = True) -> PolarsColumn[DType]:
-        return PolarsColumn(self.column.cumprod(), dtype=self._dtype)
+        return PolarsColumn(self.column.cumprod(), dtype=self._dtype, hash=self._hash)
 
     def cumulative_max(self, *, skip_nulls: bool = True) -> PolarsColumn[DType]:
-        return PolarsColumn(self.column.cummax(), dtype=self._dtype)
+        return PolarsColumn(self.column.cummax(), dtype=self._dtype, hash=self._hash)
 
     def cumulative_min(self, *, skip_nulls: bool = True) -> PolarsColumn[DType]:
-        return PolarsColumn(self.column.cummin(), dtype=self._dtype)
+        return PolarsColumn(self.column.cummin(), dtype=self._dtype, hash=self._hash)
 
     def to_array_object(self, dtype: str) -> Any:
         if isinstance(self.column, pl.Expr):
