@@ -128,7 +128,7 @@ def convert_to_standard_compliant_dataframe(
         api_version = "2023.08-beta"
     if api_version != "2023.08-beta":  # pragma: no cover
         raise ValueError(
-            f"Unknown api_version: {api_version}. Expected: '2023.08', or None"
+            f"Unknown api_version: {api_version}. Expected: '2023.08-beta', or None"
         )
     return PandasDataFrame(df)
 
@@ -140,7 +140,7 @@ def convert_to_standard_compliant_column(
         api_version = "2023.08-beta"
     if api_version != "2023.08-beta":  # pragma: no cover
         raise ValueError(
-            f"Unknown api_version: {api_version}. Expected: '2023.08', or None"
+            f"Unknown api_version: {api_version}. Expected: '2023.08-beta', or None"
         )
     return PandasColumn(df)
 
