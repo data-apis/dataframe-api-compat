@@ -157,14 +157,14 @@ class PandasColumn(Column[DType]):
 
     def __and__(self, other: Column[Bool] | bool) -> PandasColumn[Bool]:
         if isinstance(other, PandasColumn):
-            return PandasColumn(self.column & other.column)
+            return PandasColumn(self.column & other.column, hash=self._hash)
         result = self.column & other  # type: ignore[operator]
-        return PandasColumn(result)
+        return PandasColumn(result, hash=self._hash)
 
     def __or__(self, other: Column[Bool] | bool) -> PandasColumn[Bool]:
         if isinstance(other, PandasColumn):
-            return PandasColumn(self.column | other.column)
-        return PandasColumn(self.column | other)  # type: ignore[operator]
+            return PandasColumn(self.column | other.column, hash=self._hash)
+        return PandasColumn(self.column | other, hash=self._hash)  # type: ignore[operator]
 
     def __add__(self, other: Column[DType] | Any) -> PandasColumn[DType]:
         if isinstance(other, PandasColumn):
