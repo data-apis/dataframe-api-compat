@@ -439,7 +439,7 @@ class PolarsColumn(Column[DType]):
         )
 
     def fill_nan(self, value: float | NullType) -> PolarsColumn[DType]:
-        return PolarsColumn(self.column.fill_nan(value), dtype=self._dtype)  # type: ignore[arg-type]
+        return PolarsColumn(self.column.fill_nan(value), dtype=self._dtype, hash=self._hash)  # type: ignore[arg-type]
 
     def fill_null(self, value: Any) -> PolarsColumn[DType]:
         return PolarsColumn(self.column.fill_null(value), dtype=self._dtype)
