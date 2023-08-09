@@ -65,6 +65,10 @@ class Bool:
     ...
 
 
+class String:
+    ...
+
+
 DTYPE_MAP = {
     pl.Int64(): Int64(),
     pl.Int32(): Int32(),
@@ -77,6 +81,7 @@ DTYPE_MAP = {
     pl.Float64(): Float64(),
     pl.Float32(): Float32(),
     pl.Boolean(): Bool(),
+    pl.Utf8(): String(),
 }
 
 
@@ -89,12 +94,26 @@ def _map_standard_to_polars_dtypes(dtype: Any) -> pl.DataType:
         return pl.Int64()
     if isinstance(dtype, Int32):
         return pl.Int32()
+    if isinstance(dtype, Int16):
+        return pl.Int16()
+    if isinstance(dtype, Int8):
+        return pl.Int8()
+    if isinstance(dtype, UInt64):
+        return pl.UInt64()
+    if isinstance(dtype, UInt32):
+        return pl.UInt32()
+    if isinstance(dtype, UInt16):
+        return pl.UInt16()
+    if isinstance(dtype, UInt8):
+        return pl.UInt8()
     if isinstance(dtype, Float64):
         return pl.Float64()
     if isinstance(dtype, Float32):
         return pl.Float32()
     if isinstance(dtype, Bool):
         return pl.Boolean()
+    if isinstance(dtype, String):
+        return pl.Utf8()
     raise AssertionError(f"Unknown dtype: {dtype}")
 
 

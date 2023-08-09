@@ -58,8 +58,15 @@ def convert_series_to_pandas_numpy(ser: pd.Series) -> pd.Series:  # type: ignore
         "boolean": "bool",
         "Int64": "int64",
         "Int32": "int32",
+        "Int16": "int16",
+        "Int8": "int8",
+        "UInt64": "uint64",
+        "UInt32": "uint32",
+        "UInt16": "uint16",
+        "UInt8": "uint8",
         "Float64": "float64",
         "Float32": "float32",
+        "string": "object",
     }
     for nullable, numpy in conversions.items():
         if ser.dtype == nullable:

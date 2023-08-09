@@ -62,6 +62,10 @@ class Bool:
     ...
 
 
+class String:
+    ...
+
+
 DTYPE_MAP = {
     "int64": Int64(),
     "Int64": Int64(),
@@ -85,20 +89,35 @@ DTYPE_MAP = {
     "Float32": Float32(),
     "bool": Bool(),
     "boolean": Bool(),
+    "object": String(),
 }
 
 
 def map_standard_dtype_to_pandas_dtype(dtype: Any) -> Any:
     if isinstance(dtype, Int64):
-        return pd.Int64Dtype()
+        return "int64"
     if isinstance(dtype, Int32):
-        return pd.Int32Dtype()
+        return "int32"
+    if isinstance(dtype, Int16):
+        return "int16"
+    if isinstance(dtype, Int8):
+        return "int8"
+    if isinstance(dtype, UInt64):
+        return "uint64"
+    if isinstance(dtype, UInt32):
+        return "uint32"
+    if isinstance(dtype, UInt16):
+        return "uint16"
+    if isinstance(dtype, UInt8):
+        return "uint8"
     if isinstance(dtype, Float64):
-        return pd.Float64Dtype()
+        return "float64"
     if isinstance(dtype, Float32):
-        return pd.Float32Dtype()
+        return "float32"
     if isinstance(dtype, Bool):
-        return pd.BooleanDtype()
+        return "bool"
+    if isinstance(dtype, String):
+        return "object"
     raise AssertionError(f"Unknown dtype: {dtype}")
 
 
