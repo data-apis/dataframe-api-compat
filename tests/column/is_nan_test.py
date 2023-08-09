@@ -1,20 +1,15 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import pandas as pd
 
-from tests.utils import nan_series_1
-
-if TYPE_CHECKING:
-    import pytest
+from tests.utils import interchange_to_pandas
+from tests.utils import nan_dataframe_1
 
 
-def test_column_is_nan(library: str, request: pytest.FixtureRequest) -> None:
-    ser = nan_series_1(library, request)
-    result = ser.is_nan()
-    namespace = ser.__column_namespace__()
-    result_df = namespace.dataframe_from_dict({"result": (result).rename("result")})
-    result_pd = pd.api.interchange.from_dataframe(result_df.dataframe)["result"]
+def test_column_is_nan(library: str) -> None:
+    df = nan_dataframe_1(library)
+    ser = df.get_column_by_name("a")
+    result = df.insert(0, "result", ser.is_nan())
+    result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series([False, False, True], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
