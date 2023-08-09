@@ -7,8 +7,9 @@ import pytest
 
 from tests.utils import convert_series_to_pandas_numpy
 from tests.utils import integer_dataframe_1
+from tests.utils import integer_dataframe_7
 from tests.utils import integer_series_1
-from tests.utils import integer_series_3
+from tests.utils import interchange_to_pandas
 
 
 @pytest.mark.parametrize(
@@ -36,13 +37,11 @@ def test_column_comparisons(
     request: pytest.FixtureRequest,
 ) -> None:
     ser: Any
-    ser = integer_series_1(library, request)
-    other = integer_series_3(library, request)
-    namespace = ser.__column_namespace__()
-    result = namespace.dataframe_from_dict(
-        {"result": (getattr(ser, comparison)(other)).rename("result")}
-    )
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
+    df = integer_dataframe_7(library)
+    ser = df.get_column_by_name("a")
+    other = df.get_column_by_name("b")
+    result = df.insert(0, "result", (getattr(ser, comparison)(other)))
+    result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series(expected_data, name="result")
     result_pd = convert_series_to_pandas_numpy(result_pd)
     pd.testing.assert_series_equal(result_pd, expected)

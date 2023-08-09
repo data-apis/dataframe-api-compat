@@ -184,6 +184,23 @@ def integer_dataframe_6(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
+def integer_dataframe_7(library: str) -> Any:
+    df: Any
+    if library == "pandas-numpy":
+        df = pd.DataFrame({"a": [1, 2, 3], "b": [1, 2, 4]}, dtype="int64")
+        return convert_to_standard_compliant_dataframe(df)
+    if library == "pandas-nullable":
+        df = pd.DataFrame({"a": [1, 2, 3], "b": [1, 2, 4]}, dtype="Int64")
+        return convert_to_standard_compliant_dataframe(df)
+    if library == "polars":
+        df = pl.DataFrame({"a": [1, 2, 3], "b": [1, 2, 4]})
+        return convert_to_standard_compliant_dataframe(df)
+    if library == "polars-lazy":
+        df = pl.LazyFrame({"a": [1, 2, 3], "b": [1, 2, 4]})
+        return convert_to_standard_compliant_dataframe(df)
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
 def nan_dataframe_1(library: str) -> Any:
     df: Any
     if library == "pandas-numpy":

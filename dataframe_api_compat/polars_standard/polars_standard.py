@@ -301,15 +301,24 @@ class PolarsColumn(Column[DType]):
         return PolarsColumn(self.column // other, dtype=self._dtype, hash=self._hash)
 
     def __truediv__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
-        if isinstance(self.column, pl.Expr) or (
-            isinstance(other, PolarsColumn) and isinstance(other.column, pl.Expr)
-        ):
-            raise NotImplementedError("truediv not implemented for lazy columns")
         if isinstance(other, PolarsColumn):
+            self._validate_column(other)
             res = self.column / other.column
-            return PolarsColumn(res, dtype=res.dtype, hash=self._hash)  # type: ignore[arg-type]
+            res_dtype = (
+                pl.DataFrame(
+                    {"a": [1], "b": [1]}, schema={"a": self._dtype, "b": other._dtype}
+                )
+                .select(result=pl.col("a") / other.column)
+                .schema["result"]
+            )
+            return PolarsColumn(res, dtype=res_dtype, hash=self._hash)  # type: ignore[arg-type]
         res = self.column / other
-        return PolarsColumn(res, dtype=res.dtype, hash=self._hash)  # type: ignore[arg-type]
+        res_dtype = (
+            pl.DataFrame({"a": [1]}, schema={"a": self._dtype})
+            .select(result=pl.col("a") / other)
+            .schema["result"]
+        )
+        return PolarsColumn(res, dtype=res_dtype, hash=self._hash)  # type: ignore[arg-type]
 
     def __pow__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
         original_type = self._dtype
@@ -338,13 +347,12 @@ class PolarsColumn(Column[DType]):
         return PolarsColumn(ret, dtype=ret_type, hash=self._hash)  # type: ignore[arg-type]
 
     def __mod__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
-        if isinstance(self.column, pl.Expr) or (
-            isinstance(other, PolarsColumn) and isinstance(other.column, pl.Expr)
-        ):
-            raise NotImplementedError("mod not implemented for lazy columns")
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(self.column % other.column, dtype=self._dtype)
-        return PolarsColumn(self.column % other, dtype=self._dtype)
+            self._validate_column(other)
+            return PolarsColumn(
+                self.column % other.column, dtype=self._dtype, hash=self._hash
+            )
+        return PolarsColumn(self.column % other, dtype=self._dtype, hash=self._hash)
 
     def __divmod__(
         self,
@@ -378,32 +386,44 @@ class PolarsColumn(Column[DType]):
         return PolarsColumn(~self.column, hash=self._hash, dtype=self._dtype)
 
     def __add__(self, other: Column[Any] | Any) -> PolarsColumn[Any]:
-        if isinstance(self.column, pl.Expr) or (
-            isinstance(other, PolarsColumn) and isinstance(other.column, pl.Expr)
-        ):
-            raise NotImplementedError("add not implemented for lazy columns")
         if isinstance(other, PolarsColumn):
-            if other.dtype != self.dtype:  # pragma: no cover
-                # temporary, this should be addressed
-                raise ValueError(
-                    f"Mismatched dtypes, left: {self.dtype}, right: {other.dtype}"
+            self._validate_column(other)
+            res_dtype = (
+                pl.DataFrame(
+                    {"a": [1], "b": [1]}, schema={"a": self._dtype, "b": other._dtype}
                 )
-            return PolarsColumn(
-                self.column + other.column, dtype=self._dtype, hash=self._hash
+                .select(result=pl.col("a") + pl.col("b"))
+                .schema["result"]
             )
-        # todo: validate dtype
-        return PolarsColumn(self.column + other, dtype=self._dtype, hash=self._hash)
+            return PolarsColumn(
+                self.column + other.column, dtype=res_dtype, hash=self._hash
+            )
+        res_dtype = (
+            pl.DataFrame({"a": [1]}, schema={"a": self._dtype})
+            .select(result=pl.col("a") + other)
+            .schema["result"]
+        )
+        return PolarsColumn(self.column + other, dtype=res_dtype, hash=self._hash)
 
     def __sub__(self, other: Column[Any] | Any) -> PolarsColumn[Any]:
-        if isinstance(self.column, pl.Expr) or (
-            isinstance(other, PolarsColumn) and isinstance(other.column, pl.Expr)
-        ):
-            raise NotImplementedError("sub not implemented for lazy columns")
         if isinstance(other, PolarsColumn):
-            return PolarsColumn(
-                self.column - other.column, dtype=self._dtype, hash=self._hash
+            self._validate_column(other)
+            res_dtype = (
+                pl.DataFrame(
+                    {"a": [1], "b": [1]}, schema={"a": self._dtype, "b": other._dtype}
+                )
+                .select(result=pl.col("a") - pl.col("b"))
+                .schema["result"]
             )
-        return PolarsColumn(self.column - other, dtype=self._dtype, hash=self._hash)
+            return PolarsColumn(
+                self.column - other.column, dtype=res_dtype, hash=self._hash
+            )
+        res_dtype = (
+            pl.DataFrame({"a": [1]}, schema={"a": self._dtype})
+            .select(result=pl.col("a") - other)
+            .schema["result"]
+        )
+        return PolarsColumn(self.column - other, dtype=res_dtype, hash=self._hash)
 
     def sorted_indices(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
