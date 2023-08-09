@@ -274,15 +274,23 @@ class PolarsColumn(Column[DType]):
         return PolarsColumn(self.column < other, hash=self._hash, dtype=pl.Boolean())
 
     def __mul__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
-        if isinstance(self.column, pl.Expr):
-            raise NotImplementedError("mul not implemented for lazy columns")
-        if isinstance(other, PolarsColumn) and isinstance(other.column, pl.Expr):
-            raise NotImplementedError("mul not implemented for lazy columns")
         if isinstance(other, PolarsColumn):
             res = self.column * other.column
-            return PolarsColumn(res, dtype=res.dtype, hash=self._hash)  # type: ignore[arg-type]
+            res_dtype = (
+                pl.DataFrame(
+                    {"a": [1], "b": [1]}, schema={"a": self._dtype, "b": other._dtype}
+                )
+                .select(result=pl.col("a") * pl.col("b"))
+                .schema["result"]
+            )
+            return PolarsColumn(res, dtype=res_dtype, hash=self._hash)  # type: ignore[arg-type]
         res = self.column * other
-        return PolarsColumn(res, dtype=res.dtype, hash=self._hash)  # type: ignore[arg-type]
+        res_dtype = (
+            pl.DataFrame({"a": [1]}, schema={"a": self._dtype})
+            .select(result=pl.col("a") * other)
+            .schema["result"]
+        )
+        return PolarsColumn(res, dtype=res_dtype, hash=self._hash)  # type: ignore[arg-type]
 
     def __floordiv__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
@@ -304,25 +312,30 @@ class PolarsColumn(Column[DType]):
         return PolarsColumn(res, dtype=res.dtype, hash=self._hash)  # type: ignore[arg-type]
 
     def __pow__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
-        if isinstance(self.column, pl.Expr) or (
-            isinstance(other, PolarsColumn) and isinstance(other.column, pl.Expr)
-        ):
-            raise NotImplementedError("pow not implemented for lazy columns")
-        original_type = self.column.dtype
+        original_type = self._dtype
         if isinstance(other, PolarsColumn):
-            assert isinstance(other.column, pl.Series)  # help mypy
             ret = self.column.pow(other.column)
-            if _is_integer_dtype(original_type) and _is_integer_dtype(other.column.dtype):
-                if (other.column < 0).any():
-                    raise ValueError("Cannot raise integer to negative power")
-                ret = ret.cast(original_type)
+            ret_type = (
+                pl.DataFrame(
+                    {"a": [1], "b": [1]}, schema={"a": original_type, "b": other._dtype}
+                )
+                .select(result=pl.col("a") ** pl.col("b"))
+                .schema["result"]
+            )
+            if _is_integer_dtype(original_type) and _is_integer_dtype(other._dtype):
+                ret_type = original_type
+                ret = ret.cast(ret_type)
         else:
             ret = self.column.pow(other)  # type: ignore[arg-type]
+            ret_type = (
+                pl.DataFrame({"a": [1]}, schema={"a": original_type})
+                .select(result=pl.col("a") ** other)
+                .schema["result"]
+            )
             if _is_integer_dtype(original_type) and isinstance(other, int):
-                if other < 0:
-                    raise ValueError("Cannot raise integer to negative power")
-                ret = ret.cast(original_type)
-        return PolarsColumn(ret, dtype=ret.dtype)  # type: ignore[arg-type]
+                ret_type = original_type
+                ret = ret.cast(ret_type)
+        return PolarsColumn(ret, dtype=ret_type, hash=self._hash)  # type: ignore[arg-type]
 
     def __mod__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
         if isinstance(self.column, pl.Expr) or (
