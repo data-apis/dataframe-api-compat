@@ -11,10 +11,6 @@ authors = [
 description = "Implementation of the DataFrame Standard for pandas and Polars"
 readme = "README.md"
 requires-python = ">=3.8"
-dependencies = [
-  "pandas",
-  "polars"
-]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
