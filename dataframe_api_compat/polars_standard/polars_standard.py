@@ -314,7 +314,7 @@ class PolarsColumn(Column[DType]):
     def __pow__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
         original_type = self._dtype
         if isinstance(other, PolarsColumn):
-            ret = self.column.pow(other.column)
+            ret = self.column**other.column  # type: ignore[operator]
             ret_type = (
                 pl.DataFrame(
                     {"a": [1], "b": [1]}, schema={"a": original_type, "b": other._dtype}
@@ -329,7 +329,7 @@ class PolarsColumn(Column[DType]):
             ret = self.column.pow(other)  # type: ignore[arg-type]
             ret_type = (
                 pl.DataFrame({"a": [1]}, schema={"a": original_type})
-                .select(result=pl.col("a") ** other)
+                .select(result=pl.col("a") ** other)  # type: ignore[operator]
                 .schema["result"]
             )
             if _is_integer_dtype(original_type) and isinstance(other, int):
@@ -362,7 +362,7 @@ class PolarsColumn(Column[DType]):
         if isinstance(other, PolarsColumn):
             self._validate_column(other)
             return PolarsColumn(
-                self.column & other.column, dtype=self._dtype, hash=self._hash
+                self.column & other.column, dtype=self._dtype, hash=self._hash  # type: ignore[operator]
             )
         return PolarsColumn(self.column & other, dtype=self._dtype, hash=self._hash)  # type: ignore[operator]
 
@@ -370,7 +370,7 @@ class PolarsColumn(Column[DType]):
         if isinstance(other, PolarsColumn):
             self._validate_column(other)
             return PolarsColumn(
-                self.column | other.column, dtype=self._dtype, hash=self._hash
+                self.column | other.column, dtype=self._dtype, hash=self._hash  # type: ignore[operator]
             )
         return PolarsColumn(self.column | other, dtype=self._dtype, hash=self._hash)  # type: ignore[operator]
 

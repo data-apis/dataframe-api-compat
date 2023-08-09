@@ -493,22 +493,6 @@ def bool_series_1(library: str, request: pytest.FixtureRequest) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def bool_series_2(library: str, request: pytest.FixtureRequest) -> Any:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame({"a": [True, False, False]}, dtype="bool")
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
-    if library == "pandas-nullable":
-        df = pd.DataFrame({"a": [True, False, False]}, dtype="boolean")
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
-    if library == "polars":
-        df = pl.DataFrame({"a": [True, False, False]})
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
-    if library == "polars-lazy":  # pragma: no cover
-        request.node.add_marker(pytest.mark.xfail())
-    raise AssertionError(f"Got unexpected library: {library}")
-
-
 def nan_series_1(library: str, request: pytest.FixtureRequest) -> Any:
     df: Any
     if library == "pandas-numpy":
