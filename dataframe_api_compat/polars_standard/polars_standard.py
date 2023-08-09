@@ -155,11 +155,9 @@ class PolarsColumn(Column[DType]):
         return PolarsColumn(self.column[start:stop:step], dtype=self._dtype)
 
     def get_rows_by_mask(self, mask: Column[Bool]) -> PolarsColumn[DType]:
-        if isinstance(self.column, pl.Expr):
-            raise NotImplementedError("get_rows_by_mask not implemented for lazy columns")
-        name = self.column.name
+        self._validate_column(mask)
         return PolarsColumn(
-            self.column.to_frame().filter(mask.column)[name], dtype=self._dtype
+            self.column.filter(mask.column), dtype=self._dtype, hash=self._hash
         )
 
     def get_value(self, row: int) -> Any:
