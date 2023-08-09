@@ -169,9 +169,12 @@ class PolarsColumn(Column[DType]):
         raise NotImplementedError()
 
     def is_in(self, values: Column[DType]) -> PolarsColumn[Bool]:
+        self._validate_column(values)
         if values.dtype != self.dtype:
             raise ValueError(f"`value` has dtype {values.dtype}, expected {self.dtype}")
-        return PolarsColumn(self.column.is_in(values.column), dtype=pl.Boolean())
+        return PolarsColumn(
+            self.column.is_in(values.column), dtype=pl.Boolean(), hash=self._hash
+        )
 
     def unique_indices(self, *, skip_nulls: bool = True) -> PolarsColumn[Any]:
         if isinstance(self.column, pl.Expr):

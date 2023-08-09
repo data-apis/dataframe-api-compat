@@ -7,11 +7,10 @@ import pandas as pd
 import pytest
 
 from tests.utils import convert_series_to_pandas_numpy
-from tests.utils import float_series_1
-from tests.utils import float_series_2
-from tests.utils import float_series_3
-from tests.utils import float_series_4
-from tests.utils import integer_series_1
+from tests.utils import float_dataframe_1
+from tests.utils import float_dataframe_2
+from tests.utils import float_dataframe_3
+from tests.utils import integer_dataframe_1
 from tests.utils import interchange_to_pandas
 
 if TYPE_CHECKING:
@@ -19,34 +18,31 @@ if TYPE_CHECKING:
 
 
 @pytest.mark.parametrize(
-    ("ser_factory", "other_factory", "expected_values"),
+    ("df_factory", "expected_values"),
     [
-        (float_series_1, float_series_4, [False, False]),
-        (float_series_2, float_series_4, [False, True]),
-        (float_series_3, float_series_4, [True, False]),
+        (float_dataframe_1, [False, True]),
+        (float_dataframe_2, [True, False]),
+        (float_dataframe_3, [True, False]),
     ],
 )
 def test_is_in(
     library: str,
-    ser_factory: Callable[[str, pytest.FixtureRequest], Any],
-    other_factory: Callable[[str, pytest.FixtureRequest], Any],
+    df_factory: Callable[[str, pytest.FixtureRequest], Any],
     expected_values: list[bool],
     request: pytest.FixtureRequest,
 ) -> None:
-    other = other_factory(library, request)
-    ser = ser_factory(library, request)
-    namespace = ser.__column_namespace__()
-    result = namespace.dataframe_from_dict(
-        {"result": (ser.is_in(other)).rename("result")}
-    )
+    df = df_factory(library, request)
+    ser = df.get_column_by_name("a")
+    other = ser + 1
+    result = df.insert(0, "result", ser.is_in(other))
     result_pd = interchange_to_pandas(result, library)["result"]
     result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series(expected_values, name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_is_in_raises(library: str, request: pytest.FixtureRequest) -> None:
-    ser = float_series_1(library, request)
-    other = integer_series_1(library, request)
+def test_is_in_raises(library: str) -> None:
+    ser = integer_dataframe_1(library).get_column_by_name("a")
+    other = ser * 1.0
     with pytest.raises(ValueError):
         ser.is_in(other)
