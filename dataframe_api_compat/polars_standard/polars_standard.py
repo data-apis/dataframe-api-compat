@@ -93,9 +93,9 @@ class PolarsColumn(Column[DType]):
         if column is NotImplemented:
             raise NotImplementedError("operation not implemented")
         self._series = column
+        self._dtype = dtype
         # keep track of which dataframe the column came from
         self._hash = hash
-        self._dtype = dtype
         # keep track of which method this was called from
         self._method = method
         if isinstance(column, pl.Series):
@@ -460,7 +460,7 @@ class PolarsColumn(Column[DType]):
             expr,
             hash=self._hash,
             dtype=pl.UInt32(),
-            method="Column.sorted_indices",
+            method=f"Column.{ascending}_sorted_indices",
         )
 
     def fill_nan(self, value: float | NullType) -> PolarsColumn[DType]:
@@ -607,7 +607,13 @@ class PolarsDataFrame(DataFrame):
             indices.column, pl.Expr
         ):
             if indices._method is not None and indices._method.endswith("sorted_indices"):
-                return PolarsDataFrame(self.dataframe.sort(indices.column))
+                if "True" in indices._method:
+                    return PolarsDataFrame(
+                        self.dataframe.sort(indices.column.meta.root_names())
+                    )
+                return PolarsDataFrame(
+                    self.dataframe.sort(indices.column.meta.root_names(), descending=True)
+                )
             raise NotImplementedError(
                 "get_rows only supported for lazyframes if called right after:\n"
                 "- DataFrame.sorted_indices\n"
@@ -931,7 +937,7 @@ class PolarsDataFrame(DataFrame):
                 expr,
                 dtype=pl.UInt32(),
                 hash=self._hash,
-                method="DataFrame.sorted_indices",
+                method=f"DataFrame.{ascending}_sorted_indices",
             )
         return PolarsColumn(
             self.dataframe.select(expr.alias("idx"))["idx"], dtype=pl.UInt32()
