@@ -209,14 +209,16 @@ def is_null(value: Any) -> bool:
 def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:
     if isinstance(kind, str):
         kind = (kind,)
-    dtypes: list[Any] = []
+    dtypes: set[Any] = set()
     for _kind in kind:
         if _kind == "bool":
-            dtypes.append(Bool)
-        elif _kind == "signed integer" or _kind == "integral" or _kind == "numeric":
-            dtypes.extend([Int64, Int32, Int16, Int8])
-        elif _kind == "signed integer" or _kind == "integral" or _kind == "numeric":
-            dtypes.extend([UInt64, UInt32, UInt16, UInt8])
-        elif _kind == "floating" or _kind == "numeric":
-            dtypes.extend([Float64, Float32])
+            dtypes.add(Bool)
+        if _kind == "signed integer" or _kind == "integral" or _kind == "numeric":
+            dtypes |= {Int64, Int32, Int16, Int8}
+        if _kind == "unsigned integer" or _kind == "integral" or _kind == "numeric":
+            dtypes |= {UInt64, UInt32, UInt16, UInt8}
+        if _kind == "floating" or _kind == "numeric":
+            dtypes |= {Float64, Float32}
+        if _kind == "string":
+            dtypes.add(String)
     return isinstance(dtype, tuple(dtypes))
