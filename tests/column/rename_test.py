@@ -1,14 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from tests.utils import integer_series_1
-
-if TYPE_CHECKING:
-    import pytest
+from tests.utils import integer_dataframe_1
 
 
-def test_rename(library: str, request: pytest.FixtureRequest) -> None:
-    ser = integer_series_1(library, request)
+def test_rename(library: str) -> None:
+    df = integer_dataframe_1(library)
+    ser = df.get_column_by_name("a")
     result = ser.rename("new_name")
     assert result.name == "new_name"

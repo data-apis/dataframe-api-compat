@@ -118,10 +118,8 @@ class PolarsColumn(Column[DType]):
     def name(self) -> str:
         if isinstance(self.column, pl.Series):
             return self.column.name
-        root_names = self.column.meta.root_names()
-        if len(root_names) == 1:
-            return root_names[0]
-        raise AssertionError("Column doesn't have a single root name")
+        name = self.column.meta.output_name()
+        return name
 
     @property
     def column(self) -> pl.Series | pl.Expr:
@@ -492,14 +490,12 @@ class PolarsColumn(Column[DType]):
             )
         return self.column.to_numpy().astype(dtype)
 
-    def rename(self, name: str | None) -> PolarsColumn[DType]:
+    def rename(self, name: str) -> PolarsColumn[DType]:
         if isinstance(self.column, pl.Series):
             return PolarsColumn(
-                self.column.rename(name or ""), hash=self._hash, dtype=self._dtype
+                self.column.rename(name), hash=self._hash, dtype=self._dtype
             )
-        return PolarsColumn(
-            self.column.alias(name or ""), hash=self._hash, dtype=self._dtype
-        )
+        return PolarsColumn(self.column.alias(name), hash=self._hash, dtype=self._dtype)
 
 
 class PolarsGroupBy(GroupBy):
