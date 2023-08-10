@@ -200,27 +200,43 @@ class PolarsColumn(Column[DType]):
         return self.column.all()
 
     def min(self, *, skip_nulls: bool = True) -> Any:
+        if isinstance(self.column, pl.Expr):
+            raise NotImplementedError("min not implemented for lazy columns")
         return self.column.min()
 
     def max(self, *, skip_nulls: bool = True) -> Any:
+        if isinstance(self.column, pl.Expr):
+            raise NotImplementedError("max not implemented for lazy columns")
         return self.column.max()
 
     def sum(self, *, skip_nulls: bool = True) -> Any:
+        if isinstance(self.column, pl.Expr):
+            raise NotImplementedError("sum not implemented for lazy columns")
         return self.column.sum()
 
     def prod(self, *, skip_nulls: bool = True) -> Any:
+        if isinstance(self.column, pl.Expr):
+            raise NotImplementedError("prod not implemented for lazy columns")
         return self.column.product()
 
     def mean(self, *, skip_nulls: bool = True) -> Any:
+        if isinstance(self.column, pl.Expr):
+            raise NotImplementedError("mean not implemented for lazy columns")
         return self.column.mean()
 
     def median(self, *, skip_nulls: bool = True) -> Any:
+        if isinstance(self.column, pl.Expr):
+            raise NotImplementedError("median not implemented for lazy columns")
         return self.column.median()
 
     def std(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
+        if isinstance(self.column, pl.Expr):
+            raise NotImplementedError("std not implemented for lazy columns")
         return self.column.std()
 
     def var(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
+        if isinstance(self.column, pl.Expr):
+            raise NotImplementedError("var not implemented for lazy columns")
         return self.column.var()
 
     def __eq__(  # type: ignore[override]

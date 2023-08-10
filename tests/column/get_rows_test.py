@@ -1,19 +1,19 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import pandas as pd
+import pytest
 
 from tests.utils import convert_series_to_pandas_numpy
-from tests.utils import integer_series_1
+from tests.utils import integer_dataframe_1
 from tests.utils import interchange_to_pandas
-
-if TYPE_CHECKING:
-    import pytest
 
 
 def test_column_get_rows(library: str, request: pytest.FixtureRequest) -> None:
-    ser = integer_series_1(library, request)
+    if library == "polars-lazy":
+        # lazy column.get_rows not generally supported
+        request.node.add_marker(pytest.mark.xfail())
+    df = integer_dataframe_1(library)
+    ser = df.get_column_by_name("a")
     namespace = ser.__column_namespace__()
     indices = namespace.column_from_sequence(
         [0, 2, 1], dtype=namespace.Int64(), name="result"

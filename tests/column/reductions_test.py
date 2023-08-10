@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from tests.utils import integer_series_1
+from tests.utils import integer_dataframe_1
 
 
 @pytest.mark.parametrize(
@@ -21,6 +21,11 @@ from tests.utils import integer_series_1
 def test_column_reductions(
     library: str, reduction: str, expected: float, request: pytest.FixtureRequest
 ) -> None:
-    ser = integer_series_1(library, request)
+    df = integer_dataframe_1(library)
+    ser = df.get_column_by_name("a")
+    if library == "polars-lazy":
+        with pytest.raises(NotImplementedError):
+            result = getattr(ser, reduction)()
+        return
     result = getattr(ser, reduction)()
     assert result == expected

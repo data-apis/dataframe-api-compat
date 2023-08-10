@@ -5,7 +5,6 @@ import pytest
 
 from tests.utils import bool_series_1
 from tests.utils import integer_dataframe_1
-from tests.utils import integer_series_1
 
 
 @pytest.mark.parametrize(
@@ -26,7 +25,12 @@ from tests.utils import integer_series_1
 def test_column_to_array_object(
     library: str, dtype: str, request: pytest.FixtureRequest
 ) -> None:
-    ser = integer_series_1(library, request)
+    df = integer_dataframe_1(library)
+    ser = df.get_column_by_name("a")
+    if library == "polars-lazy":
+        with pytest.raises(NotImplementedError):
+            result = np.asarray(ser.to_array_object(dtype=dtype))
+        return
     result = np.asarray(ser.to_array_object(dtype=dtype))
     expected = np.array([1, 2, 3], dtype=np.int64)
     np.testing.assert_array_equal(result, expected)
