@@ -21,27 +21,31 @@ What's this?
 ------------
 Please read our blog post! https://data-apis.org/blog/dataframe_standard_rfc/.
 
+Documentation
+-------------
+Please check https://data-apis.org/dataframe-api/draft/API_specification/index.html
+for the methods supported by the Consortium Dataframe Standard.
+
 How to try this out
 -------------------
 
 Here's an example of how you can try this out:
 ```python
-import pandas as pd
-from dataframe_api_compat import pandas_standard
-from dataframe_api_compat import polars_standard
+import polars as pl
 
-def convert_to_standard_compliant_dataframe(df):
-    if isinstance(df, pd.DataFrame):
-        return pandas_standard.convert_to_standard_compliant_dataframe(df)
-    elif isinstance(df, pl.DataFrame):
-        return polars_standard.convert_to_standard_compliant_dataframe(df)
-    else:
-        raise TypeError(f"Got unexpected type: {type(df)}")
-
-df = pd.DataFrame({'a': [1,2,3]})
-df_std = convert_to_standard_compliant_dataframe(df)
+df = pl.DataFrame({'a': [1,2,3]})
+df_std = df.__dataframe_consortium_standard__()
 ```
-The object `df_std` is a Standard-compliant DataFrame.
+The object `df_std` is a Standard-compliant DataFrame. Check the
+[API Specification](https://data-apis.org/dataframe-api/draft/API_specification/index.html)
+for the full list of methods supported on it.
+
+Compliance with the Standard
+----------------------------
+This is mostly compliant. Notable differences:
+- for pandas numpy dtypes, the null values (NaN) don't follow Kleene logic;
+- for polars lazy, column reductions (e.g. `column.mean()`) are not implemented;
+- for polars lazy, comparisons between different dataframes are not implemented.
 
 Installation
 ------------
