@@ -1,58 +1,45 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import pandas as pd
 
 from tests.utils import convert_series_to_pandas_numpy
-from tests.utils import integer_series_1
-from tests.utils import integer_series_3
-
-if TYPE_CHECKING:
-    import pytest
+from tests.utils import integer_dataframe_1
+from tests.utils import interchange_to_pandas
 
 
-def test_column_divmod(library: str, request: pytest.FixtureRequest) -> None:
-    ser = integer_series_1(library, request)
-    other = integer_series_3(library, request)
-    namespace = ser.__column_namespace__()
+def test_column_divmod(library: str) -> None:
+    df = integer_dataframe_1(library)
+    ser = df.get_column_by_name("a")
+    other = df.get_column_by_name("b")
     result_quotient, result_remainder = ser.__divmod__(other)
-    result_quotient_pd = pd.api.interchange.from_dataframe(
-        namespace.dataframe_from_dict(
-            {"result": (result_quotient).rename("result")}
-        ).dataframe
-    )["result"]
-    result_remainder_pd = pd.api.interchange.from_dataframe(
-        namespace.dataframe_from_dict(
-            {"result": (result_remainder).rename("result")}
-        ).dataframe
-    )["result"]
-    expected_quotient = pd.Series([1, 1, 0], name="result")
-    expected_remainder = pd.Series([0, 0, 3], name="result")
-    result_quotient_pd = convert_series_to_pandas_numpy(result_quotient_pd)
-    result_remainder_pd = convert_series_to_pandas_numpy(result_remainder_pd)
-    pd.testing.assert_series_equal(result_quotient_pd, expected_quotient)
-    pd.testing.assert_series_equal(result_remainder_pd, expected_remainder)
+    # quotient
+    result = df.insert(0, "result", result_quotient)
+    result_pd = interchange_to_pandas(result, library)["result"]
+    result_pd = convert_series_to_pandas_numpy(result_pd)
+    expected_quotient = pd.Series([0, 0, 0], name="result")
+    pd.testing.assert_series_equal(result_pd, expected_quotient)
+    # remainder
+    result = df.insert(0, "result", result_remainder)
+    result_pd = interchange_to_pandas(result, library)["result"]
+    result_pd = convert_series_to_pandas_numpy(result_pd)
+    expected_remainder = pd.Series([1, 2, 3], name="result")
+    pd.testing.assert_series_equal(result_pd, expected_remainder)
 
 
-def test_column_divmod_with_scalar(library: str, request: pytest.FixtureRequest) -> None:
-    ser = integer_series_1(library, request)
-    other = 2
-    namespace = ser.__column_namespace__()
-    result_quotient, result_remainder = ser.__divmod__(other)
-    result_quotient_pd = pd.api.interchange.from_dataframe(
-        namespace.dataframe_from_dict(
-            {"result": (result_quotient).rename("result")}
-        ).dataframe
-    )["result"]
-    result_remainder_pd = pd.api.interchange.from_dataframe(
-        namespace.dataframe_from_dict(
-            {"result": (result_remainder).rename("result")}
-        ).dataframe
-    )["result"]
+def test_column_divmod_with_scalar(library: str) -> None:
+    df = integer_dataframe_1(library)
+    ser = df.get_column_by_name("a")
+    df.get_column_by_name("b")
+    result_quotient, result_remainder = ser.__divmod__(2)
+    # quotient
+    result = df.insert(0, "result", result_quotient)
+    result_pd = interchange_to_pandas(result, library)["result"]
+    result_pd = convert_series_to_pandas_numpy(result_pd)
     expected_quotient = pd.Series([0, 1, 1], name="result")
+    pd.testing.assert_series_equal(result_pd, expected_quotient)
+    # remainder
+    result = df.insert(0, "result", result_remainder)
+    result_pd = interchange_to_pandas(result, library)["result"]
+    result_pd = convert_series_to_pandas_numpy(result_pd)
     expected_remainder = pd.Series([1, 0, 1], name="result")
-    result_quotient_pd = convert_series_to_pandas_numpy(result_quotient_pd)
-    result_remainder_pd = convert_series_to_pandas_numpy(result_remainder_pd)
-    pd.testing.assert_series_equal(result_quotient_pd, expected_quotient)
-    pd.testing.assert_series_equal(result_remainder_pd, expected_remainder)
+    pd.testing.assert_series_equal(result_pd, expected_remainder)

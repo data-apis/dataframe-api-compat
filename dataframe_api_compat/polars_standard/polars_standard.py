@@ -381,10 +381,7 @@ class PolarsColumn(Column[DType]):
         self,
         other: Column[DType] | Any,
     ) -> tuple[PolarsColumn[Any], PolarsColumn[Any]]:
-        if isinstance(self.column, pl.Expr) or (
-            isinstance(other, PolarsColumn) and isinstance(other.column, pl.Expr)
-        ):
-            raise NotImplementedError("divmod not implemented for lazy columns")
+        # validation happens in the deferred calls anyway
         quotient = self // other
         remainder = self - quotient * other
         return quotient, remainder
