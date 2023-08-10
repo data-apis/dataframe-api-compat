@@ -191,3 +191,19 @@ def convert_to_standard_compliant_column(
             f"Unknown api_version: {api_version}. Expected: '2023.08', or None"
         )
     return PolarsColumn(ser, dtype=ser.dtype)  # type: ignore[arg-type]
+
+
+def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:
+    if isinstance(kind, str):
+        kind = (kind,)
+    dtypes: list[Any] = []
+    for _kind in kind:
+        if _kind == "bool":
+            dtypes.append(Bool)
+        elif _kind == "signed integer" or _kind == "integral" or _kind == "numeric":
+            dtypes.extend([Int64, Int32, Int16, Int8])
+        elif _kind == "signed integer" or _kind == "integral" or _kind == "numeric":
+            dtypes.extend([UInt64, UInt32, UInt16, UInt8])
+        elif _kind == "floating" or _kind == "numeric":
+            dtypes.extend([Float64, Float32])
+    return isinstance(dtype, tuple(dtypes))

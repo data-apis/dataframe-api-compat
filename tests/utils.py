@@ -488,3 +488,96 @@ def interchange_to_pandas(result: Any, library: str) -> pd.DataFrame:
 def maybe_collect(result: Any, library: str) -> Any:
     df = result.dataframe.collect() if library == "polars-lazy" else result.dataframe
     return df
+
+
+def mixed_dataframe_1(library: str) -> Any:
+    df: Any
+    data = {
+        "a": [1, 2, 3],
+        "b": [1, 2, 3],
+        "c": [1, 2, 3],
+        "d": [1, 2, 3],
+        "e": [1, 2, 3],
+        "f": [1, 2, 3],
+        "g": [1, 2, 3],
+        "h": [1, 2, 3],
+        "i": [1.0, 2.0, 3.0],
+        "j": [1.0, 2.0, 3.0],
+        "k": [True, False, True],
+        "l": ["a", "b", "c"],
+    }
+    if library == "pandas-numpy":
+        df = pd.DataFrame(data).astype(
+            {
+                "a": "int64",
+                "b": "int32",
+                "c": "int16",
+                "d": "int8",
+                "e": "uint64",
+                "f": "uint32",
+                "g": "uint16",
+                "h": "uint8",
+                "i": "float64",
+                "j": "float32",
+                "k": "bool",
+                "l": "object",
+            }
+        )
+        return convert_to_standard_compliant_dataframe(df)
+    if library == "pandas-nullable":
+        df = pd.DataFrame(data).astype(
+            {
+                "a": "Int64",
+                "b": "Int32",
+                "c": "Int16",
+                "d": "Int8",
+                "e": "UInt64",
+                "f": "UInt32",
+                "g": "UInt16",
+                "h": "UInt8",
+                "i": "Float64",
+                "j": "Float32",
+                "k": "bool",
+                "l": "string[pyarrow]",
+            }
+        )
+        return convert_to_standard_compliant_dataframe(df)
+    if library == "polars":
+        df = pl.DataFrame(
+            data,
+            schema={
+                "a": pl.Int64,
+                "b": pl.Int32,
+                "c": pl.Int16,
+                "d": pl.Int8,
+                "e": pl.UInt64,
+                "f": pl.UInt32,
+                "g": pl.UInt16,
+                "h": pl.UInt8,
+                "i": pl.Float64,
+                "j": pl.Float32,
+                "k": pl.Boolean,
+                "l": pl.Utf8,
+            },
+        )
+        return convert_to_standard_compliant_dataframe(df)
+    if library == "polars-lazy":
+        df = pl.LazyFrame(
+            data,
+            schema={
+                "a": pl.Int64,
+                "b": pl.Int32,
+                "c": pl.Int16,
+                "d": pl.Int8,
+                "e": pl.UInt64,
+                "f": pl.UInt32,
+                "g": pl.UInt16,
+                "h": pl.UInt8,
+                "i": pl.Float64,
+                "j": pl.Float32,
+                "k": pl.Boolean,
+                "l": pl.Utf8,
+            },
+        )
+        return convert_to_standard_compliant_dataframe(df)
+    raise AssertionError(f"Got unexpected library: {library}")
