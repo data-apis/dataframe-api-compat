@@ -36,8 +36,6 @@ def test_groupby_boolean(
 
 
 def test_groupby_invalid_any_all(library: str, request: pytest.FixtureRequest) -> None:
-    if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_4(library)
     with pytest.raises((ValueError, SchemaError)):
         df.groupby(["key"]).any()

@@ -524,11 +524,25 @@ class PolarsGroupBy(GroupBy):
         return PolarsDataFrame(result)
 
     def any(self, skip_nulls: bool = True) -> PolarsDataFrame:
-        result = self.df.groupby(self.keys).agg(pl.col("*").any())
+        grp = self.df.groupby(self.keys)
+        if not all(
+            self.df.schema[col] is pl.Boolean
+            for col in self.df.columns
+            if col not in self.keys
+        ):
+            raise ValueError("Expected all boolean columns")
+        result = grp.agg(pl.col("*").any())
         return PolarsDataFrame(result)
 
     def all(self, skip_nulls: bool = True) -> PolarsDataFrame:
-        result = self.df.groupby(self.keys).agg(pl.col("*").all())
+        grp = self.df.groupby(self.keys)
+        if not all(
+            self.df.schema[col] is pl.Boolean
+            for col in self.df.columns
+            if col not in self.keys
+        ):
+            raise ValueError("Expected all boolean columns")
+        result = grp.agg(pl.col("*").all())
         return PolarsDataFrame(result)
 
     def min(self, skip_nulls: bool = True) -> PolarsDataFrame:
