@@ -143,7 +143,7 @@ def column_from_1d_array(
     data: Any, *, dtype: Any, name: str
 ) -> PolarsColumn[Any]:  # pragma: no cover
     ser = pl.Series(values=data, dtype=_map_standard_to_polars_dtypes(dtype), name=name)
-    return PolarsColumn(ser, dtype=ser.dtype)  # type: ignore[arg-type]
+    return PolarsColumn(ser, dtype=ser.dtype, id_=None)
 
 
 def dataframe_from_2d_array(
@@ -166,6 +166,7 @@ def column_from_sequence(
             values=sequence, dtype=_map_standard_to_polars_dtypes(dtype), name=name
         ),
         dtype=_map_standard_to_polars_dtypes(dtype),
+        id_=None,
     )
 
 
@@ -188,9 +189,9 @@ def convert_to_standard_compliant_column(
         api_version = "2023.08-beta"
     if api_version != "2023.08-beta":  # pragma: no cover
         raise ValueError(
-            f"Unknown api_version: {api_version}. Expected: '2023.08', or None"
+            f"Unknown api_version: {api_version}. Expected: '2023.08-beta', or None"
         )
-    return PolarsColumn(ser, dtype=ser.dtype)  # type: ignore[arg-type]
+    return PolarsColumn(ser, dtype=ser.dtype, id_=None)
 
 
 def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:
