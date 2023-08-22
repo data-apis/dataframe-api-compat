@@ -14,9 +14,6 @@
 Implementation of the [DataFrame Standard](https://data-apis.org/dataframe-api/draft/index.html)
 for pandas and polars.
 
-Note: there is ongoing discussion about lazy engines in the Standard. Until that has been resolved,
-this package should not be relied upon for polars-lazy.
-
 What's this?
 ------------
 Please read our blog post! https://data-apis.org/blog/dataframe_standard_rfc/.
