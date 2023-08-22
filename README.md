@@ -8,14 +8,11 @@
 	<img
 		width="400"
 		alt="standard-compliant DataFrame"
-		src="https://github.com/data-apis/dataframe-api-compat/assets/33491632/2997cb92-fd10-4426-bd41-8dfd1e466ee2">
+		src="https://github.com/data-apis/dataframe-api-compat/assets/33491632/9616bbdc-97d7-4936-8530-67280ba472d0">
 </h1>
 
 Implementation of the [DataFrame Standard](https://data-apis.org/dataframe-api/draft/index.html)
-for pandas and polars-eager
-
-Note: there is ongoing discussion about lazy engines in the Standard. Until that has been resolved,
-this package should not be relied upon for polars-lazy.
+for pandas and polars.
 
 What's this?
 ------------
