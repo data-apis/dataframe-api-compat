@@ -44,7 +44,19 @@ Compliance with the Standard
 ----------------------------
 This is mostly compliant. Notable differences:
 - for pandas numpy dtypes, the null values (NaN) don't follow Kleene logic;
-- for polars lazy, column reductions (e.g. `column.mean()`) are not implemented;
+- for polars lazy, columns can only be used within the context of the same
+  dataframe. For example:
+
+  Not allowed:
+  ```python
+  mask = df2.get_column_by_name('a') > 0
+  df1.get_rows_by_mask(mask)
+  ```
+  Allowed:
+  ```python
+  mask = df1.get_column_by_name('a') > 0
+  df1.get_rows_by_mask(mask)
+  ```
 - for polars lazy, comparisons between different dataframes are not implemented.
 
 Installation
