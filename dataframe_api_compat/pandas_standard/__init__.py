@@ -17,6 +17,8 @@ Column = PandasColumn
 DataFrame = PandasDataFrame
 GroupBy = PandasGroupBy
 
+LATEST_TAGGED_API_VERSION = "2023.08-beta"
+
 
 class Int64:
     ...
@@ -126,29 +128,21 @@ def convert_to_standard_compliant_dataframe(
     df: pd.DataFrame, api_version: str | None = None
 ) -> PandasDataFrame:
     if api_version is None:
-        api_version = "2023.08-beta"
-    if api_version != "2023.08-beta":  # pragma: no cover
-        raise ValueError(
-            f"Unknown api_version: {api_version}. Expected: '2023.08-beta', or None"
-        )
-    return PandasDataFrame(df)
+        api_version = LATEST_TAGGED_API_VERSION
+    return PandasDataFrame(df, api_version=api_version)
 
 
 def convert_to_standard_compliant_column(
-    df: pd.Series[Any], api_version: str | None = None
+    df: pd.Series[Any],
+    api_version: str | None = None,
 ) -> PandasColumn[Any]:
-    if api_version is None:
-        api_version = "2023.08-beta"
-    if api_version != "2023.08-beta":  # pragma: no cover
-        raise ValueError(
-            f"Unknown api_version: {api_version}. Expected: '2023.08-beta', or None"
-        )
-    return PandasColumn(df)
+    return PandasColumn(df, api_version=api_version or LATEST_TAGGED_API_VERSION)
 
 
 def concat(dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:
     dtypes = dataframes[0].dataframe.dtypes
     dfs = []
+    api_versions = set()
     for _df in dataframes:
         try:
             pd.testing.assert_series_equal(_df.dataframe.dtypes, dtypes)
@@ -156,49 +150,57 @@ def concat(dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:
             raise ValueError("Expected matching columns") from exc
         else:
             dfs.append(_df.dataframe)
+        api_versions.add(_df._api_version)
+    if len(api_versions) > 1:  # pragma: no cover
+        raise ValueError(f"Multiple api versions found: {api_versions}")
     return PandasDataFrame(
         pd.concat(
             dfs,
             axis=0,
             ignore_index=True,
-        )
+        ),
+        api_version=api_versions.pop(),
     )
 
 
 def column_from_sequence(
-    sequence: Sequence[Any],
-    *,
-    dtype: Any,
-    name: str,
+    sequence: Sequence[Any], *, dtype: Any, name: str, api_version: str | None = None
 ) -> PandasColumn[Any]:
     ser = pd.Series(sequence, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
-    return PandasColumn(ser)
+    return PandasColumn(ser, api_version=LATEST_TAGGED_API_VERSION)
 
 
 def column_from_1d_array(
-    data: Any, *, dtype: Any, name: str | None = None
+    data: Any, *, dtype: Any, name: str | None = None, api_version: str | None = None
 ) -> PandasColumn[Any]:  # pragma: no cover
     ser = pd.Series(data, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
-    return PandasColumn(ser)
+    return PandasColumn(ser, api_version=api_version or LATEST_TAGGED_API_VERSION)
 
 
 def dataframe_from_2d_array(
-    data: Any, *, names: Sequence[str], dtypes: dict[str, Any]
+    data: Any,
+    *,
+    names: Sequence[str],
+    dtypes: dict[str, Any],
+    api_version: str | None = None,
 ) -> PandasDataFrame:  # pragma: no cover
     df = pd.DataFrame(data, columns=names).astype(  # type: ignore[call-overload]
         {key: map_standard_dtype_to_pandas_dtype(value) for key, value in dtypes.items()}
     )
-    return PandasDataFrame(df)
+    return PandasDataFrame(df, api_version=api_version or LATEST_TAGGED_API_VERSION)
 
 
-def dataframe_from_dict(data: dict[str, PandasColumn[Any]]) -> PandasDataFrame:
+def dataframe_from_dict(
+    data: dict[str, PandasColumn[Any]], api_version: str | None = None
+) -> PandasDataFrame:
     for _, col in data.items():
         if not isinstance(col, PandasColumn):  # pragma: no cover
             raise TypeError(f"Expected PandasColumn, got {type(col)}")
     return PandasDataFrame(
         pd.DataFrame(
             {label: column.column.rename(label) for label, column in data.items()}
-        )
+        ),
+        api_version=api_version or LATEST_TAGGED_API_VERSION,
     )
 
 
