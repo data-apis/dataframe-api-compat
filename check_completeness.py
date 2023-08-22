@@ -13,7 +13,9 @@ spec = dataframe_api.DataFrame().__dir__()
 pandas_spec = pandas_standard.PandasDataFrame(
     pd.DataFrame(), api_version="2023.08-beta"
 ).__dir__()
-polars_spec = polars_standard.PolarsDataFrame(pl.DataFrame()).__dir__()
+polars_spec = polars_standard.PolarsDataFrame(
+    pl.DataFrame(), api_version="2023.08-beta"
+).__dir__()
 
 for i in spec:
     if i not in pandas_spec:
@@ -42,7 +44,9 @@ pandas_spec = (
     .__dir__()
 )
 polars_spec = (
-    polars_standard.PolarsDataFrame(pl.DataFrame({"a": [1]})).groupby(["a"]).__dir__()
+    polars_standard.PolarsDataFrame(pl.DataFrame({"a": [1]}), api_version="2023.08-beta")
+    .groupby(["a"])
+    .__dir__()
 )
 
 for i in spec:

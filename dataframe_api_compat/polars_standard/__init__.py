@@ -69,6 +69,9 @@ class String:
     ...
 
 
+LATEST_API_VERSION = "2023.08-beta"
+
+
 DTYPE_MAP = {
     pl.Int64(): Int64(),
     pl.Int32(): Int32(),
@@ -119,12 +122,18 @@ def _map_standard_to_polars_dtypes(dtype: Any) -> pl.DataType:
 
 def concat(dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
     dfs = []
+    api_versions = set()
     for _df in dataframes:
         dfs.append(_df.dataframe)
-    return PolarsDataFrame(pl.concat(dfs))  # type: ignore[type-var]
+        api_versions.add(_df._api_version)
+    if len(api_versions) > 1:  # pragma: no cover
+        raise ValueError(f"Multiple api versions found: {api_versions}")
+    return PolarsDataFrame(pl.concat(dfs), api_version=api_versions.pop())  # type: ignore[type-var]
 
 
-def dataframe_from_dict(data: dict[str, PolarsColumn[Any]]) -> PolarsDataFrame:
+def dataframe_from_dict(
+    data: dict[str, PolarsColumn[Any]], *, api_version: str | None = None
+) -> PolarsDataFrame:
     for _, col in data.items():
         if not isinstance(col, PolarsColumn):  # pragma: no cover
             raise TypeError(f"Expected PolarsColumn, got {type(col)}")
@@ -135,19 +144,26 @@ def dataframe_from_dict(data: dict[str, PolarsColumn[Any]]) -> PolarsDataFrame:
     return PolarsDataFrame(
         pl.DataFrame(
             {label: column.column.rename(label) for label, column in data.items()}  # type: ignore[union-attr]
-        )
+        ),
+        api_version=api_version or LATEST_API_VERSION,
     )
 
 
 def column_from_1d_array(
-    data: Any, *, dtype: Any, name: str
+    data: Any, *, dtype: Any, name: str, api_version: str | None = None
 ) -> PolarsColumn[Any]:  # pragma: no cover
     ser = pl.Series(values=data, dtype=_map_standard_to_polars_dtypes(dtype), name=name)
-    return PolarsColumn(ser, dtype=ser.dtype, id_=None)
+    return PolarsColumn(
+        ser, dtype=ser.dtype, id_=None, api_version=api_version or LATEST_API_VERSION
+    )
 
 
 def dataframe_from_2d_array(
-    data: Any, *, names: Sequence[str], dtypes: dict[str, Any]
+    data: Any,
+    *,
+    names: Sequence[str],
+    dtypes: dict[str, Any],
+    api_version: str | None = None,
 ) -> PolarsDataFrame:  # pragma: no cover
     df = pl.DataFrame(
         data,
@@ -155,11 +171,15 @@ def dataframe_from_2d_array(
             key: _map_standard_to_polars_dtypes(value) for key, value in dtypes.items()
         },
     )
-    return PolarsDataFrame(df)
+    return PolarsDataFrame(df, api_version=api_version or LATEST_API_VERSION)
 
 
 def column_from_sequence(
-    sequence: Sequence[Any], *, dtype: Any, name: str | None = None
+    sequence: Sequence[Any],
+    *,
+    dtype: Any,
+    name: str | None = None,
+    api_version: str | None = None,
 ) -> PolarsColumn[Any]:
     return PolarsColumn(
         pl.Series(
@@ -167,31 +187,22 @@ def column_from_sequence(
         ),
         dtype=_map_standard_to_polars_dtypes(dtype),
         id_=None,
+        api_version=api_version or LATEST_API_VERSION,
     )
 
 
 def convert_to_standard_compliant_dataframe(
     df: pl.DataFrame | pl.LazyFrame, api_version: str | None = None
 ) -> PolarsDataFrame:
-    if api_version is None:
-        api_version = "2023.08-beta"
-    if api_version != "2023.08-beta":  # pragma: no cover
-        raise ValueError(
-            f"Unknown api_version: {api_version}. Expected: '2023.08', or None"
-        )
-    return PolarsDataFrame(df)
+    return PolarsDataFrame(df, api_version=api_version or LATEST_API_VERSION)
 
 
 def convert_to_standard_compliant_column(
     ser: pl.Series, api_version: str | None = None
 ) -> PolarsColumn[Any]:
-    if api_version is None:
-        api_version = "2023.08-beta"
-    if api_version != "2023.08-beta":  # pragma: no cover
-        raise ValueError(
-            f"Unknown api_version: {api_version}. Expected: '2023.08-beta', or None"
-        )
-    return PolarsColumn(ser, dtype=ser.dtype, id_=None)
+    return PolarsColumn(
+        ser, dtype=ser.dtype, id_=None, api_version=api_version or LATEST_API_VERSION
+    )
 
 
 def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:
