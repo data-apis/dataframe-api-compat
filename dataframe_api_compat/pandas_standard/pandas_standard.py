@@ -786,7 +786,7 @@ class PandasDataFrame(DataFrame):
 
     def any_rowwise(self, *, skip_nulls: bool = True) -> PandasColumn[Bool]:
         self._validate_booleanness()
-        return PandasColumn(self.dataframe.all(axis=1), api_version=self._api_version)
+        return PandasColumn(self.dataframe.any(axis=1), api_version=self._api_version)
 
     def all_rowwise(self, *, skip_nulls: bool = True) -> PandasColumn[Bool]:
         self._validate_booleanness()

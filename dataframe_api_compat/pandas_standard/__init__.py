@@ -155,7 +155,7 @@ def concat(dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:
         else:
             dfs.append(_df.dataframe)
         api_versions.add(_df._api_version)
-    if len(api_versions) > 1:
+    if len(api_versions) > 1:  # pragma: no cover
         raise ValueError(f"Multiple api versions found: {api_versions}")
     return PandasDataFrame(
         pd.concat(
