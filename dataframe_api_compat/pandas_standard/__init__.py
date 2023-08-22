@@ -128,11 +128,7 @@ def convert_to_standard_compliant_dataframe(
     df: pd.DataFrame, api_version: str | None = None
 ) -> PandasDataFrame:
     if api_version is None:
-        api_version = "2023.08-beta"
-    if api_version != "2023.08-beta":  # pragma: no cover
-        raise ValueError(
-            f"Unknown api_version: {api_version}. Expected: '2023.08-beta', or None"
-        )
+        api_version = LATEST_TAGGED_API_VERSION
     return PandasDataFrame(df, api_version=api_version)
 
 
