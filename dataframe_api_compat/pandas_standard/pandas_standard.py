@@ -454,9 +454,7 @@ SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.09-beta"))
 class PandasDataFrame(DataFrame):
     # Not technically part of the standard
 
-    def __init__(
-        self, dataframe: pd.DataFrame, api_version: str = LATEST_API_VERSION
-    ) -> None:
+    def __init__(self, dataframe: pd.DataFrame, api_version: str) -> None:
         self._validate_columns(dataframe.columns)  # type: ignore[arg-type]
         if (
             isinstance(dataframe.index, pd.RangeIndex)
