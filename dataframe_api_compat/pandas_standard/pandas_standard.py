@@ -284,6 +284,15 @@ class PandasColumn(Column[DType]):
             pd.Series(self.column.argsort()[::-1]), api_version=self._api_version
         )
 
+    def sort(
+        self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
+    ) -> PandasColumn[Any]:
+        if self._api_version == "2023.08-beta":
+            raise NotImplementedError("dataframe.sort only available after 2023.08-beta")
+        return PandasColumn(
+            self.column.sort_values(ascending=ascending), api_version=self._api_version
+        )
+
     def is_in(self, values: Column[DType]) -> PandasColumn[Bool]:
         if values.dtype != self.dtype:
             raise ValueError(f"`value` has dtype {values.dtype}, expected {self.dtype}")

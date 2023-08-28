@@ -513,6 +513,19 @@ class PolarsColumn(Column[DType]):
             method=f"Column.{ascending}_sorted_indices",
         )
 
+    def sort(
+        self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
+    ) -> PolarsColumn[Any]:
+        if self._api_version == "2023.08-beta":
+            raise NotImplementedError("dataframe.sort only available after 2023.08-beta")
+        expr = self.column.sort(descending=not ascending)
+        return PolarsColumn(
+            expr,
+            id_=self._id,
+            dtype=self._dtype,
+            method=f"Column.{ascending}_sort",
+        )
+
     def fill_nan(self, value: float | NullType) -> PolarsColumn[DType]:
         return PolarsColumn(self.column.fill_nan(value), dtype=self._dtype, id_=self._id)  # type: ignore[arg-type]
 
