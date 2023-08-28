@@ -893,31 +893,10 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(self.df.select(names), api_version=self._api_version)
 
     def get_rows(self, indices: PolarsColumn[Any]) -> PolarsDataFrame:  # type: ignore[override]
-        assert "idx" not in self.dataframe.columns
         self._validate_column(indices)
-        if isinstance(self.dataframe, pl.LazyFrame) and isinstance(
-            indices.column, pl.Expr
-        ):
-            if indices._method is not None and indices._method.endswith("sorted_indices"):
-                if "True" in indices._method:
-                    return PolarsDataFrame(
-                        self.dataframe.sort(indices.column.meta.root_names()),
-                        api_version=self._api_version,
-                    )
-                return PolarsDataFrame(
-                    self.dataframe.sort(
-                        indices.column.meta.root_names(), descending=True
-                    ),
-                    api_version=self._api_version,
-                )
-            raise NotImplementedError(
-                "get_rows only supported for lazyframes if called right after:\n"
-                "- DataFrame.sorted_indices\n"
-            )
-        assert isinstance(indices.column, pl.Series)
-        assert isinstance(self.dataframe, pl.DataFrame)
         return PolarsDataFrame(
-            self.dataframe[indices.column], api_version=self._api_version
+            self.dataframe.select(pl.all().take(indices.column)),
+            api_version=self._api_version,
         )
 
     def slice_rows(
