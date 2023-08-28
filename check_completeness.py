@@ -28,7 +28,7 @@ spec = dataframe_api.Column().__dir__()
 pandas_spec = pandas_standard.PandasColumn(
     pd.Series(), api_version="2023.08-beta"
 ).__dir__()
-polars_spec = polars_standard.PolarsColumn(pl.Series(), dtype=pl.Float32(), id_=None).__dir__()  # type: ignore[arg-type]
+polars_spec = polars_standard.PolarsColumn(pl.Series(), dtype=pl.Float32(), id_=None, api_version="2023.09-beta").__dir__()  # type: ignore[arg-type]
 
 for i in spec:
     if i not in pandas_spec:

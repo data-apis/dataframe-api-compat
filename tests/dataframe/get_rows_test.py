@@ -1,18 +1,13 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import pandas as pd
 
 from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import integer_dataframe_1
 from tests.utils import interchange_to_pandas
 
-if TYPE_CHECKING:
-    import pytest
 
-
-def test_get_rows(library: str, request: pytest.FixtureRequest) -> None:
+def test_get_rows(library: str) -> None:
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
     indices = namespace.column_from_sequence(
