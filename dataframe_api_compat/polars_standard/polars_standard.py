@@ -112,7 +112,7 @@ class PolarsColumn(Column[DType]):
             )
 
     # In the standard
-    def __column_namespace__(self, *, api_version: str | None = None) -> Any:
+    def __column_namespace__(self) -> Any:
         return dataframe_api_compat.polars_standard
 
     @property
@@ -651,7 +651,7 @@ class PolarsDataFrame(DataFrame):
                 self._id,
             )
 
-    def __dataframe_namespace__(self, *, api_version: str | None = None) -> Any:
+    def __dataframe_namespace__(self) -> Any:
         return dataframe_api_compat.polars_standard
 
     @property

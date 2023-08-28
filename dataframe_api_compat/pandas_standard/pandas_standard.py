@@ -79,7 +79,7 @@ class PandasColumn(Column[DType]):
         pd.testing.assert_index_equal(self.column.index, index)
 
     # In the standard
-    def __column_namespace__(self, *, api_version: str | None = None) -> Any:
+    def __column_namespace__(self) -> Any:
         return dataframe_api_compat.pandas_standard
 
     @property
@@ -496,7 +496,7 @@ class PandasDataFrame(DataFrame):
             )
 
     # In the standard
-    def __dataframe_namespace__(self, *, api_version: str | None = None) -> Any:
+    def __dataframe_namespace__(self) -> Any:
         return dataframe_api_compat.pandas_standard
 
     @property
