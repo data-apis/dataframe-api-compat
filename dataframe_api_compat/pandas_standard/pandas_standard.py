@@ -459,7 +459,9 @@ class PandasDataFrame(DataFrame):
             self._dataframe = dataframe.reset_index(drop=True)
         if api_version not in dataframe_api_compat.pandas_standard.SUPPORTED_VERSIONS:
             raise ValueError(
-                f"Unsupported API version, expected one of: {dataframe_api_compat.pandas_standard.SUPPORTED_VERSIONS}. Try updating dataframe-api-compat?"
+                "Unsupported API version, expected one of: "
+                f"{dataframe_api_compat.pandas_standard.SUPPORTED_VERSIONS}. "
+                "Try updating dataframe-api-compat?"
             )
         self._api_version = api_version
 
