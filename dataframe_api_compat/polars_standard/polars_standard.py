@@ -737,6 +737,25 @@ class PolarsDataFrame(DataFrame):
         df = self.dataframe.with_columns(value.column).select(new_columns)
         return PolarsDataFrame(df, api_version=self._api_version)
 
+    def update_columns(self, columns: PolarsColumn[Any] | Sequence[PolarsColumn[Any]], /) -> PolarsDataFrame:  # type: ignore[override]
+        if self._api_version == "2023.08-beta":
+            raise NotImplementedError(
+                "DataFrame.insert is only available for api version 2023.08-beta. "
+                "Please use `DataFrame.insert_column` instead."
+            )
+        if isinstance(columns, PolarsColumn):
+            columns = [columns]
+        for col in columns:
+            self._validate_column(col)
+            if col.name not in self.dataframe.columns:
+                raise ValueError(
+                    f"column {col.name} not in dataframe, please use insert_column instead"
+                )
+        return PolarsDataFrame(
+            self.dataframe.with_columns([col.column for col in columns]),
+            api_version=self._api_version,
+        )
+
     def drop_column(self, label: str) -> PolarsDataFrame:
         if not isinstance(label, str):
             raise TypeError(f"Expected str, got: {type(label)}")

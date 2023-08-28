@@ -582,6 +582,25 @@ class PandasDataFrame(DataFrame):
             pd.concat([before, to_insert], axis=1), api_version=self._api_version
         )
 
+    def update_columns(self, columns: PandasColumn[Any] | list[PandasColumn[Any]], /) -> PandasDataFrame:  # type: ignore[override]
+        if self._api_version == "2023.08-beta":
+            raise NotImplementedError(
+                "DataFrame.insert_column is only available for api versions after 2023.08-beta. "
+            )
+        if isinstance(columns, PandasColumn):
+            columns = [columns]
+        elif not isinstance(columns, list):
+            raise TypeError("columns must be column or list of columns")
+        df = self.dataframe.copy()
+        for col in columns:
+            self._validate_index(col.column.index)
+            if col.name not in df.columns:
+                raise ValueError(
+                    f"column {col.name} not in dataframe, use insert instead"
+                )
+            df[col.name] = col.column
+        return PandasDataFrame(df, api_version=self._api_version)
+
     def drop_column(self, label: str) -> PandasDataFrame:
         if not isinstance(label, str):
             raise TypeError(f"Expected str, got: {type(label)}")
