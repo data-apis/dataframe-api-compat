@@ -152,20 +152,20 @@ def integer_dataframe_4(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def integer_dataframe_5(library: str) -> Any:
+def integer_dataframe_5(library: str, api_version: str | None = None) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1, 1], "b": [4, 3]}, dtype="int64")
-        return convert_to_standard_compliant_dataframe(df)
+        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1, 1], "b": [4, 3]}, dtype="Int64")
-        return convert_to_standard_compliant_dataframe(df)
+        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
     if library == "polars":
         df = pl.DataFrame({"a": [1, 1], "b": [4, 3]})
-        return convert_to_standard_compliant_dataframe(df)
+        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
     if library == "polars-lazy":  # pragma: no cover
         df = pl.LazyFrame({"a": [1, 1], "b": [4, 3]})
-        return convert_to_standard_compliant_dataframe(df)
+        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
     raise AssertionError(f"Got unexpected library: {library}")
 
 

@@ -617,6 +617,22 @@ class PandasDataFrame(DataFrame):
             df.sort_values(keys).index.to_series()[::-1], api_version=self._api_version
         )
 
+    def sort(
+        self,
+        keys: Sequence[str] | None = None,
+        *,
+        ascending: Sequence[bool] | bool = True,
+        nulls_position: Literal["first", "last"] = "last",
+    ) -> PandasDataFrame:
+        if self._api_version == "2023.08-beta":
+            raise NotImplementedError("dataframe.sort only available after 2023.08-beta")
+        if keys is None:
+            keys = self.dataframe.columns.tolist()
+        df = self.dataframe.loc[:, list(keys)]
+        return PandasDataFrame(
+            df.sort_values(keys, ascending=ascending), api_version=self._api_version
+        )
+
     def unique_indices(
         self,
         keys: Sequence[str] | None = None,

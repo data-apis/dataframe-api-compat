@@ -1119,6 +1119,23 @@ class PolarsDataFrame(DataFrame):
             id_=self._id,
         )
 
+    def sort(
+        self,
+        keys: Sequence[Any] | None = None,
+        *,
+        ascending: Sequence[bool] | bool = True,
+        nulls_position: Literal["first", "last"] = "last",
+    ) -> PolarsDataFrame:
+        if self._api_version == "2023.08-beta":
+            raise NotImplementedError("dataframe.sort only available after 2023.08-beta")
+        if keys is None:
+            keys = self.dataframe.columns
+        # TODO: what if there's multiple `ascending`?
+        return PolarsDataFrame(
+            self.dataframe.sort(keys, descending=not ascending),
+            api_version=self._api_version,
+        )
+
     def unique_indices(
         self, keys: Sequence[str] | None = None, *, skip_nulls: bool = True
     ) -> PolarsColumn[Any]:
