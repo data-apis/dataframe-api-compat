@@ -67,3 +67,13 @@ def test_column_from_1d_array_string(
     result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series(["a", "b", "c"], name="result", dtype=pandas_dtype)
     pd.testing.assert_series_equal(result_pd, expected)
+
+
+def test_column_from_array_invalid(library: str) -> None:
+    ser = integer_dataframe_1(library).get_column_by_name("a")
+    namespace = ser.__column_namespace__()
+    arr = np.array(["a", "b", "c"])
+    with pytest.raises(ValueError):
+        namespace.column_from_1d_array(
+            arr, name="result", dtype=namespace.String(), api_version="dfdaf"
+        )

@@ -6,6 +6,7 @@ from typing import TypeVar
 
 import polars as pl
 
+from dataframe_api_compat.polars_standard.polars_standard import LATEST_API_VERSION
 from dataframe_api_compat.polars_standard.polars_standard import null
 from dataframe_api_compat.polars_standard.polars_standard import PolarsColumn
 from dataframe_api_compat.polars_standard.polars_standard import PolarsDataFrame
@@ -67,10 +68,6 @@ class Bool:
 
 class String:
     ...
-
-
-LATEST_API_VERSION = "2023.08-beta"
-SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.09-beta"))
 
 
 DTYPE_MAP = {

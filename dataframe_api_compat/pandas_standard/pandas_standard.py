@@ -74,6 +74,12 @@ class PandasColumn(Column[DType]):
         else:
             self._series = column.reset_index(drop=True)
         self._api_version = api_version
+        if api_version not in SUPPORTED_VERSIONS:
+            raise ValueError(
+                "Unsupported API version, expected one of: "
+                f"{SUPPORTED_VERSIONS}. "
+                "Try updating dataframe-api-compat?"
+            )
 
     def _validate_index(self, index: pd.Index) -> None:
         pd.testing.assert_index_equal(self.column.index, index)
@@ -441,10 +447,16 @@ class PandasGroupBy(GroupBy):
         return PandasDataFrame(result, api_version=self._api_version)
 
 
+LATEST_API_VERSION = "2023.08-beta"
+SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.09-beta"))
+
+
 class PandasDataFrame(DataFrame):
     # Not technically part of the standard
 
-    def __init__(self, dataframe: pd.DataFrame, api_version: str) -> None:
+    def __init__(
+        self, dataframe: pd.DataFrame, api_version: str = LATEST_API_VERSION
+    ) -> None:
         self._validate_columns(dataframe.columns)  # type: ignore[arg-type]
         if (
             isinstance(dataframe.index, pd.RangeIndex)
@@ -457,10 +469,10 @@ class PandasDataFrame(DataFrame):
             self._dataframe = dataframe
         else:
             self._dataframe = dataframe.reset_index(drop=True)
-        if api_version not in dataframe_api_compat.pandas_standard.SUPPORTED_VERSIONS:
+        if api_version not in SUPPORTED_VERSIONS:
             raise ValueError(
                 "Unsupported API version, expected one of: "
-                f"{dataframe_api_compat.pandas_standard.SUPPORTED_VERSIONS}. "
+                f"{SUPPORTED_VERSIONS}. "
                 "Try updating dataframe-api-compat?"
             )
         self._api_version = api_version
@@ -588,15 +600,13 @@ class PandasDataFrame(DataFrame):
             pd.concat([before, to_insert], axis=1), api_version=self._api_version
         )
 
-    def update_columns(self, columns: PandasColumn[Any] | list[PandasColumn[Any]], /) -> PandasDataFrame:  # type: ignore[override]
+    def update_columns(self, columns: PandasColumn[Any] | Sequence[PandasColumn[Any]], /) -> PandasDataFrame:  # type: ignore[override]
         if self._api_version == "2023.08-beta":
             raise NotImplementedError(
                 "DataFrame.insert_column is only available for api versions after 2023.08-beta. "
             )
         if isinstance(columns, PandasColumn):
             columns = [columns]
-        elif not isinstance(columns, list):
-            raise TypeError("columns must be column or list of columns")
         df = self.dataframe.copy()
         for col in columns:
             self._validate_index(col.column.index)

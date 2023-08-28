@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 
+from dataframe_api_compat.pandas_standard.pandas_standard import LATEST_API_VERSION
 from dataframe_api_compat.pandas_standard.pandas_standard import null
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasColumn
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasDataFrame
@@ -16,9 +17,6 @@ if TYPE_CHECKING:
 Column = PandasColumn
 DataFrame = PandasDataFrame
 GroupBy = PandasGroupBy
-
-LATEST_API_VERSION = "2023.08-beta"
-SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.09-beta"))
 
 
 class Int64:

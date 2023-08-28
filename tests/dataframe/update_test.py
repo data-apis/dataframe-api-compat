@@ -47,7 +47,5 @@ def test_update_columns(library: str) -> None:
 
 def test_update_columns_invalid(library: str) -> None:
     df = integer_dataframe_1(library, api_version="2023.09-beta")
-    with pytest.raises(TypeError):
-        df.update_columns((df.get_column_by_name("a"),))
     with pytest.raises(ValueError):
         df.update_columns(df.get_column_by_name("a").rename("c"))

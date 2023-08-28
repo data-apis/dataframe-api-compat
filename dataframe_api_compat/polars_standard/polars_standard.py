@@ -80,6 +80,10 @@ def _is_integer_dtype(dtype: Any) -> bool:
     )
 
 
+LATEST_API_VERSION = "2023.08-beta"
+SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.09-beta"))
+
+
 class PolarsColumn(Column[DType]):
     def __init__(
         self,
@@ -88,7 +92,7 @@ class PolarsColumn(Column[DType]):
         dtype: Any,
         id_: int | None,  # | None = None,
         method: str | None = None,
-        api_version: str | None = None,
+        api_version: str = LATEST_API_VERSION,
     ) -> None:
         if column is NotImplemented:
             raise NotImplementedError("operation not implemented")
@@ -101,6 +105,12 @@ class PolarsColumn(Column[DType]):
         if isinstance(column, pl.Series):
             # just helps with defensiveness
             assert column.dtype == dtype
+        if api_version not in SUPPORTED_VERSIONS:
+            raise ValueError(
+                "Unsupported API version, expected one of: "
+                f"{SUPPORTED_VERSIONS}. "
+                "Try updating dataframe-api-compat?"
+            )
         self._api_version = api_version
 
     def _validate_column(self, column: PolarsColumn[Any]) -> None:
@@ -641,6 +651,12 @@ class PolarsDataFrame(DataFrame):
             raise NotImplementedError("operation not implemented")
         self.df = df
         self._id = id(df)
+        if api_version not in SUPPORTED_VERSIONS:
+            raise ValueError(
+                "Unsupported API version, expected one of: "
+                f"{SUPPORTED_VERSIONS}. "
+                "Try updating dataframe-api-compat?"
+            )
         self._api_version = api_version
 
     def _validate_column(self, column: PolarsColumn[Any]) -> None:
