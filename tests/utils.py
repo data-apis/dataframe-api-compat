@@ -10,18 +10,20 @@ import dataframe_api_compat.pandas_standard
 import dataframe_api_compat.polars_standard
 
 
-def convert_to_standard_compliant_dataframe(df: pd.DataFrame | pl.DataFrame) -> Any:
+def convert_to_standard_compliant_dataframe(
+    df: pd.DataFrame | pl.DataFrame, api_version: str | None = None
+) -> Any:
     # todo: type return
     if isinstance(df, pd.DataFrame):
         return (
             dataframe_api_compat.pandas_standard.convert_to_standard_compliant_dataframe(
-                df, None
+                df, api_version=api_version
             )
         )
     elif isinstance(df, (pl.DataFrame, pl.LazyFrame)):
         return (
             dataframe_api_compat.polars_standard.convert_to_standard_compliant_dataframe(
-                df, None
+                df, api_version=api_version
             )
         )
     else:
@@ -74,20 +76,20 @@ def convert_series_to_pandas_numpy(ser: pd.Series) -> pd.Series:  # type: ignore
     return ser
 
 
-def integer_dataframe_1(library: str) -> Any:
+def integer_dataframe_1(library: str, api_version: str | None = None) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}, dtype="int64")
-        return convert_to_standard_compliant_dataframe(df)
+        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}, dtype="Int64")
-        return convert_to_standard_compliant_dataframe(df)
+        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
     if library == "polars":
         df = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
-        return convert_to_standard_compliant_dataframe(df)
+        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
-        return convert_to_standard_compliant_dataframe(df)
+        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
     raise AssertionError(f"Got unexpected library: {library}")
 
 

@@ -70,6 +70,7 @@ class String:
 
 
 LATEST_API_VERSION = "2023.08-beta"
+SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.09-beta"))
 
 
 DTYPE_MAP = {

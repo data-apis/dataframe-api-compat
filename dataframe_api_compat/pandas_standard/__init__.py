@@ -17,7 +17,8 @@ Column = PandasColumn
 DataFrame = PandasDataFrame
 GroupBy = PandasGroupBy
 
-LATEST_TAGGED_API_VERSION = "2023.08-beta"
+LATEST_API_VERSION = "2023.08-beta"
+SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.09-beta"))
 
 
 class Int64:
@@ -128,7 +129,7 @@ def convert_to_standard_compliant_dataframe(
     df: pd.DataFrame, api_version: str | None = None
 ) -> PandasDataFrame:
     if api_version is None:
-        api_version = LATEST_TAGGED_API_VERSION
+        api_version = LATEST_API_VERSION
     return PandasDataFrame(df, api_version=api_version)
 
 
@@ -136,7 +137,7 @@ def convert_to_standard_compliant_column(
     df: pd.Series[Any],
     api_version: str | None = None,
 ) -> PandasColumn[Any]:
-    return PandasColumn(df, api_version=api_version or LATEST_TAGGED_API_VERSION)
+    return PandasColumn(df, api_version=api_version or LATEST_API_VERSION)
 
 
 def concat(dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:
@@ -167,14 +168,14 @@ def column_from_sequence(
     sequence: Sequence[Any], *, dtype: Any, name: str, api_version: str | None = None
 ) -> PandasColumn[Any]:
     ser = pd.Series(sequence, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
-    return PandasColumn(ser, api_version=LATEST_TAGGED_API_VERSION)
+    return PandasColumn(ser, api_version=LATEST_API_VERSION)
 
 
 def column_from_1d_array(
     data: Any, *, dtype: Any, name: str | None = None, api_version: str | None = None
 ) -> PandasColumn[Any]:  # pragma: no cover
     ser = pd.Series(data, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
-    return PandasColumn(ser, api_version=api_version or LATEST_TAGGED_API_VERSION)
+    return PandasColumn(ser, api_version=api_version or LATEST_API_VERSION)
 
 
 def dataframe_from_2d_array(
@@ -187,7 +188,7 @@ def dataframe_from_2d_array(
     df = pd.DataFrame(data, columns=names).astype(  # type: ignore[call-overload]
         {key: map_standard_dtype_to_pandas_dtype(value) for key, value in dtypes.items()}
     )
-    return PandasDataFrame(df, api_version=api_version or LATEST_TAGGED_API_VERSION)
+    return PandasDataFrame(df, api_version=api_version or LATEST_API_VERSION)
 
 
 def dataframe_from_dict(
@@ -200,7 +201,7 @@ def dataframe_from_dict(
         pd.DataFrame(
             {label: column.column.rename(label) for label, column in data.items()}
         ),
-        api_version=api_version or LATEST_TAGGED_API_VERSION,
+        api_version=api_version or LATEST_API_VERSION,
     )
 
 

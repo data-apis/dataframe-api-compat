@@ -546,6 +546,11 @@ class PandasDataFrame(DataFrame):
         )
 
     def insert(self, loc: int, label: str, value: Column[Any]) -> PandasDataFrame:
+        if self._api_version != "2023.08-beta":
+            raise NotImplementedError(
+                "DataFrame.insert is only available for api version 2023.08-beta. "
+                "Please use `DataFrame.insert_column` instead."
+            )
         series = value.column
         self._validate_index(series.index)
         before = self.dataframe.iloc[:, :loc]
@@ -553,6 +558,19 @@ class PandasDataFrame(DataFrame):
         to_insert = value.column.rename(label)
         return PandasDataFrame(
             pd.concat([before, to_insert, after], axis=1), api_version=self._api_version
+        )
+
+    def insert_column(self, value: Column[Any]) -> PandasDataFrame:
+        if self._api_version == "2023.08-beta":
+            raise NotImplementedError(
+                "DataFrame.insert_column is only available for api versions after 2023.08-beta. "
+            )
+        series = value.column
+        self._validate_index(series.index)
+        before = self.dataframe
+        to_insert = value.column
+        return PandasDataFrame(
+            pd.concat([before, to_insert], axis=1), api_version=self._api_version
         )
 
     def drop_column(self, label: str) -> PandasDataFrame:
@@ -569,7 +587,7 @@ class PandasDataFrame(DataFrame):
             self.dataframe.rename(columns=mapping), api_version=self._api_version
         )
 
-    def get_column_names(self) -> Sequence[str]:
+    def get_column_names(self) -> list[str]:
         return self.dataframe.columns.tolist()
 
     def sorted_indices(

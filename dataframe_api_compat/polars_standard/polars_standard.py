@@ -700,10 +700,28 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(self.df.filter(mask.column), api_version=self._api_version)
 
     def insert(self, loc: int, label: str, value: Column[Any]) -> PolarsDataFrame:
+        if self._api_version != "2023.08-beta":
+            raise NotImplementedError(
+                "DataFrame.insert is only available for api version 2023.08-beta. "
+                "Please use `DataFrame.insert_column` instead."
+            )
         self._validate_column(value)  # type: ignore[arg-type]
         columns = self.dataframe.columns
         new_columns = columns[:loc] + [label] + columns[loc:]
         df = self.dataframe.with_columns(value.column.alias(label)).select(new_columns)
+        return PolarsDataFrame(df, api_version=self._api_version)
+
+    def insert_column(self, value: Column[Any]) -> PolarsDataFrame:
+        if self._api_version == "2023.08-beta":
+            raise NotImplementedError(
+                "DataFrame.insert is only available for api version 2023.08-beta. "
+                "Please use `DataFrame.insert_column` instead."
+            )
+        self._validate_column(value)  # type: ignore[arg-type]
+        columns = self.dataframe.columns
+        label = value.name
+        new_columns = [*columns, label]
+        df = self.dataframe.with_columns(value.column).select(new_columns)
         return PolarsDataFrame(df, api_version=self._api_version)
 
     def drop_column(self, label: str) -> PolarsDataFrame:
@@ -718,7 +736,7 @@ class PolarsDataFrame(DataFrame):
             self.dataframe.rename(dict(mapping)), api_version=self._api_version
         )
 
-    def get_column_names(self) -> Sequence[str]:
+    def get_column_names(self) -> list[str]:
         return self.dataframe.columns
 
     def __eq__(  # type: ignore[override]
