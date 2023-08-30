@@ -3,7 +3,6 @@ from __future__ import annotations
 import collections
 from typing import Any
 from typing import cast
-from typing import Generic
 from typing import Literal
 from typing import NoReturn
 from typing import TYPE_CHECKING
@@ -45,41 +44,57 @@ if TYPE_CHECKING:
 
     from dataframe_api import (
         Bool,
-        Column,
+        Expression,
         DataFrame,
         GroupBy,
     )
 else:
 
-    class DataFrame(Generic[DType]):
+    class DataFrame:
         ...
 
-    class Column(Generic[DType]):
+    class Expression:
         ...
 
     class GroupBy:
         ...
 
 
-class PandasColumn(Column[DType]):
+def col(label: str):
+    return lambda df: df.loc[:, label]
+
+
+class PandasExpression(Expression):
     # private, not technically part of the standard
-    def __init__(self, column: pd.Series[Any], api_version: str) -> None:
-        if (
-            isinstance(column.index, pd.RangeIndex)
-            and column.index.start == 0  # type: ignore[comparison-overlap]
-            and column.index.step == 1  # type: ignore[comparison-overlap]
-            and (column.index.stop == len(column))  # type: ignore[comparison-overlap]
-        ):
-            self._series = column
-        else:
-            self._series = column.reset_index(drop=True)
-        self._api_version = api_version
-        if api_version not in SUPPORTED_VERSIONS:
-            raise ValueError(
-                "Unsupported API version, expected one of: "
-                f"{SUPPORTED_VERSIONS}. "
-                "Try updating dataframe-api-compat?"
-            )
+    def __init__(
+        self,
+        name: str,
+        calls=None
+        # api_version: str,
+    ) -> None:
+        self._name = name
+        self._calls = calls or []
+
+    # if (
+    #     isinstance(column.index, pd.RangeIndex)
+    #     and column.index.start == 0  # type: ignore[comparison-overlap]
+    #     and column.index.step == 1  # type: ignore[comparison-overlap]
+    #     and (column.index.stop == len(column))  # type: ignore[comparison-overlap]
+    # ):
+    #     self._series = column
+    # else:
+    #     self._series = column.reset_index(drop=True)
+    # self._api_version = api_version
+    # if api_version not in SUPPORTED_VERSIONS:
+    #     raise ValueError(
+    #         "Unsupported API version, expected one of: "
+    #         f"{SUPPORTED_VERSIONS}. "
+    #         "Try updating dataframe-api-compat?"
+    #     )
+
+    def _record_call(self, func_name, **kwargs):
+        calls = [*self._calls, (func_name, kwargs)]
+        return PandasExpression(self._name, calls=calls)
 
     def _validate_index(self, index: pd.Index) -> None:
         pd.testing.assert_index_equal(self.column.index, index)
@@ -90,7 +105,7 @@ class PandasColumn(Column[DType]):
 
     @property
     def name(self) -> str:
-        return self.column.name  # type: ignore[return-value]
+        return self._name  # type: ignore[return-value]
 
     @property
     def column(self) -> pd.Series[Any]:
@@ -106,137 +121,149 @@ class PandasColumn(Column[DType]):
     def dtype(self) -> Any:
         return dataframe_api_compat.pandas_standard.DTYPE_MAP[self.column.dtype.name]
 
-    def get_rows(self, indices: Column[Any]) -> PandasColumn[DType]:
-        return PandasColumn(
+    def get_rows(self, indices: Expression) -> PandasExpression[DType]:
+        return PandasExpression(
             self.column.iloc[indices.column.to_numpy()], api_version=self._api_version
         )
 
     def slice_rows(
         self, start: int | None, stop: int | None, step: int | None
-    ) -> PandasColumn[DType]:
+    ) -> PandasExpression[DType]:
         if start is None:
             start = 0
         if stop is None:
             stop = len(self.column)
         if step is None:
             step = 1
-        return PandasColumn(
+        return PandasExpression(
             self.column.iloc[start:stop:step], api_version=self._api_version
         )
 
-    def get_rows_by_mask(self, mask: Column[Bool]) -> PandasColumn[DType]:
+    def get_rows_by_mask(self, mask: Expression) -> PandasExpression[DType]:
         series = mask.column
         self._validate_index(series.index)
-        return PandasColumn(self.column.loc[series], api_version=self._api_version)
+        return PandasExpression(self.column.loc[series], api_version=self._api_version)
 
     def get_value(self, row: int) -> Any:
         return self.column.iloc[row]
 
     def __eq__(  # type: ignore[override]
-        self, other: PandasColumn[DType] | Any
-    ) -> PandasColumn[Bool]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(
+        self, other: PandasExpression[DType] | Any
+    ) -> PandasExpression[Bool]:
+        if isinstance(other, PandasExpression):
+            return PandasExpression(
                 self.column == other.column, api_version=self._api_version
             )
-        return PandasColumn(self.column == other, api_version=self._api_version)
+        return PandasExpression(self.column == other, api_version=self._api_version)
 
     def __ne__(  # type: ignore[override]
-        self, other: Column[DType]
-    ) -> PandasColumn[Bool]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(
-                self.column != other.column, api_version=self._api_version
-            )
-        return PandasColumn(self.column != other, api_version=self._api_version)
+        self, other: Expression
+    ) -> PandasExpression[Bool]:
+        return self._record_call("__ne__", other=other)
 
-    def __ge__(self, other: Column[DType] | Any) -> PandasColumn[Bool]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(
+    def __ge__(self, other: Expression | Any) -> PandasExpression[Bool]:
+        if isinstance(other, PandasExpression):
+            return PandasExpression(
                 self.column >= other.column, api_version=self._api_version
             )
-        return PandasColumn(self.column >= other, api_version=self._api_version)
+        return PandasExpression(self.column >= other, api_version=self._api_version)
 
-    def __gt__(self, other: Column[DType] | Any) -> PandasColumn[Bool]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(self.column > other.column, api_version=self._api_version)
-        return PandasColumn(self.column > other, api_version=self._api_version)
+    def __gt__(self, other: Expression | Any) -> PandasExpression[Bool]:
+        # if isinstance(other, PandasExpression):
+        return self._record_call("__gt__", other)
+        # return PandasExpression(self.column > other, api_version=self._api_version)
 
-    def __le__(self, other: Column[DType] | Any) -> PandasColumn[Bool]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(
+    def __le__(self, other: Expression | Any) -> PandasExpression[Bool]:
+        if isinstance(other, PandasExpression):
+            return PandasExpression(
                 self.column <= other.column, api_version=self._api_version
             )
-        return PandasColumn(self.column <= other, api_version=self._api_version)
+        return PandasExpression(self.column <= other, api_version=self._api_version)
 
-    def __lt__(self, other: Column[DType] | Any) -> PandasColumn[Bool]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(self.column < other.column, api_version=self._api_version)
-        return PandasColumn(self.column < other, api_version=self._api_version)
+    def __lt__(self, other: Expression | Any) -> PandasExpression[Bool]:
+        if isinstance(other, PandasExpression):
+            return PandasExpression(
+                self.column < other.column, api_version=self._api_version
+            )
+        return PandasExpression(self.column < other, api_version=self._api_version)
 
-    def __and__(self, other: Column[Bool] | bool) -> PandasColumn[Bool]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(self.column & other.column, api_version=self._api_version)
+    def __and__(self, other: Expression | bool) -> PandasExpression[Bool]:
+        if isinstance(other, PandasExpression):
+            return PandasExpression(
+                self.column & other.column, api_version=self._api_version
+            )
         result = self.column & other  # type: ignore[operator]
-        return PandasColumn(result, api_version=self._api_version)
+        return PandasExpression(result, api_version=self._api_version)
 
-    def __or__(self, other: Column[Bool] | bool) -> PandasColumn[Bool]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(self.column | other.column, api_version=self._api_version)
-        return PandasColumn(self.column | other, api_version=self._api_version)  # type: ignore[operator]
+    def __or__(self, other: Expression | bool) -> PandasExpression[Bool]:
+        if isinstance(other, PandasExpression):
+            return PandasExpression(
+                self.column | other.column, api_version=self._api_version
+            )
+        return PandasExpression(self.column | other, api_version=self._api_version)  # type: ignore[operator]
 
-    def __add__(self, other: Column[DType] | Any) -> PandasColumn[DType]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(self.column + other.column, api_version=self._api_version)
-        return PandasColumn(self.column + other, api_version=self._api_version)  # type: ignore[operator]
+    def __add__(self, other: Expression | Any) -> PandasExpression[DType]:
+        if isinstance(other, PandasExpression):
+            return PandasExpression(
+                self.column + other.column, api_version=self._api_version
+            )
+        return PandasExpression(self.column + other, api_version=self._api_version)  # type: ignore[operator]
 
-    def __sub__(self, other: Column[DType] | Any) -> PandasColumn[DType]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(self.column - other.column, api_version=self._api_version)
-        return PandasColumn(self.column - other, api_version=self._api_version)  # type: ignore[operator]
+    def __sub__(self, other: Expression | Any) -> PandasExpression[DType]:
+        if isinstance(other, PandasExpression):
+            return PandasExpression(
+                self.column - other.column, api_version=self._api_version
+            )
+        return PandasExpression(self.column - other, api_version=self._api_version)  # type: ignore[operator]
 
-    def __mul__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(self.column * other.column, api_version=self._api_version)
-        return PandasColumn(self.column * other, api_version=self._api_version)  # type: ignore[operator]
+    def __mul__(self, other: Expression | Any) -> PandasExpression[Any]:
+        if isinstance(other, PandasExpression):
+            return PandasExpression(
+                self.column * other.column, api_version=self._api_version
+            )
+        return PandasExpression(self.column * other, api_version=self._api_version)  # type: ignore[operator]
 
-    def __truediv__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(self.column / other.column, api_version=self._api_version)
-        return PandasColumn(self.column / other, api_version=self._api_version)  # type: ignore[operator]
+    def __truediv__(self, other: Expression | Any) -> PandasExpression[Any]:
+        if isinstance(other, PandasExpression):
+            return PandasExpression(
+                self.column / other.column, api_version=self._api_version
+            )
+        return PandasExpression(self.column / other, api_version=self._api_version)  # type: ignore[operator]
 
-    def __floordiv__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(
+    def __floordiv__(self, other: Expression | Any) -> PandasExpression[Any]:
+        if isinstance(other, PandasExpression):
+            return PandasExpression(
                 self.column // other.column, api_version=self._api_version
             )
-        return PandasColumn(self.column // other, api_version=self._api_version)  # type: ignore[operator]
+        return PandasExpression(self.column // other, api_version=self._api_version)  # type: ignore[operator]
 
-    def __pow__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(
+    def __pow__(self, other: Expression | Any) -> PandasExpression[Any]:
+        if isinstance(other, PandasExpression):
+            return PandasExpression(
                 self.column**other.column, api_version=self._api_version
             )
-        return PandasColumn(self.column**other, api_version=self._api_version)  # type: ignore[operator]
+        return PandasExpression(self.column**other, api_version=self._api_version)  # type: ignore[operator]
 
-    def __mod__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(self.column % other.column, api_version=self._api_version)
-        return PandasColumn(self.column % other, api_version=self._api_version)  # type: ignore[operator]
+    def __mod__(self, other: Expression | Any) -> PandasExpression[Any]:
+        if isinstance(other, PandasExpression):
+            return PandasExpression(
+                self.column % other.column, api_version=self._api_version
+            )
+        return PandasExpression(self.column % other, api_version=self._api_version)  # type: ignore[operator]
 
     def __divmod__(
-        self, other: Column[DType] | Any
-    ) -> tuple[PandasColumn[Any], PandasColumn[Any]]:
-        if isinstance(other, PandasColumn):
+        self, other: Expression | Any
+    ) -> tuple[PandasExpression[Any], PandasExpression[Any]]:
+        if isinstance(other, PandasExpression):
             quotient, remainder = self.column.__divmod__(other.column)
         else:
             quotient, remainder = self.column.__divmod__(other)
-        return PandasColumn(quotient, api_version=self._api_version), PandasColumn(
-            remainder, api_version=self._api_version
-        )
+        return PandasExpression(
+            quotient, api_version=self._api_version
+        ), PandasExpression(remainder, api_version=self._api_version)
 
-    def __invert__(self: PandasColumn[Bool]) -> PandasColumn[Bool]:
-        return PandasColumn(~self.column, api_version=self._api_version)
+    def __invert__(self: PandasExpression[Bool]) -> PandasExpression[Bool]:
+        return PandasExpression(~self.column, api_version=self._api_version)
 
     def any(self, *, skip_nulls: bool = True) -> bool:
         return self.column.any()
@@ -268,60 +295,60 @@ class PandasColumn(Column[DType]):
     def var(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
         return self.column.var()
 
-    def is_null(self) -> PandasColumn[Bool]:
-        return PandasColumn(self.column.isna(), api_version=self._api_version)
+    def is_null(self) -> PandasExpression[Bool]:
+        return PandasExpression(self.column.isna(), api_version=self._api_version)
 
-    def is_nan(self) -> PandasColumn[Bool]:
+    def is_nan(self) -> PandasExpression[Bool]:
         if is_extension_array_dtype(self.column.dtype):
-            return PandasColumn(
+            return PandasExpression(
                 np.isnan(self.column).replace(pd.NA, False).astype(bool),
                 api_version=self._api_version,
             )
-        return PandasColumn(self.column.isna(), api_version=self._api_version)
+        return PandasExpression(self.column.isna(), api_version=self._api_version)
 
     def sorted_indices(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
-    ) -> PandasColumn[Any]:
+    ) -> PandasExpression[Any]:
         if ascending:
-            return PandasColumn(
+            return PandasExpression(
                 pd.Series(self.column.argsort()), api_version=self._api_version
             )
-        return PandasColumn(
+        return PandasExpression(
             pd.Series(self.column.argsort()[::-1]), api_version=self._api_version
         )
 
     def sort(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
-    ) -> PandasColumn[Any]:
+    ) -> PandasExpression[Any]:
         if self._api_version == "2023.08-beta":
             raise NotImplementedError("dataframe.sort only available after 2023.08-beta")
-        return PandasColumn(
+        return PandasExpression(
             self.column.sort_values(ascending=ascending), api_version=self._api_version
         )
 
-    def is_in(self, values: Column[DType]) -> PandasColumn[Bool]:
+    def is_in(self, values: Expression) -> PandasExpression[Bool]:
         if values.dtype != self.dtype:
             raise ValueError(f"`value` has dtype {values.dtype}, expected {self.dtype}")
-        return PandasColumn(
+        return PandasExpression(
             self.column.isin(values.column), api_version=self._api_version
         )
 
-    def unique_indices(self, *, skip_nulls: bool = True) -> PandasColumn[Any]:
-        return PandasColumn(
+    def unique_indices(self, *, skip_nulls: bool = True) -> PandasExpression[Any]:
+        return PandasExpression(
             self.column.drop_duplicates().index.to_series(), api_version=self._api_version
         )
 
     def fill_nan(
         self, value: float | pd.NAType  # type: ignore[name-defined]
-    ) -> PandasColumn[DType]:
+    ) -> PandasExpression[DType]:
         ser = self.column.copy()
         ser[cast("pd.Series[bool]", np.isnan(ser)).fillna(False).to_numpy(bool)] = value
-        return PandasColumn(ser, api_version=self._api_version)
+        return PandasExpression(ser, api_version=self._api_version)
 
     def fill_null(
         self,
         value: Any,
-    ) -> PandasColumn[DType]:
+    ) -> PandasExpression[DType]:
         ser = self.column.copy()
         if is_extension_array_dtype(ser.dtype):
             # crazy hack to preserve nan...
@@ -335,19 +362,19 @@ class PandasColumn(Column[DType]):
             ser = num / other
         else:
             ser = ser.fillna(value)
-        return PandasColumn(pd.Series(ser), api_version=self._api_version)
+        return PandasExpression(pd.Series(ser), api_version=self._api_version)
 
-    def cumulative_sum(self, *, skip_nulls: bool = True) -> PandasColumn[DType]:
-        return PandasColumn(self.column.cumsum(), api_version=self._api_version)
+    def cumulative_sum(self, *, skip_nulls: bool = True) -> PandasExpression[DType]:
+        return PandasExpression(self.column.cumsum(), api_version=self._api_version)
 
-    def cumulative_prod(self, *, skip_nulls: bool = True) -> PandasColumn[DType]:
-        return PandasColumn(self.column.cumprod(), api_version=self._api_version)
+    def cumulative_prod(self, *, skip_nulls: bool = True) -> PandasExpression[DType]:
+        return PandasExpression(self.column.cumprod(), api_version=self._api_version)
 
-    def cumulative_max(self, *, skip_nulls: bool = True) -> PandasColumn[DType]:
-        return PandasColumn(self.column.cummax(), api_version=self._api_version)
+    def cumulative_max(self, *, skip_nulls: bool = True) -> PandasExpression[DType]:
+        return PandasExpression(self.column.cummax(), api_version=self._api_version)
 
-    def cumulative_min(self, *, skip_nulls: bool = True) -> PandasColumn[DType]:
-        return PandasColumn(self.column.cummin(), api_version=self._api_version)
+    def cumulative_min(self, *, skip_nulls: bool = True) -> PandasExpression[DType]:
+        return PandasExpression(self.column.cummin(), api_version=self._api_version)
 
     def to_array_object(self, dtype: str) -> Any:
         if dtype not in _ARRAY_API_DTYPES:
@@ -356,8 +383,8 @@ class PandasColumn(Column[DType]):
             )
         return self.column.to_numpy(dtype=dtype)
 
-    def rename(self, name: str | None) -> PandasColumn[DType]:
-        return PandasColumn(self.column.rename(name), api_version=self._api_version)
+    def rename(self, name: str | None) -> PandasExpression[DType]:
+        return PandasExpression(self.column.rename(name), api_version=self._api_version)
 
 
 class PandasGroupBy(GroupBy):
@@ -532,11 +559,6 @@ class PandasDataFrame(DataFrame):
                 raise KeyError(f"key {key} not present in DataFrame's columns")
         return PandasGroupBy(self.dataframe, keys, api_version=self._api_version)
 
-    def get_column_by_name(self, name: str) -> PandasColumn[DType]:
-        if not isinstance(name, str):
-            raise ValueError(f"Expected str, got: {type(name)}")
-        return PandasColumn(self.dataframe.loc[:, name], api_version=self._api_version)
-
     def get_columns_by_name(self, names: Sequence[str]) -> PandasDataFrame:
         if isinstance(names, str):
             raise TypeError(f"Expected sequence of str, got {type(names)}")
@@ -545,7 +567,7 @@ class PandasDataFrame(DataFrame):
             self.dataframe.loc[:, list(names)], api_version=self._api_version
         )
 
-    def get_rows(self, indices: Column[Any]) -> PandasDataFrame:
+    def get_rows(self, indices: Expression) -> PandasDataFrame:
         return PandasDataFrame(
             self.dataframe.iloc[indices.column, :], api_version=self._api_version
         )
@@ -563,14 +585,14 @@ class PandasDataFrame(DataFrame):
             self.dataframe.iloc[start:stop:step], api_version=self._api_version
         )
 
-    def get_rows_by_mask(self, mask: Column[Bool]) -> PandasDataFrame:
-        series = mask.column
-        self._validate_index(series.index)
-        return PandasDataFrame(
-            self.dataframe.loc[series, :], api_version=self._api_version
-        )
+    def get_rows_by_mask(self, mask: Expression) -> PandasDataFrame:
+        df = self.dataframe
+        for func_name, kwargs in mask._calls:
+            if func_name == "__ne__":
+                df = df.loc[df[mask.name] != kwargs["other"]]
+        return PandasDataFrame(df, api_version=self._api_version)
 
-    def insert(self, loc: int, label: str, value: Column[Any]) -> PandasDataFrame:
+    def insert(self, loc: int, label: str, value: Expression) -> PandasDataFrame:
         if self._api_version != "2023.08-beta":
             raise NotImplementedError(
                 "DataFrame.insert is only available for api version 2023.08-beta. "
@@ -585,7 +607,7 @@ class PandasDataFrame(DataFrame):
             pd.concat([before, to_insert, after], axis=1), api_version=self._api_version
         )
 
-    def insert_column(self, value: Column[Any]) -> PandasDataFrame:
+    def insert_column(self, value: Expression) -> PandasDataFrame:
         if self._api_version == "2023.08-beta":
             raise NotImplementedError(
                 "DataFrame.insert_column is only available for api versions after 2023.08-beta. "
@@ -598,12 +620,12 @@ class PandasDataFrame(DataFrame):
             pd.concat([before, to_insert], axis=1), api_version=self._api_version
         )
 
-    def update_columns(self, columns: PandasColumn[Any] | Sequence[PandasColumn[Any]], /) -> PandasDataFrame:  # type: ignore[override]
+    def update_columns(self, columns: PandasExpression[Any] | Sequence[PandasExpression[Any]], /) -> PandasDataFrame:  # type: ignore[override]
         if self._api_version == "2023.08-beta":
             raise NotImplementedError(
                 "DataFrame.insert_column is only available for api versions after 2023.08-beta. "
             )
-        if isinstance(columns, PandasColumn):
+        if isinstance(columns, PandasExpression):
             columns = [columns]
         df = self.dataframe.copy()
         for col in columns:
@@ -638,15 +660,15 @@ class PandasDataFrame(DataFrame):
         *,
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
-    ) -> PandasColumn[Any]:
+    ) -> PandasExpression[Any]:
         if keys is None:
             keys = self.dataframe.columns.tolist()
         df = self.dataframe.loc[:, list(keys)]
         if ascending:
-            return PandasColumn(
+            return PandasExpression(
                 df.sort_values(keys).index.to_series(), api_version=self._api_version
             )
-        return PandasColumn(
+        return PandasExpression(
             df.sort_values(keys).index.to_series()[::-1], api_version=self._api_version
         )
 
@@ -671,8 +693,8 @@ class PandasDataFrame(DataFrame):
         keys: Sequence[str] | None = None,
         *,
         skip_nulls: bool = True,
-    ) -> PandasColumn[Any]:
-        return PandasColumn(
+    ) -> PandasExpression[Any]:
+        return PandasExpression(
             self.dataframe.drop_duplicates(subset=keys).index.to_series(),
             api_version=self._api_version,
         )
@@ -860,13 +882,13 @@ class PandasDataFrame(DataFrame):
             self.dataframe.all().to_frame().T, api_version=self._api_version
         )
 
-    def any_rowwise(self, *, skip_nulls: bool = True) -> PandasColumn[Bool]:
+    def any_rowwise(self, *, skip_nulls: bool = True) -> PandasExpression[Bool]:
         self._validate_booleanness()
-        return PandasColumn(self.dataframe.any(axis=1), api_version=self._api_version)
+        return PandasExpression(self.dataframe.any(axis=1), api_version=self._api_version)
 
-    def all_rowwise(self, *, skip_nulls: bool = True) -> PandasColumn[Bool]:
+    def all_rowwise(self, *, skip_nulls: bool = True) -> PandasExpression[Bool]:
         self._validate_booleanness()
-        return PandasColumn(self.dataframe.all(axis=1), api_version=self._api_version)
+        return PandasExpression(self.dataframe.all(axis=1), api_version=self._api_version)
 
     def min(self, *, skip_nulls: bool = True) -> PandasDataFrame:
         return PandasDataFrame(

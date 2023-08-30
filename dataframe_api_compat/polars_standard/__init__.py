@@ -130,7 +130,7 @@ def concat(dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
 
 
 def dataframe_from_dict(
-    data: dict[str, PolarsColumn[Any]], *, api_version: str | None = None
+    data: dict[str, PolarsExpression], *, api_version: str | None = None
 ) -> PolarsDataFrame:
     for _, col in data.items():
         if not isinstance(col, PolarsColumn):  # pragma: no cover
@@ -149,7 +149,7 @@ def dataframe_from_dict(
 
 def column_from_1d_array(
     data: Any, *, dtype: Any, name: str, api_version: str | None = None
-) -> PolarsColumn[Any]:  # pragma: no cover
+) -> PolarsExpression:  # pragma: no cover
     ser = pl.Series(values=data, dtype=_map_standard_to_polars_dtypes(dtype), name=name)
     return PolarsColumn(
         ser, dtype=ser.dtype, id_=None, api_version=api_version or LATEST_API_VERSION
@@ -178,7 +178,7 @@ def column_from_sequence(
     dtype: Any,
     name: str | None = None,
     api_version: str | None = None,
-) -> PolarsColumn[Any]:
+) -> PolarsExpression:
     return PolarsColumn(
         pl.Series(
             values=sequence, dtype=_map_standard_to_polars_dtypes(dtype), name=name
@@ -197,7 +197,7 @@ def convert_to_standard_compliant_dataframe(
 
 def convert_to_standard_compliant_column(
     ser: pl.Series, api_version: str | None = None
-) -> PolarsColumn[Any]:
+) -> PolarsExpression:
     return PolarsColumn(
         ser, dtype=ser.dtype, id_=None, api_version=api_version or LATEST_API_VERSION
     )

@@ -25,7 +25,7 @@ for i in spec:
 
 # series
 spec = dataframe_api.Column().__dir__()
-pandas_spec = pandas_standard.PandasColumn(
+pandas_spec = pandas_standard.PandasExpression(
     pd.Series(), api_version="2023.08-beta"
 ).__dir__()
 polars_spec = polars_standard.PolarsColumn(pl.Series(), dtype=pl.Float32(), id_=None, api_version="2023.09-beta").__dir__()  # type: ignore[arg-type]
