@@ -65,67 +65,27 @@ def col(label: str):
 
 
 class PandasExpression(Expression):
-    # private, not technically part of the standard
-    def __init__(
-        self,
-        name: str,
-        calls=None
-        # api_version: str,
-    ) -> None:
+    def __init__(self, name: str, calls=None) -> None:
         self._name = name
         self._calls = calls or []
 
-    # if (
-    #     isinstance(column.index, pd.RangeIndex)
-    #     and column.index.start == 0  # type: ignore[comparison-overlap]
-    #     and column.index.step == 1  # type: ignore[comparison-overlap]
-    #     and (column.index.stop == len(column))  # type: ignore[comparison-overlap]
-    # ):
-    #     self._series = column
-    # else:
-    #     self._series = column.reset_index(drop=True)
-    # self._api_version = api_version
-    # if api_version not in SUPPORTED_VERSIONS:
-    #     raise ValueError(
-    #         "Unsupported API version, expected one of: "
-    #         f"{SUPPORTED_VERSIONS}. "
-    #         "Try updating dataframe-api-compat?"
-    #     )
-
-    def _record_call(self, func, lhs, rhs, **kwargs):
+    def _record_call(self, kind, func, lhs, rhs, **kwargs):
         from functools import partial
 
-        calls = [*self._calls, (partial(func, **kwargs), lhs, rhs)]
+        calls = [*self._calls, (kind, partial(func, **kwargs), lhs, rhs)]
         return PandasExpression(self._name, calls=calls)
-
-    def _validate_index(self, index: pd.Index) -> None:
-        pd.testing.assert_index_equal(self.column.index, index)
-
-    # In the standard
-    def __column_namespace__(self) -> Any:
-        return dataframe_api_compat.pandas_standard
 
     @property
     def name(self) -> str:
-        return self._name  # type: ignore[return-value]
+        return self._name
 
-    @property
-    def column(self) -> pd.Series[Any]:
-        return self._series
-
-    def __len__(self) -> int:
-        return len(self.column)
-
-    def __iter__(self) -> NoReturn:
-        raise NotImplementedError()
-
-    @property
-    def dtype(self) -> Any:
-        return dataframe_api_compat.pandas_standard.DTYPE_MAP[self.column.dtype.name]
+    # def __len__(self) -> int:
+    #     # TODO!
+    #     return self._record_call(lambda lhs, rhs: len(), self, other)
 
     def get_rows(self, indices: Expression) -> PandasExpression[DType]:
-        return PandasExpression(
-            self.column.iloc[indices.column.to_numpy()], api_version=self._api_version
+        return self._record_call(
+            "binary", lambda ser, indices: ser.iloc[indices], self, indices
         )
 
     def slice_rows(
@@ -137,121 +97,69 @@ class PandasExpression(Expression):
             stop = len(self.column)
         if step is None:
             step = 1
-        return PandasExpression(
-            self.column.iloc[start:stop:step], api_version=self._api_version
+        return self._record_call(
+            "unary",
+            lambda ser, start, stop, step: ser.iloc[start:stop:step],
+            self,
+            None,
+            {"start": start, "stop": stop, "step": step},
         )
 
     def get_rows_by_mask(self, mask: Expression) -> PandasExpression[DType]:
-        series = mask.column
-        self._validate_index(series.index)
-        return PandasExpression(self.column.loc[series], api_version=self._api_version)
+        return self._record_call("binary", lambda ser, mask: ser.loc[mask], self, mask)
 
-    def get_value(self, row: int) -> Any:
-        return self.column.iloc[row]
+    # def get_value(self, row: int) -> Any:
+    #     #  TODO!
+    #     return self.column.iloc[row]
 
     def __eq__(  # type: ignore[override]
         self, other: PandasExpression[DType] | Any
     ) -> PandasExpression[Bool]:
-        if isinstance(other, PandasExpression):
-            return PandasExpression(
-                self.column == other.column, api_version=self._api_version
-            )
-        return PandasExpression(self.column == other, api_version=self._api_version)
+        return self._record_call("binary", lambda ser, other: ser == other, self, other)
 
     def __ne__(  # type: ignore[override]
         self, other: Expression
     ) -> PandasExpression[Bool]:
-        return self._record_call(lambda ser, other: ser != other, self, other)
+        return self._record_call("binary", lambda ser, other: ser != other, self, other)
 
     def __ge__(self, other: Expression | Any) -> PandasExpression[Bool]:
-        if isinstance(other, PandasExpression):
-            return PandasExpression(
-                self.column >= other.column, api_version=self._api_version
-            )
-        return PandasExpression(self.column >= other, api_version=self._api_version)
+        return self._record_call("binary", lambda ser, other: ser >= other, self, other)
 
     def __gt__(self, other: Expression | Any) -> PandasExpression[Bool]:
-        # if isinstance(other, PandasExpression):
-        return self._record_call(lambda ser, other: ser > other, self, other)
-        # return PandasExpression(self.column > other, api_version=self._api_version)
+        return self._record_call("binary", lambda ser, other: ser > other, self, other)
 
     def __le__(self, other: Expression | Any) -> PandasExpression[Bool]:
-        if isinstance(other, PandasExpression):
-            return PandasExpression(
-                self.column <= other.column, api_version=self._api_version
-            )
-        return PandasExpression(self.column <= other, api_version=self._api_version)
+        return self._record_call("binary", lambda ser, other: ser <= other, self, other)
 
     def __lt__(self, other: Expression | Any) -> PandasExpression[Bool]:
-        if isinstance(other, PandasExpression):
-            return PandasExpression(
-                self.column < other.column, api_version=self._api_version
-            )
-        return PandasExpression(self.column < other, api_version=self._api_version)
+        return self._record_call("binary", lambda ser, other: ser < other, self, other)
 
     def __and__(self, other: Expression | bool) -> PandasExpression[Bool]:
-        if isinstance(other, PandasExpression):
-            return PandasExpression(
-                self.column & other.column, api_version=self._api_version
-            )
-        result = self.column & other  # type: ignore[operator]
-        return PandasExpression(result, api_version=self._api_version)
+        return self._record_call("binary", lambda ser, other: ser & other, self, other)
 
     def __or__(self, other: Expression | bool) -> PandasExpression[Bool]:
-        if isinstance(other, PandasExpression):
-            return PandasExpression(
-                self.column | other.column, api_version=self._api_version
-            )
-        return PandasExpression(self.column | other, api_version=self._api_version)  # type: ignore[operator]
+        return self._record_call("binary", lambda ser, other: ser | other, self, other)
 
     def __add__(self, other: Expression | Any) -> PandasExpression[DType]:
-        if isinstance(other, PandasExpression):
-            return PandasExpression(
-                self.column + other.column, api_version=self._api_version
-            )
-        return PandasExpression(self.column + other, api_version=self._api_version)  # type: ignore[operator]
+        return self._record_call("binary", lambda ser, other: ser + other, self, other)
 
     def __sub__(self, other: Expression | Any) -> PandasExpression[DType]:
-        if isinstance(other, PandasExpression):
-            return PandasExpression(
-                self.column - other.column, api_version=self._api_version
-            )
-        return PandasExpression(self.column - other, api_version=self._api_version)  # type: ignore[operator]
+        return self._record_call("binary", lambda ser, other: ser - other, self, other)
 
     def __mul__(self, other: Expression | Any) -> PandasExpression[Any]:
-        if isinstance(other, PandasExpression):
-            return PandasExpression(
-                self.column * other.column, api_version=self._api_version
-            )
-        return PandasExpression(self.column * other, api_version=self._api_version)  # type: ignore[operator]
+        return self._record_call("binary", lambda ser, other: ser * other, self, other)
 
     def __truediv__(self, other: Expression | Any) -> PandasExpression[Any]:
-        if isinstance(other, PandasExpression):
-            return PandasExpression(
-                self.column / other.column, api_version=self._api_version
-            )
-        return PandasExpression(self.column / other, api_version=self._api_version)  # type: ignore[operator]
+        return self._record_call("binary", lambda ser, other: ser / other, self, other)
 
     def __floordiv__(self, other: Expression | Any) -> PandasExpression[Any]:
-        if isinstance(other, PandasExpression):
-            return PandasExpression(
-                self.column // other.column, api_version=self._api_version
-            )
-        return PandasExpression(self.column // other, api_version=self._api_version)  # type: ignore[operator]
+        return self._record_call("binary", lambda ser, other: ser // other, self, other)
 
     def __pow__(self, other: Expression | Any) -> PandasExpression[Any]:
-        if isinstance(other, PandasExpression):
-            return PandasExpression(
-                self.column**other.column, api_version=self._api_version
-            )
-        return PandasExpression(self.column**other, api_version=self._api_version)  # type: ignore[operator]
+        return self._record_call("binary", lambda ser, other: ser**other, self, other)
 
     def __mod__(self, other: Expression | Any) -> PandasExpression[Any]:
-        if isinstance(other, PandasExpression):
-            return PandasExpression(
-                self.column % other.column, api_version=self._api_version
-            )
-        return PandasExpression(self.column % other, api_version=self._api_version)  # type: ignore[operator]
+        return self._record_call("binary", lambda ser, other: ser % other, self, other)
 
     def __divmod__(
         self, other: Expression | Any
@@ -265,42 +173,43 @@ class PandasExpression(Expression):
         ), PandasExpression(remainder, api_version=self._api_version)
 
     def __invert__(self: PandasExpression[Bool]) -> PandasExpression[Bool]:
-        return PandasExpression(~self.column, api_version=self._api_version)
+        return self._record_call("unary", lambda ser: ~ser, self, None)
 
     def any(self, *, skip_nulls: bool = True) -> bool:
-        return self.column.any()
+        return self._record_call("unary", lambda ser: ser.any(), self, None)
 
     def all(self, *, skip_nulls: bool = True) -> bool:
-        return self.column.all()
+        return self._record_call("unary", lambda ser: ser.all(), self, None)
 
     def min(self, *, skip_nulls: bool = True) -> Any:
-        return self.column.min()
+        return self._record_call("unary", lambda ser: ser.min(), self, None)
 
     def max(self, *, skip_nulls: bool = True) -> Any:
-        return self.column.max()
+        return self._record_call("unary", lambda ser: ser.max(), self, None)
 
     def sum(self, *, skip_nulls: bool = True) -> Any:
-        return self.column.sum()
+        return self._record_call("unary", lambda ser: ser.sum(), self, None)
 
     def prod(self, *, skip_nulls: bool = True) -> Any:
-        return self.column.prod()
+        return self._record_call("unary", lambda ser: ser.prod(), self, None)
 
     def median(self, *, skip_nulls: bool = True) -> Any:
-        return self.column.median()
+        return self._record_call("unary", lambda ser: ser.median(), self, None)
 
     def mean(self, *, skip_nulls: bool = True) -> Any:
-        return self.column.mean()
+        return self._record_call("unary", lambda ser: ser.mean(), self, None)
 
     def std(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
-        return self.column.std()
+        return self._record_call("unary", lambda ser: ser.std(), self, None)
 
     def var(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
-        return self.column.var()
+        return self._record_call("unary", lambda ser: ser.var(), self, None)
 
     def is_null(self) -> PandasExpression[Bool]:
-        return PandasExpression(self.column.isna(), api_version=self._api_version)
+        return self._record_call("unary", lambda ser: ser.isna(), self, None)
 
     def is_nan(self) -> PandasExpression[Bool]:
+        return self._record_call("unary", lambda ser: ser.isna(), self, None)
         if is_extension_array_dtype(self.column.dtype):
             return PandasExpression(
                 np.isnan(self.column).replace(pd.NA, False).astype(bool),
@@ -311,21 +220,15 @@ class PandasExpression(Expression):
     def sorted_indices(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
     ) -> PandasExpression[Any]:
-        if ascending:
-            return PandasExpression(
-                pd.Series(self.column.argsort()), api_version=self._api_version
-            )
-        return PandasExpression(
-            pd.Series(self.column.argsort()[::-1]), api_version=self._api_version
+        return self._record_call(
+            "unary", lambda ser: ser.argsort(ascending=ascending), self, None
         )
 
     def sort(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
     ) -> PandasExpression[Any]:
-        if self._api_version == "2023.08-beta":
-            raise NotImplementedError("dataframe.sort only available after 2023.08-beta")
-        return PandasExpression(
-            self.column.sort_values(ascending=ascending), api_version=self._api_version
+        return self._record_call(
+            "unary", lambda ser: ser.sort_values(ascending=ascending), self, None
         )
 
     def is_in(self, values: Expression) -> PandasExpression[Bool]:
@@ -588,15 +491,24 @@ class PandasDataFrame(DataFrame):
         )
 
     def _resolve_expression(self, expression: PandasExpression) -> pd.Series:
+        if not isinstance(expression, PandasExpression):
+            # e.g. scalar
+            return expression
         if not expression._calls:
             # todo: deal with 'rename' later
             return self.dataframe[expression.name]
-        for func, lhs, rhs in expression._calls:
-            if isinstance(lhs, PandasExpression):
-                lhs = self._resolve_expression(lhs)
-            if isinstance(rhs, PandasExpression):
-                rhs = self._resolve_expression(rhs)
-            return func(lhs, rhs)
+        for kind, func, lhs, rhs in expression._calls:
+            if kind == "unary":
+                if rhs is not None:
+                    raise AssertionError("rhs of unary expression is not None")
+                expression = func(self._resolve_expression(lhs))
+            elif kind == "binary":
+                expression = func(
+                    self._resolve_expression(lhs), self._resolve_expression(rhs)
+                )
+            else:
+                raise AssertionError(f"expected unary or binary, got: {kind}")
+        return expression
 
     def get_rows_by_mask(self, mask: Expression) -> PandasDataFrame:
         df = self.dataframe
