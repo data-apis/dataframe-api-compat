@@ -269,7 +269,12 @@ class PandasExpression(Expression):
         return PandasExpression(pd.Series(ser), api_version=self._api_version)
 
     def cumulative_sum(self, *, skip_nulls: bool = True) -> PandasExpression[DType]:
-        return PandasExpression(self.column.cumsum(), api_version=self._api_version)
+        return self._record_call(
+            "unary",
+            lambda ser: ser.cumsum(),
+            self,
+            None,
+        )
 
     def cumulative_prod(self, *, skip_nulls: bool = True) -> PandasExpression[DType]:
         return PandasExpression(self.column.cumprod(), api_version=self._api_version)
