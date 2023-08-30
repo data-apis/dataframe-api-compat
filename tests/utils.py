@@ -278,24 +278,24 @@ def null_dataframe_2(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def bool_dataframe_1(library: str) -> Any:
+def bool_dataframe_1(library: str, api_version="2023.09-beta") -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame(
             {"a": [True, True, False], "b": [True, True, True]}, dtype="bool"
         )
-        return convert_to_standard_compliant_dataframe(df)
+        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
     if library == "pandas-nullable":
         df = pd.DataFrame(
             {"a": [True, True, False], "b": [True, True, True]}, dtype="boolean"
         )
-        return convert_to_standard_compliant_dataframe(df)
+        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
     if library == "polars":
         df = pl.DataFrame({"a": [True, True, False], "b": [True, True, True]})
-        return convert_to_standard_compliant_dataframe(df)
+        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [True, True, False], "b": [True, True, True]})
-        return convert_to_standard_compliant_dataframe(df)
+        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
     raise AssertionError(f"Got unexpected library: {library}")
 
 

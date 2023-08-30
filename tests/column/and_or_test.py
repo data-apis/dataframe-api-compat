@@ -13,10 +13,11 @@ if TYPE_CHECKING:
 
 
 def test_column_and(library: str, request: pytest.FixtureRequest) -> None:
-    df = bool_dataframe_1(library)
-    ser = df.get_column_by_name("a")
-    other = df.get_column_by_name("b")
-    result = df.insert(0, "result", ser & other)
+    df = bool_dataframe_1(library, api_version="2023.09-beta")
+    namespace = df.__dataframe_namespace__()
+    ser = namespace.col("a")
+    other = namespace.col("b")
+    result = df.insert_column((ser & other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series([True, True, False], name="result")
