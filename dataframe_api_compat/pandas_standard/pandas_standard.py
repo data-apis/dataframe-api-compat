@@ -66,6 +66,8 @@ def col(label: str):
 
 class PandasExpression(Expression):
     def __init__(self, name: str, calls=None) -> None:
+        if isinstance(name, pd.Series):
+            name = name.reset_index(drop=True)
         self._name = name
         self._calls = calls or []
 
@@ -476,7 +478,8 @@ class PandasDataFrame(DataFrame):
 
     def get_rows(self, indices: Expression) -> PandasDataFrame:
         return PandasDataFrame(
-            self.dataframe.iloc[indices.column, :], api_version=self._api_version
+            self.dataframe.iloc[self._resolve_expression(indices), :],
+            api_version=self._api_version,
         )
 
     def slice_rows(
@@ -493,7 +496,7 @@ class PandasDataFrame(DataFrame):
         )
 
     def _resolve_expression(self, expression: PandasExpression) -> pd.Series:
-        if isinstance(expression.name, pd.Series):
+        if hasattr(expression, "name") and not isinstance(expression.name, str):
             return expression.name
         if not isinstance(expression, PandasExpression):
             # e.g. scalar
@@ -539,12 +542,11 @@ class PandasDataFrame(DataFrame):
             columns = [columns]
         df = self.dataframe.copy()
         for col in columns:
-            self._validate_index(col.column.index)
             if col.name not in df.columns:
                 raise ValueError(
                     f"column {col.name} not in dataframe, use insert instead"
                 )
-            df[col.name] = col.column
+            df[col.name] = self._resolve_expression(col)
         return PandasDataFrame(df, api_version=self._api_version)
 
     def drop_column(self, label: str) -> PandasDataFrame:
@@ -576,10 +578,10 @@ class PandasDataFrame(DataFrame):
         df = self.dataframe.loc[:, list(keys)]
         if ascending:
             return PandasExpression(
-                df.sort_values(keys).index.to_series(), api_version=self._api_version
+                df.sort_values(keys).index.to_series().reset_index(drop=True)
             )
         return PandasExpression(
-            df.sort_values(keys).index.to_series()[::-1], api_version=self._api_version
+            df.sort_values(keys).index.to_series()[::-1].reset_index(drop=True)
         )
 
     def sort(
@@ -606,7 +608,6 @@ class PandasDataFrame(DataFrame):
     ) -> PandasExpression[Any]:
         return PandasExpression(
             self.dataframe.drop_duplicates(subset=keys).index.to_series(),
-            api_version=self._api_version,
         )
 
     def __eq__(self, other: DataFrame | Any) -> PandasDataFrame:  # type: ignore[override]

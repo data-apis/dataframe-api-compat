@@ -119,7 +119,11 @@ class PolarsExpression:
 
     @property
     def name(self) -> str:
-        name = self._expr.meta.output_name()
+        if isinstance(self._expr, pl.Series):
+            # TODO: can we avoid this completely?
+            name = self._expr.name
+        else:
+            name = self._expr.meta.output_name()
         return name
 
     # def __len__(self) -> int:
@@ -854,9 +858,8 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(self.df.select(names), api_version=self._api_version)
 
     def get_rows(self, indices: PolarsExpression) -> PolarsDataFrame:  # type: ignore[override]
-        self._validate_column(indices)
         return PolarsDataFrame(
-            self.dataframe.select(pl.all().take(indices.column)),
+            self.dataframe.select(pl.all().take(indices._expr)),
             api_version=self._api_version,
         )
 
@@ -901,13 +904,12 @@ class PolarsDataFrame(DataFrame):
         if isinstance(columns, PolarsExpression):
             columns = [columns]
         for col in columns:
-            self._validate_column(col)
             if col.name not in self.dataframe.columns:
                 raise ValueError(
                     f"column {col.name} not in dataframe, please use insert_column instead"
                 )
         return PolarsDataFrame(
-            self.dataframe.with_columns([col.column for col in columns]),
+            self.dataframe.with_columns([col._expr for col in columns]),
             api_version=self._api_version,
         )
 

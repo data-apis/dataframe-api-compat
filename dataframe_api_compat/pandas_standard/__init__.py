@@ -131,13 +131,6 @@ def convert_to_standard_compliant_dataframe(
     return PandasDataFrame(df, api_version=api_version)
 
 
-def convert_to_standard_compliant_column(
-    df: pd.Series[Any],
-    api_version: str | None = None,
-) -> PandasExpression[Any]:
-    return PandasExpression(df, api_version=api_version or LATEST_API_VERSION)
-
-
 def concat(dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:
     dtypes = dataframes[0].dataframe.dtypes
     dfs = []
@@ -162,20 +155,6 @@ def concat(dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:
     )
 
 
-def column_from_sequence(
-    sequence: Sequence[Any], *, dtype: Any, name: str, api_version: str | None = None
-) -> PandasExpression[Any]:
-    ser = pd.Series(sequence, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
-    return PandasExpression(ser, api_version=LATEST_API_VERSION)
-
-
-def column_from_1d_array(
-    data: Any, *, dtype: Any, name: str | None = None, api_version: str | None = None
-) -> PandasExpression[Any]:  # pragma: no cover
-    ser = pd.Series(data, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
-    return PandasExpression(ser, api_version=api_version or LATEST_API_VERSION)
-
-
 def dataframe_from_2d_array(
     data: Any,
     *,
@@ -189,19 +168,19 @@ def dataframe_from_2d_array(
     return PandasDataFrame(df, api_version=api_version or LATEST_API_VERSION)
 
 
-def dataframe_from_dict(
-    data: dict[str, PandasExpression[Any]], api_version: str | None = None
-) -> PandasDataFrame:
-    # todo: figure out what to do with this one
-    for _, col in data.items():
-        if not isinstance(col, PandasExpression):  # pragma: no cover
-            raise TypeError(f"Expected PandasColumn, got {type(col)}")
-    return PandasDataFrame(
-        pd.DataFrame(
-            {label: column.column.rename(label) for label, column in data.items()}
-        ),
-        api_version=api_version or LATEST_API_VERSION,
-    )
+# def dataframe_from_dict(
+#     data: dict[str, PandasExpression[Any]], api_version: str | None = None
+# ) -> PandasDataFrame:
+#     # todo: figure out what to do with this one
+#     for _, col in data.items():
+#         if not isinstance(col, PandasExpression):  # pragma: no cover
+#             raise TypeError(f"Expected PandasColumn, got {type(col)}")
+#     return PandasDataFrame(
+#         pd.DataFrame(
+#             {label: column.column.rename(label) for label, column in data.items()}
+#         ),
+#         api_version=api_version or LATEST_API_VERSION,
+#     )
 
 
 def is_null(value: Any) -> bool:
