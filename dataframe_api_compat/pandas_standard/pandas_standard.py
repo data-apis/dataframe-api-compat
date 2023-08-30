@@ -493,6 +493,8 @@ class PandasDataFrame(DataFrame):
         )
 
     def _resolve_expression(self, expression: PandasExpression) -> pd.Series:
+        if isinstance(expression.name, pd.Series):
+            return expression.name
         if not isinstance(expression, PandasExpression):
             # e.g. scalar
             return expression
@@ -791,12 +793,10 @@ class PandasDataFrame(DataFrame):
         )
 
     def any_rowwise(self, *, skip_nulls: bool = True) -> PandasExpression[Bool]:
-        self._validate_booleanness()
-        return PandasExpression(self.dataframe.any(axis=1), api_version=self._api_version)
+        return PandasExpression(self.dataframe.any(axis=1))
 
     def all_rowwise(self, *, skip_nulls: bool = True) -> PandasExpression[Bool]:
-        self._validate_booleanness()
-        return PandasExpression(self.dataframe.all(axis=1), api_version=self._api_version)
+        return PandasExpression(self.dataframe.all(axis=1))
 
     def min(self, *, skip_nulls: bool = True) -> PandasDataFrame:
         return PandasDataFrame(

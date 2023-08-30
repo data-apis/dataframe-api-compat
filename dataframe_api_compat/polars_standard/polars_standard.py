@@ -866,8 +866,7 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(self.df[start:stop:step], api_version=self._api_version)
 
     def get_rows_by_mask(self, mask: PolarsExpression) -> PolarsDataFrame:
-        self._validate_column(mask)  # type: ignore[arg-type]
-        return PolarsDataFrame(self.df.filter(mask.column), api_version=self._api_version)
+        return PolarsDataFrame(self.df.filter(mask._expr), api_version=self._api_version)
 
     def insert(self, loc: int, label: str, value: PolarsExpression) -> PolarsDataFrame:
         if self._api_version != "2023.08-beta":
