@@ -8,14 +8,15 @@ import polars as pl
 
 from dataframe_api_compat.polars_standard.polars_standard import LATEST_API_VERSION
 from dataframe_api_compat.polars_standard.polars_standard import null
-from dataframe_api_compat.polars_standard.polars_standard import PolarsColumn
 from dataframe_api_compat.polars_standard.polars_standard import PolarsDataFrame
+from dataframe_api_compat.polars_standard.polars_standard import PolarsExpression
 from dataframe_api_compat.polars_standard.polars_standard import PolarsGroupBy
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-Column = PolarsColumn
+col = PolarsExpression
+Expression = col
 DataFrame = PolarsDataFrame
 GroupBy = PolarsGroupBy
 
@@ -133,7 +134,7 @@ def dataframe_from_dict(
     data: dict[str, PolarsExpression], *, api_version: str | None = None
 ) -> PolarsDataFrame:
     for _, col in data.items():
-        if not isinstance(col, PolarsColumn):  # pragma: no cover
+        if not isinstance(col, PolarsExpression):  # pragma: no cover
             raise TypeError(f"Expected PolarsColumn, got {type(col)}")
         if isinstance(col.column, pl.Expr):
             raise NotImplementedError(
@@ -151,7 +152,7 @@ def column_from_1d_array(
     data: Any, *, dtype: Any, name: str, api_version: str | None = None
 ) -> PolarsExpression:  # pragma: no cover
     ser = pl.Series(values=data, dtype=_map_standard_to_polars_dtypes(dtype), name=name)
-    return PolarsColumn(
+    return PolarsExpression(
         ser, dtype=ser.dtype, id_=None, api_version=api_version or LATEST_API_VERSION
     )
 
@@ -179,7 +180,7 @@ def column_from_sequence(
     name: str | None = None,
     api_version: str | None = None,
 ) -> PolarsExpression:
-    return PolarsColumn(
+    return PolarsExpression(
         pl.Series(
             values=sequence, dtype=_map_standard_to_polars_dtypes(dtype), name=name
         ),
@@ -198,7 +199,7 @@ def convert_to_standard_compliant_dataframe(
 def convert_to_standard_compliant_column(
     ser: pl.Series, api_version: str | None = None
 ) -> PolarsExpression:
-    return PolarsColumn(
+    return PolarsExpression(
         ser, dtype=ser.dtype, id_=None, api_version=api_version or LATEST_API_VERSION
     )
 

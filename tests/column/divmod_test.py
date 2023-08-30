@@ -9,8 +9,9 @@ from tests.utils import interchange_to_pandas
 
 def test_column_divmod(library: str) -> None:
     df = integer_dataframe_1(library)
-    ser = df.get_column_by_name("a")
-    other = df.get_column_by_name("b")
+    namespace = df.__dataframe_namespace__()
+    ser = namespace.col("a")
+    other = namespace.col("b")
     result_quotient, result_remainder = ser.__divmod__(other)
     # quotient
     result = df.insert(0, "result", result_quotient)

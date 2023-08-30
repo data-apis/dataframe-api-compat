@@ -518,10 +518,10 @@ class PandasDataFrame(DataFrame):
         return PandasDataFrame(df, api_version=self._api_version)
 
     def insert_column(self, value: Expression) -> PandasDataFrame:
-        if self._api_version == "2023.08-beta":
-            raise NotImplementedError(
-                "DataFrame.insert_column is only available for api versions after 2023.08-beta. "
-            )
+        # if self._api_version == "2023.08-beta":
+        #     raise NotImplementedError(
+        #         "DataFrame.insert_column is only available for api versions after 2023.08-beta. "
+        #     )
         before = self.dataframe
         to_insert = self._resolve_expression(value)
         return PandasDataFrame(

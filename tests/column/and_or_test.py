@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     import pytest
 
 
-def test_column_and(library: str, request: pytest.FixtureRequest) -> None:
+def test_column_and(library: str) -> None:
     df = bool_dataframe_1(library, api_version="2023.09-beta")
     namespace = df.__dataframe_namespace__()
     ser = namespace.col("a")
@@ -26,9 +26,10 @@ def test_column_and(library: str, request: pytest.FixtureRequest) -> None:
 
 def test_column_or(library: str) -> None:
     df = bool_dataframe_1(library)
-    ser = df.get_column_by_name("a")
-    other = df.get_column_by_name("b")
-    result = df.insert(0, "result", ser | other)
+    namespace = df.__dataframe_namespace__()
+    ser = namespace.col("a")
+    other = namespace.col("b")
+    result = df.insert_column((ser | other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series([True, True, True], name="result")
@@ -37,9 +38,10 @@ def test_column_or(library: str) -> None:
 
 def test_column_and_with_scalar(library: str, request: pytest.FixtureRequest) -> None:
     df = bool_dataframe_1(library)
-    ser = df.get_column_by_name("a")
+    namespace = df.__dataframe_namespace__()
+    ser = namespace.col("a")
     other = True
-    result = df.insert(0, "result", ser & other)
+    result = df.insert_column((ser & other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series([True, True, False], name="result")
@@ -48,9 +50,10 @@ def test_column_and_with_scalar(library: str, request: pytest.FixtureRequest) ->
 
 def test_column_or_with_scalar(library: str, request: pytest.FixtureRequest) -> None:
     df = bool_dataframe_1(library)
-    ser = df.get_column_by_name("a")
+    namespace = df.__dataframe_namespace__()
+    ser = namespace.col("a")
     other = True
-    result = df.insert(0, "result", ser | other)
+    result = df.insert_column((ser | other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series([True, True, True], name="result")

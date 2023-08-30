@@ -36,8 +36,9 @@ def test_column_comparisons(
 ) -> None:
     ser: Any
     df = integer_dataframe_7(library)
-    ser = df.get_column_by_name("a")
-    other = df.get_column_by_name("b")
+    namespace = df.__dataframe_namespace__()
+    ser = namespace.col("a")
+    other = namespace.col("b")
     result = df.insert(0, "result", (getattr(ser, comparison)(other)))
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series(expected_data, name="result")

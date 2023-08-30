@@ -14,8 +14,9 @@ if TYPE_CHECKING:
 
 def test_float_powers_column(library: str, request: pytest.FixtureRequest) -> None:
     df = integer_dataframe_1(library)
-    ser = df.get_column_by_name("a")
-    other = df.get_column_by_name("b") * 1.0
+    namespace = df.__dataframe_namespace__()
+    ser = namespace.col("a")
+    other = namespace.col("b") * 1.0
     result = df.insert(0, "result", ser.__pow__(other))
     result_pd = interchange_to_pandas(result, library)
     expected = pd.DataFrame(
@@ -38,8 +39,9 @@ def test_float_powers_scalar_column(library: str, request: pytest.FixtureRequest
 
 def test_int_powers_column(library: str, request: pytest.FixtureRequest) -> None:
     df = integer_dataframe_1(library)
-    ser = df.get_column_by_name("a")
-    other = df.get_column_by_name("b") * 1
+    namespace = df.__dataframe_namespace__()
+    ser = namespace.col("a")
+    other = namespace.col("b") * 1
     result = df.insert(0, "result", ser.__pow__(other))
     result_pd = interchange_to_pandas(result, library)
     expected = pd.DataFrame({"result": [1, 32, 729], "a": [1, 2, 3], "b": [4, 5, 6]})
