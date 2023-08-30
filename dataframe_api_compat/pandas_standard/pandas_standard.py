@@ -177,12 +177,6 @@ class PandasExpression(Expression):
     def __invert__(self: PandasExpression[Bool]) -> PandasExpression[Bool]:
         return self._record_call("unary", lambda ser: ~ser, self, None)
 
-    def any(self, *, skip_nulls: bool = True) -> bool:
-        return self._record_call("unary", lambda ser: ser.any(), self, None)
-
-    def all(self, *, skip_nulls: bool = True) -> bool:
-        return self._record_call("unary", lambda ser: ser.all(), self, None)
-
     def min(self, *, skip_nulls: bool = True) -> Any:
         return self._record_call("unary", lambda ser: ser.min(), self, None)
 
@@ -230,7 +224,10 @@ class PandasExpression(Expression):
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
     ) -> PandasExpression[Any]:
         return self._record_call(
-            "unary", lambda ser: ser.sort_values(ascending=ascending), self, None
+            "unary",
+            lambda ser: ser.sort_values(ascending=ascending).reset_index(drop=True),
+            self,
+            None,
         )
 
     def is_in(self, values: Expression) -> PandasExpression[Bool]:

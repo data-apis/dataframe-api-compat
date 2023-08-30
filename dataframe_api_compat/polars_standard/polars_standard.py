@@ -164,7 +164,6 @@ class PolarsExpression:
         )
 
     def get_rows_by_mask(self, mask: PolarsExpression) -> PolarsExpression:
-        self._validate_column(mask)
         return PolarsExpression(
             self._expr.filter(mask.column), dtype=self._dtype, id_=self._id, api_version=self._api_version  # type: ignore[arg-type]
         )
@@ -178,7 +177,6 @@ class PolarsExpression:
         raise NotImplementedError()
 
     def is_in(self, values: PolarsExpression) -> PolarsExpression:  # type: ignore[override]
-        self._validate_column(values)
         if values.dtype != self.dtype:
             raise ValueError(f"`value` has dtype {values.dtype}, expected {self.dtype}")
         return PolarsExpression(
@@ -394,7 +392,6 @@ class PolarsExpression:
 
     def __gt__(self, other: PolarsExpression | Any) -> PolarsExpression:
         if isinstance(other, PolarsExpression):
-            self._validate_column(other)
             return PolarsExpression(
                 self._expr > other._expr,
                 id_=self._id,
@@ -410,7 +407,6 @@ class PolarsExpression:
 
     def __le__(self, other: PolarsExpression | Any) -> PolarsExpression:
         if isinstance(other, PolarsExpression):
-            self._validate_column(other)
             return PolarsExpression(
                 self._expr <= other._expr,
                 id_=self._id,
@@ -426,7 +422,6 @@ class PolarsExpression:
 
     def __lt__(self, other: PolarsExpression | Any) -> PolarsExpression:
         if isinstance(other, PolarsExpression):
-            self._validate_column(other)
             return PolarsExpression(
                 self._expr < other._expr,
                 id_=self._id,
@@ -465,7 +460,6 @@ class PolarsExpression:
 
     def __floordiv__(self, other: PolarsExpression | Any) -> PolarsExpression:
         if isinstance(other, PolarsExpression):
-            self._validate_column(other)
             res_dtype = (
                 pl.DataFrame(
                     {"a": [1], "b": [1]}, schema={"a": self._dtype, "b": other._dtype}
@@ -493,7 +487,6 @@ class PolarsExpression:
 
     def __truediv__(self, other: PolarsExpression | Any) -> PolarsExpression:
         if isinstance(other, PolarsExpression):
-            self._validate_column(other)
             res = self._expr / other._expr
             res_dtype = (
                 pl.DataFrame(
@@ -545,7 +538,6 @@ class PolarsExpression:
 
     def __mod__(self, other: PolarsExpression | Any) -> PolarsExpression:
         if isinstance(other, PolarsExpression):
-            self._validate_column(other)
             res_dtype = (
                 pl.DataFrame(
                     {"a": [1], "b": [1]}, schema={"a": self._dtype, "b": other._dtype}
@@ -601,7 +593,6 @@ class PolarsExpression:
 
     def __add__(self, other: PolarsExpression | Any) -> PolarsExpression:
         if isinstance(other, PolarsExpression):
-            self._validate_column(other)
             res_dtype = (
                 pl.DataFrame(
                     {"a": [1], "b": [1]}, schema={"a": self._dtype, "b": other._dtype}
@@ -629,7 +620,6 @@ class PolarsExpression:
 
     def __sub__(self, other: PolarsExpression | Any) -> PolarsExpression:
         if isinstance(other, PolarsExpression):
-            self._validate_column(other)
             res_dtype = (
                 pl.DataFrame(
                     {"a": [1], "b": [1]}, schema={"a": self._dtype, "b": other._dtype}
@@ -671,8 +661,6 @@ class PolarsExpression:
     def sort(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
     ) -> PolarsExpression:
-        if self._api_version == "2023.08-beta":
-            raise NotImplementedError("dataframe.sort only available after 2023.08-beta")
         expr = self._expr.sort(descending=not ascending)
         return PolarsExpression(
             expr,
@@ -877,7 +865,6 @@ class PolarsDataFrame(DataFrame):
                 "DataFrame.insert is only available for api version 2023.08-beta. "
                 "Please use `DataFrame.insert_column` instead."
             )
-        self._validate_column(value)  # type: ignore[arg-type]
         columns = self.dataframe.columns
         new_columns = columns[:loc] + [label] + columns[loc:]
         df = self.dataframe.with_columns(value.column.alias(label)).select(new_columns)

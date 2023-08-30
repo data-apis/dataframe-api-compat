@@ -21,9 +21,10 @@ def test_cumulative_functions_column(
     library: str, func: str, expected_data: list[float], request: pytest.FixtureRequest
 ) -> None:
     df = integer_dataframe_1(library)
-    ser = df.get_column_by_name("a")
+    namespace = df.__dataframe_namespace__()
+    ser = namespace.col("a")
     expected = pd.Series(expected_data, name="result")
-    result = df.insert(0, "result", getattr(ser, func)())
+    result = df.insert_column(getattr(ser, func)().rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     result_pd = convert_series_to_pandas_numpy(result_pd)
     pd.testing.assert_series_equal(result_pd, expected)
