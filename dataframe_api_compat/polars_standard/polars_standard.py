@@ -91,7 +91,6 @@ class PolarsColumn(Column[DType]):
         *,
         dtype: Any,
         id_: int | None,  # | None = None,
-        method: str | None = None,
         api_version: str,
     ) -> None:
         if column is NotImplemented:
@@ -100,8 +99,6 @@ class PolarsColumn(Column[DType]):
         self._dtype = dtype
         # keep track of which dataframe the column came from
         self._id = id_
-        # keep track of which method this was called from
-        self._method = method
         if isinstance(column, pl.Series):
             # just helps with defensiveness
             assert column.dtype == dtype
@@ -173,7 +170,7 @@ class PolarsColumn(Column[DType]):
             api_version=self._api_version,
         )
 
-    def get_rows_by_mask(self, mask: PolarsColumn[Bool]) -> PolarsColumn[DType]:  # type: ignore[override]
+    def get_rows_by_mask(self, mask: PolarsColumn[Bool]) -> PolarsColumn[DType]:
         self._validate_column(mask)
         return PolarsColumn(
             self.column.filter(mask.column), dtype=self._dtype, id_=self._id, api_version=self._api_version  # type: ignore[arg-type]
@@ -677,7 +674,6 @@ class PolarsColumn(Column[DType]):
             expr,
             id_=self._id,
             dtype=pl.UInt32(),
-            method=f"Column.{ascending}_sorted_indices",
             api_version=self._api_version,
         )
 
@@ -691,7 +687,6 @@ class PolarsColumn(Column[DType]):
             expr,
             id_=self._id,
             dtype=self._dtype,
-            method=f"Column.{ascending}_sort",
             api_version=self._api_version,
         )
 
@@ -1332,7 +1327,6 @@ class PolarsDataFrame(DataFrame):
                 expr,
                 dtype=pl.UInt32(),
                 id_=self._id,
-                method=f"DataFrame.{ascending}_sorted_indices",
                 api_version=self._api_version,
             )
         return PolarsColumn(
