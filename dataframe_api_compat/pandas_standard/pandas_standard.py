@@ -92,8 +92,10 @@ class PandasExpression(Expression):
     #         "Try updating dataframe-api-compat?"
     #     )
 
-    def _record_call(self, func_name, **kwargs):
-        calls = [*self._calls, (func_name, kwargs)]
+    def _record_call(self, func, lhs, rhs, **kwargs):
+        from functools import partial
+
+        calls = [*self._calls, (partial(func, **kwargs), lhs, rhs)]
         return PandasExpression(self._name, calls=calls)
 
     def _validate_index(self, index: pd.Index) -> None:
@@ -159,7 +161,7 @@ class PandasExpression(Expression):
     def __ne__(  # type: ignore[override]
         self, other: Expression
     ) -> PandasExpression[Bool]:
-        return self._record_call("__ne__", other=other)
+        return self._record_call(lambda ser, other: ser != other, self, other)
 
     def __ge__(self, other: Expression | Any) -> PandasExpression[Bool]:
         if isinstance(other, PandasExpression):
@@ -170,7 +172,7 @@ class PandasExpression(Expression):
 
     def __gt__(self, other: Expression | Any) -> PandasExpression[Bool]:
         # if isinstance(other, PandasExpression):
-        return self._record_call("__gt__", other)
+        return self._record_call(lambda ser, other: ser > other, self, other)
         # return PandasExpression(self.column > other, api_version=self._api_version)
 
     def __le__(self, other: Expression | Any) -> PandasExpression[Bool]:
@@ -585,11 +587,20 @@ class PandasDataFrame(DataFrame):
             self.dataframe.iloc[start:stop:step], api_version=self._api_version
         )
 
+    def _resolve_expression(self, expression: PandasExpression) -> pd.Series:
+        if not expression._calls:
+            # todo: deal with 'rename' later
+            return self.dataframe[expression.name]
+        for func, lhs, rhs in expression._calls:
+            if isinstance(lhs, PandasExpression):
+                lhs = self._resolve_expression(lhs)
+            if isinstance(rhs, PandasExpression):
+                rhs = self._resolve_expression(rhs)
+            return func(lhs, rhs)
+
     def get_rows_by_mask(self, mask: Expression) -> PandasDataFrame:
         df = self.dataframe
-        for func_name, kwargs in mask._calls:
-            if func_name == "__ne__":
-                df = df.loc[df[mask.name] != kwargs["other"]]
+        df = df.loc[self._resolve_expression(mask)]
         return PandasDataFrame(df, api_version=self._api_version)
 
     def insert(self, loc: int, label: str, value: Expression) -> PandasDataFrame:

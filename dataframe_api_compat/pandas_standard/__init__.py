@@ -8,13 +8,13 @@ import pandas as pd
 from dataframe_api_compat.pandas_standard.pandas_standard import LATEST_API_VERSION
 from dataframe_api_compat.pandas_standard.pandas_standard import null
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasDataFrame
-from dataframe_api_compat.pandas_standard.pandas_standard import PandasExpression
+from dataframe_api_compat.pandas_standard.pandas_standard import PandasExpression as col
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasGroupBy
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-Expression = PandasExpression
+Expression = col
 DataFrame = PandasDataFrame
 GroupBy = PandasGroupBy
 
