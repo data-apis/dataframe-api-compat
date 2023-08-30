@@ -10,7 +10,6 @@ from tests.utils import convert_series_to_pandas_numpy
 from tests.utils import float_dataframe_1
 from tests.utils import float_dataframe_2
 from tests.utils import float_dataframe_3
-from tests.utils import integer_dataframe_1
 from tests.utils import interchange_to_pandas
 
 if TYPE_CHECKING:
@@ -32,17 +31,11 @@ def test_is_in(
     request: pytest.FixtureRequest,
 ) -> None:
     df = df_factory(library, request)
-    ser = df.get_column_by_name("a")
+    namespace = df.__dataframe_namespace__()
+    ser = namespace.col("a")
     other = ser + 1
-    result = df.insert(0, "result", ser.is_in(other))
+    result = df.insert_column(ser.is_in(other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series(expected_values, name="result")
     pd.testing.assert_series_equal(result_pd, expected)
-
-
-def test_is_in_raises(library: str) -> None:
-    ser = integer_dataframe_1(library).get_column_by_name("a")
-    other = ser * 1.0
-    with pytest.raises(ValueError):
-        ser.is_in(other)

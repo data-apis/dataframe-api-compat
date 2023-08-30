@@ -139,7 +139,7 @@ class PolarsExpression:
 
     def get_rows(self, indices: PolarsExpression) -> PolarsExpression:
         return PolarsExpression(
-            self._expr.take(indices.column),
+            self._expr.take(indices._expr),
             dtype=self._dtype,
             id_=self._id,
             api_version=self._api_version,
@@ -165,7 +165,7 @@ class PolarsExpression:
 
     def get_rows_by_mask(self, mask: PolarsExpression) -> PolarsExpression:
         return PolarsExpression(
-            self._expr.filter(mask.column), dtype=self._dtype, id_=self._id, api_version=self._api_version  # type: ignore[arg-type]
+            self._expr.filter(mask._expr), dtype=self._dtype, id_=self._id, api_version=self._api_version  # type: ignore[arg-type]
         )
 
     def get_value(self, row: int) -> Any:
@@ -177,10 +177,8 @@ class PolarsExpression:
         raise NotImplementedError()
 
     def is_in(self, values: PolarsExpression) -> PolarsExpression:  # type: ignore[override]
-        if values.dtype != self.dtype:
-            raise ValueError(f"`value` has dtype {values.dtype}, expected {self.dtype}")
         return PolarsExpression(
-            self._expr.is_in(values.column), dtype=pl.Boolean(), id_=self._id, api_version=self._api_version  # type: ignore[arg-type]
+            self._expr.is_in(values._expr), dtype=pl.Boolean(), id_=self._id, api_version=self._api_version  # type: ignore[arg-type]
         )
 
     def unique_indices(self, *, skip_nulls: bool = True) -> PolarsExpression:

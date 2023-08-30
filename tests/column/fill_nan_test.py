@@ -10,8 +10,9 @@ from tests.utils import nan_dataframe_1
 def test_column_fill_nan(library: str) -> None:
     # todo: test with nullable pandas, check null isn't filled
     df = nan_dataframe_1(library)
-    ser = df.get_column_by_name("a")
-    result = df.insert(0, "result", ser.fill_nan(-1.0))
+    namespace = df.__dataframe_namespace__()
+    ser = namespace.col("a")
+    result = df.insert_column(ser.fill_nan(-1.0).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series([1.0, 2.0, -1.0], name="result")

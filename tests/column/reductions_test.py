@@ -25,7 +25,8 @@ def test_column_reductions(
     library: str, reduction: str, expected: float, request: pytest.FixtureRequest
 ) -> None:
     df = integer_dataframe_1(library)
-    ser = df.get_column_by_name("a")
+    namespace = df.__dataframe_namespace__()
+    ser = namespace.col("a")
     ser = ser - getattr(ser, reduction)()
     result = df.insert(0, "result", ser)
     result_pd = interchange_to_pandas(result, library)["result"]

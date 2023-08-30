@@ -87,7 +87,10 @@ class PandasExpression(Expression):
 
     def get_rows(self, indices: Expression) -> PandasExpression[DType]:
         return self._record_call(
-            "binary", lambda ser, indices: ser.iloc[indices], self, indices
+            "binary",
+            lambda ser, indices: ser.iloc[indices].reset_index(drop=True),
+            self,
+            indices,
         )
 
     def slice_rows(
@@ -205,13 +208,12 @@ class PandasExpression(Expression):
         return self._record_call("unary", lambda ser: ser.isna(), self, None)
 
     def is_nan(self) -> PandasExpression[Bool]:
-        return self._record_call("unary", lambda ser: ser.isna(), self, None)
-        if is_extension_array_dtype(self.column.dtype):
-            return PandasExpression(
-                np.isnan(self.column).replace(pd.NA, False).astype(bool),
-                api_version=self._api_version,
-            )
-        return PandasExpression(self.column.isna(), api_version=self._api_version)
+        def func(ser):
+            if is_extension_array_dtype(ser.dtype):
+                return np.isnan(ser).replace(pd.NA, False).astype(bool)
+            return ser.isna()
+
+        return self._record_call("unary", func, self, None)
 
     def sorted_indices(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
@@ -231,10 +233,11 @@ class PandasExpression(Expression):
         )
 
     def is_in(self, values: Expression) -> PandasExpression[Bool]:
-        if values.dtype != self.dtype:
-            raise ValueError(f"`value` has dtype {values.dtype}, expected {self.dtype}")
-        return PandasExpression(
-            self.column.isin(values.column), api_version=self._api_version
+        return self._record_call(
+            "binary",
+            lambda ser, other: ser.isin(other),
+            self,
+            values,
         )
 
     def unique_indices(self, *, skip_nulls: bool = True) -> PandasExpression[Any]:
@@ -245,28 +248,47 @@ class PandasExpression(Expression):
     def fill_nan(
         self, value: float | pd.NAType  # type: ignore[name-defined]
     ) -> PandasExpression[DType]:
-        ser = self.column.copy()
-        ser[cast("pd.Series[bool]", np.isnan(ser)).fillna(False).to_numpy(bool)] = value
-        return PandasExpression(ser, api_version=self._api_version)
+        def func(ser, value):
+            ser = ser.copy()
+            ser[
+                cast("pd.Series[bool]", np.isnan(ser)).fillna(False).to_numpy(bool)
+            ] = value
+            return ser
+
+        # return PandasExpression(ser, api_version=self._api_version)
+        return self._record_call(
+            "unary",
+            lambda ser: func(ser, value),
+            self,
+            None,
+        )
 
     def fill_null(
         self,
         value: Any,
     ) -> PandasExpression[DType]:
-        ser = self.column.copy()
-        if is_extension_array_dtype(ser.dtype):
-            # crazy hack to preserve nan...
-            num = pd.Series(
-                np.where(np.isnan(ser).fillna(False), 0, ser.fillna(value)),
-                dtype=ser.dtype,
-            )
-            other = pd.Series(
-                np.where(np.isnan(ser).fillna(False), 0, 1), dtype=ser.dtype
-            )
-            ser = num / other
-        else:
-            ser = ser.fillna(value)
-        return PandasExpression(pd.Series(ser), api_version=self._api_version)
+        def func(ser, value):
+            ser = ser.copy()
+            if is_extension_array_dtype(ser.dtype):
+                # crazy hack to preserve nan...
+                num = pd.Series(
+                    np.where(np.isnan(ser).fillna(False), 0, ser.fillna(value)),
+                    dtype=ser.dtype,
+                )
+                other = pd.Series(
+                    np.where(np.isnan(ser).fillna(False), 0, 1), dtype=ser.dtype
+                )
+                ser = num / other
+            else:
+                ser = ser.fillna(value)
+            return ser
+
+        return self._record_call(
+            "unary",
+            lambda ser: func(ser, value),
+            self,
+            None,
+        )
 
     def cumulative_sum(self, *, skip_nulls: bool = True) -> PandasExpression[DType]:
         return self._record_call(
@@ -277,13 +299,28 @@ class PandasExpression(Expression):
         )
 
     def cumulative_prod(self, *, skip_nulls: bool = True) -> PandasExpression[DType]:
-        return PandasExpression(self.column.cumprod(), api_version=self._api_version)
+        return self._record_call(
+            "unary",
+            lambda ser: ser.cumprod(),
+            self,
+            None,
+        )
 
     def cumulative_max(self, *, skip_nulls: bool = True) -> PandasExpression[DType]:
-        return PandasExpression(self.column.cummax(), api_version=self._api_version)
+        return self._record_call(
+            "unary",
+            lambda ser: ser.cummax(),
+            self,
+            None,
+        )
 
     def cumulative_min(self, *, skip_nulls: bool = True) -> PandasExpression[DType]:
-        return PandasExpression(self.column.cummin(), api_version=self._api_version)
+        return self._record_call(
+            "unary",
+            lambda ser: ser.cummin(),
+            self,
+            None,
+        )
 
     def to_array_object(self, dtype: str) -> Any:
         if dtype not in _ARRAY_API_DTYPES:

@@ -9,8 +9,9 @@ from tests.utils import interchange_to_pandas
 
 def test_column_invert(library: str) -> None:
     df = bool_dataframe_1(library)
-    ser = df.get_column_by_name("a")
-    result = df.insert(0, "result", ~ser)
+    namespace = df.__dataframe_namespace__()
+    ser = namespace.col("a")
+    result = df.insert_column((~ser).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series([False, False, True], name="result")
