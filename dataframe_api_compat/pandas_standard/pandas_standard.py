@@ -107,7 +107,6 @@ class PandasExpression(Expression):
             lambda ser, start, stop, step: ser.iloc[start:stop:step],
             self,
             None,
-            {"start": start, "stop": stop, "step": step},
         )
 
     def get_rows_by_mask(self, mask: Expression) -> PandasExpression[DType]:

@@ -28,7 +28,7 @@ def test_column_reductions(
     namespace = df.__dataframe_namespace__()
     ser = namespace.col("a")
     ser = ser - getattr(ser, reduction)()
-    result = df.insert(0, "result", ser)
+    result = df.insert_column(ser.rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     result_pd = convert_series_to_pandas_numpy(result_pd)
     ser_pd = interchange_to_pandas(df, library)["a"].rename("result")

@@ -28,9 +28,11 @@ def test_column_slice_rows(
 ) -> None:
     if library == "polars-lazy":
         request.node.add_marker(pytest.mark.xfail())
-    ser = integer_dataframe_3(library).get_column_by_name("a")
-    namespace = ser.__column_namespace__()
+    df = integer_dataframe_3(library)
+    namespace = df.__dataframe_namespace__()
+    ser = namespace.col("a")
     result = ser.slice_rows(start, stop, step)
+    # TODO: just insert in the dataframe
     result_pd = pd.api.interchange.from_dataframe(
         namespace.dataframe_from_dict({"result": (result).rename("result")}).dataframe
     )["result"]
