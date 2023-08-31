@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+from typing import Literal
 from typing import TYPE_CHECKING
 from typing import TypeVar
 
@@ -228,3 +229,12 @@ def any_rowwise(keys: list[str] | None = None, *, skip_nulls: bool = True):
 
 def all_rowwise(keys: list[str] | None = None, *, skip_nulls: bool = True):
     return PolarsExpression(pl.all_horizontal(keys or "*"))
+
+
+def sorted_indices(
+    keys: str | list[str] | None = None,
+    *,
+    ascending: Sequence[bool] | bool = True,
+    nulls_position: Literal["first", "last"] = "last",
+) -> Expression:
+    return PolarsExpression(pl.arg_sort_by(keys or "*", descending=not ascending))

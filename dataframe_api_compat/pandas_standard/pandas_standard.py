@@ -185,7 +185,7 @@ class PandasExpression(Expression):
         return self._record_call(lambda ser, _rhs: ser.isna(), None)
 
     def is_nan(self) -> PandasExpression:
-        def func(ser):
+        def func(ser, _rhs):
             if is_extension_array_dtype(ser.dtype):
                 return np.isnan(ser).replace(pd.NA, False).astype(bool)
             return ser.isna()

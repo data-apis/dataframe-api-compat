@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+from typing import Literal
 from typing import TYPE_CHECKING
 
 import pandas as pd
@@ -220,3 +221,24 @@ def all_rowwise(
     keys: list[str] | None = None, *, skip_nulls: bool = True
 ) -> PandasExpression:
     return PandasExpression(base_call=lambda df: df.all(axis=1))
+
+
+def sorted_indices(
+    keys: str | list[str] | None = None,
+    *,
+    ascending: Sequence[bool] | bool = True,
+    nulls_position: Literal["first", "last"] = "last",
+) -> Expression:
+    def func(df):
+        if ascending:
+            return (
+                df.loc[:, keys].sort_values(keys).index.to_series().reset_index(drop=True)
+            )
+        return (
+            df.loc[:, keys]
+            .sort_values(keys)
+            .index.to_series()[::-1]
+            .reset_index(drop=True)
+        )
+
+    return PandasExpression(base_call=func)

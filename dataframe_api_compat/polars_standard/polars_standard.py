@@ -133,10 +133,6 @@ class PolarsExpression:
     #         "__len__ intentionally not implemented for lazy columns"
     #     )
 
-    # @property
-    # def dtype(self) -> Any:
-    #     return dataframe_api_compat.polars_standard.DTYPE_MAP[self._dtype]
-
     def get_rows(self, indices: PolarsExpression) -> PolarsExpression:
         return PolarsExpression(
             self._expr.take(indices._expr),
