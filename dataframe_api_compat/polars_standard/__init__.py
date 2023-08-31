@@ -222,9 +222,9 @@ def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:
     return isinstance(dtype, tuple(dtypes))
 
 
-def any_rowwise(keys: list[str], *, skip_nulls: bool = True):
-    return PolarsExpression(pl.any_horizontal(keys))
+def any_rowwise(keys: list[str] | None = None, *, skip_nulls: bool = True):
+    return PolarsExpression(pl.any_horizontal(keys or "*"))
 
 
-def all_rowwise(keys: list[str], *, skip_nulls: bool = True):
-    return PolarsExpression(pl.all_horizontal(keys))
+def all_rowwise(keys: list[str] | None = None, *, skip_nulls: bool = True):
+    return PolarsExpression(pl.all_horizontal(keys or "*"))

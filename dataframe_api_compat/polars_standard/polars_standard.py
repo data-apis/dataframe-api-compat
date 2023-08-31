@@ -842,7 +842,9 @@ class PolarsDataFrame(DataFrame):
         if not isinstance(names, list):
             names = [names]
         return PolarsDataFrame(
-            self.dataframe.select([name._expr for name in names]),
+            self.dataframe.select(
+                [name if isinstance(name, str) else name._expr for name in names]
+            ),
             api_version=self._api_version,
         )
 

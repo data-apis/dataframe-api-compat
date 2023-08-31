@@ -462,8 +462,14 @@ class PandasDataFrame(DataFrame):
     def select(self, names: PandasExpression | list[PandasExpression]) -> PandasDataFrame:
         if not isinstance(names, list):
             names = [names]
+        columns = []
+        for name in names:
+            if isinstance(name, str):
+                columns.append(self.dataframe.loc[:, name])
+            else:
+                columns.append(self._resolve_expression(name))
         return PandasDataFrame(
-            pd.concat([self._resolve_expression(name) for name in names], axis=1),
+            pd.concat(columns, axis=1),
             api_version=self._api_version,
         )
 

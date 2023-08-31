@@ -210,9 +210,13 @@ def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:
     return isinstance(dtype, tuple(dtypes))
 
 
-def any_rowwise(keys: list[str], *, skip_nulls: bool = True) -> PandasExpression:
-    return PandasExpression(base_call=lambda df: df.all(axis=1))
+def any_rowwise(
+    keys: list[str] | None = None, *, skip_nulls: bool = True
+) -> PandasExpression:
+    return PandasExpression(base_call=lambda df: df.any(axis=1))
 
 
-def all_rowwise(keys: list[str], *, skip_nulls: bool = True) -> PandasExpression:
+def all_rowwise(
+    keys: list[str] | None = None, *, skip_nulls: bool = True
+) -> PandasExpression:
     return PandasExpression(base_call=lambda df: df.all(axis=1))
