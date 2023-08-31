@@ -214,16 +214,15 @@ class PandasExpression(Expression):
     def fill_nan(
         self, value: float | pd.NAType  # type: ignore[name-defined]
     ) -> PandasExpression:
-        def func(ser, value):
+        def func(ser, _rhs):
             ser = ser.copy()
             ser[
                 cast("pd.Series[bool]", np.isnan(ser)).fillna(False).to_numpy(bool)
             ] = value
             return ser
 
-        # return PandasExpression(ser, api_version=self._api_version)
         return self._record_call(
-            lambda ser, _rhs: func(ser, value),
+            func,
             None,
         )
 
