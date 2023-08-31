@@ -212,10 +212,10 @@ def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:
 
 
 def any_rowwise(keys: list[str], *, skip_nulls: bool = True) -> PandasExpression[Bool]:
-    expr = PandasExpression(keys)
+    expr = col(keys)
     return expr._record_call("unary", lambda df: df.any(axis=1), None)
 
 
 def all_rowwise(keys: list[str], *, skip_nulls: bool = True) -> PandasExpression[Bool]:
-    expr = PandasExpression(keys)
+    expr = col(keys)
     return expr._record_call("unary", lambda df: df.all(axis=1), None)

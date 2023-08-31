@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import pandas as pd
 import polars as pl
 
-df_pandas = pl.read_parquet("iris.parquet")
+df_pandas = pd.read_parquet("iris.parquet")
 df_polars = pl.scan_parquet("iris.parquet")
 
 

@@ -522,7 +522,9 @@ class PandasDataFrame(DataFrame):
             if kind == "unary":
                 if rhs is not None:
                     raise AssertionError("rhs of unary expression is not None")
-                expression = func(self._resolve_expression(lhs))
+                expression = func(
+                    self._resolve_expression(lhs if lhs._calls else self.dataframe)
+                )
             elif kind == "binary":
                 expression = func(
                     self._resolve_expression(lhs), self._resolve_expression(rhs)
@@ -556,11 +558,12 @@ class PandasDataFrame(DataFrame):
             columns = [columns]
         df = self.dataframe.copy()
         for col in columns:
-            if col.name not in df.columns:
+            new_column = self._resolve_expression(col)
+            if new_column.name not in df.columns:
                 raise ValueError(
                     f"column {col.name} not in dataframe, use insert instead"
                 )
-            df[col.name] = self._resolve_expression(col)
+            df[new_column.name] = new_column
         return PandasDataFrame(df, api_version=self._api_version)
 
     def drop_column(self, label: str) -> PandasDataFrame:
