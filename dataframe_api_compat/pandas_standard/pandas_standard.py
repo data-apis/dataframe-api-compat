@@ -65,21 +65,14 @@ def col(label: str):
 
 
 class PandasExpression(Expression):
-    def __init__(self, name: str, calls=None) -> None:
-        if isinstance(name, pd.Series):
-            name = name.reset_index(drop=True)
-        self._name = name
+    def __init__(self, calls=None) -> None:
         self._calls = calls or []
 
     def _record_call(self, kind, func, rhs, **kwargs):
         from functools import partial
 
         calls = [*self._calls, (kind, partial(func, **kwargs), self, rhs)]
-        return PandasExpression(self._name, calls=calls)
-
-    @property
-    def name(self) -> str:
-        return self._name
+        return PandasExpression(calls=calls)
 
     # def __len__(self) -> int:
     #     # TODO!
@@ -325,7 +318,6 @@ class PandasExpression(Expression):
 
     def rename(self, name: str | None) -> PandasExpression[DType]:
         expr = self._record_call("unary", lambda ser: ser.rename(name), None)
-        expr._name = name
         return expr
 
 
@@ -526,9 +518,6 @@ class PandasDataFrame(DataFrame):
         if not isinstance(expression, PandasExpression):
             # e.g. scalar
             return expression
-        if not expression._calls:
-            # todo: deal with 'rename' later
-            return self.dataframe.loc[:, expression.name]
         for kind, func, lhs, rhs in expression._calls:
             if kind == "unary":
                 if rhs is not None:

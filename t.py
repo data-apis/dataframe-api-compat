@@ -7,21 +7,25 @@ df_polars = pl.scan_parquet("iris.parquet")
 
 
 def my_dataframe_agnostic_function(df):
-    df = df.__dataframe_consortium_standard__(api_version="2023.08-beta")
+    df = df.__dataframe_consortium_standard__(api_version="2023.09-beta")
+    namespace = df.__dataframe_namespace__()
+    col = namespace.col
 
-    mask = df.get_column_by_name("species") != "setosa"
+    mask = col("species") != "setosa"
     df = df.get_rows_by_mask(mask)
 
+    updated_columns = []
     for column_name in df.get_column_names():
         if column_name == "species":
             continue
-        new_column = df.get_column_by_name(column_name)
+        new_column = col(column_name)
         new_column = (new_column - new_column.mean()) / new_column.std()
-        df = df.insert(new_column.rename(f"{column_name}_scaled"))
+        updated_columns.append(new_column)
+
+    df = df.update_columns(updated_columns)
 
     return df.dataframe
 
 
-#  Then, either of the following will work as expected:
-my_dataframe_agnostic_function(df_pandas)
-my_dataframe_agnostic_function(df_polars)
+print(my_dataframe_agnostic_function(df_pandas))
+print(my_dataframe_agnostic_function(df_polars).collect())

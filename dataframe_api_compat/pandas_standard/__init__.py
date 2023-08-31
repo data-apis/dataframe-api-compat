@@ -14,7 +14,12 @@ from dataframe_api_compat.pandas_standard.pandas_standard import PandasGroupBy
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-col = PandasExpression
+
+def col(name):
+    expr = PandasExpression()
+    return expr._record_call("unary", lambda df: df.loc[:, name], None)
+
+
 Expression = PandasExpression
 DataFrame = PandasDataFrame
 GroupBy = PandasGroupBy
