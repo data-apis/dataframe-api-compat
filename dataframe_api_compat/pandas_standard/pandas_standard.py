@@ -75,8 +75,18 @@ class PandasExpression(Expression):
         base_call: Callable[[pd.DataFrame], pd.Series] | None = None,
         extra_calls: list[ExtraCall] | None = None,
     ) -> None:
+        """
+        Parameters
+        ----------
+        base_call
+            Call to be applied to DataFrame. Should return a Series.
+        extra_calls
+            Extra calls to chain to output of `base_call`. Must take Series
+            and output Series.
+        """
         self._base_call = base_call
         self._calls = extra_calls or []
+        # TODO: keep track of output name
 
     def _record_call(
         self,
