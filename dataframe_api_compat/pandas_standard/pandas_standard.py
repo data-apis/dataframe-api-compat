@@ -518,13 +518,13 @@ class PandasDataFrame(DataFrame):
         if not isinstance(expression, PandasExpression):
             # e.g. scalar
             return expression
+        if not expression._calls:
+            return self.dataframe
         for kind, func, lhs, rhs in expression._calls:
             if kind == "unary":
                 if rhs is not None:
                     raise AssertionError("rhs of unary expression is not None")
-                expression = func(
-                    self._resolve_expression(lhs if lhs._calls else self.dataframe)
-                )
+                expression = func(self._resolve_expression(lhs))
             elif kind == "binary":
                 expression = func(
                     self._resolve_expression(lhs), self._resolve_expression(rhs)
