@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import collections
 from typing import Any
+from typing import Callable
 from typing import cast
 from typing import Literal
 from typing import NoReturn
@@ -43,7 +44,6 @@ if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
     from dataframe_api import (
-        Bool,
         Expression,
         DataFrame,
         GroupBy,
@@ -64,77 +64,95 @@ def col(label: str):
     return lambda df: df.loc[:, label]
 
 
+expression_call = (
+    Callable[[pd.Series, pd.Series], pd.Series] | Callable[[pd.Series], pd.Series]
+)
+
+
 class PandasExpression(Expression):
-    def __init__(self, base_call=None, extra_calls=None) -> None:
+    def __init__(
+        self,
+        base_call: Callable[[pd.DataFrame], pd.Series] | None = None,
+        extra_calls: list[
+            tuple[
+                Literal["unary", "binary"], expression_call, pd.Series, pd.Series | None
+            ]
+        ]
+        | None = None,
+    ) -> None:
         self._base_call = base_call
         self._calls = extra_calls or []
 
-    def _record_call(self, kind, func, rhs):
+    def _record_call(
+        self,
+        kind: Literal["unary", "binary"],
+        func: Callable[[pd.Series], pd.Series],
+        rhs: pd.Series | None,
+    ) -> PandasExpression:
         calls = [*self._calls, (kind, func, self, rhs)]
         return PandasExpression(extra_calls=calls)
 
-    def get_rows(self, indices: Expression) -> PandasExpression[DType]:
+    def get_rows(self, indices: Expression) -> PandasExpression:
+        def func(lhs: pd.Series, rhs: pd.Series) -> pd.Series:
+            return lhs.iloc[rhs].reset_index(drop=True)
+
         return self._record_call(
             "binary",
-            lambda ser, indices: ser.iloc[indices].reset_index(drop=True),
+            func,
             indices,
         )
 
-    def get_rows_by_mask(self, mask: Expression) -> PandasExpression[DType]:
+    def get_rows_by_mask(self, mask: Expression) -> PandasExpression:
         return self._record_call("binary", lambda ser, mask: ser.loc[mask], mask)
 
-    def __eq__(  # type: ignore[override]
-        self, other: PandasExpression[DType] | Any
-    ) -> PandasExpression[Bool]:
+    def __eq__(self, other: PandasExpression | Any) -> PandasExpression:
         return self._record_call("binary", lambda ser, other: ser == other, other)
 
-    def __ne__(  # type: ignore[override]
-        self, other: Expression
-    ) -> PandasExpression[Bool]:
+    def __ne__(self, other: Expression) -> PandasExpression:
         return self._record_call("binary", lambda ser, other: ser != other, other)
 
-    def __ge__(self, other: Expression | Any) -> PandasExpression[Bool]:
+    def __ge__(self, other: Expression | Any) -> PandasExpression:
         return self._record_call("binary", lambda ser, other: ser >= other, other)
 
-    def __gt__(self, other: Expression | Any) -> PandasExpression[Bool]:
+    def __gt__(self, other: Expression | Any) -> PandasExpression:
         return self._record_call("binary", lambda ser, other: ser > other, other)
 
-    def __le__(self, other: Expression | Any) -> PandasExpression[Bool]:
+    def __le__(self, other: Expression | Any) -> PandasExpression:
         return self._record_call("binary", lambda ser, other: ser <= other, other)
 
-    def __lt__(self, other: Expression | Any) -> PandasExpression[Bool]:
+    def __lt__(self, other: Expression | Any) -> PandasExpression:
         return self._record_call("binary", lambda ser, other: ser < other, other)
 
-    def __and__(self, other: Expression | bool) -> PandasExpression[Bool]:
+    def __and__(self, other: Expression | bool) -> PandasExpression:
         return self._record_call("binary", lambda ser, other: ser & other, other)
 
-    def __or__(self, other: Expression | bool) -> PandasExpression[Bool]:
+    def __or__(self, other: Expression | bool) -> PandasExpression:
         return self._record_call("binary", lambda ser, other: ser | other, other)
 
-    def __add__(self, other: Expression | Any) -> PandasExpression[DType]:
+    def __add__(self, other: Expression | Any) -> PandasExpression:
         return self._record_call("binary", lambda ser, other: ser + other, other)
 
-    def __sub__(self, other: Expression | Any) -> PandasExpression[DType]:
+    def __sub__(self, other: Expression | Any) -> PandasExpression:
         return self._record_call("binary", lambda ser, other: ser - other, other)
 
-    def __mul__(self, other: Expression | Any) -> PandasExpression[Any]:
+    def __mul__(self, other: Expression | Any) -> PandasExpression:
         return self._record_call("binary", lambda ser, other: ser * other, other)
 
-    def __truediv__(self, other: Expression | Any) -> PandasExpression[Any]:
+    def __truediv__(self, other: Expression | Any) -> PandasExpression:
         return self._record_call("binary", lambda ser, other: ser / other, other)
 
-    def __floordiv__(self, other: Expression | Any) -> PandasExpression[Any]:
+    def __floordiv__(self, other: Expression | Any) -> PandasExpression:
         return self._record_call("binary", lambda ser, other: ser // other, other)
 
-    def __pow__(self, other: Expression | Any) -> PandasExpression[Any]:
+    def __pow__(self, other: Expression | Any) -> PandasExpression:
         return self._record_call("binary", lambda ser, other: ser**other, other)
 
-    def __mod__(self, other: Expression | Any) -> PandasExpression[Any]:
+    def __mod__(self, other: Expression | Any) -> PandasExpression:
         return self._record_call("binary", lambda ser, other: ser % other, other)
 
     def __divmod__(
         self, other: Expression | Any
-    ) -> tuple[PandasExpression[Any], PandasExpression[Any]]:
+    ) -> tuple[PandasExpression, PandasExpression]:
         if isinstance(other, PandasExpression):
             quotient, remainder = self.column.__divmod__(other.column)
         else:
@@ -143,7 +161,7 @@ class PandasExpression(Expression):
             quotient, api_version=self._api_version
         ), PandasExpression(remainder, api_version=self._api_version)
 
-    def __invert__(self: PandasExpression[Bool]) -> PandasExpression[Bool]:
+    def __invert__(self: PandasExpression) -> PandasExpression:
         return self._record_call("unary", lambda ser: ~ser, None)
 
     def min(self, *, skip_nulls: bool = True) -> Any:
@@ -170,10 +188,10 @@ class PandasExpression(Expression):
     def var(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
         return self._record_call("unary", lambda ser: ser.var(), None)
 
-    def is_null(self) -> PandasExpression[Bool]:
+    def is_null(self) -> PandasExpression:
         return self._record_call("unary", lambda ser: ser.isna(), None)
 
-    def is_nan(self) -> PandasExpression[Bool]:
+    def is_nan(self) -> PandasExpression:
         def func(ser):
             if is_extension_array_dtype(ser.dtype):
                 return np.isnan(ser).replace(pd.NA, False).astype(bool)
@@ -181,40 +199,30 @@ class PandasExpression(Expression):
 
         return self._record_call("unary", func, None)
 
-    def sorted_indices(
-        self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
-    ) -> PandasExpression[Any]:
-        def func(ser):
-            if ascending:
-                return ser.argsort().reset_index(drop=True)
-            return ser.argsort()[::-1].reset_index(drop=True)
-
-        return self._record_call("unary", func, None)
-
     def sort(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
-    ) -> PandasExpression[Any]:
+    ) -> PandasExpression:
         return self._record_call(
             "unary",
             lambda ser: ser.sort_values(ascending=ascending).reset_index(drop=True),
             None,
         )
 
-    def is_in(self, values: Expression) -> PandasExpression[Bool]:
+    def is_in(self, values: Expression) -> PandasExpression:
         return self._record_call(
             "binary",
             lambda ser, other: ser.isin(other),
             values,
         )
 
-    def unique_indices(self, *, skip_nulls: bool = True) -> PandasExpression[Any]:
+    def unique_indices(self, *, skip_nulls: bool = True) -> PandasExpression:
         return PandasExpression(
             self.column.drop_duplicates().index.to_series(), api_version=self._api_version
         )
 
     def fill_nan(
         self, value: float | pd.NAType  # type: ignore[name-defined]
-    ) -> PandasExpression[DType]:
+    ) -> PandasExpression:
         def func(ser, value):
             ser = ser.copy()
             ser[
@@ -232,7 +240,7 @@ class PandasExpression(Expression):
     def fill_null(
         self,
         value: Any,
-    ) -> PandasExpression[DType]:
+    ) -> PandasExpression:
         def func(ser, value):
             ser = ser.copy()
             if is_extension_array_dtype(ser.dtype):
@@ -255,28 +263,28 @@ class PandasExpression(Expression):
             None,
         )
 
-    def cumulative_sum(self, *, skip_nulls: bool = True) -> PandasExpression[DType]:
+    def cumulative_sum(self, *, skip_nulls: bool = True) -> PandasExpression:
         return self._record_call(
             "unary",
             lambda ser: ser.cumsum(),
             None,
         )
 
-    def cumulative_prod(self, *, skip_nulls: bool = True) -> PandasExpression[DType]:
+    def cumulative_prod(self, *, skip_nulls: bool = True) -> PandasExpression:
         return self._record_call(
             "unary",
             lambda ser: ser.cumprod(),
             None,
         )
 
-    def cumulative_max(self, *, skip_nulls: bool = True) -> PandasExpression[DType]:
+    def cumulative_max(self, *, skip_nulls: bool = True) -> PandasExpression:
         return self._record_call(
             "unary",
             lambda ser: ser.cummax(),
             None,
         )
 
-    def cumulative_min(self, *, skip_nulls: bool = True) -> PandasExpression[DType]:
+    def cumulative_min(self, *, skip_nulls: bool = True) -> PandasExpression:
         return self._record_call(
             "unary",
             lambda ser: ser.cummin(),
@@ -290,7 +298,7 @@ class PandasExpression(Expression):
             )
         return self.column.to_numpy(dtype=dtype)
 
-    def rename(self, name: str | None) -> PandasExpression[DType]:
+    def rename(self, name: str | None) -> PandasExpression:
         expr = self._record_call("unary", lambda ser: ser.rename(name), None)
         return expr
 
@@ -488,7 +496,9 @@ class PandasDataFrame(DataFrame):
             self.dataframe.iloc[start:stop:step], api_version=self._api_version
         )
 
-    def _resolve_expression(self, expression: PandasExpression) -> pd.Series:
+    def _resolve_expression(
+        self, expression: PandasExpression | pd.Series | object
+    ) -> pd.Series:
         if not isinstance(expression, PandasExpression):
             # e.g. scalar
             return expression
@@ -518,12 +528,14 @@ class PandasDataFrame(DataFrame):
         #         "DataFrame.insert_column is only available for api versions after 2023.08-beta. "
         #     )
         before = self.dataframe
-        to_insert = self._resolve_expression(value)
+        to_insert = cast(pd.Series, self._resolve_expression(value))
         return PandasDataFrame(
             pd.concat([before, to_insert], axis=1), api_version=self._api_version
         )
 
-    def update_columns(self, columns: PandasExpression[Any] | Sequence[PandasExpression[Any]], /) -> PandasDataFrame:  # type: ignore[override]
+    def update_columns(
+        self, columns: PandasExpression | list[PandasExpression]
+    ) -> PandasDataFrame:
         if self._api_version == "2023.08-beta":
             raise NotImplementedError(
                 "DataFrame.insert_column is only available for api versions after 2023.08-beta. "
@@ -557,24 +569,6 @@ class PandasDataFrame(DataFrame):
     def get_column_names(self) -> list[str]:
         return self.dataframe.columns.tolist()
 
-    def sorted_indices(
-        self,
-        keys: Sequence[str] | None = None,
-        *,
-        ascending: Sequence[bool] | bool = True,
-        nulls_position: Literal["first", "last"] = "last",
-    ) -> PandasExpression[Any]:
-        if keys is None:
-            keys = self.dataframe.columns.tolist()
-        df = self.dataframe.loc[:, list(keys)]
-        if ascending:
-            return PandasExpression(
-                df.sort_values(keys).index.to_series().reset_index(drop=True)
-            )
-        return PandasExpression(
-            df.sort_values(keys).index.to_series()[::-1].reset_index(drop=True)
-        )
-
     def sort(
         self,
         keys: Sequence[str] | None = None,
@@ -591,17 +585,7 @@ class PandasDataFrame(DataFrame):
             df.sort_values(keys, ascending=ascending), api_version=self._api_version
         )
 
-    def unique_indices(
-        self,
-        keys: Sequence[str] | None = None,
-        *,
-        skip_nulls: bool = True,
-    ) -> PandasExpression[Any]:
-        return PandasExpression(
-            self.dataframe.drop_duplicates(subset=keys).index.to_series(),
-        )
-
-    def __eq__(self, other: DataFrame | Any) -> PandasDataFrame:  # type: ignore[override]
+    def __eq__(self, other: DataFrame | Any) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
             return PandasDataFrame(
@@ -611,7 +595,7 @@ class PandasDataFrame(DataFrame):
             self.dataframe.__eq__(other), api_version=self._api_version
         )
 
-    def __ne__(self, other: DataFrame | Any) -> PandasDataFrame:  # type: ignore[override]
+    def __ne__(self, other: DataFrame | Any) -> PandasDataFrame:
         if isinstance(other, PandasDataFrame):
             self._validate_comparand(other)
             return PandasDataFrame(

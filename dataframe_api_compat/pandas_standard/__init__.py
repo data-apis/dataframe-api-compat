@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-def col(name):
+def col(name: str) -> PandasExpression:
     return PandasExpression(base_call=lambda df: df.loc[:, name])
 
 
@@ -174,7 +174,7 @@ def dataframe_from_2d_array(
 
 
 # def dataframe_from_dict(
-#     data: dict[str, PandasExpression[Any]], api_version: str | None = None
+#     data: dict[str, PandasExpression, api_version: str | None = None
 # ) -> PandasDataFrame:
 #     # todo: figure out what to do with this one
 #     for _, col in data.items():
@@ -210,11 +210,9 @@ def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:
     return isinstance(dtype, tuple(dtypes))
 
 
-def any_rowwise(keys: list[str], *, skip_nulls: bool = True) -> PandasExpression[Bool]:
-    expr = col(keys)
-    return expr._record_call("unary", lambda df: df.any(axis=1), None)
+def any_rowwise(keys: list[str], *, skip_nulls: bool = True) -> PandasExpression:
+    return PandasExpression(base_call=lambda df: df.all(axis=1))
 
 
-def all_rowwise(keys: list[str], *, skip_nulls: bool = True) -> PandasExpression[Bool]:
-    expr = col(keys)
-    return expr._record_call("unary", lambda df: df.all(axis=1), None)
+def all_rowwise(keys: list[str], *, skip_nulls: bool = True) -> PandasExpression:
+    return PandasExpression(base_call=lambda df: df.all(axis=1))
