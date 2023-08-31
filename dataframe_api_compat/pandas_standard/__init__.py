@@ -16,8 +16,7 @@ if TYPE_CHECKING:
 
 
 def col(name):
-    expr = PandasExpression()
-    return expr._record_call("unary", lambda df: df.loc[:, name], None)
+    return PandasExpression(base_call=lambda df: df.loc[:, name])
 
 
 Expression = PandasExpression

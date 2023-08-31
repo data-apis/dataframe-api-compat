@@ -65,18 +65,13 @@ def col(label: str):
 
 
 class PandasExpression(Expression):
-    def __init__(self, calls=None) -> None:
-        self._calls = calls or []
+    def __init__(self, base_call=None, extra_calls=None) -> None:
+        self._base_call = base_call
+        self._calls = extra_calls or []
 
-    def _record_call(self, kind, func, rhs, **kwargs):
-        from functools import partial
-
-        calls = [*self._calls, (kind, partial(func, **kwargs), self, rhs)]
-        return PandasExpression(calls=calls)
-
-    # def __len__(self) -> int:
-    #     # TODO!
-    #     return self._record_call(lambda lhs, rhs: len(), self, other)
+    def _record_call(self, kind, func, rhs):
+        calls = [*self._calls, (kind, func, self, rhs)]
+        return PandasExpression(extra_calls=calls)
 
     def get_rows(self, indices: Expression) -> PandasExpression[DType]:
         return self._record_call(
@@ -85,29 +80,8 @@ class PandasExpression(Expression):
             indices,
         )
 
-    # def slice_rows(
-    #     self, start: int | None, stop: int | None, step: int | None
-    # ) -> PandasExpression[DType]:
-    #     # if start is None:
-    #     #     start = 0
-    #     # if stop is None:
-    #     #     stop = len(self.column)
-    #     # if step is None:
-    #     #     step = 1
-    #     import functools
-    #     return self._record_call(
-    #         "unary",
-    #         functools.partial(lambda ser, start, stop, step: ser.iloc[start:stop:step].reset_index(drop=True), start=start, stop=stop, step=step),
-    #         self,
-    #         None,
-    #     )
-
     def get_rows_by_mask(self, mask: Expression) -> PandasExpression[DType]:
         return self._record_call("binary", lambda ser, mask: ser.loc[mask], mask)
-
-    # def get_value(self, row: int) -> Any:
-    #     #  TODO!
-    #     return self.column.iloc[row]
 
     def __eq__(  # type: ignore[override]
         self, other: PandasExpression[DType] | Any
@@ -493,12 +467,12 @@ class PandasDataFrame(DataFrame):
                 raise KeyError(f"key {key} not present in DataFrame's columns")
         return PandasGroupBy(self.dataframe, keys, api_version=self._api_version)
 
-    def get_columns_by_name(self, names: Sequence[str]) -> PandasDataFrame:
-        if isinstance(names, str):
-            raise TypeError(f"Expected sequence of str, got {type(names)}")
-        self._validate_columns(names)
+    def select(self, names: PandasExpression | list[PandasExpression]) -> PandasDataFrame:
+        if not isinstance(names, list):
+            names = [names]
         return PandasDataFrame(
-            self.dataframe.loc[:, list(names)], api_version=self._api_version
+            pd.concat([self._resolve_expression(name) for name in names], axis=1),
+            api_version=self._api_version,
         )
 
     def get_rows(self, indices: Expression) -> PandasDataFrame:
@@ -519,16 +493,16 @@ class PandasDataFrame(DataFrame):
             # e.g. scalar
             return expression
         if not expression._calls:
-            return self.dataframe
+            return expression._base_call(self.dataframe)
         for kind, func, lhs, rhs in expression._calls:
+            lhs = self._resolve_expression(lhs)
+            rhs = self._resolve_expression(rhs)
             if kind == "unary":
                 if rhs is not None:
                     raise AssertionError("rhs of unary expression is not None")
-                expression = func(self._resolve_expression(lhs))
+                expression = func(lhs)
             elif kind == "binary":
-                expression = func(
-                    self._resolve_expression(lhs), self._resolve_expression(rhs)
-                )
+                expression = func(lhs, rhs)
             else:
                 raise AssertionError(f"expected unary or binary, got: {kind}")
         return expression

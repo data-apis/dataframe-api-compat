@@ -838,10 +838,13 @@ class PolarsDataFrame(DataFrame):
     def groupby(self, keys: Sequence[str]) -> PolarsGroupBy:
         return PolarsGroupBy(self.df, keys, api_version=self._api_version)
 
-    def get_columns_by_name(self, names: Sequence[str]) -> PolarsDataFrame:
-        if isinstance(names, str):
-            raise TypeError(f"Expected sequence of str, got {type(names)}")
-        return PolarsDataFrame(self.df.select(names), api_version=self._api_version)
+    def select(self, names: PolarsExpression | list[PolarsExpression]) -> PolarsDataFrame:
+        if not isinstance(names, list):
+            names = [names]
+        return PolarsDataFrame(
+            self.dataframe.select([name._expr for name in names]),
+            api_version=self._api_version,
+        )
 
     def get_rows(self, indices: PolarsExpression) -> PolarsDataFrame:  # type: ignore[override]
         return PolarsDataFrame(
@@ -1191,32 +1194,6 @@ class PolarsDataFrame(DataFrame):
     def all(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
         return PolarsDataFrame(
             self.dataframe.select(pl.col("*").all()), api_version=self._api_version
-        )
-
-    def any_rowwise(self, *, skip_nulls: bool = True) -> PolarsExpression:
-        expr = pl.any_horizontal(pl.col("*"))
-        if isinstance(self.dataframe, pl.LazyFrame):
-            return PolarsExpression(
-                expr, id_=self._id, dtype=pl.Boolean(), api_version=self._api_version
-            )
-        return PolarsExpression(
-            self.dataframe.select(expr).get_column("any"),
-            dtype=pl.Boolean(),
-            id_=self._id,
-            api_version=self._api_version,
-        )
-
-    def all_rowwise(self, *, skip_nulls: bool = True) -> PolarsExpression:
-        expr = pl.all_horizontal(pl.col("*"))
-        if isinstance(self.dataframe, pl.LazyFrame):
-            return PolarsExpression(
-                expr, id_=self._id, dtype=pl.Boolean(), api_version=self._api_version
-            )
-        return PolarsExpression(
-            self.dataframe.select(expr).get_column("all"),
-            dtype=pl.Boolean(),
-            id_=self._id,
-            api_version=self._api_version,
         )
 
     def min(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
