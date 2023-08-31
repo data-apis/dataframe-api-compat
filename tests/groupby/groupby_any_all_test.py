@@ -25,9 +25,10 @@ def test_groupby_boolean(
     request: pytest.FixtureRequest,
 ) -> None:
     df = bool_dataframe_2(library)
+    namespace = df.__dataframe_namespace__()
     result = getattr(df.groupby(["key"]), aggregation)()
     # need to sort
-    idx = result.sorted_indices(["key"])
+    idx = namespace.sorted_indices(["key"])
     result = result.get_rows(idx)
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)

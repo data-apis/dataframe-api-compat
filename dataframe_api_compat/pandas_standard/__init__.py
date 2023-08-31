@@ -174,21 +174,6 @@ def dataframe_from_2d_array(
     return PandasDataFrame(df, api_version=api_version or LATEST_API_VERSION)
 
 
-# def dataframe_from_dict(
-#     data: dict[str, PandasExpression, api_version: str | None = None
-# ) -> PandasDataFrame:
-#     # todo: figure out what to do with this one
-#     for _, col in data.items():
-#         if not isinstance(col, PandasExpression):  # pragma: no cover
-#             raise TypeError(f"Expected PandasColumn, got {type(col)}")
-#     return PandasDataFrame(
-#         pd.DataFrame(
-#             {label: column.column.rename(label) for label, column in data.items()}
-#         ),
-#         api_version=api_version or LATEST_API_VERSION,
-#     )
-
-
 def is_null(value: Any) -> bool:
     return value is null
 

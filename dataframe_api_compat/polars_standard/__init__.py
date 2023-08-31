@@ -131,33 +131,6 @@ def concat(dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
     return PolarsDataFrame(pl.concat(dfs), api_version=api_versions.pop())  # type: ignore[type-var]
 
 
-def dataframe_from_dict(
-    data: dict[str, PolarsExpression], *, api_version: str | None = None
-) -> PolarsDataFrame:
-    for _, col in data.items():
-        if not isinstance(col, PolarsExpression):  # pragma: no cover
-            raise TypeError(f"Expected PolarsColumn, got {type(col)}")
-        if isinstance(col.column, pl.Expr):
-            raise NotImplementedError(
-                "dataframe_from_dict not supported for lazy columns"
-            )
-    return PolarsDataFrame(
-        pl.DataFrame(
-            {label: column.column.rename(label) for label, column in data.items()}  # type: ignore[union-attr]
-        ),
-        api_version=api_version or LATEST_API_VERSION,
-    )
-
-
-def column_from_1d_array(
-    data: Any, *, dtype: Any, name: str, api_version: str | None = None
-) -> PolarsExpression:  # pragma: no cover
-    ser = pl.Series(values=data, dtype=_map_standard_to_polars_dtypes(dtype), name=name)
-    return PolarsExpression(
-        ser, dtype=ser.dtype, id_=None, api_version=api_version or LATEST_API_VERSION
-    )
-
-
 def dataframe_from_2d_array(
     data: Any,
     *,
@@ -174,35 +147,10 @@ def dataframe_from_2d_array(
     return PolarsDataFrame(df, api_version=api_version or LATEST_API_VERSION)
 
 
-def column_from_sequence(
-    sequence: Sequence[Any],
-    *,
-    dtype: Any,
-    name: str | None = None,
-    api_version: str | None = None,
-) -> PolarsExpression:
-    return PolarsExpression(
-        pl.Series(
-            values=sequence, dtype=_map_standard_to_polars_dtypes(dtype), name=name
-        ),
-        dtype=_map_standard_to_polars_dtypes(dtype),
-        id_=None,
-        api_version=api_version or LATEST_API_VERSION,
-    )
-
-
 def convert_to_standard_compliant_dataframe(
     df: pl.DataFrame | pl.LazyFrame, api_version: str | None = None
 ) -> PolarsDataFrame:
     return PolarsDataFrame(df, api_version=api_version or LATEST_API_VERSION)
-
-
-def convert_to_standard_compliant_column(
-    ser: pl.Series, api_version: str | None = None
-) -> PolarsExpression:
-    return PolarsExpression(
-        ser, dtype=ser.dtype, id_=None, api_version=api_version or LATEST_API_VERSION
-    )
 
 
 def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:

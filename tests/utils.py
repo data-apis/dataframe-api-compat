@@ -30,20 +30,6 @@ def convert_to_standard_compliant_dataframe(
         raise AssertionError(f"Got unexpected type: {type(df)}")
 
 
-def convert_to_standard_compliant_column(ser: pd.Series[Any] | pl.Series) -> Any:
-    # todo: type return
-    if isinstance(ser, pd.Series):
-        return dataframe_api_compat.pandas_standard.convert_to_standard_compliant_column(
-            ser, None
-        )
-    elif isinstance(ser, pl.Series):
-        return dataframe_api_compat.polars_standard.convert_to_standard_compliant_column(
-            ser, None
-        )
-    else:
-        raise AssertionError(f"Got unexpected type: {type(ser)}")
-
-
 def convert_dataframe_to_pandas_numpy(df: pd.DataFrame) -> pd.DataFrame:
     conversions = {
         "boolean": "bool",
@@ -379,38 +365,6 @@ def bool_dataframe_4(library: str) -> Any:
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [False, True, False], "b": [True, True, True]})
         return convert_to_standard_compliant_dataframe(df)
-    raise AssertionError(f"Got unexpected library: {library}")
-
-
-def integer_series_1(library: str, request: pytest.FixtureRequest) -> Any:
-    ser: Any
-    if library == "pandas-numpy":
-        ser = pd.Series([1, 2, 3])
-        return convert_to_standard_compliant_column(ser)
-    if library == "pandas-nullable":
-        ser = pd.Series([1, 2, 3], dtype="Int64")
-        return convert_to_standard_compliant_column(ser)
-    if library == "polars":
-        ser = pl.Series([1, 2, 3])
-        return convert_to_standard_compliant_column(ser)
-    if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
-    raise AssertionError(f"Got unexpected library: {library}")
-
-
-def integer_series_5(library: str, request: pytest.FixtureRequest) -> Any:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame({"a": [1, 1, 4]}, dtype="int64")
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
-    if library == "pandas-nullable":
-        df = pd.DataFrame({"a": [1, 1, 4]}, dtype="Int64")
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
-    if library == "polars":
-        df = pl.DataFrame({"a": [1, 1, 4]})
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
-    if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
     raise AssertionError(f"Got unexpected library: {library}")
 
 

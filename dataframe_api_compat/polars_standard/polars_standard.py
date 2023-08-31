@@ -741,13 +741,14 @@ class PolarsGroupBy(GroupBy):
         self.df = df
         self.keys = keys
         self._api_version = api_version
+        self.group_by = self.group_by if pl.__version__ < "0.19.0" else self.df.group_by
 
     def size(self) -> PolarsDataFrame:
-        result = self.df.groupby(self.keys).count().rename({"count": "size"})
+        result = self.group_by(self.keys).count().rename({"count": "size"})
         return PolarsDataFrame(result, api_version=self._api_version)
 
     def any(self, skip_nulls: bool = True) -> PolarsDataFrame:
-        grp = self.df.groupby(self.keys)
+        grp = self.group_by(self.keys)
         if not all(
             self.df.schema[col] is pl.Boolean
             for col in self.df.columns
@@ -758,7 +759,7 @@ class PolarsGroupBy(GroupBy):
         return PolarsDataFrame(result, api_version=self._api_version)
 
     def all(self, skip_nulls: bool = True) -> PolarsDataFrame:
-        grp = self.df.groupby(self.keys)
+        grp = self.group_by(self.keys)
         if not all(
             self.df.schema[col] is pl.Boolean
             for col in self.df.columns
@@ -769,39 +770,39 @@ class PolarsGroupBy(GroupBy):
         return PolarsDataFrame(result, api_version=self._api_version)
 
     def min(self, skip_nulls: bool = True) -> PolarsDataFrame:
-        result = self.df.groupby(self.keys).agg(pl.col("*").min())
+        result = self.group_by(self.keys).agg(pl.col("*").min())
         return PolarsDataFrame(result, api_version=self._api_version)
 
     def max(self, skip_nulls: bool = True) -> PolarsDataFrame:
-        result = self.df.groupby(self.keys).agg(pl.col("*").max())
+        result = self.group_by(self.keys).agg(pl.col("*").max())
         return PolarsDataFrame(result, api_version=self._api_version)
 
     def sum(self, skip_nulls: bool = True) -> PolarsDataFrame:
-        result = self.df.groupby(self.keys).agg(pl.col("*").sum())
+        result = self.group_by(self.keys).agg(pl.col("*").sum())
         return PolarsDataFrame(result, api_version=self._api_version)
 
     def prod(self, skip_nulls: bool = True) -> PolarsDataFrame:
-        result = self.df.groupby(self.keys).agg(pl.col("*").product())
+        result = self.group_by(self.keys).agg(pl.col("*").product())
         return PolarsDataFrame(result, api_version=self._api_version)
 
     def median(self, skip_nulls: bool = True) -> PolarsDataFrame:
-        result = self.df.groupby(self.keys).agg(pl.col("*").median())
+        result = self.group_by(self.keys).agg(pl.col("*").median())
         return PolarsDataFrame(result, api_version=self._api_version)
 
     def mean(self, skip_nulls: bool = True) -> PolarsDataFrame:
-        result = self.df.groupby(self.keys).agg(pl.col("*").mean())
+        result = self.group_by(self.keys).agg(pl.col("*").mean())
         return PolarsDataFrame(result, api_version=self._api_version)
 
     def std(
         self, correction: int | float = 1.0, skip_nulls: bool = True
     ) -> PolarsDataFrame:
-        result = self.df.groupby(self.keys).agg(pl.col("*").std())
+        result = self.group_by(self.keys).agg(pl.col("*").std())
         return PolarsDataFrame(result, api_version=self._api_version)
 
     def var(
         self, correction: int | float = 1.0, skip_nulls: bool = True
     ) -> PolarsDataFrame:
-        result = self.df.groupby(self.keys).agg(pl.col("*").var())
+        result = self.group_by(self.keys).agg(pl.col("*").var())
         return PolarsDataFrame(result, api_version=self._api_version)
 
 
