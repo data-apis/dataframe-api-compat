@@ -93,21 +93,22 @@ class PandasExpression(Expression):
             indices,
         )
 
-    def slice_rows(
-        self, start: int | None, stop: int | None, step: int | None
-    ) -> PandasExpression[DType]:
-        if start is None:
-            start = 0
-        if stop is None:
-            stop = len(self.column)
-        if step is None:
-            step = 1
-        return self._record_call(
-            "unary",
-            lambda ser, start, stop, step: ser.iloc[start:stop:step],
-            self,
-            None,
-        )
+    # def slice_rows(
+    #     self, start: int | None, stop: int | None, step: int | None
+    # ) -> PandasExpression[DType]:
+    #     # if start is None:
+    #     #     start = 0
+    #     # if stop is None:
+    #     #     stop = len(self.column)
+    #     # if step is None:
+    #     #     step = 1
+    #     import functools
+    #     return self._record_call(
+    #         "unary",
+    #         functools.partial(lambda ser, start, stop, step: ser.iloc[start:stop:step].reset_index(drop=True), start=start, stop=stop, step=step),
+    #         self,
+    #         None,
+    #     )
 
     def get_rows_by_mask(self, mask: Expression) -> PandasExpression[DType]:
         return self._record_call("binary", lambda ser, mask: ser.loc[mask], self, mask)
@@ -217,9 +218,12 @@ class PandasExpression(Expression):
     def sorted_indices(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
     ) -> PandasExpression[Any]:
-        return self._record_call(
-            "unary", lambda ser: ser.argsort(ascending=ascending), self, None
-        )
+        def func(ser):
+            if ascending:
+                return ser.argsort().reset_index(drop=True)
+            return ser.argsort()[::-1].reset_index(drop=True)
+
+        return self._record_call("unary", func, self, None)
 
     def sort(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
@@ -523,12 +527,6 @@ class PandasDataFrame(DataFrame):
     def slice_rows(
         self, start: int | None, stop: int | None, step: int | None
     ) -> PandasDataFrame:
-        if start is None:
-            start = 0
-        if stop is None:
-            stop = len(self.dataframe)
-        if step is None:
-            step = 1
         return PandasDataFrame(
             self.dataframe.iloc[start:stop:step], api_version=self._api_version
         )
