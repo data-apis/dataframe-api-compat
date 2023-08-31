@@ -64,32 +64,26 @@ def col(label: str):
     return lambda df: df.loc[:, label]
 
 
-expression_call = (
-    Callable[[pd.Series, pd.Series], pd.Series] | Callable[[pd.Series], pd.Series]
-)
+ExtraCall = tuple[
+    Callable[[pd.Series, pd.Series | None], pd.Series], pd.Series, pd.Series
+]
 
 
 class PandasExpression(Expression):
     def __init__(
         self,
         base_call: Callable[[pd.DataFrame], pd.Series] | None = None,
-        extra_calls: list[
-            tuple[
-                Literal["unary", "binary"], expression_call, pd.Series, pd.Series | None
-            ]
-        ]
-        | None = None,
+        extra_calls: list[ExtraCall] | None = None,
     ) -> None:
         self._base_call = base_call
         self._calls = extra_calls or []
 
     def _record_call(
         self,
-        kind: Literal["unary", "binary"],
-        func: Callable[[pd.Series], pd.Series],
+        func: Callable[[pd.Series, pd.Series | None], pd.Series],
         rhs: pd.Series | None,
     ) -> PandasExpression:
-        calls = [*self._calls, (kind, func, self, rhs)]
+        calls = [*self._calls, (func, self, rhs)]
         return PandasExpression(extra_calls=calls)
 
     def get_rows(self, indices: Expression) -> PandasExpression:
@@ -97,58 +91,57 @@ class PandasExpression(Expression):
             return lhs.iloc[rhs].reset_index(drop=True)
 
         return self._record_call(
-            "binary",
             func,
             indices,
         )
 
     def get_rows_by_mask(self, mask: Expression) -> PandasExpression:
-        return self._record_call("binary", lambda ser, mask: ser.loc[mask], mask)
+        return self._record_call(lambda ser, mask: ser.loc[mask], mask)
 
     def __eq__(self, other: PandasExpression | Any) -> PandasExpression:
-        return self._record_call("binary", lambda ser, other: ser == other, other)
+        return self._record_call(lambda ser, other: ser == other, other)
 
     def __ne__(self, other: Expression) -> PandasExpression:
-        return self._record_call("binary", lambda ser, other: ser != other, other)
+        return self._record_call(lambda ser, other: ser != other, other)
 
     def __ge__(self, other: Expression | Any) -> PandasExpression:
-        return self._record_call("binary", lambda ser, other: ser >= other, other)
+        return self._record_call(lambda ser, other: ser >= other, other)
 
     def __gt__(self, other: Expression | Any) -> PandasExpression:
-        return self._record_call("binary", lambda ser, other: ser > other, other)
+        return self._record_call(lambda ser, other: ser > other, other)
 
     def __le__(self, other: Expression | Any) -> PandasExpression:
-        return self._record_call("binary", lambda ser, other: ser <= other, other)
+        return self._record_call(lambda ser, other: ser <= other, other)
 
     def __lt__(self, other: Expression | Any) -> PandasExpression:
-        return self._record_call("binary", lambda ser, other: ser < other, other)
+        return self._record_call(lambda ser, other: ser < other, other)
 
     def __and__(self, other: Expression | bool) -> PandasExpression:
-        return self._record_call("binary", lambda ser, other: ser & other, other)
+        return self._record_call(lambda ser, other: ser & other, other)
 
     def __or__(self, other: Expression | bool) -> PandasExpression:
-        return self._record_call("binary", lambda ser, other: ser | other, other)
+        return self._record_call(lambda ser, other: ser | other, other)
 
     def __add__(self, other: Expression | Any) -> PandasExpression:
-        return self._record_call("binary", lambda ser, other: ser + other, other)
+        return self._record_call(lambda ser, other: ser + other, other)
 
     def __sub__(self, other: Expression | Any) -> PandasExpression:
-        return self._record_call("binary", lambda ser, other: ser - other, other)
+        return self._record_call(lambda ser, other: ser - other, other)
 
     def __mul__(self, other: Expression | Any) -> PandasExpression:
-        return self._record_call("binary", lambda ser, other: ser * other, other)
+        return self._record_call(lambda ser, other: ser * other, other)
 
     def __truediv__(self, other: Expression | Any) -> PandasExpression:
-        return self._record_call("binary", lambda ser, other: ser / other, other)
+        return self._record_call(lambda ser, other: ser / other, other)
 
     def __floordiv__(self, other: Expression | Any) -> PandasExpression:
-        return self._record_call("binary", lambda ser, other: ser // other, other)
+        return self._record_call(lambda ser, other: ser // other, other)
 
     def __pow__(self, other: Expression | Any) -> PandasExpression:
-        return self._record_call("binary", lambda ser, other: ser**other, other)
+        return self._record_call(lambda ser, other: ser**other, other)
 
     def __mod__(self, other: Expression | Any) -> PandasExpression:
-        return self._record_call("binary", lambda ser, other: ser % other, other)
+        return self._record_call(lambda ser, other: ser % other, other)
 
     def __divmod__(
         self, other: Expression | Any
@@ -162,34 +155,34 @@ class PandasExpression(Expression):
         ), PandasExpression(remainder, api_version=self._api_version)
 
     def __invert__(self: PandasExpression) -> PandasExpression:
-        return self._record_call("unary", lambda ser: ~ser, None)
+        return self._record_call(lambda ser, _rhs: ~ser, None)
 
     def min(self, *, skip_nulls: bool = True) -> Any:
-        return self._record_call("unary", lambda ser: ser.min(), None)
+        return self._record_call(lambda ser, _rhs: ser.min(), None)
 
     def max(self, *, skip_nulls: bool = True) -> Any:
-        return self._record_call("unary", lambda ser: ser.max(), None)
+        return self._record_call(lambda ser, _rhs: ser.max(), None)
 
     def sum(self, *, skip_nulls: bool = True) -> Any:
-        return self._record_call("unary", lambda ser: ser.sum(), None)
+        return self._record_call(lambda ser, _rhs: ser.sum(), None)
 
     def prod(self, *, skip_nulls: bool = True) -> Any:
-        return self._record_call("unary", lambda ser: ser.prod(), None)
+        return self._record_call(lambda ser, _rhs: ser.prod(), None)
 
     def median(self, *, skip_nulls: bool = True) -> Any:
-        return self._record_call("unary", lambda ser: ser.median(), None)
+        return self._record_call(lambda ser, _rhs: ser.median(), None)
 
     def mean(self, *, skip_nulls: bool = True) -> Any:
-        return self._record_call("unary", lambda ser: ser.mean(), None)
+        return self._record_call(lambda ser, _rhs: ser.mean(), None)
 
     def std(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
-        return self._record_call("unary", lambda ser: ser.std(), None)
+        return self._record_call(lambda ser, _rhs: ser.std(), None)
 
     def var(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
-        return self._record_call("unary", lambda ser: ser.var(), None)
+        return self._record_call(lambda ser, _rhs: ser.var(), None)
 
     def is_null(self) -> PandasExpression:
-        return self._record_call("unary", lambda ser: ser.isna(), None)
+        return self._record_call(lambda ser, _rhs: ser.isna(), None)
 
     def is_nan(self) -> PandasExpression:
         def func(ser):
@@ -197,20 +190,18 @@ class PandasExpression(Expression):
                 return np.isnan(ser).replace(pd.NA, False).astype(bool)
             return ser.isna()
 
-        return self._record_call("unary", func, None)
+        return self._record_call(func, None)
 
     def sort(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
     ) -> PandasExpression:
         return self._record_call(
-            "unary",
-            lambda ser: ser.sort_values(ascending=ascending).reset_index(drop=True),
+            lambda ser, _rhs: ser.sort_values(ascending=ascending).reset_index(drop=True),
             None,
         )
 
     def is_in(self, values: Expression) -> PandasExpression:
         return self._record_call(
-            "binary",
             lambda ser, other: ser.isin(other),
             values,
         )
@@ -232,8 +223,7 @@ class PandasExpression(Expression):
 
         # return PandasExpression(ser, api_version=self._api_version)
         return self._record_call(
-            "unary",
-            lambda ser: func(ser, value),
+            lambda ser, _rhs: func(ser, value),
             None,
         )
 
@@ -258,36 +248,31 @@ class PandasExpression(Expression):
             return ser
 
         return self._record_call(
-            "unary",
-            lambda ser: func(ser, value),
+            lambda ser, _rhs: func(ser, value),
             None,
         )
 
     def cumulative_sum(self, *, skip_nulls: bool = True) -> PandasExpression:
         return self._record_call(
-            "unary",
-            lambda ser: ser.cumsum(),
+            lambda ser, _rhs: ser.cumsum(),
             None,
         )
 
     def cumulative_prod(self, *, skip_nulls: bool = True) -> PandasExpression:
         return self._record_call(
-            "unary",
-            lambda ser: ser.cumprod(),
+            lambda ser, _rhs: ser.cumprod(),
             None,
         )
 
     def cumulative_max(self, *, skip_nulls: bool = True) -> PandasExpression:
         return self._record_call(
-            "unary",
-            lambda ser: ser.cummax(),
+            lambda ser, _rhs: ser.cummax(),
             None,
         )
 
     def cumulative_min(self, *, skip_nulls: bool = True) -> PandasExpression:
         return self._record_call(
-            "unary",
-            lambda ser: ser.cummin(),
+            lambda ser, _rhs: ser.cummin(),
             None,
         )
 
@@ -299,7 +284,7 @@ class PandasExpression(Expression):
         return self.column.to_numpy(dtype=dtype)
 
     def rename(self, name: str | None) -> PandasExpression:
-        expr = self._record_call("unary", lambda ser: ser.rename(name), None)
+        expr = self._record_call(lambda ser, _rhs: ser.rename(name), None)
         return expr
 
 
@@ -504,17 +489,10 @@ class PandasDataFrame(DataFrame):
             return expression
         if not expression._calls:
             return expression._base_call(self.dataframe)
-        for kind, func, lhs, rhs in expression._calls:
+        for func, lhs, rhs in expression._calls:
             lhs = self._resolve_expression(lhs)
             rhs = self._resolve_expression(rhs)
-            if kind == "unary":
-                if rhs is not None:
-                    raise AssertionError("rhs of unary expression is not None")
-                expression = func(lhs)
-            elif kind == "binary":
-                expression = func(lhs, rhs)
-            else:
-                raise AssertionError(f"expected unary or binary, got: {kind}")
+            expression = func(lhs, rhs)
         return expression
 
     def get_rows_by_mask(self, mask: Expression) -> PandasDataFrame:
