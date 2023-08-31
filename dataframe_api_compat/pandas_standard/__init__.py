@@ -8,13 +8,14 @@ import pandas as pd
 from dataframe_api_compat.pandas_standard.pandas_standard import LATEST_API_VERSION
 from dataframe_api_compat.pandas_standard.pandas_standard import null
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasDataFrame
-from dataframe_api_compat.pandas_standard.pandas_standard import PandasExpression as col
+from dataframe_api_compat.pandas_standard.pandas_standard import PandasExpression
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasGroupBy
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-Expression = col
+col = PandasExpression
+Expression = PandasExpression
 DataFrame = PandasDataFrame
 GroupBy = PandasGroupBy
 
@@ -203,3 +204,13 @@ def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:
         if _kind == "string":
             dtypes.add(String)
     return isinstance(dtype, tuple(dtypes))
+
+
+def any_rowwise(keys: list[str], *, skip_nulls: bool = True) -> PandasExpression[Bool]:
+    expr = PandasExpression(keys)
+    return expr._record_call("unary", lambda df: df.any(axis=1), expr, None)
+
+
+def all_rowwise(keys: list[str], *, skip_nulls: bool = True) -> PandasExpression[Bool]:
+    expr = PandasExpression(keys)
+    return expr._record_call("unary", lambda df: df.all(axis=1), expr, None)

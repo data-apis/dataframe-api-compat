@@ -532,14 +532,12 @@ class PandasDataFrame(DataFrame):
         )
 
     def _resolve_expression(self, expression: PandasExpression) -> pd.Series:
-        if hasattr(expression, "name") and not isinstance(expression.name, str):
-            return expression.name
         if not isinstance(expression, PandasExpression):
             # e.g. scalar
             return expression
         if not expression._calls:
             # todo: deal with 'rename' later
-            return self.dataframe[expression.name]
+            return self.dataframe.loc[:, expression.name]
         for kind, func, lhs, rhs in expression._calls:
             if kind == "unary":
                 if rhs is not None:
@@ -828,12 +826,6 @@ class PandasDataFrame(DataFrame):
         return PandasDataFrame(
             self.dataframe.all().to_frame().T, api_version=self._api_version
         )
-
-    def any_rowwise(self, *, skip_nulls: bool = True) -> PandasExpression[Bool]:
-        return PandasExpression(self.dataframe.any(axis=1))
-
-    def all_rowwise(self, *, skip_nulls: bool = True) -> PandasExpression[Bool]:
-        return PandasExpression(self.dataframe.all(axis=1))
 
     def min(self, *, skip_nulls: bool = True) -> PandasDataFrame:
         return PandasDataFrame(
