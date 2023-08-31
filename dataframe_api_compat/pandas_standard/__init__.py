@@ -242,3 +242,9 @@ def sorted_indices(
         )
 
     return PandasExpression(base_call=func)
+
+
+def unique_indices(
+    keys: str | list[str] | None = None, *, skip_nulls: bool = True
+) -> Expression:
+    raise NotImplementedError("namespace.unique_indices not implemented for pandas yet")

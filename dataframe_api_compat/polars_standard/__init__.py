@@ -238,3 +238,9 @@ def sorted_indices(
     nulls_position: Literal["first", "last"] = "last",
 ) -> Expression:
     return PolarsExpression(pl.arg_sort_by(keys or "*", descending=not ascending))
+
+
+def unique_indices(
+    keys: str | list[str] | None = None, *, skip_nulls: bool = True
+) -> Expression:
+    raise NotImplementedError("namespace.unique_indices not implemented for polars yet")
