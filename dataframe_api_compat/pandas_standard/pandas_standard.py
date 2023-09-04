@@ -569,11 +569,9 @@ class PandasDataFrame(DataFrame):
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
     ) -> PandasDataFrame:
-        if self._api_version == "2023.08-beta":
-            raise NotImplementedError("dataframe.sort only available after 2023.08-beta")
         if keys is None:
             keys = self.dataframe.columns.tolist()
-        df = self.dataframe.loc[:, list(keys)]
+        df = self.dataframe
         return PandasDataFrame(
             df.sort_values(keys, ascending=ascending), api_version=self._api_version
         )

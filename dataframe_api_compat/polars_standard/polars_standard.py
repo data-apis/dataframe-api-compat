@@ -1270,8 +1270,6 @@ class PolarsDataFrame(DataFrame):
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
     ) -> PolarsDataFrame:
-        if self._api_version == "2023.08-beta":
-            raise NotImplementedError("dataframe.sort only available after 2023.08-beta")
         if keys is None:
             keys = self.dataframe.columns
         # TODO: what if there's multiple `ascending`?
