@@ -361,27 +361,6 @@ def bool_dataframe_3(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def bool_dataframe_4(library: str) -> Any:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame(
-            {"a": [False, True, False], "b": [True, True, True]}, dtype="bool"
-        )
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "pandas-nullable":
-        df = pd.DataFrame(
-            {"a": [False, True, False], "b": [True, True, True]}, dtype="boolean"
-        )
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "polars":
-        df = pl.DataFrame({"a": [False, True, False], "b": [True, True, True]})
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "polars-lazy":
-        df = pl.LazyFrame({"a": [False, True, False], "b": [True, True, True]})
-        return convert_to_standard_compliant_dataframe(df)
-    raise AssertionError(f"Got unexpected library: {library}")
-
-
 def integer_series_1(library: str, request: pytest.FixtureRequest) -> Any:
     ser: Any
     if library == "pandas-numpy":
@@ -484,7 +463,9 @@ def bool_series_1(library: str, request: pytest.FixtureRequest) -> Any:
 
 def interchange_to_pandas(result: Any, library: str) -> pd.DataFrame:
     df = result.dataframe.collect() if library == "polars-lazy" else result.dataframe
-    return pd.api.interchange.from_dataframe(df)
+    df = pd.api.interchange.from_dataframe(df)
+    df = convert_dataframe_to_pandas_numpy(df)
+    return df
 
 
 def maybe_collect(result: Any, library: str) -> Any:

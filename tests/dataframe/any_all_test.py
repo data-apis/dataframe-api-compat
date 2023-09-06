@@ -5,6 +5,7 @@ import pytest
 
 from tests.utils import bool_dataframe_1
 from tests.utils import bool_dataframe_3
+from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import interchange_to_pandas
 
 
@@ -23,6 +24,7 @@ def test_reductions(
     df = bool_dataframe_1(library)
     result = getattr(df, reduction)()
     result_pd = interchange_to_pandas(result, library)
+    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame(expected_data)
     pd.testing.assert_frame_equal(result_pd, expected)
 

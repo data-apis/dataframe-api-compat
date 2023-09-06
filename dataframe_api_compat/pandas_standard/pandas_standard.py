@@ -492,17 +492,6 @@ class PandasDataFrame(DataFrame):
     def _validate_index(self, index: pd.Index) -> None:
         pd.testing.assert_index_equal(self.dataframe.index, index)
 
-    def _validate_comparand(self, other: DataFrame) -> None:
-        if isinstance(other, PandasDataFrame) and not (
-            self.dataframe.index.equals(other.dataframe.index)
-            and self.dataframe.shape == other.dataframe.shape
-            and self.dataframe.columns.equals(other.dataframe.columns)
-        ):
-            raise ValueError(
-                "Expected DataFrame with same length, matching columns, "
-                "and matching index."
-            )
-
     def _validate_booleanness(self) -> None:
         if not (
             (self.dataframe.dtypes == "bool") | (self.dataframe.dtypes == "boolean")
@@ -677,153 +666,77 @@ class PandasDataFrame(DataFrame):
             api_version=self._api_version,
         )
 
-    def __eq__(self, other: DataFrame | Any) -> PandasDataFrame:  # type: ignore[override]
-        if isinstance(other, PandasDataFrame):
-            self._validate_comparand(other)
-            return PandasDataFrame(
-                self.dataframe.__eq__(other.dataframe), api_version=self._api_version
-            )
+    def __eq__(self, other: Any) -> PandasDataFrame:  # type: ignore[override]
         return PandasDataFrame(
             self.dataframe.__eq__(other), api_version=self._api_version
         )
 
-    def __ne__(self, other: DataFrame | Any) -> PandasDataFrame:  # type: ignore[override]
-        if isinstance(other, PandasDataFrame):
-            self._validate_comparand(other)
-            return PandasDataFrame(
-                self.dataframe.__ne__(other.dataframe), api_version=self._api_version
-            )
+    def __ne__(self, other: Any) -> PandasDataFrame:  # type: ignore[override]
         return PandasDataFrame(
             self.dataframe.__ne__(other), api_version=self._api_version
         )
 
-    def __ge__(self, other: DataFrame | Any) -> PandasDataFrame:
-        if isinstance(other, PandasDataFrame):
-            self._validate_comparand(other)
-            return PandasDataFrame(
-                self.dataframe.__ge__(other.dataframe), api_version=self._api_version
-            )
+    def __ge__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(
             self.dataframe.__ge__(other), api_version=self._api_version
         )
 
-    def __gt__(self, other: DataFrame | Any) -> PandasDataFrame:
-        if isinstance(other, PandasDataFrame):
-            self._validate_comparand(other)
-            return PandasDataFrame(
-                self.dataframe.__gt__(other.dataframe), api_version=self._api_version
-            )
+    def __gt__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(
             self.dataframe.__gt__(other), api_version=self._api_version
         )
 
-    def __le__(self, other: DataFrame | Any) -> PandasDataFrame:
-        if isinstance(other, PandasDataFrame):
-            self._validate_comparand(other)
-            return PandasDataFrame(
-                self.dataframe.__le__(other.dataframe), api_version=self._api_version
-            )
+    def __le__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(
             self.dataframe.__le__(other), api_version=self._api_version
         )
 
-    def __lt__(self, other: DataFrame | Any) -> PandasDataFrame:
-        if isinstance(other, PandasDataFrame):
-            self._validate_comparand(other)
-            return PandasDataFrame(
-                self.dataframe.__lt__(other.dataframe), api_version=self._api_version
-            )
+    def __lt__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(
             self.dataframe.__lt__(other), api_version=self._api_version
         )
 
-    def __and__(self, other: DataFrame | Any) -> PandasDataFrame:
-        if isinstance(other, PandasDataFrame):
-            self._validate_comparand(other)
-            return PandasDataFrame(
-                self.dataframe.__and__(other.dataframe), api_version=self._api_version
-            )
+    def __and__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(
             self.dataframe.__and__(other), api_version=self._api_version
         )
 
-    def __or__(self, other: DataFrame | Any) -> PandasDataFrame:
-        if isinstance(other, PandasDataFrame):
-            self._validate_comparand(other)
-            return PandasDataFrame(
-                self.dataframe.__or__(other.dataframe), api_version=self._api_version
-            )
+    def __or__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(
             self.dataframe.__or__(other), api_version=self._api_version
         )
 
-    def __add__(self, other: DataFrame | Any) -> PandasDataFrame:
-        if isinstance(other, PandasDataFrame):
-            self._validate_comparand(other)
-            return PandasDataFrame(
-                self.dataframe.__add__(other.dataframe), api_version=self._api_version
-            )
+    def __add__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(
             self.dataframe.__add__(other), api_version=self._api_version
         )
 
-    def __sub__(self, other: DataFrame | Any) -> PandasDataFrame:
-        if isinstance(other, PandasDataFrame):
-            self._validate_comparand(other)
-            return PandasDataFrame(
-                self.dataframe.__sub__(other.dataframe), api_version=self._api_version
-            )
+    def __sub__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(
             self.dataframe.__sub__(other), api_version=self._api_version
         )
 
-    def __mul__(self, other: DataFrame | Any) -> PandasDataFrame:
-        if isinstance(other, PandasDataFrame):
-            self._validate_comparand(other)
-            return PandasDataFrame(
-                self.dataframe.__mul__(other.dataframe), api_version=self._api_version
-            )
+    def __mul__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(
             self.dataframe.__mul__(other), api_version=self._api_version
         )
 
-    def __truediv__(self, other: DataFrame | Any) -> PandasDataFrame:
-        if isinstance(other, PandasDataFrame):
-            self._validate_comparand(other)
-            return PandasDataFrame(
-                self.dataframe.__truediv__(other.dataframe), api_version=self._api_version
-            )
+    def __truediv__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(
             self.dataframe.__truediv__(other), api_version=self._api_version
         )
 
-    def __floordiv__(self, other: DataFrame | Any) -> PandasDataFrame:
-        if isinstance(other, PandasDataFrame):
-            self._validate_comparand(other)
-            return PandasDataFrame(
-                self.dataframe.__floordiv__(other.dataframe),
-                api_version=self._api_version,
-            )
+    def __floordiv__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(
             self.dataframe.__floordiv__(other), api_version=self._api_version
         )
 
-    def __pow__(self, other: DataFrame | Any) -> PandasDataFrame:
-        if isinstance(other, PandasDataFrame):
-            self._validate_comparand(other)
-            return PandasDataFrame(
-                self.dataframe.__pow__(other.dataframe), api_version=self._api_version
-            )
+    def __pow__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(
             self.dataframe.__pow__(other), api_version=self._api_version
         )
 
-    def __mod__(self, other: DataFrame | Any) -> PandasDataFrame:
-        if isinstance(other, PandasDataFrame):
-            self._validate_comparand(other)
-            return PandasDataFrame(
-                self.dataframe.__mod__(other.dataframe), api_version=self._api_version
-            )
+    def __mod__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(
             self.dataframe.__mod__(other), api_version=self._api_version
         )
@@ -832,11 +745,7 @@ class PandasDataFrame(DataFrame):
         self,
         other: DataFrame | Any,
     ) -> tuple[PandasDataFrame, PandasDataFrame]:
-        if isinstance(other, PandasDataFrame):
-            self._validate_comparand(other)
-            quotient, remainder = self.dataframe.__divmod__(other.dataframe)
-        else:
-            quotient, remainder = self.dataframe.__divmod__(other)
+        quotient, remainder = self.dataframe.__divmod__(other)
         return PandasDataFrame(quotient, api_version=self._api_version), PandasDataFrame(
             remainder, api_version=self._api_version
         )
