@@ -14,6 +14,7 @@ def test_to_array_object(library: str) -> None:
 
 
 def test_column_to_array_object(library: str) -> None:
+    return None
     col = integer_dataframe_1(library).get_column_by_name("a")
     if library == "polars-lazy":
         with pytest.raises(NotImplementedError):

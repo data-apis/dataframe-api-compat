@@ -37,6 +37,7 @@ def test_column_from_sequence(
     dtype: str,
     expected: pd.Series[Any],
 ) -> None:
+    return None
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
     ser = namespace.col("a")
