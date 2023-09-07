@@ -407,11 +407,10 @@ def bool_series_1(library: str) -> Any:
 
 
 def interchange_to_pandas(result: Any, library: str) -> pd.DataFrame:
-    df = (
-        result.dataframe.collect()
-        if library in ("polars", "polars-lazy")
-        else result.dataframe
-    )
+    if isinstance(result.dataframe, pl.LazyFrame):
+        df = result.dataframe.collect()
+    else:
+        df = result.dataframe
     df = pd.api.interchange.from_dataframe(df)
     df = convert_dataframe_to_pandas_numpy(df)
     return cast(pd.DataFrame, df)
