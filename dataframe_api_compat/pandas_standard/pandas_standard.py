@@ -294,13 +294,6 @@ class PandasExpression(Expression):
             None,
         )
 
-    def to_array_object(self, dtype: str) -> Any:
-        if dtype not in _ARRAY_API_DTYPES:
-            raise ValueError(
-                f"Invalid dtype {dtype}. Expected one of {_ARRAY_API_DTYPES}"
-            )
-        return self.column.to_numpy(dtype=dtype)
-
     def rename(self, name: str | None) -> PandasExpression:
         expr = self._record_call(lambda ser, _rhs: ser.rename(name), None)
         return expr
@@ -1104,13 +1097,6 @@ class PandasDataFrame(DataFrame):
             df[column] = col
         return PandasDataFrame(df, api_version=self._api_version)
 
-    def to_array_object(self, dtype: str) -> Any:
-        if dtype not in _ARRAY_API_DTYPES:
-            raise ValueError(
-                f"Invalid dtype {dtype}. Expected one of {_ARRAY_API_DTYPES}"
-            )
-        return self.dataframe.to_numpy(dtype=dtype)
-
     def join(
         self,
         other: DataFrame,
@@ -1565,3 +1551,6 @@ class PandasEagerFrame:
             ),
             api_version=self._api_version,
         )
+
+    def maybe_lazify(self) -> PandasDataFrame:
+        return PandasDataFrame(self.dataframe, api_version=self._api_version)

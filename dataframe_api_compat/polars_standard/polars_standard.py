@@ -1252,15 +1252,6 @@ class PolarsExpression:
             api_version=self._api_version,
         )
 
-    def to_array_object(self, dtype: str) -> Any:
-        if isinstance(self.column, pl.Expr):
-            raise NotImplementedError("to_array_object not implemented for lazy columns")
-        if dtype not in _ARRAY_API_DTYPES:
-            raise ValueError(
-                f"Invalid dtype {dtype}. Expected one of {_ARRAY_API_DTYPES}"
-            )
-        return self.column.to_numpy().astype(dtype)
-
     def rename(self, name: str) -> PolarsExpression:
         if isinstance(self.column, pl.Series):
             return PolarsExpression(
@@ -1603,14 +1594,6 @@ class PolarsDataFrame(DataFrame):
             pl.col(col).fill_null(value) for col in column_names
         )
         return PolarsDataFrame(df, api_version=self._api_version)
-
-    def to_array_object(self, dtype: str) -> Any:
-        if dtype not in _ARRAY_API_DTYPES:
-            raise ValueError(
-                f"Invalid dtype {dtype}. Expected one of {_ARRAY_API_DTYPES}"
-            )
-        # uurrggghhhh...we REALLY need to change this
-        return self.dataframe.collect().to_numpy().astype(dtype)
 
     def join(
         self,
@@ -1985,8 +1968,7 @@ class PolarsEagerFrame(DataFrame):
             raise ValueError(
                 f"Invalid dtype {dtype}. Expected one of {_ARRAY_API_DTYPES}"
             )
-        # uurrggghhhh...we REALLY need to change this
-        return self.dataframe.collect().to_numpy().astype(dtype)
+        return self.dataframe.to_numpy().astype(dtype)
 
     def join(
         self,
@@ -1995,26 +1977,7 @@ class PolarsEagerFrame(DataFrame):
         right_on: str | list[str],
         how: Literal["left", "inner", "outer"],
     ) -> PolarsDataFrame:
-        if how not in ["left", "inner", "outer"]:
-            raise ValueError(f"Expected 'left', 'inner', 'outer', got: {how}")
+        return self.maybe_lazify().join(other)
 
-        if isinstance(left_on, str):
-            left_on = [left_on]
-        if isinstance(right_on, str):
-            right_on = [right_on]
-
-        # need to do some extra work to preserve all names
-        # https://github.com/pola-rs/polars/issues/9335
-        extra_right_keys = set(right_on).difference(left_on)
-        assert isinstance(other, PolarsDataFrame)
-        other_df = other.dataframe
-        # todo: make more robust
-        other_df = other_df.with_columns(
-            [pl.col(i).alias(f"{i}_tmp") for i in extra_right_keys]
-        )
-        result = self.dataframe.join(
-            other_df, left_on=left_on, right_on=right_on, how=how
-        )
-        result = result.rename({f"{i}_tmp": i for i in extra_right_keys})
-
-        return PolarsDataFrame(result, api_version=self._api_version)
+    def maybe_lazify(self) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.lazy(), api_version=self._api_version)
