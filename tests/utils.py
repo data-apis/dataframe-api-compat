@@ -95,9 +95,6 @@ def integer_dataframe_1(library: str, api_version: str | None = None) -> Any:
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}, dtype="Int64")
         return convert_to_standard_compliant_dataframe(df, api_version=api_version)
-    if library == "polars":
-        df = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
-        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
         return convert_to_standard_compliant_dataframe(df, api_version=api_version)
@@ -111,9 +108,6 @@ def integer_dataframe_2(library: str) -> Any:
         return convert_to_standard_compliant_dataframe(df)
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1, 2, 4], "b": [4, 2, 6]}, dtype="Int64")
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "polars":
-        df = pl.DataFrame({"a": [1, 2, 4], "b": [4, 2, 6]})
         return convert_to_standard_compliant_dataframe(df)
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [1, 2, 4], "b": [4, 2, 6]})
@@ -133,9 +127,6 @@ def integer_dataframe_3(library: str) -> Any:
             {"a": [1, 2, 3, 4, 5, 6, 7], "b": [7, 6, 5, 4, 3, 2, 1]}, dtype="Int64"
         )
         return convert_to_standard_compliant_dataframe(df)
-    if library == "polars":
-        df = pl.DataFrame({"a": [1, 2, 3, 4, 5, 6, 7], "b": [7, 6, 5, 4, 3, 2, 1]})
-        return convert_to_standard_compliant_dataframe(df)
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [1, 2, 3, 4, 5, 6, 7], "b": [7, 6, 5, 4, 3, 2, 1]})
         return convert_to_standard_compliant_dataframe(df)
@@ -154,9 +145,6 @@ def integer_dataframe_4(library: str) -> Any:
             {"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]}, dtype="Int64"
         )
         return convert_to_standard_compliant_dataframe(df)
-    if library == "polars":
-        df = pl.DataFrame({"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]})
-        return convert_to_standard_compliant_dataframe(df)
     if library == "polars-lazy":
         df = pl.LazyFrame({"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]})
         return convert_to_standard_compliant_dataframe(df)
@@ -170,9 +158,6 @@ def integer_dataframe_5(library: str, api_version: str | None = None) -> Any:
         return convert_to_standard_compliant_dataframe(df, api_version=api_version)
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1, 1], "b": [4, 3]}, dtype="Int64")
-        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
-    if library == "polars":
-        df = pl.DataFrame({"a": [1, 1], "b": [4, 3]})
         return convert_to_standard_compliant_dataframe(df, api_version=api_version)
     if library == "polars-lazy":  # pragma: no cover
         df = pl.LazyFrame({"a": [1, 1], "b": [4, 3]})
@@ -188,9 +173,6 @@ def integer_dataframe_6(library: str, api_version: str | None = None) -> Any:
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1, 1, 1, 2, 2], "b": [4, 4, 3, 1, 2]}, dtype="Int64")
         return convert_to_standard_compliant_dataframe(df, api_version=api_version)
-    if library == "polars":
-        df = pl.DataFrame({"a": [1, 1, 1, 2, 2], "b": [4, 4, 3, 1, 2]})
-        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [1, 1, 1, 2, 2], "b": [4, 4, 3, 1, 2]})
         return convert_to_standard_compliant_dataframe(df, api_version=api_version)
@@ -204,9 +186,6 @@ def integer_dataframe_7(library: str) -> Any:
         return convert_to_standard_compliant_dataframe(df)
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1, 2, 3], "b": [1, 2, 4]}, dtype="Int64")
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "polars":
-        df = pl.DataFrame({"a": [1, 2, 3], "b": [1, 2, 4]})
         return convert_to_standard_compliant_dataframe(df)
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [1, 2, 3], "b": [1, 2, 4]})
@@ -223,9 +202,6 @@ def nan_dataframe_1(library: str) -> Any:
         df = pd.DataFrame({"a": [1.0, 2.0, 0.0]}, dtype="Float64")
         other = pd.DataFrame({"a": [1.0, 1.0, 0.0]}, dtype="Float64")
         return convert_to_standard_compliant_dataframe(df / other)
-    if library == "polars":
-        df = pl.DataFrame({"a": [1.0, 2.0, float("nan")]})
-        return convert_to_standard_compliant_dataframe(df)
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [1.0, 2.0, float("nan")]})
         return convert_to_standard_compliant_dataframe(df)
@@ -241,9 +217,6 @@ def nan_dataframe_2(library: str) -> Any:
         df = pd.DataFrame({"a": [0.0, 1.0, 0.0]}, dtype="Float64")
         other = pd.DataFrame({"a": [1.0, 1.0, 0.0]}, dtype="Float64")
         return convert_to_standard_compliant_dataframe(df / other)
-    if library == "polars":
-        df = pl.DataFrame({"a": [0.0, 1.0, float("nan")]})
-        return convert_to_standard_compliant_dataframe(df)
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [0.0, 1.0, float("nan")]})
         return convert_to_standard_compliant_dataframe(df)
@@ -257,9 +230,6 @@ def null_dataframe_1(library: str) -> Any:
         return convert_to_standard_compliant_dataframe(df)
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1.0, 2.0, pd.NA]}, dtype="Float64")
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "polars":
-        df = pl.DataFrame({"a": [1.0, 2.0, None]})
         return convert_to_standard_compliant_dataframe(df)
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [1.0, 2.0, None]})
@@ -280,9 +250,6 @@ def null_dataframe_2(library: str) -> Any:
             {"a": [1.0, 0.0, pd.NA], "b": [1.0, 1.0, pd.NA]}, dtype="Float64"
         )
         return convert_to_standard_compliant_dataframe(df / df)
-    if library == "polars":
-        df = pl.DataFrame({"a": [1.0, float("nan"), None], "b": [1.0, 1.0, None]})
-        return convert_to_standard_compliant_dataframe(df)
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [1.0, float("nan"), None], "b": [1.0, 1.0, None]})
         return convert_to_standard_compliant_dataframe(df)
@@ -300,9 +267,6 @@ def bool_dataframe_1(library: str) -> Any:
         df = pd.DataFrame(
             {"a": [True, True, False], "b": [True, True, True]}, dtype="boolean"
         )
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "polars":
-        df = pl.DataFrame({"a": [True, True, False], "b": [True, True, True]})
         return convert_to_standard_compliant_dataframe(df)
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [True, True, False], "b": [True, True, True]})
@@ -330,15 +294,6 @@ def bool_dataframe_2(library: str) -> Any:
             }
         ).astype({"key": "Int64", "b": "boolean", "c": "boolean"})
         return convert_to_standard_compliant_dataframe(df)
-    if library == "polars":
-        df = pl.DataFrame(
-            {
-                "key": [1, 1, 2, 2],
-                "b": [False, True, True, True],
-                "c": [True, False, False, False],
-            }
-        )
-        return convert_to_standard_compliant_dataframe(df)
     if library == "polars-lazy":
         df = pl.LazyFrame(
             {
@@ -363,16 +318,13 @@ def bool_dataframe_3(library: str) -> Any:
             {"a": [False, False], "b": [False, True], "c": [True, True]}, dtype="boolean"
         )
         return convert_to_standard_compliant_dataframe(df)
-    if library == "polars":
-        df = pl.DataFrame({"a": [False, False], "b": [False, True], "c": [True, True]})
-        return convert_to_standard_compliant_dataframe(df)
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [False, False], "b": [False, True], "c": [True, True]})
         return convert_to_standard_compliant_dataframe(df)
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def integer_series_1(library: str, request: pytest.FixtureRequest) -> Any:
+def integer_series_1(library: str) -> Any:
     ser: Any
     if library == "pandas-numpy":
         ser = pd.Series([1, 2, 3])
@@ -380,11 +332,9 @@ def integer_series_1(library: str, request: pytest.FixtureRequest) -> Any:
     if library == "pandas-nullable":
         ser = pd.Series([1, 2, 3], dtype="Int64")
         return convert_to_standard_compliant_column(ser)
-    if library == "polars":
+    if library == "polars-lazy":
         ser = pl.Series([1, 2, 3])
         return convert_to_standard_compliant_column(ser)
-    if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
     raise AssertionError(f"Got unexpected library: {library}")
 
 
@@ -395,9 +345,6 @@ def integer_series_5(library: str, request: pytest.FixtureRequest) -> Any:
         return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1, 1, 4]}, dtype="Int64")
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
-    if library == "polars":
-        df = pl.DataFrame({"a": [1, 1, 4]})
         return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "polars-lazy":
         request.node.add_marker(pytest.mark.xfail())
@@ -412,9 +359,6 @@ def float_dataframe_1(library: str, request: pytest.FixtureRequest) -> Any:
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [2.0, 3.0]}, dtype="Float64")
         return convert_to_standard_compliant_dataframe(df)
-    if library == "polars":
-        df = pl.DataFrame({"a": [2.0, 3.0]})
-        return convert_to_standard_compliant_dataframe(df)
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [2.0, 3.0]})
         return convert_to_standard_compliant_dataframe(df)
@@ -428,9 +372,6 @@ def float_dataframe_2(library: str, request: pytest.FixtureRequest) -> Any:
         return convert_to_standard_compliant_dataframe(df)
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [2.0, 1.0]}, dtype="Float64")
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "polars":
-        df = pl.DataFrame({"a": [2.0, 1.0]})
         return convert_to_standard_compliant_dataframe(df)
     if library == "polars-lazy":  # pragma: no cover
         df = pl.LazyFrame({"a": [2.0, 1.0]})
@@ -447,9 +388,6 @@ def float_dataframe_3(library: str, request: pytest.FixtureRequest) -> object:
         df = pd.DataFrame({"a": [0.0, 2.0]}, dtype="Float64")
         other = pd.DataFrame({"a": [0.0, 1.0]}, dtype="Float64")
         return convert_to_standard_compliant_dataframe(df / other)
-    if library == "polars":
-        df = pl.DataFrame({"a": [float("nan"), 2.0]})
-        return convert_to_standard_compliant_dataframe(df)
     if library == "polars-lazy":  # pragma: no cover
         df = pl.LazyFrame({"a": [float("nan"), 2.0]})
         return convert_to_standard_compliant_dataframe(df)
@@ -464,16 +402,17 @@ def bool_series_1(library: str, request: pytest.FixtureRequest) -> Any:
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [True, False, True]}, dtype="boolean")
         return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
-    if library == "polars":
-        df = pl.DataFrame({"a": [True, False, True]})
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "polars-lazy":
         request.node.add_marker(pytest.mark.xfail())
     raise AssertionError(f"Got unexpected library: {library}")
 
 
 def interchange_to_pandas(result: Any, library: str) -> pd.DataFrame:
-    df = result.dataframe.collect() if library == "polars-lazy" else result.dataframe
+    df = (
+        result.dataframe.collect()
+        if library in ("polars", "polars-lazy")
+        else result.dataframe
+    )
     df = pd.api.interchange.from_dataframe(df)
     df = convert_dataframe_to_pandas_numpy(df)
     return cast(pd.DataFrame, df)
@@ -534,25 +473,6 @@ def mixed_dataframe_1(library: str) -> Any:
                 "k": "bool",
                 "l": "string[pyarrow]",
             }
-        )
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "polars":
-        df = pl.DataFrame(
-            data,
-            schema={
-                "a": pl.Int64,
-                "b": pl.Int32,
-                "c": pl.Int16,
-                "d": pl.Int8,
-                "e": pl.UInt64,
-                "f": pl.UInt32,
-                "g": pl.UInt16,
-                "h": pl.UInt8,
-                "i": pl.Float64,
-                "j": pl.Float32,
-                "k": pl.Boolean,
-                "l": pl.Utf8,
-            },
         )
         return convert_to_standard_compliant_dataframe(df)
     if library == "polars-lazy":

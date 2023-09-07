@@ -5,8 +5,8 @@ from typing import Any
 import pandas as pd
 import pytest
 
-from tests.utils import convert_series_to_pandas_numpy
 from tests.utils import integer_dataframe_1
+from tests.utils import interchange_to_pandas
 
 
 @pytest.mark.parametrize(
@@ -47,6 +47,5 @@ def test_column_from_sequence(
             )
         }
     )
-    result_pd = pd.api.interchange.from_dataframe(result.dataframe)["result"]
-    result_pd = convert_series_to_pandas_numpy(result_pd)
+    result_pd = interchange_to_pandas(result, library)["result"]
     pd.testing.assert_series_equal(result_pd, expected)

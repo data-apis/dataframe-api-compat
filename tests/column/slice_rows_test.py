@@ -7,6 +7,7 @@ import pytest
 
 from tests.utils import convert_series_to_pandas_numpy
 from tests.utils import integer_dataframe_3
+from tests.utils import interchange_to_pandas
 
 
 @pytest.mark.parametrize(
@@ -24,15 +25,14 @@ def test_column_slice_rows(
     stop: int | None,
     step: int | None,
     expected: pd.Series[Any],
-    request: pytest.FixtureRequest,
 ) -> None:
-    if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
-    ser = integer_dataframe_3(library).get_column_by_name("a")
-    namespace = ser.__column_namespace__()
+    namespace = integer_dataframe_3(library).__dataframe_namespace__()
+    ser = namespace.column_from_sequence(
+        [1, 2, 3, 4, 5, 6, 7], name="a", dtype=namespace.Int64()
+    )
     result = ser.slice_rows(start, stop, step)
-    result_pd = pd.api.interchange.from_dataframe(
-        namespace.dataframe_from_dict({"result": (result).rename("result")}).dataframe
+    result_pd = interchange_to_pandas(
+        namespace.dataframe_from_dict({"result": (result).rename("result")}), library
     )["result"]
     result_pd = convert_series_to_pandas_numpy(result_pd)
     pd.testing.assert_series_equal(result_pd, expected)

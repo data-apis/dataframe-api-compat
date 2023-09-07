@@ -198,7 +198,7 @@ def convert_to_standard_compliant_dataframe(
 
 def convert_to_standard_compliant_column(
     ser: pl.Series, api_version: str | None = None
-) -> PolarsColumn[Any]:
+) -> PolarsColumn[Any]:  # pragma: no cover  (todo: is this even needed?)
     return PolarsColumn(
         ser, dtype=ser.dtype, id_=None, api_version=api_version or LATEST_API_VERSION
     )
