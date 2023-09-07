@@ -219,6 +219,19 @@ class PandasExpression(Expression):
             None,
         )
 
+    def sorted_indices(
+        self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
+    ) -> PandasExpression:
+        def func(ser, _rhs):
+            if ascending:
+                return ser.sort_values().index.to_series().reset_index(drop=True)
+            return ser.sort_values().index.to_series()[::-1].reset_index(drop=True)
+
+        return self._record_call(
+            func,
+            None,
+        )
+
     def is_in(self, values: Expression) -> PandasExpression:
         return self._record_call(
             lambda ser, other: ser.isin(other),
