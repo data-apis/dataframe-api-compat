@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import collections
 from typing import Any
+from typing import Generic
 from typing import Literal
 from typing import NoReturn
 from typing import Type
@@ -50,7 +51,7 @@ else:
     class DataFrame:
         ...
 
-    class Column:
+    class Column(Generic[DType]):
         ...
 
     class Expression:
@@ -1515,12 +1516,6 @@ class PolarsDataFrame(DataFrame):
 
     def groupby(self, keys: Sequence[str]) -> PolarsGroupBy:
         return PolarsGroupBy(self.df, keys, api_version=self._api_version)
-
-    def get_column_by_name(self, name: str) -> PolarsColumn[DType]:
-        dtype = self.dataframe.schema[name]
-        return PolarsColumn(
-            pl.col(name), dtype=dtype, id_=self._id, api_version=self._api_version
-        )
 
     def select(self, names: Sequence[str]) -> PolarsDataFrame:
         if isinstance(names, str):

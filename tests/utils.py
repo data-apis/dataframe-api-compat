@@ -394,13 +394,12 @@ def float_dataframe_3(library: str, request: pytest.FixtureRequest) -> object:
 
 
 def bool_series_1(library: str) -> Any:
-    df: Any
     if library == "pandas-numpy":
-        df = pd.DataFrame({"a": [True, False, True]}, dtype="bool")
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
+        ser = pd.Series([True, False, True], name="a", dtype="bool")
+        return convert_to_standard_compliant_column(ser)
     if library == "pandas-nullable":
-        df = pd.DataFrame({"a": [True, False, True]}, dtype="boolean")
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
+        ser = pd.Series([True, False, True], name="a", dtype="boolean")
+        return convert_to_standard_compliant_column(ser)
     if library == "polars-lazy":
         ser = pl.Series("a", [True, False, True])
         return convert_to_standard_compliant_column(ser)

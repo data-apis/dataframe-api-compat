@@ -4,6 +4,7 @@ import collections
 from typing import Any
 from typing import Callable
 from typing import cast
+from typing import Generic
 from typing import Literal
 from typing import NoReturn
 from typing import TYPE_CHECKING
@@ -44,6 +45,8 @@ if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
     from dataframe_api import (
+        Bool,
+        Column,
         Expression,
         DataFrame,
         GroupBy,
@@ -53,10 +56,16 @@ else:
     class DataFrame:
         ...
 
+    class Column(Generic[DType]):
+        ...
+
     class Expression:
         ...
 
     class GroupBy:
+        ...
+
+    class Bool:
         ...
 
 
@@ -388,6 +397,305 @@ LATEST_API_VERSION = "2023.08-beta"
 SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.09-beta"))
 
 
+class PandasColumn(Column[DType]):
+    # private, not technically part of the standard
+    def __init__(self, column: pd.Series[Any], api_version: str) -> None:
+        if (
+            isinstance(column.index, pd.RangeIndex)
+            and column.index.start == 0  # type: ignore[comparison-overlap]
+            and column.index.step == 1  # type: ignore[comparison-overlap]
+            and (column.index.stop == len(column))  # type: ignore[comparison-overlap]
+        ):
+            self._series = column
+        else:
+            self._series = column.reset_index(drop=True)
+        self._api_version = api_version
+        if api_version not in SUPPORTED_VERSIONS:
+            raise ValueError(
+                "Unsupported API version, expected one of: "
+                f"{SUPPORTED_VERSIONS}. "
+                "Try updating dataframe-api-compat?"
+            )
+
+    def _validate_index(self, index: pd.Index) -> None:
+        pd.testing.assert_index_equal(self.column.index, index)
+
+    # In the standard
+    def __column_namespace__(self) -> Any:
+        return dataframe_api_compat.pandas_standard
+
+    @property
+    def name(self) -> str:
+        return self.column.name  # type: ignore[return-value]
+
+    @property
+    def column(self) -> pd.Series[Any]:
+        return self._series
+
+    def __len__(self) -> int:
+        return len(self.column)
+
+    def __iter__(self) -> NoReturn:
+        raise NotImplementedError()
+
+    @property
+    def dtype(self) -> Any:
+        return dataframe_api_compat.pandas_standard.DTYPE_MAP[self.column.dtype.name]
+
+    def get_rows(self, indices: Column[Any]) -> PandasColumn[DType]:
+        return PandasColumn(
+            self.column.iloc[indices.column.to_numpy()], api_version=self._api_version
+        )
+
+    def slice_rows(
+        self, start: int | None, stop: int | None, step: int | None
+    ) -> PandasColumn[DType]:
+        if start is None:
+            start = 0
+        if stop is None:
+            stop = len(self.column)
+        if step is None:
+            step = 1
+        return PandasColumn(
+            self.column.iloc[start:stop:step], api_version=self._api_version
+        )
+
+    def filter(self, mask: Column[Bool]) -> PandasColumn[DType]:
+        series = mask.column
+        self._validate_index(series.index)
+        return PandasColumn(self.column.loc[series], api_version=self._api_version)
+
+    def get_value(self, row: int) -> Any:
+        return self.column.iloc[row]
+
+    def __eq__(  # type: ignore[override]
+        self, other: PandasColumn[DType] | Any
+    ) -> PandasColumn[Bool]:
+        if isinstance(other, PandasColumn):
+            return PandasColumn(
+                self.column == other.column, api_version=self._api_version
+            )
+        return PandasColumn(self.column == other, api_version=self._api_version)
+
+    def __ne__(  # type: ignore[override]
+        self, other: Column[DType]
+    ) -> PandasColumn[Bool]:
+        if isinstance(other, PandasColumn):
+            return PandasColumn(
+                self.column != other.column, api_version=self._api_version
+            )
+        return PandasColumn(self.column != other, api_version=self._api_version)
+
+    def __ge__(self, other: Column[DType] | Any) -> PandasColumn[Bool]:
+        if isinstance(other, PandasColumn):
+            return PandasColumn(
+                self.column >= other.column, api_version=self._api_version
+            )
+        return PandasColumn(self.column >= other, api_version=self._api_version)
+
+    def __gt__(self, other: Column[DType] | Any) -> PandasColumn[Bool]:
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self.column > other.column, api_version=self._api_version)
+        return PandasColumn(self.column > other, api_version=self._api_version)
+
+    def __le__(self, other: Column[DType] | Any) -> PandasColumn[Bool]:
+        if isinstance(other, PandasColumn):
+            return PandasColumn(
+                self.column <= other.column, api_version=self._api_version
+            )
+        return PandasColumn(self.column <= other, api_version=self._api_version)
+
+    def __lt__(self, other: Column[DType] | Any) -> PandasColumn[Bool]:
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self.column < other.column, api_version=self._api_version)
+        return PandasColumn(self.column < other, api_version=self._api_version)
+
+    def __and__(self, other: Column[Bool] | bool) -> PandasColumn[Bool]:
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self.column & other.column, api_version=self._api_version)
+        result = self.column & other  # type: ignore[operator]
+        return PandasColumn(result, api_version=self._api_version)
+
+    def __or__(self, other: Column[Bool] | bool) -> PandasColumn[Bool]:
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self.column | other.column, api_version=self._api_version)
+        return PandasColumn(self.column | other, api_version=self._api_version)  # type: ignore[operator]
+
+    def __add__(self, other: Column[DType] | Any) -> PandasColumn[DType]:
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self.column + other.column, api_version=self._api_version)
+        return PandasColumn(self.column + other, api_version=self._api_version)  # type: ignore[operator]
+
+    def __sub__(self, other: Column[DType] | Any) -> PandasColumn[DType]:
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self.column - other.column, api_version=self._api_version)
+        return PandasColumn(self.column - other, api_version=self._api_version)  # type: ignore[operator]
+
+    def __mul__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self.column * other.column, api_version=self._api_version)
+        return PandasColumn(self.column * other, api_version=self._api_version)  # type: ignore[operator]
+
+    def __truediv__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self.column / other.column, api_version=self._api_version)
+        return PandasColumn(self.column / other, api_version=self._api_version)  # type: ignore[operator]
+
+    def __floordiv__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
+        if isinstance(other, PandasColumn):
+            return PandasColumn(
+                self.column // other.column, api_version=self._api_version
+            )
+        return PandasColumn(self.column // other, api_version=self._api_version)  # type: ignore[operator]
+
+    def __pow__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
+        if isinstance(other, PandasColumn):
+            return PandasColumn(
+                self.column**other.column, api_version=self._api_version
+            )
+        return PandasColumn(self.column**other, api_version=self._api_version)  # type: ignore[operator]
+
+    def __mod__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
+        if isinstance(other, PandasColumn):
+            return PandasColumn(self.column % other.column, api_version=self._api_version)
+        return PandasColumn(self.column % other, api_version=self._api_version)  # type: ignore[operator]
+
+    def __divmod__(
+        self, other: Column[DType] | Any
+    ) -> tuple[PandasColumn[Any], PandasColumn[Any]]:
+        if isinstance(other, PandasColumn):
+            quotient, remainder = self.column.__divmod__(other.column)
+        else:
+            quotient, remainder = self.column.__divmod__(other)
+        return PandasColumn(quotient, api_version=self._api_version), PandasColumn(
+            remainder, api_version=self._api_version
+        )
+
+    def __invert__(self: PandasColumn[Bool]) -> PandasColumn[Bool]:
+        return PandasColumn(~self.column, api_version=self._api_version)
+
+    def any(self, *, skip_nulls: bool = True) -> bool:
+        return self.column.any()
+
+    def all(self, *, skip_nulls: bool = True) -> bool:
+        return self.column.all()
+
+    def min(self, *, skip_nulls: bool = True) -> Any:
+        return self.column.min()
+
+    def max(self, *, skip_nulls: bool = True) -> Any:
+        return self.column.max()
+
+    def sum(self, *, skip_nulls: bool = True) -> Any:
+        return self.column.sum()
+
+    def prod(self, *, skip_nulls: bool = True) -> Any:
+        return self.column.prod()
+
+    def median(self, *, skip_nulls: bool = True) -> Any:
+        return self.column.median()
+
+    def mean(self, *, skip_nulls: bool = True) -> Any:
+        return self.column.mean()
+
+    def std(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
+        return self.column.std()
+
+    def var(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
+        return self.column.var()
+
+    def is_null(self) -> PandasColumn[Bool]:
+        return PandasColumn(self.column.isna(), api_version=self._api_version)
+
+    def is_nan(self) -> PandasColumn[Bool]:
+        if is_extension_array_dtype(self.column.dtype):
+            return PandasColumn(
+                np.isnan(self.column).replace(pd.NA, False).astype(bool),
+                api_version=self._api_version,
+            )
+        return PandasColumn(self.column.isna(), api_version=self._api_version)
+
+    def sorted_indices(
+        self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
+    ) -> PandasColumn[Any]:
+        if ascending:
+            return PandasColumn(
+                pd.Series(self.column.argsort()), api_version=self._api_version
+            )
+        return PandasColumn(
+            pd.Series(self.column.argsort()[::-1]), api_version=self._api_version
+        )
+
+    def sort(
+        self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
+    ) -> PandasColumn[Any]:
+        if self._api_version == "2023.08-beta":
+            raise NotImplementedError("dataframe.sort only available after 2023.08-beta")
+        return PandasColumn(
+            self.column.sort_values(ascending=ascending), api_version=self._api_version
+        )
+
+    def is_in(self, values: Column[DType]) -> PandasColumn[Bool]:
+        if values.dtype != self.dtype:
+            raise ValueError(f"`value` has dtype {values.dtype}, expected {self.dtype}")
+        return PandasColumn(
+            self.column.isin(values.column), api_version=self._api_version
+        )
+
+    def unique_indices(self, *, skip_nulls: bool = True) -> PandasColumn[Any]:
+        return PandasColumn(
+            self.column.drop_duplicates().index.to_series(), api_version=self._api_version
+        )
+
+    def fill_nan(
+        self, value: float | pd.NAType  # type: ignore[name-defined]
+    ) -> PandasColumn[DType]:
+        ser = self.column.copy()
+        ser[cast("pd.Series[bool]", np.isnan(ser)).fillna(False).to_numpy(bool)] = value
+        return PandasColumn(ser, api_version=self._api_version)
+
+    def fill_null(
+        self,
+        value: Any,
+    ) -> PandasColumn[DType]:
+        ser = self.column.copy()
+        if is_extension_array_dtype(ser.dtype):
+            # crazy hack to preserve nan...
+            num = pd.Series(
+                np.where(np.isnan(ser).fillna(False), 0, ser.fillna(value)),
+                dtype=ser.dtype,
+            )
+            other = pd.Series(
+                np.where(np.isnan(ser).fillna(False), 0, 1), dtype=ser.dtype
+            )
+            ser = num / other
+        else:
+            ser = ser.fillna(value)
+        return PandasColumn(pd.Series(ser), api_version=self._api_version)
+
+    def cumulative_sum(self, *, skip_nulls: bool = True) -> PandasColumn[DType]:
+        return PandasColumn(self.column.cumsum(), api_version=self._api_version)
+
+    def cumulative_prod(self, *, skip_nulls: bool = True) -> PandasColumn[DType]:
+        return PandasColumn(self.column.cumprod(), api_version=self._api_version)
+
+    def cumulative_max(self, *, skip_nulls: bool = True) -> PandasColumn[DType]:
+        return PandasColumn(self.column.cummax(), api_version=self._api_version)
+
+    def cumulative_min(self, *, skip_nulls: bool = True) -> PandasColumn[DType]:
+        return PandasColumn(self.column.cummin(), api_version=self._api_version)
+
+    def to_array_object(self, dtype: str) -> Any:
+        if dtype not in _ARRAY_API_DTYPES:
+            raise ValueError(
+                f"Invalid dtype {dtype}. Expected one of {_ARRAY_API_DTYPES}"
+            )
+        return self.column.to_numpy(dtype=dtype)
+
+    def rename(self, name: str | None) -> PandasColumn[DType]:
+        return PandasColumn(self.column.rename(name), api_version=self._api_version)
+
+
 class PandasDataFrame(DataFrame):
     # Not technically part of the standard
 
@@ -471,13 +779,6 @@ class PandasDataFrame(DataFrame):
             pd.concat(columns, axis=1),
             api_version=self._api_version,
         )
-
-    def get_column_by_name(self, name: str) -> Any:
-        # todo, once column is restored
-        return None
-        # if not isinstance(name, str):
-        #     raise ValueError(f"Expected str, got: {type(name)}")
-        # return PandasColumn(self.dataframe.loc[:, name], api_version=self._api_version)
 
     def get_rows(self, indices: Expression) -> PandasDataFrame:
         return PandasDataFrame(

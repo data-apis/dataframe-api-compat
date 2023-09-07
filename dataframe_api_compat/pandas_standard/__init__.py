@@ -8,6 +8,7 @@ import pandas as pd
 
 from dataframe_api_compat.pandas_standard.pandas_standard import LATEST_API_VERSION
 from dataframe_api_compat.pandas_standard.pandas_standard import null
+from dataframe_api_compat.pandas_standard.pandas_standard import PandasColumn
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasDataFrame
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasExpression
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasGroupBy
@@ -127,6 +128,14 @@ def map_standard_dtype_to_pandas_dtype(dtype: Any) -> Any:
     if isinstance(dtype, String):
         return "object"
     raise AssertionError(f"Unknown dtype: {dtype}")
+
+
+def convert_to_standard_compliant_column(
+    ser: pd.Series, api_version: str | None = None
+) -> PandasDataFrame:
+    if api_version is None:
+        api_version = LATEST_API_VERSION
+    return PandasColumn(ser, api_version=api_version)
 
 
 def convert_to_standard_compliant_dataframe(
