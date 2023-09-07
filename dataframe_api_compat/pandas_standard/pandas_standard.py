@@ -69,10 +69,6 @@ else:
         ...
 
 
-def col(label: str):
-    return lambda df: df.loc[:, label]
-
-
 ExtraCall = tuple[
     Callable[[pd.Series, pd.Series | None], pd.Series], pd.Series, pd.Series
 ]
@@ -422,9 +418,14 @@ class PandasColumn(Column[DType]):
                 f"{SUPPORTED_VERSIONS}. "
                 "Try updating dataframe-api-compat?"
             )
+        if column.name is not None and not isinstance(column.name, str):
+            raise ValueError(f"Expected column with string name, got: {column.name}")
 
     def _validate_index(self, index: pd.Index) -> None:
         pd.testing.assert_index_equal(self.column.index, index)
+
+    def _to_expression(self) -> PandasExpression:
+        return PandasExpression(lambda _df: self.column.rename(self.name))
 
     # In the standard
     def __column_namespace__(self) -> Any:
@@ -432,7 +433,7 @@ class PandasColumn(Column[DType]):
 
     @property
     def name(self) -> str:
-        return self.column.name  # type: ignore[return-value]
+        return self.column.name or ""  # type: ignore[return-value]
 
     @property
     def column(self) -> pd.Series[Any]:
@@ -467,9 +468,12 @@ class PandasColumn(Column[DType]):
         )
 
     def filter(self, mask: Column[Bool]) -> PandasColumn[DType]:
-        series = mask.column
-        self._validate_index(series.index)
-        return PandasColumn(self.column.loc[series], api_version=self._api_version)
+        PandasDataFrame(api_version=self._api_version).select(
+            self.to_expression().filter(mask.to_expression())
+        ).get_column_by_name(self.name)
+        # series = mask.column
+        # self._validate_index(series.index)
+        # return PandasColumn(self.column.loc[series], api_version=self._api_version)
 
     def get_value(self, row: int) -> Any:
         return self.column.iloc[row]
@@ -477,82 +481,110 @@ class PandasColumn(Column[DType]):
     def __eq__(  # type: ignore[override]
         self, other: PandasColumn[DType] | Any
     ) -> PandasColumn[Bool]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(
-                self.column == other.column, api_version=self._api_version
-            )
-        return PandasColumn(self.column == other, api_version=self._api_version)
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__eq__(other))
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def __ne__(  # type: ignore[override]
         self, other: Column[DType]
     ) -> PandasColumn[Bool]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(
-                self.column != other.column, api_version=self._api_version
-            )
-        return PandasColumn(self.column != other, api_version=self._api_version)
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__ne__(other))
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def __ge__(self, other: Column[DType] | Any) -> PandasColumn[Bool]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(
-                self.column >= other.column, api_version=self._api_version
-            )
-        return PandasColumn(self.column >= other, api_version=self._api_version)
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__ge__(other))
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def __gt__(self, other: Column[DType] | Any) -> PandasColumn[Bool]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(self.column > other.column, api_version=self._api_version)
-        return PandasColumn(self.column > other, api_version=self._api_version)
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__lt__(other))
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def __le__(self, other: Column[DType] | Any) -> PandasColumn[Bool]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(
-                self.column <= other.column, api_version=self._api_version
-            )
-        return PandasColumn(self.column <= other, api_version=self._api_version)
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__le__(other))
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def __lt__(self, other: Column[DType] | Any) -> PandasColumn[Bool]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(self.column < other.column, api_version=self._api_version)
-        return PandasColumn(self.column < other, api_version=self._api_version)
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__lt__(other))
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def __and__(self, other: Column[Bool] | bool) -> PandasColumn[Bool]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(self.column & other.column, api_version=self._api_version)
-        result = self.column & other  # type: ignore[operator]
-        return PandasColumn(result, api_version=self._api_version)
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__and__(other))
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def __or__(self, other: Column[Bool] | bool) -> PandasColumn[Bool]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(self.column | other.column, api_version=self._api_version)
-        return PandasColumn(self.column | other, api_version=self._api_version)  # type: ignore[operator]
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__or__(other))
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def __add__(self, other: Column[DType] | Any) -> PandasColumn[DType]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(self.column + other.column, api_version=self._api_version)
-        return PandasColumn(self.column + other, api_version=self._api_version)  # type: ignore[operator]
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__add__(other))
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def __sub__(self, other: Column[DType] | Any) -> PandasColumn[DType]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(self.column - other.column, api_version=self._api_version)
-        return PandasColumn(self.column - other, api_version=self._api_version)  # type: ignore[operator]
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__sub__(other))
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def __mul__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(self.column * other.column, api_version=self._api_version)
-        return PandasColumn(self.column * other, api_version=self._api_version)  # type: ignore[operator]
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__mul__(other))
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def __truediv__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(self.column / other.column, api_version=self._api_version)
-        return PandasColumn(self.column / other, api_version=self._api_version)  # type: ignore[operator]
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__truediv__(other))
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def __floordiv__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(
-                self.column // other.column, api_version=self._api_version
-            )
-        return PandasColumn(self.column // other, api_version=self._api_version)  # type: ignore[operator]
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__floordiv__(other))
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def __pow__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
         if isinstance(other, PandasColumn):
