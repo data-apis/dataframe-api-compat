@@ -766,7 +766,9 @@ class PandasDataFrame(DataFrame):
                 raise KeyError(f"key {key} not present in DataFrame's columns")
         return PandasGroupBy(self.dataframe, keys, api_version=self._api_version)
 
-    def select(self, names: PandasExpression | list[PandasExpression]) -> PandasDataFrame:
+    def select(
+        self, names: str | PandasExpression | list[PandasExpression]
+    ) -> PandasDataFrame:
         if not isinstance(names, list):
             names = [names]
         columns = []
@@ -794,8 +796,10 @@ class PandasDataFrame(DataFrame):
         )
 
     def _resolve_expression(
-        self, expression: PandasExpression | pd.Series | object
+        self, expression: PandasExpression | PandasColumn | pd.Series | object
     ) -> pd.Series:
+        if isinstance(expression, PandasColumn):
+            return expression.column
         if not isinstance(expression, PandasExpression):
             # e.g. scalar
             return expression

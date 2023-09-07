@@ -174,7 +174,28 @@ def column_from_sequence(
     sequence: Sequence[Any], *, dtype: Any, name: str, api_version: str | None = None
 ) -> PandasColumn[Any]:
     ser = pd.Series(sequence, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
-    return PandasColumn(ser, api_version=LATEST_API_VERSION)
+    return PandasColumn(ser, api_version=api_version or LATEST_API_VERSION)
+
+
+def dataframe_from_dict(
+    data: dict[str, PandasColumn[Any]], api_version: str | None = None
+) -> PandasDataFrame:
+    for _, col in data.items():
+        if not isinstance(col, PandasColumn):  # pragma: no cover
+            raise TypeError(f"Expected PandasColumn, got {type(col)}")
+    return PandasDataFrame(
+        pd.DataFrame(
+            {label: column.column.rename(label) for label, column in data.items()}
+        ),
+        api_version=api_version or LATEST_API_VERSION,
+    )
+
+
+def column_from_1d_array(
+    data: Any, *, dtype: Any, name: str | None = None, api_version: str | None = None
+) -> PandasColumn[Any]:  # pragma: no cover
+    ser = pd.Series(data, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
+    return PandasColumn(ser, api_version=api_version or LATEST_API_VERSION)
 
 
 def dataframe_from_2d_array(

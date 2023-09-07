@@ -24,7 +24,7 @@ from tests.utils import interchange_to_pandas
 def test_column_from_1d_array(
     library: str, namespace_dtype: str, pandas_dtype: str
 ) -> None:
-    ser = integer_dataframe_1(library).get_column_by_name("a")
+    ser = integer_dataframe_1(library).collect().get_column_by_name("a")
     namespace = ser.__column_namespace__()
     arr = np.array([1, 2, 3])
     result = namespace.dataframe_from_dict(
@@ -48,7 +48,7 @@ def test_column_from_1d_array(
 def test_column_from_1d_array_string(
     library: str, namespace_dtype: str, pandas_dtype: str
 ) -> None:
-    ser = integer_dataframe_1(library).get_column_by_name("a")
+    ser = integer_dataframe_1(library).collect().get_column_by_name("a")
     namespace = ser.__column_namespace__()
     arr = np.array(["a", "b", "c"])
     result = namespace.dataframe_from_dict(

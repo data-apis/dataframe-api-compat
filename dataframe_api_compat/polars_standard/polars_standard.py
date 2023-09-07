@@ -705,7 +705,7 @@ class PolarsExpression:
             api_version=self._api_version,
         )
 
-    def get_rows_by_mask(self, mask: PolarsExpression) -> PolarsExpression:
+    def filter(self, mask: PolarsExpression) -> PolarsExpression:
         return PolarsExpression(
             self.column.filter(mask.column), dtype=self._dtype, id_=self._id, api_version=self._api_version  # type: ignore[arg-type]
         )
@@ -1309,9 +1309,8 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(self.df.select(names), api_version=self._api_version)
 
     def get_rows(self, indices: PolarsColumn[Any]) -> PolarsDataFrame:  # type: ignore[override]
-        self._validate_column(indices)
         return PolarsDataFrame(
-            self.dataframe.select(pl.all().take(indices._expr)),
+            self.dataframe.select(pl.all().take(indices.column)),
             api_version=self._api_version,
         )
 

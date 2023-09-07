@@ -1,17 +1,13 @@
 from __future__ import annotations
 
 import pandas as pd
-import pytest
 
 from tests.utils import integer_dataframe_1
 from tests.utils import interchange_to_pandas
 
 
-def test_column_get_rows(library: str, request: pytest.FixtureRequest) -> None:
-    if library == "polars-lazy":
-        # lazy column.get_rows not generally supported
-        request.node.add_marker(pytest.mark.xfail())
-    df = integer_dataframe_1(library)
+def test_column_get_rows(library: str) -> None:
+    df = integer_dataframe_1(library).collect()
     ser = df.get_column_by_name("a")
     namespace = ser.__column_namespace__()
     indices = namespace.column_from_sequence(

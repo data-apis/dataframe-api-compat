@@ -154,9 +154,7 @@ def column_from_1d_array(
     data: Any, *, dtype: Any, name: str, api_version: str | None = None
 ) -> PolarsColumn[Any]:  # pragma: no cover
     ser = pl.Series(values=data, dtype=_map_standard_to_polars_dtypes(dtype), name=name)
-    return PolarsColumn(
-        ser, dtype=ser.dtype, id_=None, api_version=api_version or LATEST_API_VERSION
-    )
+    return PolarsColumn(ser, api_version=api_version or LATEST_API_VERSION)
 
 
 def column_from_sequence(
@@ -170,8 +168,6 @@ def column_from_sequence(
         pl.Series(
             values=sequence, dtype=_map_standard_to_polars_dtypes(dtype), name=name
         ),
-        dtype=_map_standard_to_polars_dtypes(dtype),
-        id_=None,
         api_version=api_version or LATEST_API_VERSION,
     )
 

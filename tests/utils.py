@@ -341,10 +341,14 @@ def integer_series_5(library: str, request: pytest.FixtureRequest) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1, 1, 4]}, dtype="int64")
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
+        return (
+            convert_to_standard_compliant_dataframe(df).collect().get_column_by_name("a")
+        )
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1, 1, 4]}, dtype="Int64")
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
+        return (
+            convert_to_standard_compliant_dataframe(df).collect().get_column_by_name("a")
+        )
     if library == "polars-lazy":
         request.node.add_marker(pytest.mark.xfail())
     raise AssertionError(f"Got unexpected library: {library}")
