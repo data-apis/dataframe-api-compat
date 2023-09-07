@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 import pandas as pd
 import pytest
 
-from tests.utils import convert_series_to_pandas_numpy
 from tests.utils import float_dataframe_1
 from tests.utils import float_dataframe_2
 from tests.utils import float_dataframe_3
@@ -36,7 +35,6 @@ def test_is_in(
     other = ser + 1
     result = df.insert(0, "result", ser.is_in(other))
     result_pd = interchange_to_pandas(result, library)["result"]
-    result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series(expected_values, name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 

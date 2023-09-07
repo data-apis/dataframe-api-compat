@@ -5,7 +5,6 @@ from typing import Any
 import pandas as pd
 import pytest
 
-from tests.utils import convert_series_to_pandas_numpy
 from tests.utils import integer_dataframe_3
 from tests.utils import interchange_to_pandas
 
@@ -34,5 +33,4 @@ def test_column_slice_rows(
     result_pd = interchange_to_pandas(
         namespace.dataframe_from_dict({"result": (result).rename("result")}), library
     )["result"]
-    result_pd = convert_series_to_pandas_numpy(result_pd)
     pd.testing.assert_series_equal(result_pd, expected)

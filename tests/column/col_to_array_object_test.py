@@ -5,6 +5,7 @@ import pytest
 
 from tests.utils import bool_series_1
 from tests.utils import integer_dataframe_1
+from tests.utils import integer_series_1
 
 
 @pytest.mark.parametrize(
@@ -53,3 +54,5 @@ def test_column_to_array_object_invalid(
         np.asarray(df.to_array_object(dtype=dtype))
     with pytest.raises((ValueError, NotImplementedError)):
         np.asarray(df.get_column_by_name("a").to_array_object(dtype=dtype))
+    with pytest.raises(ValueError):
+        np.asarray(integer_series_1(library).to_array_object(dtype=dtype))

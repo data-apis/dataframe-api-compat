@@ -871,15 +871,8 @@ class PolarsDataFrame(DataFrame):
 
     def get_column_by_name(self, name: str) -> PolarsColumn[DType]:
         dtype = self.dataframe.schema[name]
-        if isinstance(self.dataframe, pl.LazyFrame):
-            return PolarsColumn(
-                pl.col(name), dtype=dtype, id_=self._id, api_version=self._api_version
-            )
         return PolarsColumn(
-            self.dataframe.get_column(name),
-            dtype=dtype,
-            id_=self._id,
-            api_version=self._api_version,
+            pl.col(name), dtype=dtype, id_=self._id, api_version=self._api_version
         )
 
     def select(self, names: Sequence[str]) -> PolarsDataFrame:
@@ -1110,28 +1103,14 @@ class PolarsDataFrame(DataFrame):
 
     def any_rowwise(self, *, skip_nulls: bool = True) -> PolarsColumn[Bool]:
         expr = pl.any_horizontal(pl.col("*"))
-        if isinstance(self.dataframe, pl.LazyFrame):
-            return PolarsColumn(
-                expr, id_=self._id, dtype=pl.Boolean(), api_version=self._api_version
-            )
         return PolarsColumn(
-            self.dataframe.select(expr).get_column("any"),
-            dtype=pl.Boolean(),
-            id_=self._id,
-            api_version=self._api_version,
+            expr, id_=self._id, dtype=pl.Boolean(), api_version=self._api_version
         )
 
     def all_rowwise(self, *, skip_nulls: bool = True) -> PolarsColumn[Bool]:
         expr = pl.all_horizontal(pl.col("*"))
-        if isinstance(self.dataframe, pl.LazyFrame):
-            return PolarsColumn(
-                expr, id_=self._id, dtype=pl.Boolean(), api_version=self._api_version
-            )
         return PolarsColumn(
-            self.dataframe.select(expr).get_column("all"),
-            dtype=pl.Boolean(),
-            id_=self._id,
-            api_version=self._api_version,
+            expr, id_=self._id, dtype=pl.Boolean(), api_version=self._api_version
         )
 
     def min(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
@@ -1188,15 +1167,8 @@ class PolarsDataFrame(DataFrame):
         if keys is None:
             keys = self.dataframe.columns
         expr = pl.arg_sort_by(keys, descending=not ascending)
-        if isinstance(self.dataframe, pl.LazyFrame):
-            return PolarsColumn(
-                expr,
-                dtype=pl.UInt32(),
-                id_=self._id,
-                api_version=self._api_version,
-            )
         return PolarsColumn(
-            self.dataframe.select(expr.alias("idx"))["idx"],
+            expr,
             dtype=pl.UInt32(),
             id_=self._id,
             api_version=self._api_version,
@@ -1223,16 +1195,7 @@ class PolarsDataFrame(DataFrame):
         df = self.dataframe
         if keys is None:
             keys = df.columns
-        if isinstance(df, pl.LazyFrame):
-            raise NotImplementedError(
-                "unique_indices is not yet supported for lazyframes"
-            )
-        return PolarsColumn(
-            df.with_row_count().unique(keys).get_column("row_nr"),
-            dtype=pl.UInt32(),
-            id_=self._id,
-            api_version=self._api_version,
-        )
+        raise NotImplementedError("unique_indices is not yet supported for lazyframes")
 
     def fill_nan(
         self,
@@ -1260,10 +1223,8 @@ class PolarsDataFrame(DataFrame):
             raise ValueError(
                 f"Invalid dtype {dtype}. Expected one of {_ARRAY_API_DTYPES}"
             )
-        if isinstance(self.dataframe, pl.LazyFrame):
-            # todo - document this in the spec?
-            return self.dataframe.collect().to_numpy().astype(dtype)
-        return self.dataframe.to_numpy().astype(dtype)
+        # uurrggghhhh...we REALLY need to change this
+        return self.dataframe.collect().to_numpy().astype(dtype)
 
     def join(
         self,

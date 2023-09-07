@@ -3,7 +3,6 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from tests.utils import convert_series_to_pandas_numpy
 from tests.utils import integer_dataframe_1
 from tests.utils import integer_series_1
 from tests.utils import interchange_to_pandas
@@ -30,9 +29,7 @@ def test_column_reductions(
     ser = ser - getattr(ser, reduction)()
     result = df.insert(0, "result", ser)
     result_pd = interchange_to_pandas(result, library)["result"]
-    result_pd = convert_series_to_pandas_numpy(result_pd)
     ser_pd = interchange_to_pandas(df, library)["a"].rename("result")
-    ser_pd = convert_series_to_pandas_numpy(ser_pd)
     expected_pd = ser_pd - expected
     pd.testing.assert_series_equal(result_pd, expected_pd)
 
@@ -58,8 +55,6 @@ def test_column_reference_reductions(
     ser = ser - getattr(ser, reduction)()
     result = df.insert(0, "result", ser)
     result_pd = interchange_to_pandas(result, library)["result"]
-    result_pd = convert_series_to_pandas_numpy(result_pd)
     ser_pd = interchange_to_pandas(df, library)["a"].rename("result")
-    ser_pd = convert_series_to_pandas_numpy(ser_pd)
     expected_pd = ser_pd - expected
     pd.testing.assert_series_equal(result_pd, expected_pd)

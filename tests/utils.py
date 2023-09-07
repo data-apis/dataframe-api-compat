@@ -66,27 +66,6 @@ def convert_dataframe_to_pandas_numpy(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def convert_series_to_pandas_numpy(ser: pd.Series) -> pd.Series:  # type: ignore[type-arg]
-    conversions = {
-        "boolean": "bool",
-        "Int64": "int64",
-        "Int32": "int32",
-        "Int16": "int16",
-        "Int8": "int8",
-        "UInt64": "uint64",
-        "UInt32": "uint32",
-        "UInt16": "uint16",
-        "UInt8": "uint8",
-        "Float64": "float64",
-        "Float32": "float32",
-        "string": "object",
-    }
-    for nullable, numpy in conversions.items():
-        if ser.dtype == nullable:
-            ser = ser.astype(numpy)  # type: ignore[call-overload]
-    return ser
-
-
 def integer_dataframe_1(library: str, api_version: str | None = None) -> Any:
     df: Any
     if library == "pandas-numpy":
