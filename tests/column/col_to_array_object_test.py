@@ -36,11 +36,9 @@ def test_column_to_array_object(
     np.testing.assert_array_equal(result, expected)
 
 
-def test_column_to_array_object_bool(
-    library: str, request: pytest.FixtureRequest
-) -> None:
+def test_column_to_array_object_bool(library: str) -> None:
     dtype = "bool"
-    df = bool_series_1(library, request)
+    df = bool_series_1(library)
     result = np.asarray(df.to_array_object(dtype=dtype))
     expected = np.array([True, False, True], dtype="bool")
     np.testing.assert_array_equal(result, expected)

@@ -394,7 +394,7 @@ def float_dataframe_3(library: str, request: pytest.FixtureRequest) -> object:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def bool_series_1(library: str, request: pytest.FixtureRequest) -> Any:
+def bool_series_1(library: str) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [True, False, True]}, dtype="bool")
@@ -403,7 +403,8 @@ def bool_series_1(library: str, request: pytest.FixtureRequest) -> Any:
         df = pd.DataFrame({"a": [True, False, True]}, dtype="boolean")
         return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
     if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
+        ser = pl.Series("a", [True, False, True])
+        return convert_to_standard_compliant_column(ser)
     raise AssertionError(f"Got unexpected library: {library}")
 
 

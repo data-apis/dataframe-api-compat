@@ -1,20 +1,15 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from tests.utils import bool_series_1
 
-if TYPE_CHECKING:
-    import pytest
 
-
-def test_column_any(library: str, request: pytest.FixtureRequest) -> None:
-    ser = bool_series_1(library, request)
+def test_column_any(library: str) -> None:
+    ser = bool_series_1(library)
     result = ser.any()
     assert result
 
 
-def test_column_all(library: str, request: pytest.FixtureRequest) -> None:
-    ser = bool_series_1(library, request)
+def test_column_all(library: str) -> None:
+    ser = bool_series_1(library)
     result = ser.all()
     assert not result
