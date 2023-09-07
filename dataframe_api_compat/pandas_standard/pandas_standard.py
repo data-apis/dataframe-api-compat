@@ -131,6 +131,12 @@ class PandasExpression(Expression):
     def __lt__(self, other: Expression | Any) -> PandasExpression:
         return self._record_call(lambda ser, other: ser < other, other)
 
+    def any(self) -> PandasExpression:
+        return self._record_call(lambda ser, _rhs: ser.any(), None)
+
+    def all(self) -> PandasExpression:
+        return self._record_call(lambda ser, _rhs: ser.all(), None)
+
     def __and__(self, other: Expression | bool) -> PandasExpression:
         return self._record_call(lambda ser, other: ser & other, other)
 
@@ -469,11 +475,8 @@ class PandasColumn(Column[DType]):
 
     def filter(self, mask: Column[Bool]) -> PandasColumn[DType]:
         PandasDataFrame(api_version=self._api_version).select(
-            self.to_expression().filter(mask.to_expression())
+            self.to_expression().filter(mask)
         ).get_column_by_name(self.name)
-        # series = mask.column
-        # self._validate_index(series.index)
-        # return PandasColumn(self.column.loc[series], api_version=self._api_version)
 
     def get_value(self, row: int) -> Any:
         return self.column.iloc[row]
@@ -587,16 +590,20 @@ class PandasColumn(Column[DType]):
         )
 
     def __pow__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(
-                self.column**other.column, api_version=self._api_version
-            )
-        return PandasColumn(self.column**other, api_version=self._api_version)  # type: ignore[operator]
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__pow__(other))
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def __mod__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(self.column % other.column, api_version=self._api_version)
-        return PandasColumn(self.column % other, api_version=self._api_version)  # type: ignore[operator]
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__mod__(other))
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def __divmod__(
         self, other: Column[DType] | Any
@@ -610,37 +617,93 @@ class PandasColumn(Column[DType]):
         )
 
     def __invert__(self: PandasColumn[Bool]) -> PandasColumn[Bool]:
-        return PandasColumn(~self.column, api_version=self._api_version)
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__invert__())
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def any(self, *, skip_nulls: bool = True) -> bool:
-        return self.column.any()
+        # may need to do some bradcasting?
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().any())
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def all(self, *, skip_nulls: bool = True) -> bool:
-        return self.column.all()
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().all())
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def min(self, *, skip_nulls: bool = True) -> Any:
-        return self.column.min()
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__min__())
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def max(self, *, skip_nulls: bool = True) -> Any:
-        return self.column.max()
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__max__())
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def sum(self, *, skip_nulls: bool = True) -> Any:
-        return self.column.sum()
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__sum__())
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def prod(self, *, skip_nulls: bool = True) -> Any:
-        return self.column.prod()
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__prod__())
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def median(self, *, skip_nulls: bool = True) -> Any:
-        return self.column.median()
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__median__())
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def mean(self, *, skip_nulls: bool = True) -> Any:
-        return self.column.mean()
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__mean__())
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def std(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
-        return self.column.std()
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__std__())
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def var(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
-        return self.column.var()
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(self._to_expression().__var__())
+            .collect()
+            .get_column_by_name(self.name)
+        )
 
     def is_null(self) -> PandasColumn[Bool]:
         return PandasColumn(self.column.isna(), api_version=self._api_version)
