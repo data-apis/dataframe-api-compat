@@ -23,9 +23,7 @@ from tests.utils import integer_series_1
         "float64",
     ],
 )
-def test_column_to_array_object(
-    library: str, dtype: str, request: pytest.FixtureRequest
-) -> None:
+def test_column_to_array_object(library: str, dtype: str) -> None:
     ser = integer_series_1(library)
     result = np.asarray(ser.to_array_object(dtype=dtype))
     expected = np.array([1, 2, 3], dtype=np.int64)

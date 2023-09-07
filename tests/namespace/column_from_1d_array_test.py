@@ -11,6 +11,8 @@ from tests.utils import interchange_to_pandas
 @pytest.mark.parametrize(
     ("namespace_dtype", "pandas_dtype"),
     [
+        ("Float64", "float64"),
+        ("Float32", "float32"),
         ("Int64", "int64"),
         ("Int32", "int32"),
         ("Int16", "int16"),
@@ -60,6 +62,30 @@ def test_column_from_1d_array_string(
     )
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series(["a", "b", "c"], name="result", dtype=pandas_dtype)
+    pd.testing.assert_series_equal(result_pd, expected)
+
+
+@pytest.mark.parametrize(
+    ("namespace_dtype", "pandas_dtype"),
+    [
+        ("Bool", "bool"),
+    ],
+)
+def test_column_from_1d_array_bool(
+    library: str, namespace_dtype: str, pandas_dtype: str
+) -> None:
+    ser = integer_dataframe_1(library).collect().get_column_by_name("a")
+    namespace = ser.__column_namespace__()
+    arr = np.array([True, False, True])
+    result = namespace.dataframe_from_dict(
+        {
+            "result": namespace.column_from_1d_array(
+                arr, name="result", dtype=getattr(namespace, namespace_dtype)()
+            )
+        }
+    )
+    result_pd = interchange_to_pandas(result, library)["result"]
+    expected = pd.Series([True, False, True], name="result", dtype=pandas_dtype)
     pd.testing.assert_series_equal(result_pd, expected)
 
 
