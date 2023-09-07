@@ -80,7 +80,7 @@ def remove_outliers(df, column):
     # Use methods from the Standard specification.
     col = df_standard.get_column_by_name(column)
     z_score = (col - col.mean()) / col.std()
-    df_standard_filtered = df_standard.get_rows_by_mask((z_score > -3) & (z_score < 3))
+    df_standard_filtered = df_standard.filter((z_score > -3) & (z_score < 3))
     # Return the result as a DataFrame from the original library.
     return df_standard_filtered.dataframe
 ```

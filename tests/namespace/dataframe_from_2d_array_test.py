@@ -9,9 +9,7 @@ from tests.utils import integer_dataframe_1
 from tests.utils import interchange_to_pandas
 
 
-def test_dataframe_from_2d_array(library: str, request: pytest.FixtureRequest) -> None:
-    if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
+def test_dataframe_from_2d_array(library: str) -> None:
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
     arr = np.array([[1, 4], [2, 5], [3, 6]])

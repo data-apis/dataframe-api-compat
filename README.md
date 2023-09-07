@@ -47,12 +47,12 @@ This is mostly compliant. Notable differences:
   Not allowed:
   ```python
   mask = df2.get_column_by_name('a') > 0
-  df1.get_rows_by_mask(mask)
+  df1.filter(mask)
   ```
   Allowed:
   ```python
   mask = df1.get_column_by_name('a') > 0
-  df1.get_rows_by_mask(mask)
+  df1.filter(mask)
   ```
 - for polars lazy, comparisons between different dataframes are not implemented.
 

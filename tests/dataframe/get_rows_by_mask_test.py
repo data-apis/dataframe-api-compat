@@ -7,7 +7,7 @@ from tests.utils import integer_dataframe_1
 from tests.utils import interchange_to_pandas
 
 
-def test_get_rows_by_mask(library: str) -> None:
+def test_filter(library: str) -> None:
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
     mask = namespace.col("a") % 2 == 1

@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 import pandas as pd
 
 from tests.utils import bool_dataframe_1
-from tests.utils import convert_series_to_pandas_numpy
 from tests.utils import interchange_to_pandas
 
 if TYPE_CHECKING:
@@ -19,7 +18,6 @@ def test_column_and(library: str) -> None:
     other = namespace.col("b")
     result = df.insert_column((ser & other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
-    result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series([True, True, False], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 
@@ -31,7 +29,6 @@ def test_column_or(library: str) -> None:
     other = namespace.col("b")
     result = df.insert_column((ser | other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
-    result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series([True, True, True], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 
@@ -43,7 +40,6 @@ def test_column_and_with_scalar(library: str, request: pytest.FixtureRequest) ->
     other = True
     result = df.insert_column((ser & other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
-    result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series([True, True, False], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 
@@ -55,6 +51,5 @@ def test_column_or_with_scalar(library: str, request: pytest.FixtureRequest) -> 
     other = True
     result = df.insert_column((ser | other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
-    result_pd = convert_series_to_pandas_numpy(result_pd)
     expected = pd.Series([True, True, True], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
