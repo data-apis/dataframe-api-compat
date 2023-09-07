@@ -170,6 +170,13 @@ def concat(dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:
     )
 
 
+def column_from_sequence(
+    sequence: Sequence[Any], *, dtype: Any, name: str, api_version: str | None = None
+) -> PandasColumn[Any]:
+    ser = pd.Series(sequence, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
+    return PandasColumn(ser, api_version=LATEST_API_VERSION)
+
+
 def dataframe_from_2d_array(
     data: Any,
     *,

@@ -159,6 +159,23 @@ def column_from_1d_array(
     )
 
 
+def column_from_sequence(
+    sequence: Sequence[Any],
+    *,
+    dtype: Any,
+    name: str | None = None,
+    api_version: str | None = None,
+) -> PolarsColumn[Any]:
+    return PolarsColumn(
+        pl.Series(
+            values=sequence, dtype=_map_standard_to_polars_dtypes(dtype), name=name
+        ),
+        dtype=_map_standard_to_polars_dtypes(dtype),
+        id_=None,
+        api_version=api_version or LATEST_API_VERSION,
+    )
+
+
 def dataframe_from_2d_array(
     data: Any,
     *,
