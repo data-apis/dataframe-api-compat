@@ -110,7 +110,8 @@ class PolarsColumn(Column[DType]):
             )
         self._api_version = api_version
 
-    def _validate_column(self, column: PolarsColumn[Any]) -> None:
+    def _validate_column(self, column: PolarsColumn[Any] | Column[Any]) -> None:
+        assert isinstance(column, PolarsColumn)
         if isinstance(column.column, pl.Expr) and column._id != self._id:
             raise ValueError(
                 "Column was created from a different dataframe!",
@@ -170,10 +171,13 @@ class PolarsColumn(Column[DType]):
             api_version=self._api_version,
         )
 
-    def filter(self, mask: PolarsColumn[Bool]) -> PolarsColumn[DType]:
+    def filter(self, mask: Column[Bool]) -> PolarsColumn[DType]:
         self._validate_column(mask)
         return PolarsColumn(
-            self.column.filter(mask.column), dtype=self._dtype, id_=self._id, api_version=self._api_version  # type: ignore[arg-type]
+            self.column.filter(mask.column),
+            dtype=self._dtype,
+            id_=self._id,
+            api_version=self._api_version,
         )
 
     def get_value(self, row: int) -> Any:
@@ -759,9 +763,7 @@ class PolarsColumn(Column[DType]):
 
 
 class PolarsGroupBy(GroupBy):
-    def __init__(
-        self, df: pl.DataFrame | pl.LazyFrame, keys: Sequence[str], api_version: str
-    ) -> None:
+    def __init__(self, df: pl.LazyFrame, keys: Sequence[str], api_version: str) -> None:
         for key in keys:
             if key not in df.columns:
                 raise KeyError(f"key {key} not present in DataFrame's columns")
@@ -834,7 +836,7 @@ class PolarsGroupBy(GroupBy):
 
 
 class PolarsDataFrame(DataFrame):
-    def __init__(self, df: pl.DataFrame | pl.LazyFrame, api_version: str) -> None:
+    def __init__(self, df: pl.LazyFrame, api_version: str) -> None:
         # columns already have to be strings, and duplicates aren't
         # allowed, so no validation required
         if df is NotImplemented:
@@ -861,11 +863,8 @@ class PolarsDataFrame(DataFrame):
         return dataframe_api_compat.polars_standard
 
     @property
-    def dataframe(self) -> pl.DataFrame | pl.LazyFrame:
+    def dataframe(self) -> pl.LazyFrame:
         return self.df
-
-    def shape(self) -> tuple[int, int]:
-        return self.df.shape  # type: ignore[union-attr]
 
     def groupby(self, keys: Sequence[str]) -> PolarsGroupBy:
         return PolarsGroupBy(self.df, keys, api_version=self._api_version)
@@ -1052,10 +1051,7 @@ class PolarsDataFrame(DataFrame):
     def __pow__(self, other: Any) -> PolarsDataFrame:
         original_type = self.dataframe.schema
         ret = self.dataframe.select(
-            [
-                pl.col(col).pow(other)  # type: ignore[arg-type]
-                for col in self.get_column_names()
-            ]
+            [pl.col(col).pow(other) for col in self.get_column_names()]
         )
         for column in self.dataframe.columns:
             if _is_integer_dtype(original_type[column]) and isinstance(other, int):
@@ -1271,11 +1267,11 @@ class PolarsDataFrame(DataFrame):
 
     def join(
         self,
-        other: PolarsDataFrame,
+        other: DataFrame,
         left_on: str | list[str],
         right_on: str | list[str],
         how: Literal["left", "inner", "outer"],
-    ):
+    ) -> PolarsDataFrame:
         if how not in ["left", "inner", "outer"]:
             raise ValueError(f"Expected 'left', 'inner', 'outer', got: {how}")
 
@@ -1287,6 +1283,7 @@ class PolarsDataFrame(DataFrame):
         # need to do some extra work to preserve all names
         # https://github.com/pola-rs/polars/issues/9335
         extra_right_keys = set(right_on).difference(left_on)
+        assert isinstance(other, PolarsDataFrame)
         other_df = other.dataframe
         # todo: make more robust
         other_df = other_df.with_columns(

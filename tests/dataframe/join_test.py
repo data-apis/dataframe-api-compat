@@ -8,7 +8,7 @@ from tests.utils import integer_dataframe_2
 from tests.utils import interchange_to_pandas
 
 
-def test_join_left(library: str):
+def test_join_left(library: str) -> None:
     left = integer_dataframe_1(library)
     right = integer_dataframe_2(library).rename_columns({"b": "c"})
     result = left.join(right, left_on="a", right_on="a", how="left")
@@ -19,7 +19,7 @@ def test_join_left(library: str):
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_join_inner(library: str):
+def test_join_inner(library: str) -> None:
     left = integer_dataframe_1(library)
     right = integer_dataframe_2(library).rename_columns({"b": "c"})
     result = left.join(right, left_on="a", right_on="a", how="inner")
@@ -28,7 +28,7 @@ def test_join_inner(library: str):
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_join_outer(library: str):
+def test_join_outer(library: str) -> None:
     left = integer_dataframe_1(library)
     right = integer_dataframe_2(library).rename_columns({"b": "c"})
     result = left.join(right, left_on="a", right_on="a", how="outer").sort("a")
@@ -43,7 +43,7 @@ def test_join_outer(library: str):
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_join_two_keys(library: str):
+def test_join_two_keys(library: str) -> None:
     left = integer_dataframe_1(library)
     right = integer_dataframe_2(library).rename_columns({"b": "c"})
     result = left.join(right, left_on=["a", "b"], right_on=["a", "c"], how="left")
@@ -54,7 +54,7 @@ def test_join_two_keys(library: str):
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_join_invalid(library: str):
+def test_join_invalid(library: str) -> None:
     left = integer_dataframe_1(library)
     right = integer_dataframe_2(library).rename_columns({"b": "c"})
     with pytest.raises(ValueError):

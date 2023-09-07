@@ -126,7 +126,7 @@ def concat(dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
         api_versions.add(_df._api_version)
     if len(api_versions) > 1:  # pragma: no cover
         raise ValueError(f"Multiple api versions found: {api_versions}")
-    return PolarsDataFrame(pl.concat(dfs), api_version=api_versions.pop())  # type: ignore[type-var]
+    return PolarsDataFrame(pl.concat(dfs), api_version=api_versions.pop())
 
 
 def dataframe_from_dict(
@@ -142,7 +142,7 @@ def dataframe_from_dict(
     return PolarsDataFrame(
         pl.DataFrame(
             {label: column.column.rename(label) for label, column in data.items()}  # type: ignore[union-attr]
-        ),
+        ).lazy(),
         api_version=api_version or LATEST_API_VERSION,
     )
 
@@ -168,7 +168,7 @@ def dataframe_from_2d_array(
         schema={
             key: _map_standard_to_polars_dtypes(value) for key, value in dtypes.items()
         },
-    )
+    ).lazy()
     return PolarsDataFrame(df, api_version=api_version or LATEST_API_VERSION)
 
 
@@ -192,7 +192,8 @@ def column_from_sequence(
 def convert_to_standard_compliant_dataframe(
     df: pl.DataFrame | pl.LazyFrame, api_version: str | None = None
 ) -> PolarsDataFrame:
-    return PolarsDataFrame(df, api_version=api_version or LATEST_API_VERSION)
+    df_lazy = df.lazy() if isinstance(df, pl.DataFrame) else df
+    return PolarsDataFrame(df_lazy, api_version=api_version or LATEST_API_VERSION)
 
 
 def convert_to_standard_compliant_column(

@@ -908,13 +908,14 @@ class PandasDataFrame(DataFrame):
 
     def join(
         self,
-        other,
+        other: DataFrame,
         left_on: str | list[str],
         right_on: str | list[str],
         how: Literal["left", "inner", "outer"],
-    ):
+    ) -> PandasDataFrame:
         if how not in ["left", "inner", "outer"]:
             raise ValueError(f"Expected 'left', 'inner', 'outer', got: {how}")
+        assert isinstance(other, PandasDataFrame)
         return PandasDataFrame(
             self.dataframe.merge(
                 other.dataframe, left_on=left_on, right_on=right_on, how=how

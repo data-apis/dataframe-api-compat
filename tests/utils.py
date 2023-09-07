@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+from typing import cast
 
 import pandas as pd
 import polars as pl
@@ -21,9 +22,10 @@ def convert_to_standard_compliant_dataframe(
             )
         )
     elif isinstance(df, (pl.DataFrame, pl.LazyFrame)):
+        df_lazy = df.lazy() if isinstance(df, pl.DataFrame) else df
         return (
             dataframe_api_compat.polars_standard.convert_to_standard_compliant_dataframe(
-                df, api_version=api_version
+                df_lazy, api_version=api_version
             )
         )
     else:
@@ -474,7 +476,7 @@ def interchange_to_pandas(result: Any, library: str) -> pd.DataFrame:
     df = result.dataframe.collect() if library == "polars-lazy" else result.dataframe
     df = pd.api.interchange.from_dataframe(df)
     df = convert_dataframe_to_pandas_numpy(df)
-    return df
+    return cast(pd.DataFrame, df)
 
 
 def maybe_collect(result: Any, library: str) -> Any:
