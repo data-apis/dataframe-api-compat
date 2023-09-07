@@ -170,7 +170,7 @@ class PolarsColumn(Column[DType]):
             api_version=self._api_version,
         )
 
-    def get_rows_by_mask(self, mask: PolarsColumn[Bool]) -> PolarsColumn[DType]:
+    def filter(self, mask: PolarsColumn[Bool]) -> PolarsColumn[DType]:
         self._validate_column(mask)
         return PolarsColumn(
             self.column.filter(mask.column), dtype=self._dtype, id_=self._id, api_version=self._api_version  # type: ignore[arg-type]
@@ -883,7 +883,7 @@ class PolarsDataFrame(DataFrame):
             api_version=self._api_version,
         )
 
-    def get_columns_by_name(self, names: Sequence[str]) -> PolarsDataFrame:
+    def select(self, names: Sequence[str]) -> PolarsDataFrame:
         if isinstance(names, str):
             raise TypeError(f"Expected sequence of str, got {type(names)}")
         return PolarsDataFrame(self.df.select(names), api_version=self._api_version)
@@ -900,7 +900,7 @@ class PolarsDataFrame(DataFrame):
     ) -> PolarsDataFrame:
         return PolarsDataFrame(self.df[start:stop:step], api_version=self._api_version)
 
-    def get_rows_by_mask(self, mask: Column[Bool]) -> PolarsDataFrame:
+    def filter(self, mask: Column[Bool]) -> PolarsDataFrame:
         self._validate_column(mask)  # type: ignore[arg-type]
         return PolarsDataFrame(self.df.filter(mask.column), api_version=self._api_version)
 
@@ -1213,8 +1213,6 @@ class PolarsDataFrame(DataFrame):
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
     ) -> PolarsDataFrame:
-        if self._api_version == "2023.08-beta":
-            raise NotImplementedError("dataframe.sort only available after 2023.08-beta")
         if keys is None:
             keys = self.dataframe.columns
         # TODO: what if there's multiple `ascending`?
@@ -1270,3 +1268,33 @@ class PolarsDataFrame(DataFrame):
             # todo - document this in the spec?
             return self.dataframe.collect().to_numpy().astype(dtype)
         return self.dataframe.to_numpy().astype(dtype)
+
+    def join(
+        self,
+        other: PolarsDataFrame,
+        left_on: str | list[str],
+        right_on: str | list[str],
+        how: Literal["left", "inner", "outer"],
+    ):
+        if how not in ["left", "inner", "outer"]:
+            raise ValueError(f"Expected 'left', 'inner', 'outer', got: {how}")
+
+        if isinstance(left_on, str):
+            left_on = [left_on]
+        if isinstance(right_on, str):
+            right_on = [right_on]
+
+        # need to do some extra work to preserve all names
+        # https://github.com/pola-rs/polars/issues/9335
+        extra_right_keys = set(right_on).difference(left_on)
+        other_df = other.dataframe
+        # todo: make more robust
+        other_df = other_df.with_columns(
+            [pl.col(i).alias(f"{i}_tmp") for i in extra_right_keys]
+        )
+        result = self.dataframe.join(
+            other_df, left_on=left_on, right_on=right_on, how=how
+        )
+        result = result.rename({f"{i}_tmp": i for i in extra_right_keys})
+
+        return PolarsDataFrame(result, api_version=self._api_version)

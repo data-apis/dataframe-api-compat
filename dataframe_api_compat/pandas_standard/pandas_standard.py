@@ -124,7 +124,7 @@ class PandasColumn(Column[DType]):
             self.column.iloc[start:stop:step], api_version=self._api_version
         )
 
-    def get_rows_by_mask(self, mask: Column[Bool]) -> PandasColumn[DType]:
+    def filter(self, mask: Column[Bool]) -> PandasColumn[DType]:
         series = mask.column
         self._validate_index(series.index)
         return PandasColumn(self.column.loc[series], api_version=self._api_version)
@@ -526,7 +526,7 @@ class PandasDataFrame(DataFrame):
             raise ValueError(f"Expected str, got: {type(name)}")
         return PandasColumn(self.dataframe.loc[:, name], api_version=self._api_version)
 
-    def get_columns_by_name(self, names: Sequence[str]) -> PandasDataFrame:
+    def select(self, names: Sequence[str]) -> PandasDataFrame:
         if isinstance(names, str):
             raise TypeError(f"Expected sequence of str, got {type(names)}")
         self._validate_columns(names)
@@ -552,7 +552,7 @@ class PandasDataFrame(DataFrame):
             self.dataframe.iloc[start:stop:step], api_version=self._api_version
         )
 
-    def get_rows_by_mask(self, mask: Column[Bool]) -> PandasDataFrame:
+    def filter(self, mask: Column[Bool]) -> PandasDataFrame:
         series = mask.column
         self._validate_index(series.index)
         return PandasDataFrame(
@@ -646,11 +646,9 @@ class PandasDataFrame(DataFrame):
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
     ) -> PandasDataFrame:
-        if self._api_version == "2023.08-beta":
-            raise NotImplementedError("dataframe.sort only available after 2023.08-beta")
         if keys is None:
             keys = self.dataframe.columns.tolist()
-        df = self.dataframe.loc[:, list(keys)]
+        df = self.dataframe
         return PandasDataFrame(
             df.sort_values(keys, ascending=ascending), api_version=self._api_version
         )
@@ -907,3 +905,19 @@ class PandasDataFrame(DataFrame):
                 f"Invalid dtype {dtype}. Expected one of {_ARRAY_API_DTYPES}"
             )
         return self.dataframe.to_numpy(dtype=dtype)
+
+    def join(
+        self,
+        other,
+        left_on: str | list[str],
+        right_on: str | list[str],
+        how: Literal["left", "inner", "outer"],
+    ):
+        if how not in ["left", "inner", "outer"]:
+            raise ValueError(f"Expected 'left', 'inner', 'outer', got: {how}")
+        return PandasDataFrame(
+            self.dataframe.merge(
+                other.dataframe, left_on=left_on, right_on=right_on, how=how
+            ),
+            api_version=self._api_version,
+        )

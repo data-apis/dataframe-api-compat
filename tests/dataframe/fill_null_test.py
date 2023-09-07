@@ -25,14 +25,14 @@ def test_fill_null(
     result = df.fill_null(0, column_names=column_names)
 
     if column_names is None or "a" in column_names:
-        res1 = result.get_rows_by_mask(result.get_column_by_name("a").is_null())
+        res1 = result.filter(result.get_column_by_name("a").is_null())
         res1 = maybe_collect(res1, library)
         # check there no nulls left in the column
         assert res1.__dataframe__().num_rows() == 0
         # check the last element was filled with 0
         assert interchange_to_pandas(result, library)["a"].iloc[2] == 0
     if column_names is None or "b" in column_names:
-        res1 = result.get_rows_by_mask(result.get_column_by_name("b").is_null())
+        res1 = result.filter(result.get_column_by_name("b").is_null())
         res1 = maybe_collect(res1, library)
         assert res1.__dataframe__().num_rows() == 0
         assert interchange_to_pandas(result, library)["b"].iloc[2] == 0

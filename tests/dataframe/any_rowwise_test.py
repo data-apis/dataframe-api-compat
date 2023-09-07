@@ -10,7 +10,7 @@ from tests.utils import interchange_to_pandas
 def test_any_rowwise(library: str) -> None:
     df = bool_dataframe_1(library)
     df.__dataframe_namespace__()
-    result = df.get_rows_by_mask(df.any_rowwise())
+    result = df.filter(df.any_rowwise())
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"a": [True, True, False], "b": [True, True, True]})

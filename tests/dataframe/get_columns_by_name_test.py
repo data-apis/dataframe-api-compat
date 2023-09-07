@@ -8,9 +8,9 @@ from tests.utils import integer_dataframe_1
 from tests.utils import interchange_to_pandas
 
 
-def test_get_columns_by_name(library: str) -> None:
+def test_select(library: str) -> None:
     df = integer_dataframe_1(library)
-    result = df.get_columns_by_name(["b"])
+    result = df.select(["b"])
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"b": [4, 5, 6]})
@@ -20,4 +20,4 @@ def test_get_columns_by_name(library: str) -> None:
 def test_get_columns_by_name_invalid(library: str) -> None:
     df = integer_dataframe_1(library)
     with pytest.raises(TypeError, match=r"Expected sequence of str, got <class \'str\'>"):
-        df.get_columns_by_name("b")
+        df.select("b")

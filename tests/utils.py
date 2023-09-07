@@ -50,8 +50,17 @@ def convert_dataframe_to_pandas_numpy(df: pd.DataFrame) -> pd.DataFrame:
         "Int64": "int64",
         "Float64": "float64",
     }
-    for nullable, numpy in conversions.items():
-        df = df.astype({key: numpy for key in df.columns[df.dtypes == nullable]})
+    for column in df.columns:
+        dtype = str(df.dtypes[column])
+        if dtype in conversions:
+            try:
+                df[column] = df[column].to_numpy(
+                    conversions[dtype], na_value=float("nan")
+                )
+            except ValueError:
+                # cannot convert float NaN to integer
+                assert dtype == "Int64"
+                df[column] = df[column].to_numpy("float64", na_value=float("nan"))
     return df
 
 

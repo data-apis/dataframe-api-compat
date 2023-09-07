@@ -43,8 +43,8 @@ def test_comparisons_with_scalar(
 
 
 def test_comparison_invalid(library: str, request: pytest.FixtureRequest) -> None:
-    df = integer_dataframe_1(library).get_columns_by_name(["a"])
-    other = integer_dataframe_1(library).get_columns_by_name(["b"])
+    df = integer_dataframe_1(library).select(["a"])
+    other = integer_dataframe_1(library).select(["b"])
     with pytest.raises(
         (ValueError, pl.exceptions.DuplicateError, NotImplementedError),
     ):
