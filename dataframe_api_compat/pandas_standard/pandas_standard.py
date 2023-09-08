@@ -427,6 +427,14 @@ class PandasColumn(Column[DType]):
     def _to_expression(self) -> PandasExpression:
         return PandasExpression(lambda _df: self.column.rename(self.name))
 
+    def _reuse_expression_implementation(self, function_name, *args, **kwargs):
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(getattr(self._to_expression(), function_name)(*args, **kwargs))
+            .collect()
+            .get_column_by_name(self.name)
+        )
+
     # In the standard
     def __column_namespace__(self) -> Any:
         return dataframe_api_compat.pandas_standard
@@ -481,110 +489,45 @@ class PandasColumn(Column[DType]):
     def __eq__(  # type: ignore[override]
         self, other: PandasColumn[DType] | Any
     ) -> PandasColumn[Bool]:
-        return (
-            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
-            .select(self._to_expression().__eq__(other))
-            .collect()
-            .get_column_by_name(self.name)
-        )
+        return self._reuse_expression_implementation("__eq__", other)
 
     def __ne__(  # type: ignore[override]
         self, other: Column[DType]
     ) -> PandasColumn[Bool]:
-        return (
-            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
-            .select(self._to_expression().__ne__(other))
-            .collect()
-            .get_column_by_name(self.name)
-        )
+        return self._reuse_expression_implementation("__ne__", other)
 
     def __ge__(self, other: Column[DType] | Any) -> PandasColumn[Bool]:
-        return (
-            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
-            .select(self._to_expression().__ge__(other))
-            .collect()
-            .get_column_by_name(self.name)
-        )
+        return self._reuse_expression_implementation("__ge__", other)
 
     def __gt__(self, other: Column[DType] | Any) -> PandasColumn[Bool]:
-        return (
-            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
-            .select(self._to_expression().__lt__(other))
-            .collect()
-            .get_column_by_name(self.name)
-        )
+        return self._reuse_expression_implementation("__lt__", other)
 
     def __le__(self, other: Column[DType] | Any) -> PandasColumn[Bool]:
-        return (
-            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
-            .select(self._to_expression().__le__(other))
-            .collect()
-            .get_column_by_name(self.name)
-        )
+        return self._reuse_expression_implementation("__le__", other)
 
     def __lt__(self, other: Column[DType] | Any) -> PandasColumn[Bool]:
-        return (
-            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
-            .select(self._to_expression().__lt__(other))
-            .collect()
-            .get_column_by_name(self.name)
-        )
+        return self._reuse_expression_implementation("__lt__", other)
 
     def __and__(self, other: Column[Bool] | bool) -> PandasColumn[Bool]:
-        return (
-            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
-            .select(self._to_expression().__and__(other))
-            .collect()
-            .get_column_by_name(self.name)
-        )
+        return self._reuse_expression_implementation("__and__", other)
 
     def __or__(self, other: Column[Bool] | bool) -> PandasColumn[Bool]:
-        return (
-            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
-            .select(self._to_expression().__or__(other))
-            .collect()
-            .get_column_by_name(self.name)
-        )
+        return self._reuse_expression_implementation("__or__", other)
 
     def __add__(self, other: Column[DType] | Any) -> PandasColumn[DType]:
-        return (
-            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
-            .select(self._to_expression().__add__(other))
-            .collect()
-            .get_column_by_name(self.name)
-        )
+        return self._reuse_expression_implementation("__add__", other)
 
     def __sub__(self, other: Column[DType] | Any) -> PandasColumn[DType]:
-        return (
-            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
-            .select(self._to_expression().__sub__(other))
-            .collect()
-            .get_column_by_name(self.name)
-        )
+        return self._reuse_expression_implementation("__sub__", other)
 
     def __mul__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
-        return (
-            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
-            .select(self._to_expression().__mul__(other))
-            .collect()
-            .get_column_by_name(self.name)
-        )
+        return self._reuse_expression_implementation("__mul__", other)
 
     def __truediv__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
-        return (
-            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
-            .select(self._to_expression().__truediv__(other))
-            .collect()
-            .get_column_by_name(self.name)
-        )
+        return self._reuse_expression_implementation("__truediv__", other)
 
     def __floordiv__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
-        return (
-            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
-            .select(self._to_expression().__floordiv__(other))
-            .collect()
-            .get_column_by_name(self.name)
-        )
+        return self._reuse_expression_implementation("__floordiv__", other)
 
     def __pow__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
         if isinstance(other, PandasColumn):
