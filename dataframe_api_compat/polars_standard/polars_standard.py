@@ -95,7 +95,7 @@ SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.09-beta"))
 class PolarsColumn(Column[DType]):
     def __init__(
         self,
-        column: pl.Series | pl.Expr,
+        column: pl.Series,
         *,
         api_version: str,
     ) -> None:
@@ -109,6 +109,7 @@ class PolarsColumn(Column[DType]):
                 "Try updating dataframe-api-compat?"
             )
         self._api_version = api_version
+        self._dtype = column.dtype
 
     def _validate_column(self, column: PolarsColumn[Any] | Column[Any]) -> None:
         assert isinstance(column, PolarsColumn)
