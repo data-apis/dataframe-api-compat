@@ -135,7 +135,8 @@ def convert_to_standard_compliant_column(
 ) -> PandasDataFrame:
     if api_version is None:
         api_version = LATEST_API_VERSION
-    return PandasColumn(ser, api_version=api_version)
+    name = ser.name or ""
+    return PandasColumn(ser.rename(name), api_version=api_version)
 
 
 def convert_to_standard_compliant_dataframe(

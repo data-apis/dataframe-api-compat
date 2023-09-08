@@ -402,15 +402,19 @@ SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.09-beta"))
 class PandasColumn(Column[DType]):
     # private, not technically part of the standard
     def __init__(self, column: pd.Series[Any], api_version: str) -> None:
+        name = column.name
+        if column.name is not None and not isinstance(column.name, str):
+            raise ValueError(f"Expected column with string name, got: {column.name}")
+        self._name = name or ""
         if (
             isinstance(column.index, pd.RangeIndex)
             and column.index.start == 0  # type: ignore[comparison-overlap]
             and column.index.step == 1  # type: ignore[comparison-overlap]
             and (column.index.stop == len(column))  # type: ignore[comparison-overlap]
         ):
-            self._series = column
+            self._series = column.rename(self._name)
         else:
-            self._series = column.reset_index(drop=True)
+            self._series = column.rename(self._name).reset_index(drop=True)
         self._api_version = api_version
         if api_version not in SUPPORTED_VERSIONS:
             raise ValueError(
@@ -418,8 +422,6 @@ class PandasColumn(Column[DType]):
                 f"{SUPPORTED_VERSIONS}. "
                 "Try updating dataframe-api-compat?"
             )
-        if column.name is not None and not isinstance(column.name, str):
-            raise ValueError(f"Expected column with string name, got: {column.name}")
 
     def _validate_index(self, index: pd.Index) -> None:
         pd.testing.assert_index_equal(self.column.index, index)
@@ -441,7 +443,7 @@ class PandasColumn(Column[DType]):
 
     @property
     def name(self) -> str:
-        return self.column.name or ""  # type: ignore[return-value]
+        return self._name
 
     @property
     def column(self) -> pd.Series[Any]:
@@ -555,6 +557,9 @@ class PandasColumn(Column[DType]):
     def __invert__(self: PandasColumn[Bool]) -> PandasColumn[Bool]:
         return PandasColumn(~self.column, api_version=self._api_version)
 
+    # Reductions
+    # Can't reuse the expressions implementation here as these return scalars.
+
     def any(self, *, skip_nulls: bool = True) -> bool:
         return self.column.any()
 
@@ -585,86 +590,64 @@ class PandasColumn(Column[DType]):
     def var(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
         return self.column.var()
 
+    # Transformations, defer to expressions impl
+
     def is_null(self) -> PandasColumn[Bool]:
-        return PandasColumn(self.column.isna(), api_version=self._api_version)
+        return self._reuse_expression_implementation("is_null")
 
     def is_nan(self) -> PandasColumn[Bool]:
-        if is_extension_array_dtype(self.column.dtype):
-            return PandasColumn(
-                np.isnan(self.column).replace(pd.NA, False).astype(bool),
-                api_version=self._api_version,
-            )
-        return PandasColumn(self.column.isna(), api_version=self._api_version)
+        return self._reuse_expression_implementation("is_nan")
 
     def sorted_indices(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
     ) -> PandasColumn[Any]:
-        if ascending:
-            return PandasColumn(
-                pd.Series(self.column.argsort()), api_version=self._api_version
-            )
-        return PandasColumn(
-            pd.Series(self.column.argsort()[::-1]), api_version=self._api_version
+        return self._reuse_expression_implementation(
+            "sorted_indices", ascending=ascending, nulls_position=nulls_position
         )
 
     def sort(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
     ) -> PandasColumn[Any]:
-        if self._api_version == "2023.08-beta":
-            raise NotImplementedError("dataframe.sort only available after 2023.08-beta")
-        return PandasColumn(
-            self.column.sort_values(ascending=ascending), api_version=self._api_version
+        return self._reuse_expression_implementation(
+            "sort", ascending=ascending, nulls_position=nulls_position
         )
 
     def is_in(self, values: Column[DType]) -> PandasColumn[Bool]:
-        if values.dtype != self.dtype:
-            raise ValueError(f"`value` has dtype {values.dtype}, expected {self.dtype}")
-        return PandasColumn(
-            self.column.isin(values.column), api_version=self._api_version
-        )
+        return self._reuse_expression_implementation("is_in", values)
 
     def unique_indices(self, *, skip_nulls: bool = True) -> PandasColumn[Any]:
-        return PandasColumn(
-            self.column.drop_duplicates().index.to_series(), api_version=self._api_version
+        return self._reuse_expression_implementation(
+            "unique_indices", skip_nulls=skip_nulls
         )
 
     def fill_nan(
         self, value: float | pd.NAType  # type: ignore[name-defined]
     ) -> PandasColumn[DType]:
-        ser = self.column.copy()
-        ser[cast("pd.Series[bool]", np.isnan(ser)).fillna(False).to_numpy(bool)] = value
-        return PandasColumn(ser, api_version=self._api_version)
+        return self._reuse_expression_implementation("fill_nan", value)
 
     def fill_null(
         self,
         value: Any,
     ) -> PandasColumn[DType]:
-        ser = self.column.copy()
-        if is_extension_array_dtype(ser.dtype):
-            # crazy hack to preserve nan...
-            num = pd.Series(
-                np.where(np.isnan(ser).fillna(False), 0, ser.fillna(value)),
-                dtype=ser.dtype,
-            )
-            other = pd.Series(
-                np.where(np.isnan(ser).fillna(False), 0, 1), dtype=ser.dtype
-            )
-            ser = num / other
-        else:
-            ser = ser.fillna(value)
-        return PandasColumn(pd.Series(ser), api_version=self._api_version)
+        return self._reuse_expression_implementation("fill_null", value)
 
     def cumulative_sum(self, *, skip_nulls: bool = True) -> PandasColumn[DType]:
-        return PandasColumn(self.column.cumsum(), api_version=self._api_version)
+        return self._reuse_expression_implementation("cumsum", skip_nulls=skip_nulls)
 
     def cumulative_prod(self, *, skip_nulls: bool = True) -> PandasColumn[DType]:
-        return PandasColumn(self.column.cumprod(), api_version=self._api_version)
+        return self._reuse_expression_implementation("cumprod", skip_nulls=skip_nulls)
 
     def cumulative_max(self, *, skip_nulls: bool = True) -> PandasColumn[DType]:
-        return PandasColumn(self.column.cummax(), api_version=self._api_version)
+        return self._reuse_expression_implementation("cummax", skip_nulls=skip_nulls)
 
     def cumulative_min(self, *, skip_nulls: bool = True) -> PandasColumn[DType]:
-        return PandasColumn(self.column.cummin(), api_version=self._api_version)
+        return self._reuse_expression_implementation("cummin", skip_nulls=skip_nulls)
+
+    def rename(self, name: str) -> PandasColumn[DType]:
+        self._name = name
+        return self._reuse_expression_implementation("rename", name=name)
+
+    # Eager-only
 
     def to_array_object(self, dtype: str) -> Any:
         if dtype not in _ARRAY_API_DTYPES:
@@ -672,9 +655,6 @@ class PandasColumn(Column[DType]):
                 f"Invalid dtype {dtype}. Expected one of {_ARRAY_API_DTYPES}"
             )
         return self.column.to_numpy(dtype=dtype)
-
-    def rename(self, name: str | None) -> PandasColumn[DType]:
-        return PandasColumn(self.column.rename(name), api_version=self._api_version)
 
 
 class PandasDataFrame(DataFrame):
