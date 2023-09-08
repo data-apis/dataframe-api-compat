@@ -133,7 +133,7 @@ def map_standard_dtype_to_pandas_dtype(dtype: Any) -> Any:
 def convert_to_standard_compliant_column(
     ser: pd.Series, api_version: str | None = None
 ) -> PandasDataFrame:
-    if api_version is None:
+    if api_version is None:  # pragma: no cover
         api_version = LATEST_API_VERSION
     name = ser.name or ""
     return PandasColumn(ser.rename(name), api_version=api_version)
