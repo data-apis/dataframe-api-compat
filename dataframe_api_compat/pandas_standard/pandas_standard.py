@@ -114,60 +114,70 @@ class PandasExpression(Expression):
         return self._record_call(lambda ser, mask: ser.loc[mask], mask)
 
     def __eq__(self, other: PandasExpression | Any) -> PandasExpression:
-        return self._record_call(lambda ser, other: ser == other, other)
+        return self._record_call(
+            lambda ser, other: (ser == other).rename(ser.name), other
+        )
 
     def __ne__(self, other: Expression) -> PandasExpression:
-        return self._record_call(lambda ser, other: ser != other, other)
+        return self._record_call(
+            lambda ser, other: (ser != other).rename(ser.name), other
+        )
 
     def __ge__(self, other: Expression | Any) -> PandasExpression:
-        return self._record_call(lambda ser, other: ser >= other, other)
+        return self._record_call(
+            lambda ser, other: (ser >= other).rename(ser.name), other
+        )
 
     def __gt__(self, other: Expression | Any) -> PandasExpression:
-        return self._record_call(lambda ser, other: ser > other, other)
+        return self._record_call(lambda ser, other: (ser > other).rename(ser.name), other)
 
     def __le__(self, other: Expression | Any) -> PandasExpression:
-        return self._record_call(lambda ser, other: ser <= other, other)
+        return self._record_call(
+            lambda ser, other: (ser <= other).rename(ser.name), other
+        )
 
     def __lt__(self, other: Expression | Any) -> PandasExpression:
-        return self._record_call(lambda ser, other: ser < other, other)
+        return self._record_call(lambda ser, other: (ser < other).rename(ser.name), other)
 
     def __and__(self, other: Expression | bool) -> PandasExpression:
-        return self._record_call(lambda ser, other: ser & other, other)
+        return self._record_call(lambda ser, other: (ser & other).rename(ser.name), other)
 
     def __or__(self, other: Expression | bool) -> PandasExpression:
-        return self._record_call(lambda ser, other: ser | other, other)
+        return self._record_call(lambda ser, other: (ser | other).rename(ser.name), other)
 
     def __add__(self, other: Expression | Any) -> PandasExpression:
-        return self._record_call(lambda ser, other: ser + other, other)
+        return self._record_call(
+            lambda ser, other: ((ser + other).rename(ser.name)).rename(ser.name), other
+        )
 
     def __sub__(self, other: Expression | Any) -> PandasExpression:
-        return self._record_call(lambda ser, other: ser - other, other)
+        return self._record_call(lambda ser, other: (ser - other).rename(ser.name), other)
 
     def __mul__(self, other: Expression | Any) -> PandasExpression:
-        return self._record_call(lambda ser, other: ser * other, other)
+        return self._record_call(lambda ser, other: (ser * other).rename(ser.name), other)
 
     def __truediv__(self, other: Expression | Any) -> PandasExpression:
-        return self._record_call(lambda ser, other: ser / other, other)
+        return self._record_call(lambda ser, other: (ser / other).rename(ser.name), other)
 
     def __floordiv__(self, other: Expression | Any) -> PandasExpression:
-        return self._record_call(lambda ser, other: ser // other, other)
+        return self._record_call(
+            lambda ser, other: (ser // other).rename(ser.name), other
+        )
 
     def __pow__(self, other: Expression | Any) -> PandasExpression:
-        return self._record_call(lambda ser, other: ser**other, other)
+        return self._record_call(
+            lambda ser, other: (ser**other).rename(ser.name), other
+        )
 
     def __mod__(self, other: Expression | Any) -> PandasExpression:
-        return self._record_call(lambda ser, other: ser % other, other)
+        return self._record_call(lambda ser, other: (ser % other).rename(ser.name), other)
 
     def __divmod__(
         self, other: Expression | Any
     ) -> tuple[PandasExpression, PandasExpression]:
-        if isinstance(other, PandasExpression):
-            quotient, remainder = self.column.__divmod__(other.column)
-        else:
-            quotient, remainder = self.column.__divmod__(other)
-        return PandasExpression(
-            quotient, api_version=self._api_version
-        ), PandasExpression(remainder, api_version=self._api_version)
+        quotient = self // other
+        remainder = self - quotient * other
+        return quotient, remainder
 
     def __invert__(self: PandasExpression) -> PandasExpression:
         return self._record_call(lambda ser, _rhs: ~ser, None)
@@ -460,9 +470,7 @@ class PandasColumn(Column[DType]):
         return dataframe_api_compat.pandas_standard.DTYPE_MAP[self.column.dtype.name]
 
     def get_rows(self, indices: Column[Any]) -> PandasColumn[DType]:
-        return PandasColumn(
-            self.column.iloc[indices.column.to_numpy()], api_version=self._api_version
-        )
+        return self._reuse_expression_implementation("get_rows", indices)
 
     def slice_rows(
         self, start: int | None, stop: int | None, step: int | None
@@ -546,13 +554,9 @@ class PandasColumn(Column[DType]):
     def __divmod__(
         self, other: Column[DType] | Any
     ) -> tuple[PandasColumn[Any], PandasColumn[Any]]:
-        if isinstance(other, PandasColumn):
-            quotient, remainder = self.column.__divmod__(other.column)
-        else:
-            quotient, remainder = self.column.__divmod__(other)
-        return PandasColumn(quotient, api_version=self._api_version), PandasColumn(
-            remainder, api_version=self._api_version
-        )
+        quotient = self // other
+        remainder = self - quotient * other
+        return quotient, remainder
 
     def __invert__(self: PandasColumn[Bool]) -> PandasColumn[Bool]:
         return PandasColumn(~self.column, api_version=self._api_version)
@@ -1348,10 +1352,9 @@ class PandasEagerFrame:
         self,
         other: DataFrame | Any,
     ) -> tuple[PandasDataFrame, PandasDataFrame]:
-        quotient, remainder = self.dataframe.__divmod__(other)
-        return PandasDataFrame(quotient, api_version=self._api_version), PandasDataFrame(
-            remainder, api_version=self._api_version
-        )
+        quotient = self // other
+        remainder = self - quotient * other
+        return quotient, remainder
 
     def __invert__(self) -> PandasDataFrame:
         self._validate_booleanness()

@@ -1157,8 +1157,6 @@ class PolarsDataFrame(DataFrame):
         self,
         other: DataFrame | Any,
     ) -> tuple[PolarsDataFrame, PolarsDataFrame]:
-        # quotient = self // other
-        # remainder = self - quotient * other
         quotient_df = self.dataframe.with_columns(pl.col("*") // other)
         remainder_df = self.dataframe.with_columns(
             pl.col("*") - (pl.col("*") // other) * other
@@ -1525,15 +1523,9 @@ class PolarsEagerFrame(DataFrame):
         self,
         other: DataFrame | Any,
     ) -> tuple[PolarsDataFrame, PolarsDataFrame]:
-        # quotient = self // other
-        # remainder = self - quotient * other
-        quotient_df = self.dataframe.with_columns(pl.col("*") // other)
-        remainder_df = self.dataframe.with_columns(
-            pl.col("*") - (pl.col("*") // other) * other
-        )
-        return PolarsDataFrame(
-            quotient_df, api_version=self._api_version
-        ), PolarsDataFrame(remainder_df, api_version=self._api_version)
+        quotient = self // other
+        remainder = self - quotient * other
+        return quotient, remainder
 
     def __invert__(self) -> PolarsDataFrame:
         return PolarsDataFrame(
