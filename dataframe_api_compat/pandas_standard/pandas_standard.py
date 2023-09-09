@@ -568,16 +568,10 @@ class PandasColumn(Column[DType]):
         return self._reuse_expression_implementation("__floordiv__", other)
 
     def __pow__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(
-                self.column**other.column, api_version=self._api_version
-            )
-        return PandasColumn(self.column**other, api_version=self._api_version)  # type: ignore[operator]
+        return self._reuse_expression_implementation("__pow__", other)
 
     def __mod__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
-        if isinstance(other, PandasColumn):
-            return PandasColumn(self.column % other.column, api_version=self._api_version)
-        return PandasColumn(self.column % other, api_version=self._api_version)  # type: ignore[operator]
+        return self._reuse_expression_implementation("__mod__", other)
 
     def __divmod__(
         self, other: Column[DType] | Any
@@ -587,7 +581,7 @@ class PandasColumn(Column[DType]):
         return quotient, remainder
 
     def __invert__(self: PandasColumn[Bool]) -> PandasColumn[Bool]:
-        return PandasColumn(~self.column, api_version=self._api_version)
+        return self._reuse_expression_implementation("__invert__")
 
     # Reductions
     # Can't reuse the expressions implementation here as these return scalars.

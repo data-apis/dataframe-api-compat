@@ -33,10 +33,9 @@ def test_expression_and(library: str) -> None:
 
 
 def test_column_or(library: str) -> None:
-    df = bool_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    ser = namespace.col("a")
-    other = namespace.col("b")
+    df = bool_dataframe_1(library).collect()
+    ser = df.get_column_by_name("a")
+    other = df.get_column_by_name("b")
     result = df.insert_column((ser | other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series([True, True, True], name="result")
