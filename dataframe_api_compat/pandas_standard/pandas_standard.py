@@ -77,12 +77,19 @@ ExtraCall = tuple[
 class PandasExpression(Expression):
     def __init__(
         self,
+        root_names: list[str] | None,
+        output_name: str,
         base_call: Callable[[pd.DataFrame], pd.Series] | None = None,
         extra_calls: list[ExtraCall] | None = None,
     ) -> None:
         """
         Parameters
         ----------
+        root_names
+            Columns from DataFrame to consider as inputs to expression.
+            If `None`, all input columns are considered.
+        output_name
+            Name of resulting column.
         base_call
             Call to be applied to DataFrame. Should return a Series.
         extra_calls
@@ -91,15 +98,30 @@ class PandasExpression(Expression):
         """
         self._base_call = base_call
         self._calls = extra_calls or []
+        self._root_names = root_names
+        self._output_name = output_name
         # TODO: keep track of output name
+
+    @property
+    def root_names(self):
+        return self._root_names
+
+    @property
+    def output_name(self):
+        return self._output_name
 
     def _record_call(
         self,
         func: Callable[[pd.Series, pd.Series | None], pd.Series],
         rhs: pd.Series | None,
+        output_name: str | None = None,
     ) -> PandasExpression:
         calls = [*self._calls, (func, self, rhs)]
-        return PandasExpression(extra_calls=calls)
+        return PandasExpression(
+            root_names=self.root_names,
+            output_name=output_name or self.output_name,
+            extra_calls=calls,
+        )
 
     def get_rows(self, indices: Expression) -> PandasExpression:
         def func(lhs: pd.Series, rhs: pd.Series) -> pd.Series:
@@ -437,7 +459,11 @@ class PandasColumn(Column[DType]):
         pd.testing.assert_index_equal(self.column.index, index)
 
     def _to_expression(self) -> PandasExpression:
-        return PandasExpression(lambda _df: self.column.rename(self.name))
+        return PandasExpression(
+            root_names=[],
+            output_name=self.name,
+            base_call=lambda _df: self.column.rename(self.name),
+        )
 
     def _reuse_expression_implementation(self, function_name, *args, **kwargs):
         return (

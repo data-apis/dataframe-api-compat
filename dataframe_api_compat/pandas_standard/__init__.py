@@ -18,7 +18,9 @@ if TYPE_CHECKING:
 
 
 def col(name: str) -> PandasExpression:
-    return PandasExpression(base_call=lambda df: df.loc[:, name])
+    return PandasExpression(
+        root_names=[name], output_name=name, base_call=lambda df: df.loc[:, name]
+    )
 
 
 Expression = PandasExpression
@@ -237,13 +239,23 @@ def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:
 def any_rowwise(
     keys: list[str] | None = None, *, skip_nulls: bool = True
 ) -> PandasExpression:
-    return PandasExpression(base_call=lambda df: df.any(axis=1))
+    def func(df):
+        if keys is None:
+            return df.any(axis=1)
+        return df.loc[:, keys].any(axis=1)
+
+    return PandasExpression(root_names=keys, output_name="any", base_call=func)
 
 
 def all_rowwise(
     keys: list[str] | None = None, *, skip_nulls: bool = True
 ) -> PandasExpression:
-    return PandasExpression(base_call=lambda df: df.all(axis=1))
+    def func(df):
+        if keys is None:
+            return df.all(axis=1)
+        return df.loc[:, keys].all(axis=1)
+
+    return PandasExpression(root_names=keys, output_name="all", base_call=func)
 
 
 def sorted_indices(
@@ -264,7 +276,7 @@ def sorted_indices(
             .reset_index(drop=True)
         )
 
-    return PandasExpression(base_call=func)
+    return PandasExpression(root_names=keys, output_name="indices", base_call=func)
 
 
 def unique_indices(
