@@ -1018,11 +1018,6 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(df, api_version=self._api_version)
 
     def update_columns(self, columns: PolarsExpression | Sequence[PolarsExpression], /) -> PolarsDataFrame:  # type: ignore[override]
-        if self._api_version == "2023.08-beta":
-            raise NotImplementedError(
-                "DataFrame.update_columns is only available for api version 2023.08-beta. "
-                "Please use `DataFrame.insert_column` instead."
-            )
         if isinstance(columns, PolarsExpression):
             columns = [columns]
         for col in columns:

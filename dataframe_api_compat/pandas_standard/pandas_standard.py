@@ -819,10 +819,6 @@ class PandasDataFrame(DataFrame):
     def update_columns(
         self, columns: PandasExpression | list[PandasExpression]
     ) -> PandasDataFrame:
-        if self._api_version == "2023.08-beta":
-            raise NotImplementedError(
-                "DataFrame.insert_column is only available for api versions after 2023.08-beta. "
-            )
         if isinstance(columns, PandasExpression):
             columns = [columns]
         df = self.dataframe.copy()
@@ -830,7 +826,7 @@ class PandasDataFrame(DataFrame):
             new_column = self._resolve_expression(col)
             if new_column.name not in df.columns:
                 raise ValueError(
-                    f"column {col.name} not in dataframe, use insert instead"
+                    f"column {new_column.name} not in dataframe, use insert instead"
                 )
             df[new_column.name] = new_column
         return PandasDataFrame(df, api_version=self._api_version)
