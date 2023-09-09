@@ -529,6 +529,7 @@ class PolarsColumn(Column[DType]):
 
 class PolarsGroupBy(GroupBy):
     def __init__(self, df: pl.LazyFrame, keys: Sequence[str], api_version: str) -> None:
+        assert isinstance(df, pl.LazyFrame)
         for key in keys:
             if key not in df.columns:
                 raise KeyError(f"key {key} not present in DataFrame's columns")
@@ -955,6 +956,7 @@ class PolarsDataFrame(DataFrame):
         # allowed, so no validation required
         if df is NotImplemented:
             raise NotImplementedError("operation not implemented")
+        assert isinstance(df, pl.LazyFrame)
         self.df = df
         self._id = id(df)
         if api_version not in SUPPORTED_VERSIONS:
@@ -1328,7 +1330,7 @@ class PolarsEagerFrame(DataFrame):
         return self.df
 
     def groupby(self, keys: Sequence[str]) -> PolarsGroupBy:
-        return PolarsGroupBy(self.df, keys, api_version=self._api_version)
+        return PolarsGroupBy(self.df.lazy(), keys, api_version=self._api_version)
 
     def select(self, names: Sequence[str]) -> PolarsDataFrame:
         if isinstance(names, str):

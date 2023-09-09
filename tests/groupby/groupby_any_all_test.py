@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from typing import Any
+from typing import Callable
+
 import pandas as pd
 import pytest
 from polars.exceptions import SchemaError
@@ -17,14 +20,15 @@ from tests.utils import interchange_to_pandas
         ("all", [False, True], [False, False]),
     ],
 )
+@pytest.mark.parametrize("maybe_collect", [lambda x: x, lambda x: x.collect()])
 def test_groupby_boolean(
     library: str,
     aggregation: str,
     expected_b: list[bool],
     expected_c: list[bool],
-    request: pytest.FixtureRequest,
+    maybe_collect: Callable[[Any], Any],
 ) -> None:
-    df = bool_dataframe_2(library)
+    df = maybe_collect(bool_dataframe_2(library))
     namespace = df.__dataframe_namespace__()
     result = getattr(df.groupby(["key"]), aggregation)()
     # need to sort

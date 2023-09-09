@@ -189,7 +189,7 @@ def dataframe_from_2d_array(
 
 
 def convert_to_standard_compliant_dataframe(
-    df: pl.DataFrame | pl.LazyFrame, api_version: str | None = None
+    df: pl.LazyFrame, api_version: str | None = None
 ) -> PolarsDataFrame:
     df_lazy = df.lazy() if isinstance(df, pl.DataFrame) else df
     return PolarsDataFrame(df_lazy, api_version=api_version or LATEST_API_VERSION)

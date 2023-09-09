@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+from typing import Any
+from typing import Callable
+
 import pytest
 
 from tests.utils import integer_dataframe_1
 
 
-def test_groupby_invalid(library: str) -> None:
-    df = integer_dataframe_1(library).select(["a"])
+@pytest.mark.parametrize("maybe_collect", [lambda x: x, lambda x: x.collect()])
+def test_groupby_invalid(library: str, maybe_collect: Callable[[Any], Any]) -> None:
+    df = maybe_collect(integer_dataframe_1(library)).select(["a"])
     with pytest.raises((KeyError, TypeError)):
         df.groupby(0)
     with pytest.raises((KeyError, TypeError)):

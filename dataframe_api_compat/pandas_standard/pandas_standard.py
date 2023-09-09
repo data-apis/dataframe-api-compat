@@ -1114,23 +1114,10 @@ class PandasEagerFrame:
     # Not technically part of the standard
 
     def __init__(self, dataframe: pd.DataFrame, api_version: str) -> None:
-        self._validate_columns(dataframe.columns)  # type: ignore[arg-type]
+        # note: less validation is needed here, as the validation will already
+        # have happened in DataFrame, and EagerFrame can only be created from that.
         self._dataframe = dataframe.reset_index(drop=True)
         self._api_version = api_version
-
-    def _validate_columns(self, columns: Sequence[str]) -> None:
-        counter = collections.Counter(columns)
-        for col, count in counter.items():
-            if count > 1:
-                raise ValueError(
-                    f"Expected unique column names, got {col} {count} time(s)"
-                )
-        for col in columns:
-            if not isinstance(col, str):
-                raise TypeError(
-                    f"Expected column names to be of type str, got {col} "
-                    f"of type {type(col)}"
-                )
 
     def _validate_booleanness(self) -> None:
         if not (
@@ -1139,6 +1126,9 @@ class PandasEagerFrame:
             raise NotImplementedError(
                 "'any' can only be called on DataFrame " "where all dtypes are 'bool'"
             )
+
+    def _reuse_dataframe_implementation(self, function_name, *args, **kwargs):
+        return getattr(self.maybe_lazify(), function_name)(*args, **kwargs).collect()
 
     # In the standard
     def __dataframe_namespace__(self) -> Any:
@@ -1162,86 +1152,31 @@ class PandasEagerFrame:
         return PandasGroupBy(self.dataframe, keys, api_version=self._api_version)
 
     def select(self, names: PandasExpression | list[PandasExpression]) -> PandasDataFrame:
-        if not isinstance(names, list):
-            names = [names]
-        columns = []
-        for name in names:
-            if isinstance(name, str):
-                columns.append(self.dataframe.loc[:, name])
-            else:
-                columns.append(self._resolve_expression(name))
-        return PandasEagerFrame(
-            pd.concat(columns, axis=1),
-            api_version=self._api_version,
-        )
+        return self._reuse_dataframe_implementation("select", names)
 
     def get_column_by_name(self, name) -> PandasColumn:
         return PandasColumn(self.dataframe.loc[:, name], api_version=self._api_version)
 
     def get_rows(self, indices: Expression) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.iloc[self._resolve_expression(indices), :],
-            api_version=self._api_version,
-        )
+        return self._reuse_dataframe_implementation("get_rows", indices)
 
     def slice_rows(
         self, start: int | None, stop: int | None, step: int | None
     ) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.iloc[start:stop:step], api_version=self._api_version
+        return self._reuse_dataframe_implementation(
+            "slice_rows", start=start, stop=stop, step=step
         )
-
-    def _resolve_expression(
-        self, expression: PandasExpression | PandasColumn | pd.Series | object
-    ) -> pd.Series:
-        if isinstance(expression, PandasColumn):
-            # trivial expression
-            return expression.column
-        if not isinstance(expression, PandasExpression):
-            # e.g. scalar
-            return expression
-        if not expression._calls:
-            return expression._base_call(self.dataframe)
-        for func, lhs, rhs in expression._calls:
-            lhs = self._resolve_expression(lhs)
-            rhs = self._resolve_expression(rhs)
-            expression = func(lhs, rhs)
-        return expression
 
     def filter(self, mask: Expression) -> PandasDataFrame:
-        df = self.dataframe
-        df = df.loc[self._resolve_expression(mask)]
-        return PandasEagerFrame(df, api_version=self._api_version)
+        return self._reuse_dataframe_implementation("filter", mask)
 
     def insert_column(self, value: Expression) -> PandasEagerFrame:
-        # if self._api_version == "2023.08-beta":
-        #     raise NotImplementedError(
-        #         "DataFrame.insert_column is only available for api versions after 2023.08-beta. "
-        #     )
-        before = self.dataframe
-        to_insert = cast(pd.Series, self._resolve_expression(value))
-        return PandasEagerFrame(
-            pd.concat([before, to_insert], axis=1), api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("insert_column", value)
 
     def update_columns(
         self, columns: PandasExpression | list[PandasExpression]
     ) -> PandasDataFrame:
-        if self._api_version == "2023.08-beta":
-            raise NotImplementedError(
-                "DataFrame.insert_column is only available for api versions after 2023.08-beta. "
-            )
-        if isinstance(columns, PandasExpression):
-            columns = [columns]
-        df = self.dataframe.copy()
-        for col in columns:
-            new_column = self._resolve_expression(col)
-            if new_column.name not in df.columns:
-                raise ValueError(
-                    f"column {col.name} not in dataframe, use insert instead"
-                )
-            df[new_column.name] = new_column
-        return PandasEagerFrame(df, api_version=self._api_version)
+        return self._reuse_dataframe_implementation("update_columns", columns)
 
     def drop_column(self, label: str) -> PandasDataFrame:
         if not isinstance(label, str):
