@@ -137,6 +137,8 @@ def convert_to_standard_compliant_column(
 ) -> PandasDataFrame:
     if api_version is None:  # pragma: no cover
         api_version = LATEST_API_VERSION
+    if ser.name is not None and not isinstance(ser.name, str):
+        raise ValueError(f"Expected column with string name, got: {ser.name}")
     name = ser.name or ""
     return PandasColumn(ser.rename(name), api_version=api_version)
 

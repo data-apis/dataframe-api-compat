@@ -450,19 +450,16 @@ SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.09-beta"))
 class PandasColumn(Column[DType]):
     # private, not technically part of the standard
     def __init__(self, column: pd.Series[Any], api_version: str) -> None:
-        name = column.name
-        if column.name is not None and not isinstance(column.name, str):
-            raise ValueError(f"Expected column with string name, got: {column.name}")
-        self._name = name or ""
+        self._name = column.name
         if (
             isinstance(column.index, pd.RangeIndex)
             and column.index.start == 0  # type: ignore[comparison-overlap]
             and column.index.step == 1  # type: ignore[comparison-overlap]
             and (column.index.stop == len(column))  # type: ignore[comparison-overlap]
         ):
-            self._series = column.rename(self._name)
+            self._series = column
         else:
-            self._series = column.rename(self._name).reset_index(drop=True)
+            self._series = column.reset_index(drop=True)
         self._api_version = api_version
         if api_version not in SUPPORTED_VERSIONS:
             raise ValueError(
