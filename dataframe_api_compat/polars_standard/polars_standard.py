@@ -1338,7 +1338,7 @@ class PolarsEagerFrame(DataFrame):
     def select(self, names: Sequence[str]) -> PolarsDataFrame:
         if isinstance(names, str):
             raise TypeError(f"Expected sequence of str, got {type(names)}")
-        return PolarsDataFrame(self.df.select(names), api_version=self._api_version)
+        return PolarsEagerFrame(self.df.select(names), api_version=self._api_version)
 
     def get_column_by_name(self, name) -> PolarsColumn:
         return PolarsColumn(
@@ -1346,7 +1346,7 @@ class PolarsEagerFrame(DataFrame):
         )
 
     def get_rows(self, indices: PolarsColumn[Any]) -> PolarsDataFrame:  # type: ignore[override]
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.select(pl.all().take(indices.column)),
             api_version=self._api_version,
         )
@@ -1354,10 +1354,12 @@ class PolarsEagerFrame(DataFrame):
     def slice_rows(
         self, start: int | None, stop: int | None, step: int | None
     ) -> PolarsDataFrame:
-        return PolarsDataFrame(self.df[start:stop:step], api_version=self._api_version)
+        return PolarsEagerFrame(self.df[start:stop:step], api_version=self._api_version)
 
     def filter(self, mask: PolarsExpression) -> PolarsDataFrame:
-        return PolarsDataFrame(self.df.filter(mask.column), api_version=self._api_version)
+        return PolarsEagerFrame(
+            self.df.filter(mask.column), api_version=self._api_version
+        )
 
     def insert(self, loc: int, label: str, value: PolarsExpression) -> PolarsDataFrame:
         if self._api_version != "2023.08-beta":
@@ -1368,7 +1370,7 @@ class PolarsEagerFrame(DataFrame):
         columns = self.dataframe.columns
         new_columns = columns[:loc] + [label] + columns[loc:]
         df = self.dataframe.with_columns(value.column.alias(label)).select(new_columns)
-        return PolarsDataFrame(df, api_version=self._api_version)
+        return PolarsEagerFrame(df, api_version=self._api_version)
 
     def insert_column(self, value: PolarsExpression) -> PolarsDataFrame:
         # if self._api_version == "2023.08-beta":
@@ -1380,7 +1382,7 @@ class PolarsEagerFrame(DataFrame):
         label = value.name
         new_columns = [*columns, label]
         df = self.dataframe.with_columns(value.column).select(new_columns)
-        return PolarsDataFrame(df, api_version=self._api_version)
+        return PolarsEagerFrame(df, api_version=self._api_version)
 
     def update_columns(self, columns: PolarsExpression | Sequence[PolarsExpression], /) -> PolarsDataFrame:  # type: ignore[override]
         if self._api_version == "2023.08-beta":
@@ -1395,7 +1397,7 @@ class PolarsEagerFrame(DataFrame):
                 raise ValueError(
                     f"column {col.name} not in dataframe, please use insert_column instead"
                 )
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.with_columns([col.column for col in columns]),
             api_version=self._api_version,
         )
@@ -1403,12 +1405,12 @@ class PolarsEagerFrame(DataFrame):
     def drop_column(self, label: str) -> PolarsDataFrame:
         if not isinstance(label, str):
             raise TypeError(f"Expected str, got: {type(label)}")
-        return PolarsDataFrame(self.dataframe.drop(label), api_version=self._api_version)
+        return PolarsEagerFrame(self.dataframe.drop(label), api_version=self._api_version)
 
     def rename_columns(self, mapping: Mapping[str, str]) -> PolarsDataFrame:
         if not isinstance(mapping, collections.abc.Mapping):
             raise TypeError(f"Expected Mapping, got: {type(mapping)}")
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.rename(dict(mapping)), api_version=self._api_version
         )
 
@@ -1419,7 +1421,7 @@ class PolarsEagerFrame(DataFrame):
         self,
         other: Any,
     ) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.with_columns(pl.col("*").__eq__(other)),
             api_version=self._api_version,
         )
@@ -1428,43 +1430,43 @@ class PolarsEagerFrame(DataFrame):
         self,
         other: Any,
     ) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.with_columns(pl.col("*").__ne__(other)),
             api_version=self._api_version,
         )
 
     def __ge__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.with_columns(pl.col("*").__ge__(other)),
             api_version=self._api_version,
         )
 
     def __gt__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.with_columns(pl.col("*").__gt__(other)),
             api_version=self._api_version,
         )
 
     def __le__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.with_columns(pl.col("*").__le__(other)),
             api_version=self._api_version,
         )
 
     def __lt__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.with_columns(pl.col("*").__lt__(other)),
             api_version=self._api_version,
         )
 
     def __and__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.with_columns(pl.col("*") & other),
             api_version=self._api_version,
         )
 
     def __or__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.with_columns(
                 (pl.col(col) | other).alias(col) for col in self.dataframe.columns
             ),
@@ -1472,31 +1474,31 @@ class PolarsEagerFrame(DataFrame):
         )
 
     def __add__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.with_columns(pl.col("*").__add__(other)),
             api_version=self._api_version,
         )
 
     def __sub__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.with_columns(pl.col("*").__sub__(other)),
             api_version=self._api_version,
         )
 
     def __mul__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.with_columns(pl.col("*").__mul__(other)),
             api_version=self._api_version,
         )
 
     def __truediv__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.with_columns(pl.col("*").__truediv__(other)),
             api_version=self._api_version,
         )
 
     def __floordiv__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.with_columns(pl.col("*").__floordiv__(other)),
             api_version=self._api_version,
         )
@@ -1511,10 +1513,10 @@ class PolarsEagerFrame(DataFrame):
                 if other < 0:  # pragma: no cover (todo)
                     raise ValueError("Cannot raise integer to negative power")
                 ret = ret.with_columns(pl.col(column).cast(original_type[column]))
-        return PolarsDataFrame(ret, api_version=self._api_version)
+        return PolarsEagerFrame(ret, api_version=self._api_version)
 
     def __mod__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.with_columns(pl.col("*") % other),
             api_version=self._api_version,
         )
@@ -1528,7 +1530,7 @@ class PolarsEagerFrame(DataFrame):
         return quotient, remainder
 
     def __invert__(self) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.select(~pl.col("*")), api_version=self._api_version
         )
 
@@ -1536,66 +1538,66 @@ class PolarsEagerFrame(DataFrame):
         raise NotImplementedError()
 
     def is_null(self) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.with_columns(pl.col("*").is_null()),
             api_version=self._api_version,
         )
 
     def is_nan(self) -> PolarsDataFrame:
         df = self.dataframe.with_columns(pl.col("*").is_nan())
-        return PolarsDataFrame(df, api_version=self._api_version)
+        return PolarsEagerFrame(df, api_version=self._api_version)
 
     def any(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.select(pl.col("*").any()), api_version=self._api_version
         )
 
     def all(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.select(pl.col("*").all()), api_version=self._api_version
         )
 
     def min(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.select(pl.col("*").min()), api_version=self._api_version
         )
 
     def max(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.select(pl.col("*").max()), api_version=self._api_version
         )
 
     def sum(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.select(pl.col("*").sum()), api_version=self._api_version
         )
 
     def prod(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.select(pl.col("*").product()), api_version=self._api_version
         )
 
     def mean(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.select(pl.col("*").mean()), api_version=self._api_version
         )
 
     def median(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.select(pl.col("*").median()), api_version=self._api_version
         )
 
     def std(
         self, *, correction: int | float = 1.0, skip_nulls: bool = True
     ) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.select(pl.col("*").std()), api_version=self._api_version
         )
 
     def var(
         self, *, correction: int | float = 1.0, skip_nulls: bool = True
     ) -> PolarsDataFrame:
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.select(pl.col("*").var()), api_version=self._api_version
         )
 
@@ -1609,7 +1611,7 @@ class PolarsEagerFrame(DataFrame):
         if keys is None:
             keys = self.dataframe.columns
         # TODO: what if there's multiple `ascending`?
-        return PolarsDataFrame(
+        return PolarsEagerFrame(
             self.dataframe.sort(keys, descending=not ascending),
             api_version=self._api_version,
         )
@@ -1620,7 +1622,7 @@ class PolarsEagerFrame(DataFrame):
     ) -> PolarsDataFrame:
         if isinstance(value, Null):
             value = None
-        return PolarsDataFrame(self.dataframe.fill_nan(value), api_version=self._api_version)  # type: ignore[arg-type]
+        return PolarsEagerFrame(self.dataframe.fill_nan(value), api_version=self._api_version)  # type: ignore[arg-type]
 
     def fill_null(
         self,
@@ -1633,7 +1635,7 @@ class PolarsEagerFrame(DataFrame):
         df = self.dataframe.with_columns(
             pl.col(col).fill_null(value) for col in column_names
         )
-        return PolarsDataFrame(df, api_version=self._api_version)
+        return PolarsEagerFrame(df, api_version=self._api_version)
 
     def to_array_object(self, dtype: str) -> Any:
         if dtype not in _ARRAY_API_DTYPES:

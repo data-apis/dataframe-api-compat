@@ -19,9 +19,8 @@ from tests.utils import interchange_to_pandas
 def test_cumulative_functions_column(
     library: str, func: str, expected_data: list[float], request: pytest.FixtureRequest
 ) -> None:
-    df = integer_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    ser = namespace.col("a")
+    df = integer_dataframe_1(library).collect()
+    ser = df.get_column_by_name("a")
     expected = pd.Series(expected_data, name="result")
     result = df.insert_column(getattr(ser, func)().rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]

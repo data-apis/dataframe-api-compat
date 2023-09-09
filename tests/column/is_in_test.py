@@ -29,9 +29,8 @@ def test_is_in(
     expected_values: list[bool],
     request: pytest.FixtureRequest,
 ) -> None:
-    df = df_factory(library, request)
-    namespace = df.__dataframe_namespace__()
-    ser = namespace.col("a")
+    df = df_factory(library, request).collect()
+    ser = df.get_column_by_name("a")
     other = ser + 1
     result = df.insert_column(ser.is_in(other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
