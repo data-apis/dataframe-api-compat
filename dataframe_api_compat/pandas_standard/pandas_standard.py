@@ -118,8 +118,12 @@ class PandasExpression(Expression):
         output_name: str | None = None,
     ) -> PandasExpression:
         calls = [*self._calls, (func, self, rhs)]
+        if isinstance(rhs, PandasExpression):
+            root_names = self.root_names + rhs.root_names
+        else:
+            root_names = self.root_names
         return PandasExpression(
-            root_names=self.root_names,
+            root_names=root_names,
             output_name=output_name or self.output_name,
             extra_calls=calls,
         )
