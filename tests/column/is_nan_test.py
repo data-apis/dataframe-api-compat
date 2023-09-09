@@ -7,9 +7,8 @@ from tests.utils import nan_dataframe_1
 
 
 def test_column_is_nan(library: str) -> None:
-    df = nan_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    ser = namespace.col("a")
+    df = nan_dataframe_1(library).collect()
+    ser = df.get_column_by_name("a")
     result = df.insert_column(ser.is_nan().rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series([False, False, True], name="result")

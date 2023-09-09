@@ -202,7 +202,7 @@ def integer_dataframe_7(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def nan_dataframe_1(library: str) -> Any:
+def nan_dataframe_1(library: str) -> DataFrame:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1.0, 2.0, float("nan")]}, dtype="float64")

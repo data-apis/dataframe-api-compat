@@ -1346,9 +1346,8 @@ class PolarsEagerFrame(DataFrame):
         )
 
     def get_rows(self, indices: PolarsColumn[Any]) -> PolarsDataFrame:  # type: ignore[override]
-        self._validate_column(indices)
         return PolarsDataFrame(
-            self.dataframe.select(pl.all().take(indices._expr)),
+            self.dataframe.select(pl.all().take(indices.column)),
             api_version=self._api_version,
         )
 
