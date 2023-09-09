@@ -1115,23 +1115,7 @@ class PandasEagerFrame:
 
     def __init__(self, dataframe: pd.DataFrame, api_version: str) -> None:
         self._validate_columns(dataframe.columns)  # type: ignore[arg-type]
-        if (
-            isinstance(dataframe.index, pd.RangeIndex)
-            and dataframe.index.start == 0  # type: ignore[comparison-overlap]
-            and dataframe.index.step == 1  # type: ignore[comparison-overlap]
-            and (
-                dataframe.index.stop == len(dataframe)  # type: ignore[comparison-overlap]
-            )
-        ):
-            self._dataframe = dataframe
-        else:
-            self._dataframe = dataframe.reset_index(drop=True)
-        if api_version not in SUPPORTED_VERSIONS:
-            raise ValueError(
-                "Unsupported API version, expected one of: "
-                f"{SUPPORTED_VERSIONS}. "
-                "Try updating dataframe-api-compat?"
-            )
+        self._dataframe = dataframe.reset_index(drop=True)
         self._api_version = api_version
 
     def _validate_columns(self, columns: Sequence[str]) -> None:
