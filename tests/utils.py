@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import Any
 from typing import cast
+from typing import Generic
+from typing import TYPE_CHECKING
+from typing import TypeVar
 
 import pandas as pd
 import polars as pl
@@ -10,10 +13,37 @@ import pytest
 import dataframe_api_compat.pandas_standard
 import dataframe_api_compat.polars_standard
 
+DType = TypeVar("DType")
+
+if TYPE_CHECKING:
+    from dataframe_api import (
+        Bool,
+        Column,
+        Expression,
+        DataFrame,
+        GroupBy,
+    )
+else:
+
+    class DataFrame:
+        ...
+
+    class Column(Generic[DType]):
+        ...
+
+    class Expression:
+        ...
+
+    class GroupBy:
+        ...
+
+    class Bool:
+        ...
+
 
 def convert_to_standard_compliant_dataframe(
     df: pd.DataFrame | pl.DataFrame, api_version: str | None = None
-) -> Any:
+) -> DataFrame:
     # todo: type return
     if isinstance(df, pd.DataFrame):
         return (
@@ -66,7 +96,7 @@ def convert_dataframe_to_pandas_numpy(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def integer_dataframe_1(library: str, api_version: str | None = None) -> Any:
+def integer_dataframe_1(library: str, api_version: str | None = None) -> DataFrame:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}, dtype="int64")
