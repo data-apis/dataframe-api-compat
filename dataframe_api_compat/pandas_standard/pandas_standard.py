@@ -252,8 +252,16 @@ class PandasExpression(Expression):
     ) -> PandasExpression:
         def func(ser, _rhs):
             if ascending:
-                return ser.sort_values().index.to_series().reset_index(drop=True)
-            return ser.sort_values().index.to_series()[::-1].reset_index(drop=True)
+                return (
+                    ser.sort_values()
+                    .index.to_series(name=self.output_name)
+                    .reset_index(drop=True)
+                )
+            return (
+                ser.sort_values()
+                .index.to_series(name=self.output_name)[::-1]
+                .reset_index(drop=True)
+            )
 
         return self._record_call(
             func,
@@ -304,7 +312,7 @@ class PandasExpression(Expression):
                 ser = num / other
             else:
                 ser = ser.fillna(value)
-            return ser
+            return ser.rename(self.output_name)
 
         return self._record_call(
             lambda ser, _rhs: func(ser, value),
@@ -335,8 +343,10 @@ class PandasExpression(Expression):
             None,
         )
 
-    def rename(self, name: str | None) -> PandasExpression:
-        expr = self._record_call(lambda ser, _rhs: ser.rename(name), None)
+    def rename(self, name: str) -> PandasExpression:
+        expr = self._record_call(
+            lambda ser, _rhs: ser.rename(name), None, output_name=name
+        )
         return expr
 
 
@@ -796,10 +806,13 @@ class PandasDataFrame(DataFrame):
             return expression
         if not expression._calls:
             return expression._base_call(self.dataframe)
+        output_name = expression.output_name
         for func, lhs, rhs in expression._calls:
             lhs = self._resolve_expression(lhs)
             rhs = self._resolve_expression(rhs)
             expression = func(lhs, rhs)
+        if isinstance(expression, PandasExpression):
+            assert output_name == expression.name, f"{output_name} != {expression.name}"
         return expression
 
     def filter(self, mask: Expression) -> PandasDataFrame:
@@ -808,10 +821,6 @@ class PandasDataFrame(DataFrame):
         return PandasDataFrame(df, api_version=self._api_version)
 
     def insert_column(self, value: Expression) -> PandasDataFrame:
-        # if self._api_version == "2023.08-beta":
-        #     raise NotImplementedError(
-        #         "DataFrame.insert_column is only available for api versions after 2023.08-beta. "
-        #     )
         before = self.dataframe
         to_insert = cast(pd.Series, self._resolve_expression(value))
         return PandasDataFrame(
