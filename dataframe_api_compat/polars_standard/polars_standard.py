@@ -192,6 +192,7 @@ class PolarsColumn(Column[DType]):
         )
 
     def unique_indices(self, *, skip_nulls: bool = True) -> PolarsColumn[Any]:
+        raise NotImplementedError("not yet supported")
         df = self.column.to_frame()
         keys = df.columns
         return PolarsColumn(

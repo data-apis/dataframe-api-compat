@@ -280,6 +280,7 @@ class PandasExpression(Expression):
         )
 
     def unique_indices(self, *, skip_nulls: bool = True) -> PandasExpression:
+        raise NotImplementedError("not yet supported")
         return PandasExpression(
             self.column.drop_duplicates().index.to_series(), api_version=self._api_version
         )
@@ -661,6 +662,7 @@ class PandasColumn(Column[DType]):
         return self._reuse_expression_implementation("is_in", values)
 
     def unique_indices(self, *, skip_nulls: bool = True) -> PandasColumn[Any]:
+        raise NotImplementedError("not yet supported")
         return self._reuse_expression_implementation(
             "unique_indices", skip_nulls=skip_nulls
         )
