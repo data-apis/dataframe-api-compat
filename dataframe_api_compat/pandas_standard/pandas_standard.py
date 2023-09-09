@@ -104,6 +104,7 @@ class PandasExpression(Expression):
 
     @property
     def root_names(self):
+        # todo need to merge these when doing e.g. col('a') + col('b')
         return self._root_names
 
     @property
