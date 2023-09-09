@@ -12,6 +12,16 @@ if TYPE_CHECKING:
 
 
 def test_column_and(library: str) -> None:
+    df = bool_dataframe_1(library, api_version="2023.09-beta").collect()
+    ser = df.get_column_by_name("a")
+    other = df.get_column_by_name("b")
+    result = df.insert_column((ser & other).rename("result"))
+    result_pd = interchange_to_pandas(result, library)["result"]
+    expected = pd.Series([True, True, False], name="result")
+    pd.testing.assert_series_equal(result_pd, expected)
+
+
+def test_expression_and(library: str) -> None:
     df = bool_dataframe_1(library, api_version="2023.09-beta")
     namespace = df.__dataframe_namespace__()
     ser = namespace.col("a")

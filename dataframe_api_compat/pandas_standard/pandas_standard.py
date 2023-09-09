@@ -468,6 +468,11 @@ class PandasColumn(Column[DType]):
         )
 
     def _reuse_expression_implementation(self, function_name, *args, **kwargs):
+        if args:
+            assert len(args) == 1
+            rhs = args[0]
+            if isinstance(rhs, PandasExpression):
+                raise TypeError("Cannot combine Column with Expression")
         return (
             PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
             .select(getattr(self._to_expression(), function_name)(*args, **kwargs))
