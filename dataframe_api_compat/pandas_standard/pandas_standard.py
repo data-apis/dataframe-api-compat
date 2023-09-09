@@ -451,15 +451,7 @@ class PandasColumn(Column[DType]):
     # private, not technically part of the standard
     def __init__(self, column: pd.Series[Any], api_version: str) -> None:
         self._name = column.name
-        if (
-            isinstance(column.index, pd.RangeIndex)
-            and column.index.start == 0  # type: ignore[comparison-overlap]
-            and column.index.step == 1  # type: ignore[comparison-overlap]
-            and (column.index.stop == len(column))  # type: ignore[comparison-overlap]
-        ):
-            self._series = column
-        else:
-            self._series = column.reset_index(drop=True)
+        self._series = column.reset_index(drop=True)
         self._api_version = api_version
         if api_version not in SUPPORTED_VERSIONS:
             raise ValueError(
@@ -467,9 +459,6 @@ class PandasColumn(Column[DType]):
                 f"{SUPPORTED_VERSIONS}. "
                 "Try updating dataframe-api-compat?"
             )
-
-    def _validate_index(self, index: pd.Index) -> None:
-        pd.testing.assert_index_equal(self.column.index, index)
 
     def _to_expression(self) -> PandasExpression:
         return PandasExpression(
@@ -525,12 +514,7 @@ class PandasColumn(Column[DType]):
         )
 
     def filter(self, mask: Column[Bool]) -> PandasColumn[DType]:
-        PandasDataFrame(api_version=self._api_version).select(
-            self.to_expression().filter(mask.to_expression())
-        ).get_column_by_name(self.name)
-        # series = mask.column
-        # self._validate_index(series.index)
-        # return PandasColumn(self.column.loc[series], api_version=self._api_version)
+        return self._reuse_expression_implementation("filter", mask)
 
     def get_value(self, row: int) -> Any:
         return self.column.iloc[row]
@@ -549,7 +533,7 @@ class PandasColumn(Column[DType]):
         return self._reuse_expression_implementation("__ge__", other)
 
     def __gt__(self, other: Column[DType] | Any) -> PandasColumn[Bool]:
-        return self._reuse_expression_implementation("__lt__", other)
+        return self._reuse_expression_implementation("__gt__", other)
 
     def __le__(self, other: Column[DType] | Any) -> PandasColumn[Bool]:
         return self._reuse_expression_implementation("__le__", other)
@@ -738,9 +722,6 @@ class PandasDataFrame(DataFrame):
                     f"Expected column names to be of type str, got {col} "
                     f"of type {type(col)}"
                 )
-
-    def _validate_index(self, index: pd.Index) -> None:
-        pd.testing.assert_index_equal(self.dataframe.index, index)
 
     def _validate_booleanness(self) -> None:
         if not (
@@ -1166,9 +1147,6 @@ class PandasEagerFrame:
                     f"Expected column names to be of type str, got {col} "
                     f"of type {type(col)}"
                 )
-
-    def _validate_index(self, index: pd.Index) -> None:
-        pd.testing.assert_index_equal(self.dataframe.index, index)
 
     def _validate_booleanness(self) -> None:
         if not (
