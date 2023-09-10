@@ -1,19 +1,19 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import Any
+from typing import Callable
 
 import pandas as pd
+import pytest
 
 from tests.utils import bool_dataframe_1
 from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import interchange_to_pandas
 
-if TYPE_CHECKING:
-    import pytest
 
-
-def test_and_with_scalar(library: str, request: pytest.FixtureRequest) -> None:
-    df = bool_dataframe_1(library)
+@pytest.mark.parametrize("maybe_lazify", [lambda x: x, lambda x: x.collect()])
+def test_and_with_scalar(library: str, maybe_lazify: Callable[[Any], Any]) -> None:
+    df = maybe_lazify(bool_dataframe_1(library))
     other = True
     result = df & other
     result_pd = interchange_to_pandas(result, library)

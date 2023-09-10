@@ -1,18 +1,18 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import Any
+from typing import Callable
 
 import pandas as pd
+import pytest
 
 from tests.utils import interchange_to_pandas
 from tests.utils import nan_dataframe_1
 
-if TYPE_CHECKING:
-    import pytest
 
-
-def test_dataframe_is_nan(library: str, request: pytest.FixtureRequest) -> None:
-    df = nan_dataframe_1(library)
+@pytest.mark.parametrize("maybe_lazify", [lambda x: x, lambda x: x.collect()])
+def test_dataframe_is_nan(library: str, maybe_lazify: Callable[[Any], Any]) -> None:
+    df = maybe_lazify(nan_dataframe_1(library))
     result = df.is_nan()
     result_pd = interchange_to_pandas(result, library)
     expected = pd.DataFrame({"a": [False, False, True]})

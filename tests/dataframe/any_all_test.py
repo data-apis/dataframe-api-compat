@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from typing import Any
+from typing import Callable
+
 import pandas as pd
 import pytest
 
@@ -16,12 +19,14 @@ from tests.utils import interchange_to_pandas
         ("all", {"a": [False], "b": [True]}),
     ],
 )
+@pytest.mark.parametrize("maybe_lazify", [lambda x: x, lambda x: x.collect()])
 def test_reductions(
     library: str,
     reduction: str,
     expected_data: dict[str, object],
+    maybe_lazify: Callable[[Any], Any],
 ) -> None:
-    df = bool_dataframe_1(library)
+    df = maybe_lazify(bool_dataframe_1(library))
     result = getattr(df, reduction)()
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
@@ -29,8 +34,9 @@ def test_reductions(
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_any(library: str) -> None:
-    df = bool_dataframe_3(library)
+@pytest.mark.parametrize("maybe_lazify", [lambda x: x, lambda x: x.collect()])
+def test_any(library: str, maybe_lazify: Callable[[Any], Any]) -> None:
+    df = maybe_lazify(bool_dataframe_3(library))
     result = df.any()
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
@@ -38,8 +44,9 @@ def test_any(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_all(library: str) -> None:
-    df = bool_dataframe_3(library)
+@pytest.mark.parametrize("maybe_lazify", [lambda x: x, lambda x: x.collect()])
+def test_all(library: str, maybe_lazify: Callable[[Any], Any]) -> None:
+    df = maybe_lazify(bool_dataframe_3(library))
     result = df.all()
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)

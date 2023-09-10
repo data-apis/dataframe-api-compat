@@ -1179,18 +1179,10 @@ class PandasEagerFrame:
         return self._reuse_dataframe_implementation("update_columns", columns)
 
     def drop_column(self, label: str) -> PandasDataFrame:
-        if not isinstance(label, str):
-            raise TypeError(f"Expected str, got: {type(label)}")
-        return PandasEagerFrame(
-            self.dataframe.drop(label, axis=1), api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("drop_column", label=label)
 
     def rename_columns(self, mapping: Mapping[str, str]) -> PandasDataFrame:
-        if not isinstance(mapping, collections.abc.Mapping):
-            raise TypeError(f"Expected Mapping, got: {type(mapping)}")
-        return PandasEagerFrame(
-            self.dataframe.rename(columns=mapping), api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("rename_columns", mapping=mapping)
 
     def get_column_names(self) -> list[str]:
         return self.dataframe.columns.tolist()
@@ -1202,214 +1194,118 @@ class PandasEagerFrame:
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
     ) -> PandasDataFrame:
-        if keys is None:
-            keys = self.dataframe.columns.tolist()
-        df = self.dataframe
-        return PandasEagerFrame(
-            df.sort_values(keys, ascending=ascending), api_version=self._api_version
+        return self._reuse_dataframe_implementation(
+            "sort", keys=keys, ascending=ascending, nulls_position=nulls_position
         )
 
     def __eq__(self, other: Any) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.__eq__(other), api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("__eq__", other)
 
     def __ne__(self, other: Any) -> PandasDataFrame:  # type: ignore[override]
-        return PandasEagerFrame(
-            self.dataframe.__ne__(other), api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("__ne__", other)
 
     def __ge__(self, other: Any) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.__ge__(other), api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("__ge__", other)
 
     def __gt__(self, other: Any) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.__gt__(other), api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("__gt__", other)
 
     def __le__(self, other: Any) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.__le__(other), api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("__le__", other)
 
     def __lt__(self, other: Any) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.__lt__(other), api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("__lt__", other)
 
     def __and__(self, other: Any) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.__and__(other), api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("__and__", other)
 
     def __or__(self, other: Any) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.__or__(other), api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("__or__", other)
 
     def __add__(self, other: Any) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.__add__(other), api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("__add__", other)
 
     def __sub__(self, other: Any) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.__sub__(other), api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("__sub__", other)
 
     def __mul__(self, other: Any) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.__mul__(other), api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("__mul__", other)
 
     def __truediv__(self, other: Any) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.__truediv__(other), api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("__truediv__", other)
 
     def __floordiv__(self, other: Any) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.__floordiv__(other), api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("__floordiv__", other)
 
     def __pow__(self, other: Any) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.__pow__(other), api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("__pow__", other)
 
     def __mod__(self, other: Any) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.__mod__(other), api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("__mod__", other)
 
     def __divmod__(
         self,
         other: DataFrame | Any,
     ) -> tuple[PandasDataFrame, PandasDataFrame]:
-        quotient = self // other
-        remainder = self - quotient * other
-        return quotient, remainder
+        quotient, remainder = self.dataframe.__divmod__(other)
+        return PandasEagerFrame(quotient, api_version=self._api_version), PandasDataFrame(
+            remainder, api_version=self._api_version
+        )
 
     def __invert__(self) -> PandasDataFrame:
-        self._validate_booleanness()
-        return PandasEagerFrame(
-            self.dataframe.__invert__(), api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("__invert__")
 
     def __iter__(self) -> NoReturn:
         raise NotImplementedError()
 
     def any(self, *, skip_nulls: bool = True) -> PandasDataFrame:
-        self._validate_booleanness()
-        return PandasEagerFrame(
-            self.dataframe.any().to_frame().T, api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("any", skip_nulls=skip_nulls)
 
     def all(self, *, skip_nulls: bool = True) -> PandasDataFrame:
-        self._validate_booleanness()
-        return PandasEagerFrame(
-            self.dataframe.all().to_frame().T, api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("all", skip_nulls=skip_nulls)
 
     def min(self, *, skip_nulls: bool = True) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.min().to_frame().T, api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("min", skip_nulls=skip_nulls)
 
     def max(self, *, skip_nulls: bool = True) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.max().to_frame().T, api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("max", skip_nulls=skip_nulls)
 
     def sum(self, *, skip_nulls: bool = True) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.sum().to_frame().T, api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("sum", skip_nulls=skip_nulls)
 
     def prod(self, *, skip_nulls: bool = True) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.prod().to_frame().T, api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("prod", skip_nulls=skip_nulls)
 
     def median(self, *, skip_nulls: bool = True) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.median().to_frame().T, api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("median", skip_nulls=skip_nulls)
 
     def mean(self, *, skip_nulls: bool = True) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.mean().to_frame().T, api_version=self._api_version
-        )
+        return self._reuse_dataframe_implementation("mean", skip_nulls=skip_nulls)
 
     def std(
         self, *, correction: int | float = 1.0, skip_nulls: bool = True
     ) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.std().to_frame().T, api_version=self._api_version
+        return self._reuse_dataframe_implementation(
+            "std", correction=correction, skip_nulls=skip_nulls
         )
 
     def var(
         self, *, correction: int | float = 1.0, skip_nulls: bool = True
     ) -> PandasDataFrame:
-        return PandasEagerFrame(
-            self.dataframe.var().to_frame().T, api_version=self._api_version
+        return self._reuse_dataframe_implementation(
+            "var", correction=correction, skip_nulls=skip_nulls
         )
 
-    def is_null(self, *, skip_nulls: bool = True) -> PandasDataFrame:
-        result = []
-        for column in self.dataframe.columns:
-            result.append(self.dataframe[column].isna())
-        return PandasEagerFrame(pd.concat(result, axis=1), api_version=self._api_version)
+    def is_null(self) -> PandasDataFrame:
+        return self._reuse_dataframe_implementation("is_null")
 
     def is_nan(self) -> PandasDataFrame:
-        result = []
-        for column in self.dataframe.columns:
-            if is_extension_array_dtype(self.dataframe[column].dtype):
-                result.append(
-                    np.isnan(self.dataframe[column]).replace(pd.NA, False).astype(bool)
-                )
-            else:
-                result.append(self.dataframe[column].isna())
-        return PandasEagerFrame(pd.concat(result, axis=1), api_version=self._api_version)
+        return self._reuse_dataframe_implementation("is_nan")
 
     def fill_nan(
         self, value: float | pd.NAType  # type: ignore[name-defined]
     ) -> PandasDataFrame:
-        new_cols = {}
-        df = self.dataframe
-        for col in df.columns:
-            ser = df[col].copy()
-            if is_extension_array_dtype(ser.dtype):
-                if value is null:
-                    ser[
-                        cast("pd.Series[bool]", np.isnan(ser))
-                        .fillna(False)
-                        .to_numpy(bool)
-                    ] = pd.NA
-                else:
-                    ser[
-                        cast("pd.Series[bool]", np.isnan(ser))
-                        .fillna(False)
-                        .to_numpy(bool)
-                    ] = value
-            else:
-                if value is null:
-                    ser[
-                        cast("pd.Series[bool]", np.isnan(ser))
-                        .fillna(False)
-                        .to_numpy(bool)
-                    ] = np.nan
-                else:
-                    ser[
-                        cast("pd.Series[bool]", np.isnan(ser))
-                        .fillna(False)
-                        .to_numpy(bool)
-                    ] = value
-            new_cols[col] = ser
-        df = pd.DataFrame(new_cols)
-        return PandasEagerFrame(df, api_version=self._api_version)
+        return self._reuse_dataframe_implementation("fill_nan", value)
 
     def fill_null(
         self,
@@ -1417,25 +1313,7 @@ class PandasEagerFrame:
         *,
         column_names: list[str] | None = None,
     ) -> PandasDataFrame:
-        if column_names is None:
-            column_names = self.dataframe.columns.tolist()
-        df = self.dataframe.copy()
-        for column in column_names:
-            col = df[column]
-            if is_extension_array_dtype(col.dtype):
-                # crazy hack to preserve nan...
-                num = pd.Series(
-                    np.where(np.isnan(col).fillna(False), 0, col.fillna(value)),
-                    dtype=col.dtype,
-                )
-                other = pd.Series(
-                    np.where(np.isnan(col).fillna(False), 0, 1), dtype=col.dtype
-                )
-                col = num / other
-            else:
-                col = col.fillna(value)
-            df[column] = col
-        return PandasEagerFrame(df, api_version=self._api_version)
+        return self._reuse_dataframe_implementation("fill_null", value)
 
     def to_array_object(self, dtype: str) -> Any:
         if dtype not in _ARRAY_API_DTYPES:
@@ -1451,14 +1329,8 @@ class PandasEagerFrame:
         right_on: str | list[str],
         how: Literal["left", "inner", "outer"],
     ) -> PandasDataFrame:
-        if how not in ["left", "inner", "outer"]:
-            raise ValueError(f"Expected 'left', 'inner', 'outer', got: {how}")
-        assert isinstance(other, PandasDataFrame)
-        return PandasEagerFrame(
-            self.dataframe.merge(
-                other.dataframe, left_on=left_on, right_on=right_on, how=how
-            ),
-            api_version=self._api_version,
+        return self._reuse_dataframe_implementation(
+            "join", other=other, left_on=left_on, right_on=right_on, how=how
         )
 
     def maybe_lazify(self) -> PandasDataFrame:

@@ -1,14 +1,19 @@
 from __future__ import annotations
 
+from typing import Any
+from typing import Callable
+
 import pandas as pd
+import pytest
 
 from tests.utils import interchange_to_pandas
 from tests.utils import nan_dataframe_2
 from tests.utils import null_dataframe_1
 
 
-def test_is_null_1(library: str) -> None:
-    df = nan_dataframe_2(library)
+@pytest.mark.parametrize("maybe_lazify", [lambda x: x, lambda x: x.collect()])
+def test_is_null_1(library: str, maybe_lazify: Callable[[Any], Any]) -> None:
+    df = maybe_lazify(nan_dataframe_2(library))
     result = df.is_null()
     result_pd = interchange_to_pandas(result, library)
     if library == "pandas-numpy":
@@ -19,8 +24,9 @@ def test_is_null_1(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_is_null_2(library: str) -> None:
-    df = null_dataframe_1(library)
+@pytest.mark.parametrize("maybe_lazify", [lambda x: x, lambda x: x.collect()])
+def test_is_null_2(library: str, maybe_lazify: Callable[[Any], Any]) -> None:
+    df = maybe_lazify(null_dataframe_1(library))
     result = df.is_null()
     result_pd = interchange_to_pandas(result, library)
     expected = pd.DataFrame({"a": [False, False, True]})
