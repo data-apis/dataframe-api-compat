@@ -450,8 +450,8 @@ def interchange_to_pandas(result: Any, library: str) -> pd.DataFrame:
     return cast(pd.DataFrame, df)
 
 
-def maybe_collect(result: Any, library: str) -> Any:
-    df = result.dataframe.collect() if library == "polars-lazy" else result.dataframe
+def maybe_collect(result: Any) -> Any:
+    df = result.collect().dataframe if hasattr(result, "collect") else result.dataframe
     return df
 
 

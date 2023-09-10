@@ -49,11 +49,15 @@ if TYPE_CHECKING:
         Column,
         Expression,
         DataFrame,
+        EagerFrame,
         GroupBy,
     )
 else:
 
     class DataFrame:
+        ...
+
+    class EagerFrame:
         ...
 
     class Column(Generic[DType]):
@@ -743,9 +747,6 @@ class PandasDataFrame(DataFrame):
     def dataframe(self) -> pd.DataFrame:
         return self._dataframe
 
-    def shape(self) -> tuple[int, int]:
-        return self.dataframe.shape
-
     def groupby(self, keys: Sequence[str]) -> PandasGroupBy:
         if not isinstance(keys, collections.abc.Sequence):
             raise TypeError(f"Expected sequence of strings, got: {type(keys)}")
@@ -1110,7 +1111,7 @@ class PandasDataFrame(DataFrame):
         return PandasEagerFrame(self.dataframe, api_version=self._api_version)
 
 
-class PandasEagerFrame:
+class PandasEagerFrame(EagerFrame):
     # Not technically part of the standard
 
     def __init__(self, dataframe: pd.DataFrame, api_version: str) -> None:
@@ -1118,14 +1119,6 @@ class PandasEagerFrame:
         # have happened in DataFrame, and EagerFrame can only be created from that.
         self._dataframe = dataframe.reset_index(drop=True)
         self._api_version = api_version
-
-    def _validate_booleanness(self) -> None:
-        if not (
-            (self.dataframe.dtypes == "bool") | (self.dataframe.dtypes == "boolean")
-        ).all():
-            raise NotImplementedError(
-                "'any' can only be called on DataFrame " "where all dtypes are 'bool'"
-            )
 
     def _reuse_dataframe_implementation(self, function_name, *args, **kwargs):
         return getattr(self.maybe_lazify(), function_name)(*args, **kwargs).collect()
@@ -1137,9 +1130,6 @@ class PandasEagerFrame:
     @property
     def dataframe(self) -> pd.DataFrame:
         return self._dataframe
-
-    def shape(self) -> tuple[int, int]:
-        return self.dataframe.shape
 
     def groupby(self, keys: Sequence[str]) -> PandasGroupBy:
         if not isinstance(keys, collections.abc.Sequence):
@@ -1324,13 +1314,17 @@ class PandasEagerFrame:
 
     def join(
         self,
-        other: DataFrame,
+        other: EagerFrame,
         left_on: str | list[str],
         right_on: str | list[str],
         how: Literal["left", "inner", "outer"],
     ) -> PandasDataFrame:
         return self._reuse_dataframe_implementation(
-            "join", other=other, left_on=left_on, right_on=right_on, how=how
+            "join",
+            other=other.maybe_lazify(),
+            left_on=left_on,
+            right_on=right_on,
+            how=how,
         )
 
     def maybe_lazify(self) -> PandasDataFrame:

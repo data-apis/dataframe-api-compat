@@ -1273,7 +1273,7 @@ class PolarsDataFrame(DataFrame):
 
     def join(
         self,
-        other: DataFrame,
+        other: PolarsDataFrame,
         left_on: str | list[str],
         right_on: str | list[str],
         how: Literal["left", "inner", "outer"],
@@ -1289,7 +1289,7 @@ class PolarsDataFrame(DataFrame):
         # need to do some extra work to preserve all names
         # https://github.com/pola-rs/polars/issues/9335
         extra_right_keys = set(right_on).difference(left_on)
-        assert isinstance(other, PolarsDataFrame)
+        assert isinstance(other, (PolarsDataFrame, PolarsEagerFrame))
         other_df = other.dataframe
         # todo: make more robust
         other_df = other_df.with_columns(
@@ -1642,12 +1642,16 @@ class PolarsEagerFrame(DataFrame):
 
     def join(
         self,
-        other: DataFrame,
+        other: PolarsEagerFrame,
         left_on: str | list[str],
         right_on: str | list[str],
         how: Literal["left", "inner", "outer"],
     ) -> PolarsDataFrame:
-        return self.maybe_lazify().join(other)
+        return (
+            self.maybe_lazify()
+            .join(other.maybe_lazify(), left_on=left_on, right_on=right_on, how=how)
+            .collect()
+        )
 
     def maybe_lazify(self) -> PolarsDataFrame:
         return PolarsDataFrame(self.dataframe.lazy(), api_version=self._api_version)
