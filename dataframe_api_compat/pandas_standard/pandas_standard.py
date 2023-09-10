@@ -464,7 +464,7 @@ class PandasColumn(Column[DType]):
                 "Try updating dataframe-api-compat?"
             )
 
-    def _to_expression(self) -> PandasExpression:
+    def to_expression(self) -> PandasExpression:
         return PandasExpression(
             root_names=[],
             output_name=self.name,
@@ -477,9 +477,11 @@ class PandasColumn(Column[DType]):
             rhs = args[0]
             if isinstance(rhs, PandasExpression):
                 raise TypeError("Cannot combine Column with Expression")
+            elif isinstance(rhs, PandasColumn):
+                args = [rhs.to_expression()]
         return (
             PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
-            .select(getattr(self._to_expression(), function_name)(*args, **kwargs))
+            .select(getattr(self.to_expression(), function_name)(*args, **kwargs))
             .collect()
             .get_column_by_name(self.name)
         )
@@ -522,7 +524,7 @@ class PandasColumn(Column[DType]):
             self.column.iloc[start:stop:step], api_version=self._api_version
         )
 
-    def filter(self, mask: Column[Bool]) -> PandasColumn[DType]:
+    def filter(self, mask: Expression) -> PandasColumn[DType]:
         return self._reuse_expression_implementation("filter", mask)
 
     def get_value(self, row: int) -> Any:

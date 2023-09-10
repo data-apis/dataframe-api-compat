@@ -516,15 +516,13 @@ class PolarsColumn(Column[DType]):
         return self.column.to_numpy().astype(dtype)
 
     def rename(self, name: str) -> PolarsColumn[DType]:
-        if isinstance(self.column, pl.Series):
-            return PolarsColumn(
-                self.column.rename(name),
-                api_version=self._api_version,
-            )
         return PolarsColumn(
-            self.column.alias(name),
+            self.column.rename(name),
             api_version=self._api_version,
         )
+
+    def to_expression(self) -> PolarsExpression:
+        return PolarsExpression(pl.lit(self.column), api_version=self._api_version)
 
 
 class PolarsGroupBy(GroupBy):
@@ -996,9 +994,9 @@ class PolarsDataFrame(DataFrame):
             self.df.select(resolved_names), api_version=self._api_version
         )
 
-    def get_rows(self, indices: PolarsColumn[Any]) -> PolarsDataFrame:  # type: ignore[override]
+    def get_rows(self, indices: PolarsExpression) -> PolarsDataFrame:  # type: ignore[override]
         return PolarsDataFrame(
-            self.dataframe.select(pl.all().take(indices.column)),
+            self.dataframe.select(pl.all().take(indices._expr)),
             api_version=self._api_version,
         )
 
@@ -1368,6 +1366,7 @@ class PolarsEagerFrame(DataFrame):
         return PolarsEagerFrame(self.df[start:stop:step], api_version=self._api_version)
 
     def filter(self, mask: PolarsExpression) -> PolarsDataFrame:
+        # todo: how to convert polars series to expression?
         return PolarsEagerFrame(self.df.filter(mask._expr), api_version=self._api_version)
 
     def insert(self, loc: int, label: str, value: PolarsExpression) -> PolarsDataFrame:
@@ -1381,16 +1380,14 @@ class PolarsEagerFrame(DataFrame):
         df = self.dataframe.with_columns(value._expr.alias(label)).select(new_columns)
         return PolarsEagerFrame(df, api_version=self._api_version)
 
-    def insert_column(self, value: PolarsExpression) -> PolarsDataFrame:
-        # if self._api_version == "2023.08-beta":
-        #     raise NotImplementedError(
-        #         "DataFrame.insert is only available for api version 2023.08-beta. "
-        #         "Please use `DataFrame.insert_column` instead."
-        #     )
+    def insert_column(self, value: PolarsExpression | PolarsColumn) -> PolarsDataFrame:
         columns = self.dataframe.columns
         label = value.name
         new_columns = [*columns, label]
-        df = self.dataframe.with_columns(value._expr).select(new_columns)
+        if isinstance(value, PolarsColumn):
+            df = self.dataframe.with_columns(value.column).select(new_columns)
+        else:
+            df = self.dataframe.with_columns(value._expr).select(new_columns)
         return PolarsEagerFrame(df, api_version=self._api_version)
 
     def update_columns(self, columns: PolarsExpression | Sequence[PolarsExpression], /) -> PolarsDataFrame:  # type: ignore[override]
