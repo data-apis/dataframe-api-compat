@@ -11,9 +11,9 @@ from tests.utils import nan_dataframe_2
 from tests.utils import null_dataframe_1
 
 
-@pytest.mark.parametrize("maybe_lazify", [lambda x: x, lambda x: x.collect()])
-def test_is_null_1(library: str, maybe_lazify: Callable[[Any], Any]) -> None:
-    df = maybe_lazify(nan_dataframe_2(library))
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
+def test_is_null_1(library: str, relax: Callable[[Any], Any]) -> None:
+    df = relax(nan_dataframe_2(library))
     result = df.is_null()
     result_pd = interchange_to_pandas(result, library)
     if library == "pandas-numpy":
@@ -24,9 +24,9 @@ def test_is_null_1(library: str, maybe_lazify: Callable[[Any], Any]) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-@pytest.mark.parametrize("maybe_lazify", [lambda x: x, lambda x: x.collect()])
-def test_is_null_2(library: str, maybe_lazify: Callable[[Any], Any]) -> None:
-    df = maybe_lazify(null_dataframe_1(library))
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
+def test_is_null_2(library: str, relax: Callable[[Any], Any]) -> None:
+    df = relax(null_dataframe_1(library))
     result = df.is_null()
     result_pd = interchange_to_pandas(result, library)
     expected = pd.DataFrame({"a": [False, False, True]})

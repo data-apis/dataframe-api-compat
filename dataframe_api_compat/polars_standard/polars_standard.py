@@ -1648,10 +1648,10 @@ class PolarsEagerFrame(DataFrame):
         how: Literal["left", "inner", "outer"],
     ) -> PolarsDataFrame:
         return (
-            self.maybe_lazify()
-            .join(other.maybe_lazify(), left_on=left_on, right_on=right_on, how=how)
+            self.relax()
+            .join(other.relax(), left_on=left_on, right_on=right_on, how=how)
             .collect()
         )
 
-    def maybe_lazify(self) -> PolarsDataFrame:
+    def relax(self) -> PolarsDataFrame:
         return PolarsDataFrame(self.dataframe.lazy(), api_version=self._api_version)

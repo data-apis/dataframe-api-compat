@@ -1121,7 +1121,7 @@ class PandasEagerFrame(EagerFrame):
         self._api_version = api_version
 
     def _reuse_dataframe_implementation(self, function_name, *args, **kwargs):
-        return getattr(self.maybe_lazify(), function_name)(*args, **kwargs).collect()
+        return getattr(self.relax(), function_name)(*args, **kwargs).collect()
 
     # In the standard
     def __dataframe_namespace__(self) -> Any:
@@ -1321,11 +1321,11 @@ class PandasEagerFrame(EagerFrame):
     ) -> PandasDataFrame:
         return self._reuse_dataframe_implementation(
             "join",
-            other=other.maybe_lazify(),
+            other=other.relax(),
             left_on=left_on,
             right_on=right_on,
             how=how,
         )
 
-    def maybe_lazify(self) -> PandasDataFrame:
+    def relax(self) -> PandasDataFrame:
         return PandasDataFrame(self.dataframe, api_version=self._api_version)

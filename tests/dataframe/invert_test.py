@@ -11,9 +11,9 @@ from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import interchange_to_pandas
 
 
-@pytest.mark.parametrize("maybe_lazify", [lambda x: x, lambda x: x.collect()])
-def test_invert(library: str, maybe_lazify: Callable[[Any], Any]) -> None:
-    df = maybe_lazify(bool_dataframe_1(library))
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
+def test_invert(library: str, relax: Callable[[Any], Any]) -> None:
+    df = relax(bool_dataframe_1(library))
     result = ~df
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)

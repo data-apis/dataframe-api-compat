@@ -20,11 +20,11 @@ from tests.utils import null_dataframe_2
         ["b"],
     ],
 )
-@pytest.mark.parametrize("maybe_lazify", [lambda x: x, lambda x: x.collect()])
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
 def test_fill_null(
-    library: str, column_names: list[str] | None, maybe_lazify: Callable[[Any], Any]
+    library: str, column_names: list[str] | None, relax: Callable[[Any], Any]
 ) -> None:
-    df = maybe_lazify(null_dataframe_2(library))
+    df = relax(null_dataframe_2(library))
     namespace = df.__dataframe_namespace__()
     result = df.fill_null(0, column_names=column_names)
 
@@ -42,9 +42,9 @@ def test_fill_null(
         assert interchange_to_pandas(result, library)["b"].iloc[2] == 0
 
 
-@pytest.mark.parametrize("maybe_lazify", [lambda x: x, lambda x: x.collect()])
-def test_fill_null_noop(library: str, maybe_lazify: Callable[[Any], Any]) -> None:
-    df = maybe_lazify(nan_dataframe_1(library))
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
+def test_fill_null_noop(library: str, relax: Callable[[Any], Any]) -> None:
+    df = relax(nan_dataframe_1(library))
     result = df.fill_null(0)
     if hasattr(result.dataframe, "collect"):
         result = result.dataframe.collect()

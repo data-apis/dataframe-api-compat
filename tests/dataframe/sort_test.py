@@ -12,11 +12,9 @@ from tests.utils import interchange_to_pandas
 
 
 @pytest.mark.parametrize("keys", [["a", "b"], None])
-@pytest.mark.parametrize("maybe_lazify", [lambda x: x, lambda x: x.collect()])
-def test_sort(
-    library: str, keys: list[str] | None, maybe_lazify: Callable[[Any], Any]
-) -> None:
-    df = maybe_lazify(integer_dataframe_5(library, api_version="2023.09-beta"))
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
+def test_sort(library: str, keys: list[str] | None, relax: Callable[[Any], Any]) -> None:
+    df = relax(integer_dataframe_5(library, api_version="2023.09-beta"))
     result = df.sort(keys=keys)
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
@@ -25,11 +23,11 @@ def test_sort(
 
 
 @pytest.mark.parametrize("keys", [["a", "b"], None])
-@pytest.mark.parametrize("maybe_lazify", [lambda x: x, lambda x: x.collect()])
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
 def test_sort_descending(
-    library: str, keys: list[str] | None, maybe_lazify: Callable[[Any], Any]
+    library: str, keys: list[str] | None, relax: Callable[[Any], Any]
 ) -> None:
-    df = maybe_lazify(integer_dataframe_5(library, api_version="2023.09-beta"))
+    df = relax(integer_dataframe_5(library, api_version="2023.09-beta"))
     result = df.sort(keys=keys, ascending=False)
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)

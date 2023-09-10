@@ -11,9 +11,9 @@ from tests.utils import integer_dataframe_1
 from tests.utils import interchange_to_pandas
 
 
-@pytest.mark.parametrize("maybe_lazify", [lambda x: x, lambda x: x.collect()])
-def test_drop_column(library: str, maybe_lazify: Callable[[Any], Any]) -> None:
-    df = maybe_lazify(integer_dataframe_1(library))
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
+def test_drop_column(library: str, relax: Callable[[Any], Any]) -> None:
+    df = relax(integer_dataframe_1(library))
     result = df.drop_column("a")
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
@@ -21,8 +21,8 @@ def test_drop_column(library: str, maybe_lazify: Callable[[Any], Any]) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-@pytest.mark.parametrize("maybe_lazify", [lambda x: x, lambda x: x.collect()])
-def test_drop_column_invalid(library: str, maybe_lazify: Callable[[Any], Any]) -> None:
-    df = maybe_lazify(integer_dataframe_1(library))
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
+def test_drop_column_invalid(library: str, relax: Callable[[Any], Any]) -> None:
+    df = relax(integer_dataframe_1(library))
     with pytest.raises(TypeError, match="Expected str, got: <class 'list'>"):
         df.drop_column(["a"])

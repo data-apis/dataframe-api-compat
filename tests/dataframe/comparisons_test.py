@@ -29,14 +29,14 @@ from tests.utils import interchange_to_pandas
         ("__mod__", {"a": [1, 0, 1], "b": [0, 1, 0]}),
     ],
 )
-@pytest.mark.parametrize("maybe_lazify", [lambda x: x, lambda x: x.collect()])
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
 def test_comparisons_with_scalar(
     library: str,
     comparison: str,
     expected_data: dict[str, object],
-    maybe_lazify: Callable[[Any], Any],
+    relax: Callable[[Any], Any],
 ) -> None:
-    df = maybe_lazify(integer_dataframe_1(library))
+    df = relax(integer_dataframe_1(library))
     other = 2
     result = getattr(df, comparison)(other)
     result_pd = interchange_to_pandas(result, library)

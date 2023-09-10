@@ -20,16 +20,16 @@ from tests.utils import interchange_to_pandas
         (2, None, None, pd.DataFrame({"a": [3, 4, 5, 6, 7], "b": [5, 4, 3, 2, 1]})),
     ],
 )
-@pytest.mark.parametrize("maybe_lazify", [lambda x: x, lambda x: x.collect()])
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
 def test_slice_rows(
     library: str,
     start: int | None,
     stop: int | None,
     step: int | None,
     expected: pd.DataFrame,
-    maybe_lazify: Callable[[Any], Any],
+    relax: Callable[[Any], Any],
 ) -> None:
-    df = maybe_lazify(integer_dataframe_3(library))
+    df = relax(integer_dataframe_3(library))
     result = df.slice_rows(start, stop, step)
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)

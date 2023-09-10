@@ -11,9 +11,9 @@ from tests.utils import integer_dataframe_1
 from tests.utils import interchange_to_pandas
 
 
-@pytest.mark.parametrize("maybe_lazify", [lambda x: x, lambda x: x.collect()])
-def test_divmod_with_scalar(library: str, maybe_lazify: Callable[[Any], Any]) -> None:
-    df = maybe_lazify(integer_dataframe_1(library))
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
+def test_divmod_with_scalar(library: str, relax: Callable[[Any], Any]) -> None:
+    df = relax(integer_dataframe_1(library))
     other = 2
     result_quotient, result_remainder = df.__divmod__(other)
     result_quotient_pd = interchange_to_pandas(result_quotient, library)
