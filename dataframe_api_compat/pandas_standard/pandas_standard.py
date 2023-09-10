@@ -1141,7 +1141,9 @@ class PandasEagerFrame(EagerFrame):
                 raise KeyError(f"key {key} not present in DataFrame's columns")
         return PandasGroupBy(self.dataframe, keys, api_version=self._api_version)
 
-    def select(self, names: PandasExpression | list[PandasExpression]) -> PandasDataFrame:
+    def select(
+        self, names: PandasExpression | str | list[PandasExpression | str]
+    ) -> PandasDataFrame:
         return self._reuse_dataframe_implementation("select", names)
 
     def get_column_by_name(self, name) -> PandasColumn:
