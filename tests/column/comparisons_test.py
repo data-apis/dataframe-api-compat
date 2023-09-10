@@ -82,7 +82,7 @@ def test_column_comparisons_scalar(
     pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_combine_column_and_expression(library) -> None:
+def test_combine_column_and_expression(library: str) -> None:
     df = integer_dataframe_1(library).collect()
     namespace = df.__dataframe_namespace__()
     ser = df.get_column_by_name("a")

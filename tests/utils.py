@@ -110,7 +110,7 @@ def integer_dataframe_1(library: str, api_version: str | None = None) -> DataFra
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def integer_dataframe_2(library: str) -> Any:
+def integer_dataframe_2(library) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1, 2, 4], "b": [4, 2, 6]}, dtype="int64")
@@ -124,7 +124,7 @@ def integer_dataframe_2(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def integer_dataframe_3(library: str) -> Any:
+def integer_dataframe_3(library) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame(
@@ -142,7 +142,7 @@ def integer_dataframe_3(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def integer_dataframe_4(library: str) -> Any:
+def integer_dataframe_4(library) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame(
@@ -188,7 +188,7 @@ def integer_dataframe_6(library: str, api_version: str | None = None) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def integer_dataframe_7(library: str) -> Any:
+def integer_dataframe_7(library) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1, 2, 3], "b": [1, 2, 4]}, dtype="int64")
@@ -202,7 +202,7 @@ def integer_dataframe_7(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def nan_dataframe_1(library: str) -> DataFrame:
+def nan_dataframe_1(library) -> DataFrame:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1.0, 2.0, float("nan")]}, dtype="float64")
@@ -217,7 +217,7 @@ def nan_dataframe_1(library: str) -> DataFrame:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def nan_dataframe_2(library: str) -> Any:
+def nan_dataframe_2(library) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [0.0, 1.0, float("nan")]}, dtype="float64")
@@ -232,7 +232,7 @@ def nan_dataframe_2(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def null_dataframe_1(library: str) -> Any:
+def null_dataframe_1(library) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1.0, 2.0, float("nan")]}, dtype="float64")
@@ -246,7 +246,7 @@ def null_dataframe_1(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def null_dataframe_2(library: str) -> Any:
+def null_dataframe_2(library) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame(
@@ -283,7 +283,7 @@ def bool_dataframe_1(library: str, api_version="2023.09-beta") -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def bool_dataframe_2(library: str) -> Any:
+def bool_dataframe_2(library) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame(
@@ -315,7 +315,7 @@ def bool_dataframe_2(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def bool_dataframe_3(library: str) -> Any:
+def bool_dataframe_3(library) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame(
@@ -333,7 +333,7 @@ def bool_dataframe_3(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def bool_dataframe_4(library: str) -> Any:
+def bool_dataframe_4(library) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame(
@@ -353,7 +353,7 @@ def bool_dataframe_4(library: str) -> Any:
         return convert_to_standard_compliant_dataframe(df)
 
 
-def integer_series_1(library: str) -> Any:
+def integer_series_1(library) -> Any:
     ser: Any
     if library == "pandas-numpy":
         ser = pd.Series([1, 2, 3])
@@ -427,7 +427,7 @@ def float_dataframe_3(library: str, request: pytest.FixtureRequest) -> object:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def bool_series_1(library: str) -> Any:
+def bool_series_1(library) -> Any:
     if library == "pandas-numpy":
         ser = pd.Series([True, False, True], name="a", dtype="bool")
         return convert_to_standard_compliant_column(ser)
@@ -455,7 +455,7 @@ def maybe_collect(result: Any) -> Any:
     return df
 
 
-def mixed_dataframe_1(library: str) -> Any:
+def mixed_dataframe_1(library) -> Any:
     df: Any
     data = {
         "a": [1, 2, 3],
