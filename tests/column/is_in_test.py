@@ -32,7 +32,7 @@ def test_is_in(
     df = df_factory(library, request).collect()
     ser = df.get_column_by_name("a")
     other = ser + 1
-    result = df.insert_column(ser.is_in(other).rename("result"))
+    result = df.insert_columns(ser.is_in(other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series(expected_values, name="result")
     pd.testing.assert_series_equal(result_pd, expected)

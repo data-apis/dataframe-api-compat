@@ -12,7 +12,7 @@ def test_get_column_by_name(library: str) -> None:
     namespace = df.__dataframe_namespace__()
     col = namespace.col
     result = col("a").rename("_tmp")
-    result = df.insert_column(result).drop_column("a").rename_columns({"_tmp": "a"})
+    result = df.insert_columns(result).drop_column("a").rename_columns({"_tmp": "a"})
     df.__dataframe_namespace__()
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)

@@ -22,6 +22,6 @@ def test_cumulative_functions_column(
     df = integer_dataframe_1(library).collect()
     ser = df.get_column_by_name("a")
     expected = pd.Series(expected_data, name="result")
-    result = df.insert_column(getattr(ser, func)().rename("result"))
+    result = df.insert_columns(getattr(ser, func)().rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     pd.testing.assert_series_equal(result_pd, expected)

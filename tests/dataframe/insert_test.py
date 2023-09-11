@@ -16,7 +16,7 @@ def test_insert_columns(library: str, request: pytest.FixtureRequest) -> None:
     df = integer_dataframe_1(library, api_version="2023.09-beta")
     namespace = df.__dataframe_namespace__()
     new_col = (namespace.col("b") + 3).rename("result")
-    result = df.insert_column(new_col.rename("c"))
+    result = df.insert_columns(new_col.rename("c"))
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6], "c": [7, 8, 9]})

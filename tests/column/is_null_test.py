@@ -10,7 +10,7 @@ from tests.utils import null_dataframe_1
 def test_column_is_null_1(library: str) -> None:
     df = nan_dataframe_1(library).collect()
     ser = df.get_column_by_name("a")
-    result = df.insert_column(ser.is_null().rename("result"))
+    result = df.insert_columns(ser.is_null().rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     if library == "pandas-numpy":
         expected = pd.Series([False, False, True], name="result")
@@ -22,7 +22,7 @@ def test_column_is_null_1(library: str) -> None:
 def test_column_is_null_2(library: str) -> None:
     df = null_dataframe_1(library).collect()
     ser = df.get_column_by_name("a")
-    result = df.insert_column(ser.is_null().rename("result"))
+    result = df.insert_columns(ser.is_null().rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series([False, False, True], name="result")
     pd.testing.assert_series_equal(result_pd, expected)

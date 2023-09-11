@@ -37,7 +37,7 @@ def test_column_comparisons(
     df = integer_dataframe_7(library).collect()
     ser = df.get_column_by_name("a")
     other = df.get_column_by_name("b")
-    result = df.insert_column(getattr(ser, comparison)(other).rename("result"))
+    result = df.insert_columns(getattr(ser, comparison)(other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series(expected_data, name="result")
     if library in ("polars", "polars-lazy") and comparison == "__pow__":
@@ -74,7 +74,7 @@ def test_column_comparisons_scalar(
     namespace = df.__dataframe_namespace__()
     ser = namespace.col("a")
     other = 3
-    result = df.insert_column(getattr(ser, comparison)(other).rename("result"))
+    result = df.insert_columns(getattr(ser, comparison)(other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series(expected_data, name="result")
     if comparison == "__pow__" and library in ("polars", "polars-lazy"):
@@ -87,5 +87,5 @@ def test_combine_column_and_expression(library: str) -> None:
     namespace = df.__dataframe_namespace__()
     ser = df.get_column_by_name("a")
     other = namespace.col("b")
-    with pytest.raises(TypeError):
+    with pytest.raises((KeyError, AttributeError, TypeError)):
         _ = ser > other

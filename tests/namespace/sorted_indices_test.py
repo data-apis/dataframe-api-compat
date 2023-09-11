@@ -11,7 +11,7 @@ def test_column_sorted_indices_ascending(library: str) -> None:
     df = integer_dataframe_6(library)
     namespace = df.__dataframe_namespace__()
     sorted_indices = namespace.sorted_indices(["b"])
-    result = df.insert_column(sorted_indices.rename("result"))
+    result = df.insert_columns(sorted_indices.rename("result"))
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected_1 = pd.DataFrame(
@@ -41,7 +41,7 @@ def test_column_sorted_indices_descending(library: str) -> None:
     df = integer_dataframe_6(library)
     namespace = df.__dataframe_namespace__()
     sorted_indices = namespace.sorted_indices(["b"], ascending=False)
-    result = df.insert_column(sorted_indices.rename("result"))
+    result = df.insert_columns(sorted_indices.rename("result"))
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected_1 = pd.DataFrame(

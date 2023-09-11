@@ -1019,7 +1019,7 @@ class PolarsDataFrame(DataFrame):
         df = self.dataframe.with_columns(value._expr.alias(label)).select(new_columns)
         return PolarsDataFrame(df, api_version=self._api_version)
 
-    def insert_column(self, value: PolarsExpression) -> PolarsDataFrame:
+    def insert_columns(self, value: PolarsExpression) -> PolarsDataFrame:
         # if self._api_version == "2023.08-beta":
         #     raise NotImplementedError(
         #         "DataFrame.insert is only available for api version 2023.08-beta. "
@@ -1366,8 +1366,10 @@ class PolarsEagerFrame(DataFrame):
     ) -> PolarsDataFrame:
         return PolarsEagerFrame(self.df[start:stop:step], api_version=self._api_version)
 
-    def filter(self, mask: PolarsExpression) -> PolarsDataFrame:
+    def filter(self, mask: PolarsExpression | PolarsColumn) -> PolarsDataFrame:
         # todo: how to convert polars series to expression?
+        if isinstance(mask, PolarsColumn):
+            mask = mask.to_expression()
         return PolarsEagerFrame(self.df.filter(mask._expr), api_version=self._api_version)
 
     def insert(self, loc: int, label: str, value: PolarsExpression) -> PolarsDataFrame:
@@ -1381,7 +1383,7 @@ class PolarsEagerFrame(DataFrame):
         df = self.dataframe.with_columns(value._expr.alias(label)).select(new_columns)
         return PolarsEagerFrame(df, api_version=self._api_version)
 
-    def insert_column(self, value: PolarsExpression | PolarsColumn) -> PolarsDataFrame:
+    def insert_columns(self, value: PolarsExpression | PolarsColumn) -> PolarsDataFrame:
         columns = self.dataframe.columns
         label = value.name
         new_columns = [*columns, label]

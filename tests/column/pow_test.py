@@ -17,7 +17,7 @@ def test_float_powers_column(library: str, request: pytest.FixtureRequest) -> No
     namespace = df.__dataframe_namespace__()
     ser = namespace.col("a")
     other = namespace.col("b") * 1.0
-    result = df.insert_column(ser.__pow__(other).rename("result"))
+    result = df.insert_columns(ser.__pow__(other).rename("result"))
     result_pd = interchange_to_pandas(result, library)
     expected = pd.DataFrame(
         {"a": [1, 2, 3], "b": [4, 5, 6], "result": [1.0, 32.0, 729.0]}
@@ -31,7 +31,7 @@ def test_float_powers_scalar_column(library: str, request: pytest.FixtureRequest
     namespace = df.__dataframe_namespace__()
     ser = namespace.col("a")
     other = 1.0
-    result = df.insert_column(ser.__pow__(other).rename("result"))
+    result = df.insert_columns(ser.__pow__(other).rename("result"))
     result_pd = interchange_to_pandas(result, library)
     expected = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6], "result": [1.0, 2.0, 3.0]})
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
@@ -43,7 +43,7 @@ def test_int_powers_column(library: str, request: pytest.FixtureRequest) -> None
     namespace = df.__dataframe_namespace__()
     ser = namespace.col("a")
     other = namespace.col("b") * 1
-    result = df.insert_column(ser.__pow__(other).rename("result"))
+    result = df.insert_columns(ser.__pow__(other).rename("result"))
     result_pd = interchange_to_pandas(result, library)
     expected = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6], "result": [1, 32, 729]})
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
@@ -57,7 +57,7 @@ def test_int_powers_scalar_column(library: str, request: pytest.FixtureRequest) 
     namespace = df.__dataframe_namespace__()
     ser = namespace.col("a")
     other = 1
-    result = df.insert_column(ser.__pow__(other).rename("result"))
+    result = df.insert_columns(ser.__pow__(other).rename("result"))
     result_pd = interchange_to_pandas(result, library)
     expected = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6], "result": [1, 2, 3]})
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)

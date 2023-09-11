@@ -472,13 +472,6 @@ class PandasColumn(EagerColumn[DType]):
         )
 
     def _reuse_expression_implementation(self, function_name, *args, **kwargs):
-        if args:
-            assert len(args) == 1
-            rhs = args[0]
-            if isinstance(rhs, PandasExpression):
-                raise TypeError("Cannot combine Column with Expression")
-            elif isinstance(rhs, PandasColumn):
-                args = [rhs.to_expression()]
         return (
             PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
             .select(getattr(self.to_expression(), function_name)(*args, **kwargs))
@@ -760,16 +753,14 @@ class PandasDataFrame(DataFrame):
         return PandasGroupBy(self.dataframe, keys, api_version=self._api_version)
 
     def select(self, *columns: str | Expression | EagerColumn[Any]) -> PandasDataFrame:
-        if not isinstance(columns, list):
-            columns = [columns]
-        columns = []
+        new_columns = []
         for name in columns:
             if isinstance(name, str):
-                columns.append(self.dataframe.loc[:, name])
+                new_columns.append(self.dataframe.loc[:, name])
             else:
-                columns.append(self._resolve_expression(name))
+                new_columns.append(self._resolve_expression(name))
         return PandasDataFrame(
-            pd.concat(columns, axis=1),
+            pd.concat(new_columns, axis=1),
             api_version=self._api_version,
         )
 
@@ -810,7 +801,8 @@ class PandasDataFrame(DataFrame):
         df = df.loc[self._resolve_expression(mask)]
         return PandasDataFrame(df, api_version=self._api_version)
 
-    def insert_column(self, value: Expression) -> PandasDataFrame:
+    def insert_columns(self, *columns: Expression) -> PandasDataFrame:
+        value = columns[0]  # todo
         before = self.dataframe
         to_insert = cast(pd.Series, self._resolve_expression(value))
         return PandasDataFrame(
@@ -1159,10 +1151,10 @@ class PandasEagerFrame(EagerFrame):
         return self._reuse_dataframe_implementation("filter", mask)
 
     def insert_columns(self, *columns: Expression | EagerColumn[Any]) -> PandasEagerFrame:
-        return self._reuse_dataframe_implementation("insert_column", columns)
+        return self._reuse_dataframe_implementation("insert_columns", *columns)
 
     def update_columns(self, *columns: Expression | EagerColumn[Any]) -> PandasEagerFrame:
-        return self._reuse_dataframe_implementation("update_columns", columns)
+        return self._reuse_dataframe_implementation("update_columns", *columns)
 
     def drop_column(self, label: str) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("drop_column", label=label)

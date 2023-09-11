@@ -10,7 +10,9 @@ from tests.utils import interchange_to_pandas
 def test_get_rows(library: str) -> None:
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
-    df = df.insert_column((namespace.col("a") - 1).sort(ascending=False).rename("result"))
+    df = df.insert_columns(
+        (namespace.col("a") - 1).sort(ascending=False).rename("result")
+    )
     namespace = df.__dataframe_namespace__()
     result = df.get_rows(namespace.col("result"))
     result_pd = interchange_to_pandas(result, library)
