@@ -46,7 +46,7 @@ if TYPE_CHECKING:
 
     from dataframe_api import (
         Bool,
-        Column,
+        EagerColumn,
         Expression,
         DataFrame,
         EagerFrame,
@@ -60,7 +60,7 @@ else:
     class EagerFrame:
         ...
 
-    class Column(Generic[DType]):
+    class EagerColumn(Generic[DType]):
         ...
 
     class Expression:
@@ -132,7 +132,7 @@ class PandasExpression(Expression):
             extra_calls=calls,
         )
 
-    def get_rows(self, indices: Expression) -> PandasExpression:
+    def get_rows(self, indices: Expression | EagerColumn[Any]) -> PandasExpression:
         def func(lhs: pd.Series, rhs: pd.Series) -> pd.Series:
             return lhs.iloc[rhs].reset_index(drop=True)
 
@@ -141,15 +141,15 @@ class PandasExpression(Expression):
             indices,
         )
 
-    def filter(self, mask: Expression) -> PandasExpression:
+    def filter(self, mask: Expression | EagerColumn[Any]) -> PandasExpression:
         return self._record_call(lambda ser, mask: ser.loc[mask], mask)
 
-    def __eq__(self, other: PandasExpression | Any) -> PandasExpression:
+    def __eq__(self, other: PandasExpression | Any) -> PandasExpression:  # type: ignore[override]
         return self._record_call(
             lambda ser, other: (ser == other).rename(ser.name), other
         )
 
-    def __ne__(self, other: Expression) -> PandasExpression:
+    def __ne__(self, other: Expression | EagerColumn[Any]) -> PandasExpression:  # type: ignore[override]
         return self._record_call(
             lambda ser, other: (ser != other).rename(ser.name), other
         )
@@ -277,7 +277,7 @@ class PandasExpression(Expression):
             None,
         )
 
-    def is_in(self, values: Expression) -> PandasExpression:
+    def is_in(self, values: Expression | EagerColumn[Any]) -> PandasExpression:
         return self._record_call(
             lambda ser, other: ser.isin(other),
             values,
@@ -451,7 +451,7 @@ LATEST_API_VERSION = "2023.08-beta"
 SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.09-beta"))
 
 
-class PandasColumn(Column[DType]):
+class PandasColumn(EagerColumn[DType]):
     # private, not technically part of the standard
     def __init__(self, column: pd.Series[Any], api_version: str) -> None:
         self._name = column.name
@@ -508,7 +508,7 @@ class PandasColumn(Column[DType]):
     def dtype(self) -> Any:
         return dataframe_api_compat.pandas_standard.DTYPE_MAP[self.column.dtype.name]
 
-    def get_rows(self, indices: Column[Any]) -> PandasColumn[DType]:
+    def get_rows(self, indices: EagerColumn[Any]) -> PandasColumn[DType]:
         return self._reuse_expression_implementation("get_rows", indices)
 
     def slice_rows(
@@ -524,7 +524,7 @@ class PandasColumn(Column[DType]):
             self.column.iloc[start:stop:step], api_version=self._api_version
         )
 
-    def filter(self, mask: Expression) -> PandasColumn[DType]:
+    def filter(self, mask: Expression | EagerColumn[Any]) -> PandasColumn[DType]:
         return self._reuse_expression_implementation("filter", mask)
 
     def get_value(self, row: int) -> Any:
@@ -536,51 +536,51 @@ class PandasColumn(Column[DType]):
         return self._reuse_expression_implementation("__eq__", other)
 
     def __ne__(  # type: ignore[override]
-        self, other: Column[DType]
+        self, other: EagerColumn[DType]
     ) -> PandasColumn[Bool]:
         return self._reuse_expression_implementation("__ne__", other)
 
-    def __ge__(self, other: Column[DType] | Any) -> PandasColumn[Bool]:
+    def __ge__(self, other: EagerColumn[DType] | Any) -> PandasColumn[Bool]:
         return self._reuse_expression_implementation("__ge__", other)
 
-    def __gt__(self, other: Column[DType] | Any) -> PandasColumn[Bool]:
+    def __gt__(self, other: EagerColumn[DType] | Any) -> PandasColumn[Bool]:
         return self._reuse_expression_implementation("__gt__", other)
 
-    def __le__(self, other: Column[DType] | Any) -> PandasColumn[Bool]:
+    def __le__(self, other: EagerColumn[DType] | Any) -> PandasColumn[Bool]:
         return self._reuse_expression_implementation("__le__", other)
 
-    def __lt__(self, other: Column[DType] | Any) -> PandasColumn[Bool]:
+    def __lt__(self, other: EagerColumn[DType] | Any) -> PandasColumn[Bool]:
         return self._reuse_expression_implementation("__lt__", other)
 
-    def __and__(self, other: Column[Bool] | bool) -> PandasColumn[Bool]:
+    def __and__(self, other: EagerColumn[Bool] | bool) -> PandasColumn[Bool]:
         return self._reuse_expression_implementation("__and__", other)
 
-    def __or__(self, other: Column[Bool] | bool) -> PandasColumn[Bool]:
+    def __or__(self, other: EagerColumn[Bool] | bool) -> PandasColumn[Bool]:
         return self._reuse_expression_implementation("__or__", other)
 
-    def __add__(self, other: Column[DType] | Any) -> PandasColumn[DType]:
+    def __add__(self, other: EagerColumn[DType] | Any) -> PandasColumn[DType]:
         return self._reuse_expression_implementation("__add__", other)
 
-    def __sub__(self, other: Column[DType] | Any) -> PandasColumn[DType]:
+    def __sub__(self, other: EagerColumn[DType] | Any) -> PandasColumn[DType]:
         return self._reuse_expression_implementation("__sub__", other)
 
-    def __mul__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
+    def __mul__(self, other: EagerColumn[DType] | Any) -> PandasColumn[Any]:
         return self._reuse_expression_implementation("__mul__", other)
 
-    def __truediv__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
+    def __truediv__(self, other: EagerColumn[DType] | Any) -> PandasColumn[Any]:
         return self._reuse_expression_implementation("__truediv__", other)
 
-    def __floordiv__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
+    def __floordiv__(self, other: EagerColumn[DType] | Any) -> PandasColumn[Any]:
         return self._reuse_expression_implementation("__floordiv__", other)
 
-    def __pow__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
+    def __pow__(self, other: EagerColumn[DType] | Any) -> PandasColumn[Any]:
         return self._reuse_expression_implementation("__pow__", other)
 
-    def __mod__(self, other: Column[DType] | Any) -> PandasColumn[Any]:
+    def __mod__(self, other: EagerColumn[DType] | Any) -> PandasColumn[Any]:
         return self._reuse_expression_implementation("__mod__", other)
 
     def __divmod__(
-        self, other: Column[DType] | Any
+        self, other: EagerColumn[DType] | Any
     ) -> tuple[PandasColumn[Any], PandasColumn[Any]]:
         quotient = self // other
         remainder = self - quotient * other
@@ -644,7 +644,7 @@ class PandasColumn(Column[DType]):
             "sort", ascending=ascending, nulls_position=nulls_position
         )
 
-    def is_in(self, values: Column[DType]) -> PandasColumn[Bool]:
+    def is_in(self, values: EagerColumn[DType]) -> PandasColumn[Bool]:
         return self._reuse_expression_implementation("is_in", values)
 
     def unique_indices(self, *, skip_nulls: bool = True) -> PandasColumn[Any]:
@@ -749,7 +749,7 @@ class PandasDataFrame(DataFrame):
     def dataframe(self) -> pd.DataFrame:
         return self._dataframe
 
-    def groupby(self, keys: Sequence[str]) -> PandasGroupBy:
+    def groupby(self, *keys: str) -> PandasGroupBy:
         if not isinstance(keys, collections.abc.Sequence):
             raise TypeError(f"Expected sequence of strings, got: {type(keys)}")
         if isinstance(keys, str):
@@ -759,13 +759,11 @@ class PandasDataFrame(DataFrame):
                 raise KeyError(f"key {key} not present in DataFrame's columns")
         return PandasGroupBy(self.dataframe, keys, api_version=self._api_version)
 
-    def select(
-        self, names: str | PandasExpression | list[PandasExpression]
-    ) -> PandasDataFrame:
-        if not isinstance(names, list):
-            names = [names]
+    def select(self, *columns: str | Expression | EagerColumn[Any]) -> PandasDataFrame:
+        if not isinstance(columns, list):
+            columns = [columns]
         columns = []
-        for name in names:
+        for name in columns:
             if isinstance(name, str):
                 columns.append(self.dataframe.loc[:, name])
             else:
@@ -807,7 +805,7 @@ class PandasDataFrame(DataFrame):
             assert output_name == expression.name, f"{output_name} != {expression.name}"
         return expression
 
-    def filter(self, mask: Expression) -> PandasDataFrame:
+    def filter(self, mask: Expression | EagerColumn[Any]) -> PandasDataFrame:
         df = self.dataframe
         df = df.loc[self._resolve_expression(mask)]
         return PandasDataFrame(df, api_version=self._api_version)
@@ -819,9 +817,7 @@ class PandasDataFrame(DataFrame):
             pd.concat([before, to_insert], axis=1), api_version=self._api_version
         )
 
-    def update_columns(
-        self, columns: PandasExpression | list[PandasExpression]
-    ) -> PandasDataFrame:
+    def update_columns(self, *columns: Expression | EagerColumn[Any]) -> PandasDataFrame:
         if isinstance(columns, PandasExpression):
             columns = [columns]
         df = self.dataframe.copy()
@@ -853,8 +849,7 @@ class PandasDataFrame(DataFrame):
 
     def sort(
         self,
-        keys: Sequence[str] | None = None,
-        *,
+        *keys: str | Expression | EagerColumn[Any],
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
     ) -> PandasDataFrame:
@@ -865,7 +860,7 @@ class PandasDataFrame(DataFrame):
             df.sort_values(keys, ascending=ascending), api_version=self._api_version
         )
 
-    def __eq__(self, other: Any) -> PandasDataFrame:
+    def __eq__(self, other: Any) -> PandasDataFrame:  # type: ignore[override]
         return PandasDataFrame(
             self.dataframe.__eq__(other), api_version=self._api_version
         )
@@ -1071,7 +1066,7 @@ class PandasDataFrame(DataFrame):
         value: Any,
         *,
         column_names: list[str] | None = None,
-    ) -> PandasDataFrame:
+    ) -> PandasEagerFrame:
         if column_names is None:
             column_names = self.dataframe.columns.tolist()
         df = self.dataframe.copy()
@@ -1095,9 +1090,10 @@ class PandasDataFrame(DataFrame):
     def join(
         self,
         other: DataFrame,
+        *,
+        how: Literal["left", "inner", "outer"],
         left_on: str | list[str],
         right_on: str | list[str],
-        how: Literal["left", "inner", "outer"],
     ) -> PandasDataFrame:
         if how not in ["left", "inner", "outer"]:
             raise ValueError(f"Expected 'left', 'inner', 'outer', got: {how}")
@@ -1133,7 +1129,7 @@ class PandasEagerFrame(EagerFrame):
     def dataframe(self) -> pd.DataFrame:
         return self._dataframe
 
-    def groupby(self, keys: Sequence[str]) -> PandasGroupBy:
+    def groupby(self, *keys: str) -> PandasGroupBy:
         if not isinstance(keys, collections.abc.Sequence):
             raise TypeError(f"Expected sequence of strings, got: {type(keys)}")
         if isinstance(keys, str):
@@ -1143,39 +1139,35 @@ class PandasEagerFrame(EagerFrame):
                 raise KeyError(f"key {key} not present in DataFrame's columns")
         return PandasGroupBy(self.dataframe, keys, api_version=self._api_version)
 
-    def select(
-        self, names: PandasExpression | str | list[PandasExpression | str]
-    ) -> PandasDataFrame:
-        return self._reuse_dataframe_implementation("select", names)
+    def select(self, *columns: str | Expression | EagerColumn[Any]) -> PandasEagerFrame:
+        return self._reuse_dataframe_implementation("select", columns)
 
     def get_column_by_name(self, name) -> PandasColumn:
         return PandasColumn(self.dataframe.loc[:, name], api_version=self._api_version)
 
-    def get_rows(self, indices: Expression) -> PandasDataFrame:
+    def get_rows(self, indices: Expression | EagerColumn) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("get_rows", indices)
 
     def slice_rows(
         self, start: int | None, stop: int | None, step: int | None
-    ) -> PandasDataFrame:
+    ) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation(
             "slice_rows", start=start, stop=stop, step=step
         )
 
-    def filter(self, mask: Expression) -> PandasDataFrame:
+    def filter(self, mask: Expression | EagerColumn) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("filter", mask)
 
-    def insert_column(self, value: Expression) -> PandasEagerFrame:
-        return self._reuse_dataframe_implementation("insert_column", value)
+    def insert_columns(self, *columns: Expression | EagerColumn[Any]) -> PandasEagerFrame:
+        return self._reuse_dataframe_implementation("insert_column", columns)
 
-    def update_columns(
-        self, columns: PandasExpression | list[PandasExpression]
-    ) -> PandasDataFrame:
+    def update_columns(self, *columns: Expression | EagerColumn[Any]) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("update_columns", columns)
 
-    def drop_column(self, label: str) -> PandasDataFrame:
+    def drop_column(self, label: str) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("drop_column", label=label)
 
-    def rename_columns(self, mapping: Mapping[str, str]) -> PandasDataFrame:
+    def rename_columns(self, mapping: Mapping[str, str]) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("rename_columns", mapping=mapping)
 
     def get_column_names(self) -> list[str]:
@@ -1183,122 +1175,121 @@ class PandasEagerFrame(EagerFrame):
 
     def sort(
         self,
-        keys: Sequence[str] | None = None,
-        *,
+        *keys: str | Expression | EagerColumn,
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
-    ) -> PandasDataFrame:
+    ) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation(
             "sort", keys=keys, ascending=ascending, nulls_position=nulls_position
         )
 
-    def __eq__(self, other: Any) -> PandasDataFrame:
+    def __eq__(self, other: Any) -> PandasEagerFrame:  # type: ignore[override]
         return self._reuse_dataframe_implementation("__eq__", other)
 
-    def __ne__(self, other: Any) -> PandasDataFrame:  # type: ignore[override]
+    def __ne__(self, other: Any) -> PandasEagerFrame:  # type: ignore[override]
         return self._reuse_dataframe_implementation("__ne__", other)
 
-    def __ge__(self, other: Any) -> PandasDataFrame:
+    def __ge__(self, other: Any) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("__ge__", other)
 
-    def __gt__(self, other: Any) -> PandasDataFrame:
+    def __gt__(self, other: Any) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("__gt__", other)
 
-    def __le__(self, other: Any) -> PandasDataFrame:
+    def __le__(self, other: Any) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("__le__", other)
 
-    def __lt__(self, other: Any) -> PandasDataFrame:
+    def __lt__(self, other: Any) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("__lt__", other)
 
-    def __and__(self, other: Any) -> PandasDataFrame:
+    def __and__(self, other: Any) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("__and__", other)
 
-    def __or__(self, other: Any) -> PandasDataFrame:
+    def __or__(self, other: Any) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("__or__", other)
 
-    def __add__(self, other: Any) -> PandasDataFrame:
+    def __add__(self, other: Any) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("__add__", other)
 
-    def __sub__(self, other: Any) -> PandasDataFrame:
+    def __sub__(self, other: Any) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("__sub__", other)
 
-    def __mul__(self, other: Any) -> PandasDataFrame:
+    def __mul__(self, other: Any) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("__mul__", other)
 
-    def __truediv__(self, other: Any) -> PandasDataFrame:
+    def __truediv__(self, other: Any) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("__truediv__", other)
 
-    def __floordiv__(self, other: Any) -> PandasDataFrame:
+    def __floordiv__(self, other: Any) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("__floordiv__", other)
 
-    def __pow__(self, other: Any) -> PandasDataFrame:
+    def __pow__(self, other: Any) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("__pow__", other)
 
-    def __mod__(self, other: Any) -> PandasDataFrame:
+    def __mod__(self, other: Any) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("__mod__", other)
 
     def __divmod__(
         self,
         other: DataFrame | Any,
-    ) -> tuple[PandasDataFrame, PandasDataFrame]:
+    ) -> tuple[PandasEagerFrame, PandasEagerFrame]:
         quotient, remainder = self.dataframe.__divmod__(other)
-        return PandasEagerFrame(quotient, api_version=self._api_version), PandasDataFrame(
-            remainder, api_version=self._api_version
-        )
+        return PandasEagerFrame(
+            quotient, api_version=self._api_version
+        ), PandasEagerFrame(remainder, api_version=self._api_version)
 
-    def __invert__(self) -> PandasDataFrame:
+    def __invert__(self) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("__invert__")
 
     def __iter__(self) -> NoReturn:
         raise NotImplementedError()
 
-    def any(self, *, skip_nulls: bool = True) -> PandasDataFrame:
+    def any(self, *, skip_nulls: bool = True) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("any", skip_nulls=skip_nulls)
 
-    def all(self, *, skip_nulls: bool = True) -> PandasDataFrame:
+    def all(self, *, skip_nulls: bool = True) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("all", skip_nulls=skip_nulls)
 
-    def min(self, *, skip_nulls: bool = True) -> PandasDataFrame:
+    def min(self, *, skip_nulls: bool = True) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("min", skip_nulls=skip_nulls)
 
-    def max(self, *, skip_nulls: bool = True) -> PandasDataFrame:
+    def max(self, *, skip_nulls: bool = True) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("max", skip_nulls=skip_nulls)
 
-    def sum(self, *, skip_nulls: bool = True) -> PandasDataFrame:
+    def sum(self, *, skip_nulls: bool = True) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("sum", skip_nulls=skip_nulls)
 
-    def prod(self, *, skip_nulls: bool = True) -> PandasDataFrame:
+    def prod(self, *, skip_nulls: bool = True) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("prod", skip_nulls=skip_nulls)
 
-    def median(self, *, skip_nulls: bool = True) -> PandasDataFrame:
+    def median(self, *, skip_nulls: bool = True) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("median", skip_nulls=skip_nulls)
 
-    def mean(self, *, skip_nulls: bool = True) -> PandasDataFrame:
+    def mean(self, *, skip_nulls: bool = True) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("mean", skip_nulls=skip_nulls)
 
     def std(
         self, *, correction: int | float = 1.0, skip_nulls: bool = True
-    ) -> PandasDataFrame:
+    ) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation(
             "std", correction=correction, skip_nulls=skip_nulls
         )
 
     def var(
         self, *, correction: int | float = 1.0, skip_nulls: bool = True
-    ) -> PandasDataFrame:
+    ) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation(
             "var", correction=correction, skip_nulls=skip_nulls
         )
 
-    def is_null(self) -> PandasDataFrame:
+    def is_null(self) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("is_null")
 
-    def is_nan(self) -> PandasDataFrame:
+    def is_nan(self) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("is_nan")
 
     def fill_nan(
         self, value: float | pd.NAType  # type: ignore[name-defined]
-    ) -> PandasDataFrame:
+    ) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("fill_nan", value)
 
     def fill_null(
@@ -1306,7 +1297,7 @@ class PandasEagerFrame(EagerFrame):
         value: Any,
         *,
         column_names: list[str] | None = None,
-    ) -> PandasDataFrame:
+    ) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("fill_null", value)
 
     def to_array_object(self, dtype: str) -> Any:
@@ -1319,10 +1310,11 @@ class PandasEagerFrame(EagerFrame):
     def join(
         self,
         other: EagerFrame,
+        *,
+        how: Literal["left", "inner", "outer"],
         left_on: str | list[str],
         right_on: str | list[str],
-        how: Literal["left", "inner", "outer"],
-    ) -> PandasDataFrame:
+    ) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation(
             "join",
             other=other.relax(),

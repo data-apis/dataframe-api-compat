@@ -43,7 +43,7 @@ if TYPE_CHECKING:
     from dataframe_api import (
         Bool,
         DataFrame,
-        Column,
+        EagerColumn,
         GroupBy,
     )
 else:
@@ -51,7 +51,7 @@ else:
     class DataFrame:
         ...
 
-    class Column(Generic[DType]):
+    class EagerColumn(Generic[DType]):
         ...
 
     class Expression:
@@ -92,7 +92,7 @@ LATEST_API_VERSION = "2023.08-beta"
 SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.09-beta"))
 
 
-class PolarsColumn(Column[DType]):
+class PolarsColumn(EagerColumn[DType]):
     def __init__(
         self,
         column: pl.Series,
@@ -111,7 +111,7 @@ class PolarsColumn(Column[DType]):
         self._api_version = api_version
         self._dtype = column.dtype
 
-    def _validate_column(self, column: PolarsColumn[Any] | Column[Any]) -> None:
+    def _validate_column(self, column: PolarsColumn[Any] | EagerColumn[Any]) -> None:
         assert isinstance(column, PolarsColumn)
         if isinstance(column.column, pl.Expr) and column._id != self._id:
             raise ValueError(
@@ -146,7 +146,7 @@ class PolarsColumn(Column[DType]):
     def dtype(self) -> Any:
         return dataframe_api_compat.polars_standard.DTYPE_MAP[self._dtype]
 
-    def get_rows(self, indices: Column[Any]) -> PolarsColumn[DType]:
+    def get_rows(self, indices: EagerColumn[Any]) -> PolarsColumn[DType]:
         return PolarsColumn(
             self.column.take(indices.column),
             api_version=self._api_version,
@@ -287,7 +287,7 @@ class PolarsColumn(Column[DType]):
         return self.column.var()
 
     def __eq__(  # type: ignore[override]
-        self, other: Column[DType] | Any
+        self, other: EagerColumn[DType] | Any
     ) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(
@@ -300,7 +300,7 @@ class PolarsColumn(Column[DType]):
         )
 
     def __ne__(  # type: ignore[override]
-        self, other: Column[DType] | Any
+        self, other: EagerColumn[DType] | Any
     ) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(
@@ -312,7 +312,7 @@ class PolarsColumn(Column[DType]):
             api_version=self._api_version,
         )
 
-    def __ge__(self, other: Column[DType] | Any) -> PolarsColumn[Bool]:
+    def __ge__(self, other: EagerColumn[DType] | Any) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             return PolarsColumn(
                 self.column >= other.column,
@@ -323,7 +323,7 @@ class PolarsColumn(Column[DType]):
             api_version=self._api_version,
         )
 
-    def __gt__(self, other: Column[DType] | Any) -> PolarsColumn[Bool]:
+    def __gt__(self, other: EagerColumn[DType] | Any) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             self._validate_column(other)
             return PolarsColumn(
@@ -335,7 +335,7 @@ class PolarsColumn(Column[DType]):
             api_version=self._api_version,
         )
 
-    def __le__(self, other: Column[DType] | Any) -> PolarsColumn[Bool]:
+    def __le__(self, other: EagerColumn[DType] | Any) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             self._validate_column(other)
             return PolarsColumn(
@@ -347,7 +347,7 @@ class PolarsColumn(Column[DType]):
             api_version=self._api_version,
         )
 
-    def __lt__(self, other: Column[DType] | Any) -> PolarsColumn[Bool]:
+    def __lt__(self, other: EagerColumn[DType] | Any) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             self._validate_column(other)
             return PolarsColumn(
@@ -359,14 +359,14 @@ class PolarsColumn(Column[DType]):
             api_version=self._api_version,
         )
 
-    def __mul__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
+    def __mul__(self, other: EagerColumn[DType] | Any) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
             res = self.column * other.column
             return PolarsColumn(res, api_version=self._api_version)
         res = self.column * other
         return PolarsColumn(res, api_version=self._api_version)
 
-    def __floordiv__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
+    def __floordiv__(self, other: EagerColumn[DType] | Any) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
             self._validate_column(other)
             return PolarsColumn(
@@ -378,7 +378,7 @@ class PolarsColumn(Column[DType]):
             api_version=self._api_version,
         )
 
-    def __truediv__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
+    def __truediv__(self, other: EagerColumn[DType] | Any) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
             self._validate_column(other)
             res = self.column / other.column
@@ -386,14 +386,14 @@ class PolarsColumn(Column[DType]):
         res = self.column / other
         return PolarsColumn(res, api_version=self._api_version)
 
-    def __pow__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
+    def __pow__(self, other: EagerColumn[DType] | Any) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
             ret = self.column**other.column  # type: ignore[operator]
         else:
             ret = self.column.pow(other)  # type: ignore[arg-type]
         return PolarsColumn(ret, api_version=self._api_version)
 
-    def __mod__(self, other: Column[DType] | Any) -> PolarsColumn[Any]:
+    def __mod__(self, other: EagerColumn[DType] | Any) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
             self._validate_column(other)
             return PolarsColumn(
@@ -407,14 +407,14 @@ class PolarsColumn(Column[DType]):
 
     def __divmod__(
         self,
-        other: Column[DType] | Any,
+        other: EagerColumn[DType] | Any,
     ) -> tuple[PolarsColumn[Any], PolarsColumn[Any]]:
         # validation happens in the deferred calls anyway
         quotient = self // other
         remainder = self - quotient * other
         return quotient, remainder
 
-    def __and__(self, other: Column[Bool] | bool) -> PolarsColumn[Bool]:
+    def __and__(self, other: EagerColumn[Bool] | bool) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             self._validate_column(other)
             return PolarsColumn(
@@ -422,7 +422,7 @@ class PolarsColumn(Column[DType]):
             )
         return PolarsColumn(self.column & other, api_version=self._api_version)  # type: ignore[operator]
 
-    def __or__(self, other: Column[Bool] | bool) -> PolarsColumn[Bool]:
+    def __or__(self, other: EagerColumn[Bool] | bool) -> PolarsColumn[Bool]:
         if isinstance(other, PolarsColumn):
             self._validate_column(other)
             return PolarsColumn(
@@ -433,7 +433,7 @@ class PolarsColumn(Column[DType]):
     def __invert__(self) -> PolarsColumn[Bool]:
         return PolarsColumn(~self.column, api_version=self._api_version)
 
-    def __add__(self, other: Column[Any] | Any) -> PolarsColumn[Any]:
+    def __add__(self, other: EagerColumn[Any] | Any) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
             self._validate_column(other)
             return PolarsColumn(
@@ -445,7 +445,7 @@ class PolarsColumn(Column[DType]):
             api_version=self._api_version,
         )
 
-    def __sub__(self, other: Column[Any] | Any) -> PolarsColumn[Any]:
+    def __sub__(self, other: EagerColumn[Any] | Any) -> PolarsColumn[Any]:
         if isinstance(other, PolarsColumn):
             self._validate_column(other)
             return PolarsColumn(
@@ -972,16 +972,16 @@ class PolarsDataFrame(DataFrame):
     def dataframe(self) -> pl.LazyFrame:
         return self.df
 
-    def groupby(self, keys: Sequence[str]) -> PolarsGroupBy:
-        return PolarsGroupBy(self.df, keys, api_version=self._api_version)
+    def groupby(self, *keys: str) -> PolarsGroupBy:
+        return PolarsGroupBy(self.df, list(keys), api_version=self._api_version)
 
     def select(
-        self, names: str | PolarsExpression | list[str | PolarsExpression]
+        self, *columns: str | PolarsExpression | list[str | PolarsExpression]
     ) -> PolarsDataFrame:
-        if not isinstance(names, list):
-            names = [names]
+        if not isinstance(columns, list):
+            columns = [columns]
         resolved_names = []
-        for name in names:
+        for name in columns:
             if isinstance(name, PolarsExpression):
                 resolved_names.append(name._expr)
             elif isinstance(name, str):
@@ -1286,9 +1286,10 @@ class PolarsDataFrame(DataFrame):
     def join(
         self,
         other: PolarsDataFrame,
+        *,
+        how: Literal["left", "inner", "outer"],
         left_on: str | list[str],
         right_on: str | list[str],
-        how: Literal["left", "inner", "outer"],
     ) -> PolarsDataFrame:
         if how not in ["left", "inner", "outer"]:
             raise ValueError(f"Expected 'left', 'inner', 'outer', got: {how}")
@@ -1341,13 +1342,13 @@ class PolarsEagerFrame(DataFrame):
     def dataframe(self) -> pl.LazyFrame:
         return self.df
 
-    def groupby(self, keys: Sequence[str]) -> PolarsGroupBy:
-        return PolarsGroupBy(self.df.lazy(), keys, api_version=self._api_version)
+    def groupby(self, *keys: str) -> PolarsGroupBy:
+        return PolarsGroupBy(self.df.lazy(), list(keys), api_version=self._api_version)
 
-    def select(self, names: Sequence[str]) -> PolarsDataFrame:
-        if isinstance(names, str):
-            raise TypeError(f"Expected sequence of str, got {type(names)}")
-        return PolarsEagerFrame(self.df.select(names), api_version=self._api_version)
+    def select(self, *columns: str) -> PolarsDataFrame:
+        if isinstance(columns, str):
+            raise TypeError(f"Expected sequence of str, got {type(columns)}")
+        return PolarsEagerFrame(self.df.select(columns), api_version=self._api_version)
 
     def get_column_by_name(self, name) -> PolarsColumn:
         return PolarsColumn(
@@ -1652,9 +1653,9 @@ class PolarsEagerFrame(DataFrame):
     def join(
         self,
         other: PolarsEagerFrame,
+        *how: Literal["left", "inner", "outer"],
         left_on: str | list[str],
         right_on: str | list[str],
-        how: Literal["left", "inner", "outer"],
     ) -> PolarsDataFrame:
         return (
             self.relax()

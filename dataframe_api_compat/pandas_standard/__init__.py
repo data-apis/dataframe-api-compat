@@ -252,7 +252,7 @@ def any_rowwise(
 def all_rowwise(
     keys: list[str] | None = None, *, skip_nulls: bool = True
 ) -> PandasExpression:
-    def func(df):
+    def func(df: pd.DataFrame) -> pd.Series:
         if keys is None:
             return df.all(axis=1)
         return df.loc[:, keys].all(axis=1)
@@ -261,24 +261,26 @@ def all_rowwise(
 
 
 def sorted_indices(
-    keys: str | list[str] | None = None,
-    *,
+    *keys: str,
     ascending: Sequence[bool] | bool = True,
     nulls_position: Literal["first", "last"] = "last",
 ) -> Expression:
-    def func(df):
+    def func(df: pd.DataFrame) -> pd.Series:
         if ascending:
             return (
-                df.loc[:, keys].sort_values(keys).index.to_series().reset_index(drop=True)
+                df.loc[:, list(keys)]
+                .sort_values(keys)
+                .index.to_series()
+                .reset_index(drop=True)
             )
         return (
-            df.loc[:, keys]
+            df.loc[:, list(keys)]
             .sort_values(keys)
             .index.to_series()[::-1]
             .reset_index(drop=True)
         )
 
-    return PandasExpression(root_names=keys, output_name="indices", base_call=func)
+    return PandasExpression(root_names=list(keys), output_name="indices", base_call=func)
 
 
 def unique_indices(
