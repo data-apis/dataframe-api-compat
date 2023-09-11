@@ -269,13 +269,13 @@ def sorted_indices(
         if ascending:
             return (
                 df.loc[:, list(keys)]
-                .sort_values(keys)
+                .sort_values(list(keys))
                 .index.to_series()
                 .reset_index(drop=True)
             )
         return (
             df.loc[:, list(keys)]
-            .sort_values(keys)
+            .sort_values(list(keys))
             .index.to_series()[::-1]
             .reset_index(drop=True)
         )

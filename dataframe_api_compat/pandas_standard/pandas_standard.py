@@ -810,8 +810,6 @@ class PandasDataFrame(DataFrame):
         )
 
     def update_columns(self, *columns: Expression | EagerColumn[Any]) -> PandasDataFrame:
-        if isinstance(columns, PandasExpression):
-            columns = [columns]
         df = self.dataframe.copy()
         for col in columns:
             new_column = self._resolve_expression(col)
@@ -845,11 +843,11 @@ class PandasDataFrame(DataFrame):
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
     ) -> PandasDataFrame:
-        if keys is None:
+        if not keys:
             keys = self.dataframe.columns.tolist()
         df = self.dataframe
         return PandasDataFrame(
-            df.sort_values(keys, ascending=ascending), api_version=self._api_version
+            df.sort_values(list(keys), ascending=ascending), api_version=self._api_version
         )
 
     def __eq__(self, other: Any) -> PandasDataFrame:  # type: ignore[override]
@@ -1132,7 +1130,7 @@ class PandasEagerFrame(EagerFrame):
         return PandasGroupBy(self.dataframe, keys, api_version=self._api_version)
 
     def select(self, *columns: str | Expression | EagerColumn[Any]) -> PandasEagerFrame:
-        return self._reuse_dataframe_implementation("select", columns)
+        return self._reuse_dataframe_implementation("select", *columns)
 
     def get_column_by_name(self, name) -> PandasColumn:
         return PandasColumn(self.dataframe.loc[:, name], api_version=self._api_version)
@@ -1172,7 +1170,7 @@ class PandasEagerFrame(EagerFrame):
         nulls_position: Literal["first", "last"] = "last",
     ) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation(
-            "sort", keys=keys, ascending=ascending, nulls_position=nulls_position
+            "sort", *keys, ascending=ascending, nulls_position=nulls_position
         )
 
     def __eq__(self, other: Any) -> PandasEagerFrame:  # type: ignore[override]

@@ -30,9 +30,9 @@ def test_groupby_boolean(
 ) -> None:
     df = maybe_collect(bool_dataframe_2(library))
     namespace = df.__dataframe_namespace__()
-    result = getattr(df.groupby(["key"]), aggregation)()
+    result = getattr(df.groupby("key"), aggregation)()
     # need to sort
-    idx = namespace.sorted_indices(["key"])
+    idx = namespace.sorted_indices("key")
     result = result.get_rows(idx)
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
@@ -43,6 +43,6 @@ def test_groupby_boolean(
 def test_groupby_invalid_any_all(library: str, request: pytest.FixtureRequest) -> None:
     df = integer_dataframe_4(library)
     with pytest.raises((ValueError, SchemaError)):
-        df.groupby(["key"]).any()
+        df.groupby("key").any()
     with pytest.raises((ValueError, SchemaError)):
-        df.groupby(["key"]).all()
+        df.groupby("key").all()

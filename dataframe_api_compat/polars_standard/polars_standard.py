@@ -978,8 +978,6 @@ class PolarsDataFrame(DataFrame):
     def select(
         self, *columns: str | PolarsExpression | list[str | PolarsExpression]
     ) -> PolarsDataFrame:
-        if not isinstance(columns, list):
-            columns = [columns]
         resolved_names = []
         for name in columns:
             if isinstance(name, PolarsExpression):
@@ -1019,30 +1017,39 @@ class PolarsDataFrame(DataFrame):
         df = self.dataframe.with_columns(value._expr.alias(label)).select(new_columns)
         return PolarsDataFrame(df, api_version=self._api_version)
 
-    def insert_columns(self, value: PolarsExpression) -> PolarsDataFrame:
-        # if self._api_version == "2023.08-beta":
-        #     raise NotImplementedError(
-        #         "DataFrame.insert is only available for api version 2023.08-beta. "
-        #         "Please use `DataFrame.insert_column` instead."
-        #     )
-        columns = self.dataframe.columns
-        label = value.name
-        new_columns = [*columns, label]
-        df = self.dataframe.with_columns(value._expr).select(new_columns)
+    def insert_columns(self, *columns: PolarsExpression) -> PolarsDataFrame:
+        new_columns = []
+        for col in columns:
+            if isinstance(col, PolarsExpression):
+                new_columns.append(col._expr)
+            elif isinstance(col, PolarsColumn):
+                new_columns.append(col.column)
+            else:
+                raise TypeError(
+                    f"Expected PolarsExpression or PolarsColumn, got: {type(col)}"
+                )
+        df = self.dataframe.with_columns(new_columns)
         return PolarsDataFrame(df, api_version=self._api_version)
 
-    def update_columns(self, columns: PolarsExpression | Sequence[PolarsExpression], /) -> PolarsDataFrame:  # type: ignore[override]
-        if isinstance(columns, PolarsExpression):
-            columns = [columns]
+    def update_columns(self, *columns: PolarsExpression | PolarsColumn) -> PolarsDataFrame:  # type: ignore[override]
+        original_n_columns = len(self.get_column_names())
+        new_columns = []
         for col in columns:
-            if col.name not in self.dataframe.columns:
-                raise ValueError(
-                    f"column {col.name} not in dataframe, please use insert_column instead"
+            if isinstance(col, PolarsExpression):
+                new_columns.append(col)
+            elif isinstance(col, PolarsColumn):
+                new_columns.append(col.to_expression())
+            else:
+                raise TypeError(
+                    f"Expected PolarsExpression or PolarsColumn, got: {type(col)}"
                 )
-        return PolarsDataFrame(
-            self.dataframe.with_columns([col._expr for col in columns]),
+        df = PolarsDataFrame(
+            self.dataframe.with_columns([col._expr for col in new_columns]),
             api_version=self._api_version,
         )
+        if len(df.get_column_names()) != original_n_columns:
+            raise ValueError("tried inserting a new column, use insert_columns instead")
+        return df
 
     def drop_column(self, label: str) -> PolarsDataFrame:
         if not isinstance(label, str):
@@ -1249,16 +1256,15 @@ class PolarsDataFrame(DataFrame):
 
     def sort(
         self,
-        keys: Sequence[Any] | None = None,
-        *,
+        *keys: str,
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
     ) -> PolarsDataFrame:
-        if keys is None:
+        if not keys:
             keys = self.dataframe.columns
         # TODO: what if there's multiple `ascending`?
         return PolarsDataFrame(
-            self.dataframe.sort(keys, descending=not ascending),
+            self.dataframe.sort(list(keys), descending=not ascending),
             api_version=self._api_version,
         )
 
@@ -1345,10 +1351,8 @@ class PolarsEagerFrame(DataFrame):
     def groupby(self, *keys: str) -> PolarsGroupBy:
         return PolarsGroupBy(self.df.lazy(), list(keys), api_version=self._api_version)
 
-    def select(self, *columns: str) -> PolarsDataFrame:
-        if isinstance(columns, str):
-            raise TypeError(f"Expected sequence of str, got {type(columns)}")
-        return PolarsEagerFrame(self.df.select(columns), api_version=self._api_version)
+    def select(self, *columns: str) -> PolarsEagerFrame:
+        return self.relax().select(*columns).collect()
 
     def get_column_by_name(self, name) -> PolarsColumn:
         return PolarsColumn(
@@ -1383,28 +1387,13 @@ class PolarsEagerFrame(DataFrame):
         df = self.dataframe.with_columns(value._expr.alias(label)).select(new_columns)
         return PolarsEagerFrame(df, api_version=self._api_version)
 
-    def insert_columns(self, value: PolarsExpression | PolarsColumn) -> PolarsDataFrame:
-        columns = self.dataframe.columns
-        label = value.name
-        new_columns = [*columns, label]
-        if isinstance(value, PolarsColumn):
-            df = self.dataframe.with_columns(value.column).select(new_columns)
-        else:
-            df = self.dataframe.with_columns(value._expr).select(new_columns)
-        return PolarsEagerFrame(df, api_version=self._api_version)
+    def insert_columns(
+        self, *columns: PolarsExpression | PolarsColumn
+    ) -> PolarsDataFrame:
+        return self.relax().insert_columns(*columns).collect()
 
-    def update_columns(self, columns: PolarsExpression | Sequence[PolarsExpression], /) -> PolarsDataFrame:  # type: ignore[override]
-        if isinstance(columns, PolarsExpression):
-            columns = [columns]
-        for col in columns:
-            if col.name not in self.dataframe.columns:
-                raise ValueError(
-                    f"column {col.name} not in dataframe, please use insert_column instead"
-                )
-        return PolarsEagerFrame(
-            self.dataframe.with_columns([col._expr for col in columns]),
-            api_version=self._api_version,
-        )
+    def update_columns(self, *columns: PolarsExpression | PolarsColumn) -> PolarsDataFrame:  # type: ignore[override]
+        return self.relax().update_columns(*columns).collect()
 
     def drop_column(self, label: str) -> PolarsDataFrame:
         if not isinstance(label, str):
@@ -1611,17 +1600,14 @@ class PolarsEagerFrame(DataFrame):
 
     def sort(
         self,
-        keys: Sequence[Any] | None = None,
-        *,
+        *keys: str,
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
     ) -> PolarsDataFrame:
-        if keys is None:
-            keys = self.dataframe.columns
-        # TODO: what if there's multiple `ascending`?
-        return PolarsEagerFrame(
-            self.dataframe.sort(keys, descending=not ascending),
-            api_version=self._api_version,
+        return (
+            self.relax()
+            .sort(*keys, ascending=ascending, nulls_position=nulls_position)
+            .collect()
         )
 
     def fill_nan(
@@ -1655,7 +1641,8 @@ class PolarsEagerFrame(DataFrame):
     def join(
         self,
         other: PolarsEagerFrame,
-        *how: Literal["left", "inner", "outer"],
+        *,
+        how: Literal["left", "inner", "outer"],
         left_on: str | list[str],
         right_on: str | list[str],
     ) -> PolarsDataFrame:

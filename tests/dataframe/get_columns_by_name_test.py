@@ -18,7 +18,7 @@ def test_select(library: str) -> None:
 
 def test_select_list_of_str(library: str) -> None:
     df = integer_dataframe_1(library)
-    result = df.select(["a", "b"])
+    result = df.select("a", "b")
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
@@ -40,7 +40,7 @@ def test_select_multiple_expressions(library: str) -> None:
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
     col = namespace.col
-    result = df.select([col("b") + 1, col("b").rename("c") + 2])
+    result = df.select(col("b") + 1, col("b").rename("c") + 2)
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"b": [5, 6, 7], "c": [6, 7, 8]})

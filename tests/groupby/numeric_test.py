@@ -33,8 +33,8 @@ def test_groupby_numeric(
     request: pytest.FixtureRequest,
 ) -> None:
     df = integer_dataframe_4(library)
-    result = getattr(df.groupby(["key"]), aggregation)()
-    result = result.sort(["key"])
+    result = getattr(df.groupby("key"), aggregation)()
+    result = result.sort("key")
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"key": [1, 2], "b": expected_b, "c": expected_c})

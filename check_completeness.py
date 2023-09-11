@@ -40,12 +40,12 @@ for i in spec:
 spec = dataframe_api.GroupBy().__dir__()
 pandas_spec = (
     pandas_standard.PandasDataFrame(pd.DataFrame({"a": [1]}), api_version="2023.08-beta")
-    .groupby(["a"])
+    .groupby("a")
     .__dir__()
 )
 polars_spec = (
     polars_standard.PolarsDataFrame(pl.DataFrame({"a": [1]}), api_version="2023.08-beta")
-    .groupby(["a"])
+    .groupby("a")
     .__dir__()
 )
 
