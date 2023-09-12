@@ -22,6 +22,17 @@ def test_update_columns(library: str, relax: Callable[[Any], Any]) -> None:
 
 
 @pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
+def test_update_multiple_columns(library: str, relax: Callable[[Any], Any]) -> None:
+    df = relax(integer_dataframe_1(library))
+    namespace = df.__dataframe_namespace__()
+    col = namespace.col
+    result = df.update_columns(col("a") + 1, col("b") + 2)
+    result_pd = interchange_to_pandas(result, library)
+    expected = pd.DataFrame({"a": [2, 3, 4], "b": [6, 7, 8]})
+    pd.testing.assert_frame_equal(result_pd, expected)
+
+
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
 def test_update_columns_invalid(library: str, relax: Callable[[Any], Any]) -> None:
     df = relax(integer_dataframe_1(library))
     namespace = df.__dataframe_namespace__()
