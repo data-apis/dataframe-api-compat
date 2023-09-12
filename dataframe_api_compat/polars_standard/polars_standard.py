@@ -41,14 +41,19 @@ if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
     from dataframe_api import (
+        Expression,
         Bool,
         DataFrame,
+        EagerFrame,
         EagerColumn,
         GroupBy,
     )
 else:
 
     class DataFrame:
+        ...
+
+    class EagerFrame:
         ...
 
     class EagerColumn(Generic[DType]):
@@ -168,7 +173,7 @@ class PolarsColumn(EagerColumn[DType]):
             api_version=self._api_version,
         )
 
-    def filter(self, mask: PolarsColumn[Any]) -> PolarsColumn[DType]:
+    def filter(self, mask: Expression | EagerColumn[Any]) -> PolarsColumn[DType]:
         self._validate_column(mask)
         return PolarsColumn(
             self.column.filter(mask.column),
@@ -969,15 +974,17 @@ class PolarsDataFrame(DataFrame):
         return dataframe_api_compat.polars_standard
 
     @property
+    def column_names(self) -> list[str]:
+        return self.dataframe.columns
+
+    @property
     def dataframe(self) -> pl.LazyFrame:
         return self.df
 
     def groupby(self, *keys: str) -> PolarsGroupBy:
         return PolarsGroupBy(self.df, list(keys), api_version=self._api_version)
 
-    def select(
-        self, *columns: str | PolarsExpression | list[str | PolarsExpression]
-    ) -> PolarsDataFrame:
+    def select(self, *columns: str | Expression | EagerColumn[Any]) -> PolarsDataFrame:
         resolved_names = []
         for name in columns:
             if isinstance(name, PolarsExpression):
@@ -1003,7 +1010,7 @@ class PolarsDataFrame(DataFrame):
     ) -> PolarsDataFrame:
         return PolarsDataFrame(self.df[start:stop:step], api_version=self._api_version)
 
-    def filter(self, mask: PolarsExpression) -> PolarsDataFrame:
+    def filter(self, mask: Expression | EagerColumn[Any]) -> PolarsDataFrame:
         return PolarsDataFrame(self.df.filter(mask._expr), api_version=self._api_version)
 
     def insert(self, loc: int, label: str, value: PolarsExpression) -> PolarsDataFrame:
@@ -1017,7 +1024,7 @@ class PolarsDataFrame(DataFrame):
         df = self.dataframe.with_columns(value._expr.alias(label)).select(new_columns)
         return PolarsDataFrame(df, api_version=self._api_version)
 
-    def insert_columns(self, *columns: PolarsExpression) -> PolarsDataFrame:
+    def insert_columns(self, *columns: Expression | EagerColumn[Any]) -> PolarsDataFrame:
         new_columns = []
         for col in columns:
             if isinstance(col, PolarsExpression):
@@ -1256,7 +1263,7 @@ class PolarsDataFrame(DataFrame):
 
     def sort(
         self,
-        *keys: str,
+        *keys: str | Expression | EagerColumn[Any],
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
     ) -> PolarsDataFrame:
@@ -1291,7 +1298,7 @@ class PolarsDataFrame(DataFrame):
 
     def join(
         self,
-        other: PolarsDataFrame,
+        other: DataFrame,
         *,
         how: Literal["left", "inner", "outer"],
         left_on: str | list[str],
@@ -1325,7 +1332,7 @@ class PolarsDataFrame(DataFrame):
         return PolarsEagerFrame(self.dataframe.collect(), api_version=self._api_version)
 
 
-class PolarsEagerFrame(DataFrame):
+class PolarsEagerFrame(EagerFrame):
     def __init__(self, df: pl.LazyFrame, api_version: str) -> None:
         # columns already have to be strings, and duplicates aren't
         # allowed, so no validation required
@@ -1345,13 +1352,17 @@ class PolarsEagerFrame(DataFrame):
         return dataframe_api_compat.polars_standard
 
     @property
+    def column_names(self) -> list[str]:
+        return self.dataframe.columns
+
+    @property
     def dataframe(self) -> pl.LazyFrame:
         return self.df
 
     def groupby(self, *keys: str) -> PolarsGroupBy:
         return PolarsGroupBy(self.df.lazy(), list(keys), api_version=self._api_version)
 
-    def select(self, *columns: str) -> PolarsEagerFrame:
+    def select(self, *columns: str | Expression | EagerColumn[Any]) -> PolarsEagerFrame:
         return self.relax().select(*columns).collect()
 
     def get_column_by_name(self, name) -> PolarsColumn:

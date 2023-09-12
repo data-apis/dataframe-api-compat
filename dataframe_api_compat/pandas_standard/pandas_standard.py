@@ -712,6 +712,9 @@ class PandasDataFrame(DataFrame):
             )
         self._api_version = api_version
 
+    def __repr__(self) -> str:
+        return self.dataframe.__repr__()
+
     def _validate_columns(self, columns: Sequence[str]) -> None:
         counter = collections.Counter(columns)
         for col, count in counter.items():
@@ -737,6 +740,10 @@ class PandasDataFrame(DataFrame):
     # In the standard
     def __dataframe_namespace__(self) -> Any:
         return dataframe_api_compat.pandas_standard
+
+    @property
+    def column_names(self) -> list[str]:
+        return self.dataframe.columns.tolist()
 
     @property
     def dataframe(self) -> pd.DataFrame:
@@ -802,11 +809,12 @@ class PandasDataFrame(DataFrame):
         return PandasDataFrame(df, api_version=self._api_version)
 
     def insert_columns(self, *columns: Expression) -> PandasDataFrame:
-        value = columns[0]  # todo
-        before = self.dataframe
-        to_insert = cast(pd.Series, self._resolve_expression(value))
+        new_columns = pd.concat(
+            [self._resolve_expression(column) for column in columns], axis=1
+        )
         return PandasDataFrame(
-            pd.concat([before, to_insert], axis=1), api_version=self._api_version
+            pd.concat([self.dataframe, new_columns], axis=1),
+            api_version=self._api_version,
         )
 
     def update_columns(self, *columns: Expression | EagerColumn[Any]) -> PandasDataFrame:
@@ -1114,6 +1122,10 @@ class PandasEagerFrame(EagerFrame):
     # In the standard
     def __dataframe_namespace__(self) -> Any:
         return dataframe_api_compat.pandas_standard
+
+    @property
+    def column_names(self) -> list[str]:
+        return self.dataframe.columns.tolist()
 
     @property
     def dataframe(self) -> pd.DataFrame:
