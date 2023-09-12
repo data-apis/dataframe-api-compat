@@ -7,7 +7,7 @@ from tests.utils import integer_dataframe_1
 from tests.utils import interchange_to_pandas
 
 
-def test_get_column_by_name(library: str) -> None:
+def test_get_column(library: str) -> None:
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
     col = namespace.col

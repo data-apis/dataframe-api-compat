@@ -476,7 +476,7 @@ class PandasColumn(EagerColumn[DType]):
             PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
             .select(getattr(self.to_expression(), function_name)(*args, **kwargs))
             .collect()
-            .get_column_by_name(self.name)
+            .get_column(self.name)
         )
 
     # In the standard
@@ -1116,6 +1116,9 @@ class PandasEagerFrame(EagerFrame):
         self._dataframe = dataframe.reset_index(drop=True)
         self._api_version = api_version
 
+    def __repr__(self) -> str:
+        return self.dataframe.__repr__()
+
     def _reuse_dataframe_implementation(self, function_name, *args, **kwargs):
         return getattr(self.relax(), function_name)(*args, **kwargs).collect()
 
@@ -1144,7 +1147,7 @@ class PandasEagerFrame(EagerFrame):
     def select(self, *columns: str | Expression | EagerColumn[Any]) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("select", *columns)
 
-    def get_column_by_name(self, name) -> PandasColumn:
+    def get_column(self, name) -> PandasColumn:
         return PandasColumn(self.dataframe.loc[:, name], api_version=self._api_version)
 
     def get_rows(self, indices: Expression | EagerColumn) -> PandasEagerFrame:

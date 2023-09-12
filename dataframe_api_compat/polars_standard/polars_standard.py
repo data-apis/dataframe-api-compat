@@ -970,6 +970,9 @@ class PolarsDataFrame(DataFrame):
             )
         self._api_version = api_version
 
+    def __repr__(self) -> str:
+        return self.dataframe.__repr__()
+
     def __dataframe_namespace__(self) -> Any:
         return dataframe_api_compat.polars_standard
 
@@ -1348,6 +1351,9 @@ class PolarsEagerFrame(EagerFrame):
             )
         self._api_version = api_version
 
+    def __repr__(self) -> str:
+        return self.dataframe.__repr__()
+
     def __dataframe_namespace__(self) -> Any:
         return dataframe_api_compat.polars_standard
 
@@ -1365,7 +1371,7 @@ class PolarsEagerFrame(EagerFrame):
     def select(self, *columns: str | Expression | EagerColumn[Any]) -> PolarsEagerFrame:
         return self.relax().select(*columns).collect()
 
-    def get_column_by_name(self, name) -> PolarsColumn:
+    def get_column(self, name) -> PolarsColumn:
         return PolarsColumn(
             self.dataframe.get_column(name), api_version=self._api_version
         )

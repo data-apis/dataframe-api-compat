@@ -30,7 +30,7 @@ def test_is_in(
     request: pytest.FixtureRequest,
 ) -> None:
     df = df_factory(library, request).collect()
-    ser = df.get_column_by_name("a")
+    ser = df.get_column("a")
     other = ser + 1
     result = df.insert_columns(ser.is_in(other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]

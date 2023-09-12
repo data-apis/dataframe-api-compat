@@ -35,8 +35,8 @@ def test_column_comparisons(
 ) -> None:
     ser: Any
     df = integer_dataframe_7(library).collect()
-    ser = df.get_column_by_name("a")
-    other = df.get_column_by_name("b")
+    ser = df.get_column("a")
+    other = df.get_column("b")
     result = df.insert_columns(getattr(ser, comparison)(other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series(expected_data, name="result")
@@ -85,7 +85,7 @@ def test_column_comparisons_scalar(
 def test_combine_column_and_expression(library: str) -> None:
     df = integer_dataframe_1(library).collect()
     namespace = df.__dataframe_namespace__()
-    ser = df.get_column_by_name("a")
+    ser = df.get_column("a")
     other = namespace.col("b")
     with pytest.raises((KeyError, AttributeError, TypeError)):
         _ = ser > other

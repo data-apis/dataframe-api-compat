@@ -10,7 +10,7 @@ from tests.utils import interchange_to_pandas
 def test_column_divmod(library: str) -> None:
     df = integer_dataframe_1(library).collect()
     ser = integer_series_1(library)
-    other = df.get_column_by_name("b")
+    other = df.get_column("b")
     result_quotient, result_remainder = ser.__divmod__(other)
     # quotient
     result = df.insert_columns(result_quotient.rename("result"))
@@ -26,8 +26,8 @@ def test_column_divmod(library: str) -> None:
 
 def test_column_divmod_with_scalar(library: str) -> None:
     df = integer_dataframe_1(library).collect()
-    ser = df.get_column_by_name("a")
-    df.get_column_by_name("b")
+    ser = df.get_column("a")
+    df.get_column("b")
     result_quotient, result_remainder = ser.__divmod__(2)
     # quotient
     result = df.insert_columns(result_quotient.rename("result"))

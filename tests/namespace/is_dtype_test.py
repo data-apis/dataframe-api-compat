@@ -24,6 +24,6 @@ def test_is_dtype(library: str, dtype: str, expected: list[str]) -> None:
     result = [
         i
         for i in df.get_column_names()
-        if namespace.is_dtype(df.get_column_by_name(i).dtype, dtype)
+        if namespace.is_dtype(df.get_column(i).dtype, dtype)
     ]
     assert result == expected
