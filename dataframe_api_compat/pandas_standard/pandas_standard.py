@@ -892,6 +892,7 @@ class PandasDataFrame(DataFrame):
                 raise ValueError(
                     f"column {new_column.name} not in dataframe, use insert instead"
                 )
+            new_column, _ = self._broadcast(new_column, df[new_column.name])
             df[new_column.name] = new_column
         return PandasDataFrame(df, api_version=self._api_version)
 
