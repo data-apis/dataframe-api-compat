@@ -691,7 +691,7 @@ class PolarsExpression:
         return PolarsExpression(self._expr.any(), api_version=self._api_version)
 
     def all(self, *, skip_nulls: bool = True) -> bool | None:
-        return self._expr.all()
+        return PolarsExpression(self._expr.all(), api_version=self._api_version)
 
     def min(self, *, skip_nulls: bool = True) -> Any:
         return PolarsExpression(
