@@ -790,25 +790,28 @@ class PandasDataFrame(DataFrame):
                 raise KeyError(f"key {key} not present in DataFrame's columns")
         return PandasGroupBy(self.dataframe, keys, api_version=self._api_version)
 
-    def select(self, *columns: str | Expression | EagerColumn[Any]) -> PandasDataFrame:
-        new_columns = []
-        lengths = []
-        for name in columns:
-            if isinstance(name, str):
-                new_columns.append(self.dataframe.loc[:, name])
-            else:
-                new_columns.append(self._resolve_expression(name))
-            lengths.append(len(new_columns[-1]))
+    def _broadcast_and_concat(self, columns) -> pd.DataFrame:
+        columns = [self._resolve_expression(col) for col in columns]
+        lengths = [len(col) for col in columns]
         if len(set(lengths)) > 1:
             # need to broadcast
             max_len = max(lengths)
             for i, length in enumerate(lengths):
                 if length == 1:
-                    new_columns[i] = pd.Series(
-                        [new_columns[i][0]] * max_len, name=new_columns[i].name
+                    columns[i] = pd.Series(
+                        [columns[i][0]] * max_len, name=columns[i].name
                     )
+        return pd.concat(columns, axis=1)
+
+    def select(self, *columns: str | Expression | EagerColumn[Any]) -> PandasDataFrame:
+        new_columns = []
+        for name in columns:
+            if isinstance(name, str):
+                new_columns.append(self.dataframe.loc[:, name])
+            else:
+                new_columns.append(self._resolve_expression(name))
         return PandasDataFrame(
-            pd.concat(new_columns, axis=1),
+            self._broadcast_and_concat(new_columns),
             api_version=self._api_version,
         )
 
@@ -868,9 +871,7 @@ class PandasDataFrame(DataFrame):
         return PandasDataFrame(df, api_version=self._api_version)
 
     def insert_columns(self, *columns: Expression) -> PandasDataFrame:
-        new_columns = pd.concat(
-            [self._resolve_expression(column) for column in columns], axis=1
-        )
+        new_columns = self._broadcast_and_concat(columns)
         if (len(new_columns) == 1) & (len(self.dataframe) > 1):
             new_columns = pd.DataFrame(
                 {
