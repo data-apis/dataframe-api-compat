@@ -216,28 +216,42 @@ class PandasExpression(Expression):
     def __invert__(self: PandasExpression) -> PandasExpression:
         return self._record_call(lambda ser, _rhs: ~ser, None)
 
+    # Reductions
+
     def any(self, *, skip_nulls: bool = True) -> PandasExpression:
         return self._record_call(
             lambda ser, _rhs: pd.Series([ser.any()], name=ser.name), None
         )
 
     def all(self, *, skip_nulls: bool = True) -> PandasExpression:
-        return self._record_call(lambda ser, _rhs: ser.all(), None)
+        return self._record_call(
+            lambda ser, _rhs: pd.Series([ser.all()], name=ser.name), None
+        )
 
     def min(self, *, skip_nulls: bool = True) -> Any:
-        return self._record_call(lambda ser, _rhs: ser.min(), None)
+        return self._record_call(
+            lambda ser, _rhs: pd.Series([ser.min()], name=ser.name), None
+        )
 
     def max(self, *, skip_nulls: bool = True) -> Any:
-        return self._record_call(lambda ser, _rhs: ser.max(), None)
+        return self._record_call(
+            lambda ser, _rhs: pd.Series([ser.max()], name=ser.name), None
+        )
 
     def sum(self, *, skip_nulls: bool = True) -> Any:
-        return self._record_call(lambda ser, _rhs: ser.sum(), None)
+        return self._record_call(
+            lambda ser, _rhs: pd.Series([ser.sum()], name=ser.name), None
+        )
 
     def prod(self, *, skip_nulls: bool = True) -> Any:
-        return self._record_call(lambda ser, _rhs: ser.prod(), None)
+        return self._record_call(
+            lambda ser, _rhs: pd.Series([ser.prod()], name=ser.name), None
+        )
 
     def median(self, *, skip_nulls: bool = True) -> Any:
-        return self._record_call(lambda ser, _rhs: ser.median(), None)
+        return self._record_call(
+            lambda ser, _rhs: pd.Series([ser.median()], name=ser.name), None
+        )
 
     def mean(self, *, skip_nulls: bool = True) -> Any:
         return self._record_call(
@@ -245,10 +259,14 @@ class PandasExpression(Expression):
         )
 
     def std(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
-        return self._record_call(lambda ser, _rhs: ser.std(), None)
+        return self._record_call(
+            lambda ser, _rhs: pd.Series([ser.std()], name=ser.name), None
+        )
 
     def var(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
-        return self._record_call(lambda ser, _rhs: ser.var(), None)
+        return self._record_call(
+            lambda ser, _rhs: pd.Series([ser.var()], name=ser.name), None
+        )
 
     def is_null(self) -> PandasExpression:
         return self._record_call(lambda ser, _rhs: ser.isna(), None)
