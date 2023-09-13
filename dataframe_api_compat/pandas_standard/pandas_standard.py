@@ -141,6 +141,9 @@ class PandasExpression(Expression):
             indices,
         )
 
+    def len(self) -> PandasExpression:
+        return self._record_call(lambda ser, _rhs: len(ser), None)
+
     def filter(self, mask: Expression | EagerColumn[Any]) -> PandasExpression:
         return self._record_call(lambda ser, mask: ser.loc[mask], mask)
 
@@ -213,6 +216,14 @@ class PandasExpression(Expression):
     def __invert__(self: PandasExpression) -> PandasExpression:
         return self._record_call(lambda ser, _rhs: ~ser, None)
 
+    def any(self, *, skip_nulls: bool = True) -> PandasExpression:
+        return self._record_call(
+            lambda ser, _rhs: pd.Series([ser.any()], name=ser.name), None
+        )
+
+    def all(self, *, skip_nulls: bool = True) -> PandasExpression:
+        return self._record_call(lambda ser, _rhs: ser.all(), None)
+
     def min(self, *, skip_nulls: bool = True) -> Any:
         return self._record_call(lambda ser, _rhs: ser.min(), None)
 
@@ -229,7 +240,9 @@ class PandasExpression(Expression):
         return self._record_call(lambda ser, _rhs: ser.median(), None)
 
     def mean(self, *, skip_nulls: bool = True) -> Any:
-        return self._record_call(lambda ser, _rhs: ser.mean(), None)
+        return self._record_call(
+            lambda ser, _rhs: pd.Series([ser.mean()], name=ser.name), None
+        )
 
     def std(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
         return self._record_call(lambda ser, _rhs: ser.std(), None)
@@ -761,11 +774,21 @@ class PandasDataFrame(DataFrame):
 
     def select(self, *columns: str | Expression | EagerColumn[Any]) -> PandasDataFrame:
         new_columns = []
+        lengths = []
         for name in columns:
             if isinstance(name, str):
                 new_columns.append(self.dataframe.loc[:, name])
             else:
                 new_columns.append(self._resolve_expression(name))
+            lengths.append(len(new_columns[-1]))
+        if len(set(lengths)) > 1:
+            # need to broadcast
+            max_len = max(lengths)
+            for i, length in enumerate(lengths):
+                if length == 1:
+                    new_columns[i] = pd.Series(
+                        [new_columns[i][0]] * max_len, name=new_columns[i].name
+                    )
         return PandasDataFrame(
             pd.concat(new_columns, axis=1),
             api_version=self._api_version,
@@ -784,8 +807,25 @@ class PandasDataFrame(DataFrame):
             self.dataframe.iloc[start:stop:step], api_version=self._api_version
         )
 
+    def _broadcast(self, lhs, rhs):
+        if (
+            isinstance(lhs, pd.Series)
+            and isinstance(rhs, pd.Series)
+            and len(lhs) != 1
+            and len(rhs) == 1
+        ):
+            rhs = pd.Series([rhs[0]] * len(lhs), name=rhs.name)
+        elif (
+            isinstance(lhs, pd.Series)
+            and isinstance(rhs, pd.Series)
+            and len(lhs) == 1
+            and len(rhs) != 1
+        ):
+            lhs = pd.Series([lhs[0]] * len(rhs), name=lhs.name)
+        return lhs, rhs
+
     def _resolve_expression(
-        self, expression: PandasExpression | PandasColumn | pd.Series | object
+        self, expression: PandasExpression | PandasColumn | pd.Series | object, *, level=0
     ) -> pd.Series:
         if isinstance(expression, PandasColumn):
             return expression.column
@@ -796,8 +836,9 @@ class PandasDataFrame(DataFrame):
             return expression._base_call(self.dataframe)
         output_name = expression.output_name
         for func, lhs, rhs in expression._calls:
-            lhs = self._resolve_expression(lhs)
-            rhs = self._resolve_expression(rhs)
+            lhs = self._resolve_expression(lhs, level=level + 1)
+            rhs = self._resolve_expression(rhs, level=level + 1)
+            lhs, rhs = self._broadcast(lhs, rhs)
             expression = func(lhs, rhs)
         if isinstance(expression, pd.Series):
             assert output_name == expression.name, f"{output_name} != {expression.name}"

@@ -633,6 +633,9 @@ class PolarsExpression:
             name = self._expr.meta.output_name()
         return name
 
+    def len(self) -> PolarsExpression:
+        return PolarsExpression(self._expr.len(), api_version=self._api_version)
+
     def get_rows(self, indices: PolarsExpression) -> PolarsExpression:
         return PolarsExpression(
             self._expr.take(indices._expr),
@@ -685,7 +688,7 @@ class PolarsExpression:
         )
 
     def any(self, *, skip_nulls: bool = True) -> bool | None:
-        return self._expr.any()
+        return PolarsExpression(self._expr.any(), api_version=self._api_version)
 
     def all(self, *, skip_nulls: bool = True) -> bool | None:
         return self._expr.all()
