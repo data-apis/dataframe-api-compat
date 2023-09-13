@@ -871,6 +871,13 @@ class PandasDataFrame(DataFrame):
         new_columns = pd.concat(
             [self._resolve_expression(column) for column in columns], axis=1
         )
+        if (len(new_columns) == 1) & (len(self.dataframe) > 1):
+            new_columns = pd.DataFrame(
+                {
+                    col_name: [new_columns[col_name][0]] * len(self.dataframe)
+                    for col_name in new_columns.columns
+                }
+            )
         return PandasDataFrame(
             pd.concat([self.dataframe, new_columns], axis=1),
             api_version=self._api_version,

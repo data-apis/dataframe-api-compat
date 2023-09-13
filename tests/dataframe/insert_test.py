@@ -61,3 +61,14 @@ def test_insert_eager_columns(library: str, request: pytest.FixtureRequest) -> N
     df_pd = convert_dataframe_to_pandas_numpy(df_pd)
     expected = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
     pd.testing.assert_frame_equal(df_pd, expected)
+
+
+def test_insert_reduction(library: str) -> None:
+    df = integer_dataframe_1(library)
+    namespace = df.__dataframe_namespace__()
+    new_col = (namespace.col("b").mean()).rename("result")
+    result = df.insert_columns(new_col)
+    result_pd = interchange_to_pandas(result, library)
+    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
+    expected = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6], "result": [5.0, 5.0, 5.0]})
+    pd.testing.assert_frame_equal(result_pd, expected)
