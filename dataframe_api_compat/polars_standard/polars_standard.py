@@ -625,6 +625,14 @@ class PolarsExpression:
         return dataframe_api_compat.polars_standard
 
     @property
+    def root_names(self) -> list[str]:
+        return sorted(set(self._expr.meta.root_names()))
+
+    @property
+    def output_name(self) -> list[str]:
+        return self._expr.meta.output_name()
+
+    @property
     def name(self) -> str:
         if isinstance(self._expr, pl.Series):
             # TODO: can we avoid this completely?
@@ -972,6 +980,13 @@ class PolarsDataFrame(DataFrame):
                 "Try updating dataframe-api-compat?"
             )
         self._api_version = api_version
+
+    @property
+    def schema(self) -> dict[str, Any]:
+        return {
+            column_name: dataframe_api_compat.polars_standard.DTYPE_MAP[dtype]
+            for column_name, dtype in self.dataframe.schema.items()
+        }
 
     def __repr__(self) -> str:
         return self.dataframe.__repr__()
@@ -1363,6 +1378,13 @@ class PolarsEagerFrame(EagerFrame):
     @property
     def column_names(self) -> list[str]:
         return self.dataframe.columns
+
+    @property
+    def schema(self) -> dict[str, Any]:
+        return {
+            column_name: dataframe_api_compat.polars_standard.DTYPE_MAP[dtype]
+            for column_name, dtype in self.dataframe.schema.items()
+        }
 
     @property
     def dataframe(self) -> pl.LazyFrame:

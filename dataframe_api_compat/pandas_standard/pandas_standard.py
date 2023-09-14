@@ -85,6 +85,8 @@ class PandasExpression(Expression):
         output_name: str,
         base_call: Callable[[pd.DataFrame], pd.Series] | None = None,
         extra_calls: list[ExtraCall] | None = None,
+        *,
+        api_version: str | None = None,  # todo: propagate
     ) -> None:
         """
         Parameters
@@ -108,8 +110,7 @@ class PandasExpression(Expression):
 
     @property
     def root_names(self):
-        # todo need to merge these when doing e.g. col('a') + col('b')
-        return self._root_names
+        return sorted(set(self._root_names))
 
     @property
     def output_name(self):
@@ -746,6 +747,13 @@ class PandasDataFrame(DataFrame):
     def __repr__(self) -> str:
         return self.dataframe.__repr__()
 
+    @property
+    def schema(self) -> dict[str, Any]:
+        return {
+            column_name: dataframe_api_compat.pandas_standard.DTYPE_MAP[dtype.name]
+            for column_name, dtype in self.dataframe.dtypes.items()
+        }
+
     def _validate_columns(self, columns: Sequence[str]) -> None:
         counter = collections.Counter(columns)
         for col, count in counter.items():
@@ -1197,6 +1205,13 @@ class PandasEagerFrame(EagerFrame):
     @property
     def column_names(self) -> list[str]:
         return self.dataframe.columns.tolist()
+
+    @property
+    def schema(self) -> dict[str, Any]:
+        return {
+            column_name: dataframe_api_compat.pandas_standard.DTYPE_MAP[dtype.name]
+            for column_name, dtype in self.dataframe.dtypes.items()
+        }
 
     @property
     def dataframe(self) -> pd.DataFrame:

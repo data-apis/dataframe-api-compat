@@ -220,11 +220,11 @@ def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:
 
 
 def any_rowwise(keys: list[str] | None = None, *, skip_nulls: bool = True):
-    return PolarsExpression(pl.any_horizontal(keys or "*"))
+    return PolarsExpression(pl.any_horizontal(keys or "*").alias("any"))
 
 
 def all_rowwise(keys: list[str] | None = None, *, skip_nulls: bool = True):
-    return PolarsExpression(pl.all_horizontal(keys or "*"))
+    return PolarsExpression(pl.all_horizontal(keys or "*").alias("all"))
 
 
 def sorted_indices(
