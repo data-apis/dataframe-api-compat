@@ -168,6 +168,9 @@ class PandasExpression(Expression):
     def filter(self, mask: Expression | EagerColumn[Any]) -> PandasExpression:
         return self._record_call(lambda ser, mask: ser.loc[mask], mask)
 
+    def get_value(self, row: int) -> Any:
+        return self._record_call(lambda ser, _rhs: ser.iloc[[row]], None)
+
     def __eq__(self, other: PandasExpression | Any) -> PandasExpression:  # type: ignore[override]
         return self._record_call(
             lambda ser, other: (ser == other).rename(ser.name), other
@@ -516,7 +519,7 @@ class PandasColumn(EagerColumn[DType]):
                 "Try updating dataframe-api-compat?"
             )
 
-    def to_expression(self) -> PandasExpression:
+    def _to_expression(self) -> PandasExpression:
         return PandasExpression(
             root_names=[],
             output_name=self.name,
@@ -526,7 +529,7 @@ class PandasColumn(EagerColumn[DType]):
     def _reuse_expression_implementation(self, function_name, *args, **kwargs):
         return (
             PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
-            .select(getattr(self.to_expression(), function_name)(*args, **kwargs))
+            .select(getattr(self._to_expression(), function_name)(*args, **kwargs))
             .collect()
             .get_column(self.name)
         )

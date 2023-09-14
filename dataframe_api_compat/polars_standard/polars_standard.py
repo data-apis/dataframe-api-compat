@@ -141,11 +141,7 @@ class PolarsColumn(EagerColumn[DType]):
         return self._series
 
     def __len__(self) -> int:
-        if isinstance(self.column, pl.Series):
-            return len(self.column)
-        raise NotImplementedError(
-            "__len__ intentionally not implemented for lazy columns"
-        )
+        return len(self.column)
 
     @property
     def dtype(self) -> Any:
@@ -218,77 +214,33 @@ class PolarsColumn(EagerColumn[DType]):
         )
 
     def any(self, *, skip_nulls: bool = True) -> bool | None:
-        if isinstance(self.column, pl.Expr):
-            raise NotImplementedError("any not implemented for lazy columns")
         return self.column.any()
 
     def all(self, *, skip_nulls: bool = True) -> bool | None:
-        if isinstance(self.column, pl.Expr):
-            raise NotImplementedError("all not implemented for lazy columns")
         return self.column.all()
 
     def min(self, *, skip_nulls: bool = True) -> Any:
-        if isinstance(self.column, pl.Expr):
-            return PolarsColumn(
-                self.column.min(),
-                api_version=self._api_version,
-            )
         return self.column.min()
 
     def max(self, *, skip_nulls: bool = True) -> Any:
-        if isinstance(self.column, pl.Expr):
-            return PolarsColumn(
-                self.column.max(),
-                api_version=self._api_version,
-            )
         return self.column.max()
 
     def sum(self, *, skip_nulls: bool = True) -> Any:
-        if isinstance(self.column, pl.Expr):
-            return PolarsColumn(
-                self.column.sum(),
-                api_version=self._api_version,
-            )
         return self.column.sum()
 
     def prod(self, *, skip_nulls: bool = True) -> Any:
-        if isinstance(self.column, pl.Expr):
-            return PolarsColumn(
-                self.column.product(),
-                api_version=self._api_version,
-            )
         return self.column.product()
 
     def mean(self, *, skip_nulls: bool = True) -> Any:
-        if isinstance(self.column, pl.Expr):
-            return PolarsColumn(
-                self.column.mean(),
-                api_version=self._api_version,
-            )
         return self.column.mean()
 
     def median(self, *, skip_nulls: bool = True) -> Any:
-        if isinstance(self.column, pl.Expr):
-            return PolarsColumn(
-                self.column.median(),
-                api_version=self._api_version,
-            )
         return self.column.median()
 
     def std(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
-        if isinstance(self.column, pl.Expr):
-            return PolarsColumn(
-                self.column.std(),
-                api_version=self._api_version,
-            )
         return self.column.std()
 
     def var(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
-        if isinstance(self.column, pl.Expr):
-            return PolarsColumn(
-                self.column.var(),
-                api_version=self._api_version,
-            )
         return self.column.var()
 
     def __eq__(  # type: ignore[override]
@@ -526,7 +478,7 @@ class PolarsColumn(EagerColumn[DType]):
             api_version=self._api_version,
         )
 
-    def to_expression(self) -> PolarsExpression:
+    def _to_expression(self) -> PolarsExpression:
         return PolarsExpression(pl.lit(self.column), api_version=self._api_version)
 
 
@@ -669,7 +621,9 @@ class PolarsExpression:
         )
 
     def get_value(self, row: int) -> Any:
-        return self.Expression
+        return PolarsExpression(
+            self._expr.take(row), api_version=self._api_version  # type: ignore[arg-type]
+        )
 
     def __iter__(self) -> NoReturn:
         raise NotImplementedError()
@@ -1414,7 +1368,7 @@ class PolarsEagerFrame(EagerFrame):
     def filter(self, mask: PolarsExpression | PolarsColumn) -> PolarsDataFrame:
         # todo: how to convert polars series to expression?
         if isinstance(mask, PolarsColumn):
-            mask = mask.to_expression()
+            mask = mask._to_expression()
         return PolarsEagerFrame(self.df.filter(mask._expr), api_version=self._api_version)
 
     def insert(self, loc: int, label: str, value: PolarsExpression) -> PolarsDataFrame:
