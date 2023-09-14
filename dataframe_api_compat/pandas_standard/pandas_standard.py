@@ -143,7 +143,9 @@ class PandasExpression(Expression):
         )
 
     def len(self) -> PandasExpression:
-        return self._record_call(lambda ser, _rhs: len(ser), None)
+        return self._record_call(
+            lambda ser, _rhs: pd.Series([len(ser)], name=ser.name), None
+        )
 
     def filter(self, mask: Expression | EagerColumn[Any]) -> PandasExpression:
         return self._record_call(lambda ser, mask: ser.loc[mask], mask)
