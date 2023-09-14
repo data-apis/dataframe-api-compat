@@ -655,12 +655,11 @@ class PolarsExpression:
     ) -> PolarsExpression:
         if start is None:
             start = 0
-        if stop is None:
-            stop = len(self._expr)
+        length = None if stop is None else stop - start
         if step is None:
             step = 1
         return PolarsExpression(
-            self._expr[start:stop:step],
+            self._expr.slice(start, length).take_every(step),
             api_version=self._api_version,
         )
 

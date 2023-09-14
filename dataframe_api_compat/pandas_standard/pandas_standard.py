@@ -142,6 +142,24 @@ class PandasExpression(Expression):
             indices,
         )
 
+    def slice_rows(
+        self, start: int | None, stop: int | None, step: int | None
+    ) -> PandasColumn[DType]:
+        def func(ser, _rhs, start, stop, step):
+            if start is None:
+                start = 0
+            if stop is None:
+                stop = len(ser)
+            if step is None:
+                step = 1
+            return ser.iloc[start:stop:step]
+
+        import functools
+
+        return self._record_call(
+            functools.partial(func, start=start, stop=stop, step=step), None
+        )
+
     def len(self) -> PandasExpression:
         return self._record_call(
             lambda ser, _rhs: pd.Series([len(ser)], name=ser.name), None
