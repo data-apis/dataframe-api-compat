@@ -877,7 +877,7 @@ class PandasDataFrame(DataFrame):
         return lhs, rhs
 
     def _resolve_expression(
-        self, expression: PandasExpression | PandasColumn | pd.Series | object, *, level=0
+        self, expression: PandasExpression | PandasColumn | pd.Series | object
     ) -> pd.Series:
         if isinstance(expression, PandasColumn):
             return expression.column
@@ -888,12 +888,11 @@ class PandasDataFrame(DataFrame):
             return expression._base_call(self.dataframe)
         output_name = expression.output_name
         for func, lhs, rhs in expression._calls:
-            lhs = self._resolve_expression(lhs, level=level + 1)
-            rhs = self._resolve_expression(rhs, level=level + 1)
+            lhs = self._resolve_expression(lhs)
+            rhs = self._resolve_expression(rhs)
             lhs, rhs = self._broadcast(lhs, rhs)
             expression = func(lhs, rhs)
-        if isinstance(expression, pd.Series):
-            assert output_name == expression.name, f"{output_name} != {expression.name}"
+        assert output_name == expression.name, f"{output_name} != {expression.name}"
         return expression
 
     def filter(self, mask: Expression | EagerColumn[Any]) -> PandasDataFrame:
