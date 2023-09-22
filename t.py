@@ -1,53 +1,29 @@
 from __future__ import annotations
 
-from typing import Any
-
 import pandas as pd
 import polars as pl
 
-import dataframe_api_compat
+
+df_pandas = pd.read_parquet("iris.parquet")
+df_polars = pl.scan_parquet("iris.parquet")
 
 
-def convert_to_standard_compliant_dataframe(df: pd.DataFrame | pl.DataFrame) -> Any:
-    # todo: type return
-    if isinstance(df, pd.DataFrame):
-        return (
-            dataframe_api_compat.pandas_standard.convert_to_standard_compliant_dataframe(
-                df
-            )
-        )
-    elif isinstance(df, (pl.DataFrame, pl.LazyFrame)):
-        return (
-            dataframe_api_compat.polars_standard.convert_to_standard_compliant_dataframe(
-                df
-            )
-        )
-    else:
-        raise AssertionError(f"Got unexpected type: {type(df)}")
+def my_dataframe_agnostic_function(df):
+    df = df.__dataframe_consortium_standard__(api_version="2023.09-beta")
+
+    mask = df.get_column_by_name("species") != "setosa"
+    df = df.filter(mask)
+
+    for column_name in df.get_column_names():
+        if column_name == "species":
+            continue
+        new_column = df.get_column_by_name(column_name)
+        new_column = (new_column - new_column.mean()) / new_column.std()
+        df = df.insert_column(new_column.rename(f"{column_name}_scaled"))
+
+    return df.dataframe
 
 
-dfpd = pd.DataFrame({"a": [1] * 10_000 + [9999]})
-dfpl = pl.DataFrame({"a": [1] * 10_000 + [9999]})
-dfplazy = pl.LazyFrame({"a": [1] * 10_000 + [9999]})
-
-
-dfpd = convert_to_standard_compliant_dataframe(dfpd)
-dfpl = convert_to_standard_compliant_dataframe(dfpl)
-dfplazy = convert_to_standard_compliant_dataframe(dfplazy)
-
-
-def remove_outliers(df_standard, column):
-    # Get a Standard-compliant DataFrame.
-    # NOTE: this has not yet been upstreamed, so won't work out-of-the-box!
-    # See 'resources' below for how to try it out.
-    # Use methods from the Standard specification.
-    col = df_standard.get_column_by_name(column)
-    z_score = (col - col.mean()) / col.std()
-    df_standard_filtered = df_standard.filter((z_score > -3) & (z_score < 3))
-    # Return the result as a DataFrame from the original library.
-    return df_standard_filtered.dataframe
-
-
-print(remove_outliers(dfpd, "a"))
-print(remove_outliers(dfpl, "a"))
-print(remove_outliers(dfplazy, "a").collect())
+#  Then, either of the following will work as expected:
+print(my_dataframe_agnostic_function(df_pandas))
+print(my_dataframe_agnostic_function(df_polars).collect())

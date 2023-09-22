@@ -447,8 +447,8 @@ class PandasGroupBy(GroupBy):
         return PandasDataFrame(result, api_version=self._api_version)
 
 
-LATEST_API_VERSION = "2023.08-beta"
-SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.09-beta"))
+LATEST_API_VERSION = "2023.09-beta"
+SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.10-beta"))
 
 
 class PandasDataFrame(DataFrame):
