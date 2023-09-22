@@ -448,7 +448,7 @@ class PandasGroupBy(GroupBy):
 
 
 LATEST_API_VERSION = "2023.09-beta"
-SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.10-beta"))
+SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.08-beta"))
 
 
 class PandasDataFrame(DataFrame):
@@ -470,7 +470,7 @@ class PandasDataFrame(DataFrame):
         if api_version not in SUPPORTED_VERSIONS:
             raise ValueError(
                 "Unsupported API version, expected one of: "
-                f"{SUPPORTED_VERSIONS}. "
+                f"{SUPPORTED_VERSIONS}. Got: {api_version}"
                 "Try updating dataframe-api-compat?"
             )
         self._api_version = api_version
@@ -560,11 +560,6 @@ class PandasDataFrame(DataFrame):
         )
 
     def insert(self, loc: int, label: str, value: Column[Any]) -> PandasDataFrame:
-        if self._api_version != "2023.08-beta":
-            raise NotImplementedError(
-                "DataFrame.insert is only available for api version 2023.08-beta. "
-                "Please use `DataFrame.insert_column` instead."
-            )
         series = value.column
         self._validate_index(series.index)
         before = self.dataframe.iloc[:, :loc]
@@ -575,10 +570,6 @@ class PandasDataFrame(DataFrame):
         )
 
     def insert_column(self, value: Column[Any]) -> PandasDataFrame:
-        if self._api_version == "2023.08-beta":
-            raise NotImplementedError(
-                "DataFrame.insert_column is only available for api versions after 2023.08-beta. "
-            )
         series = value.column
         self._validate_index(series.index)
         before = self.dataframe
@@ -588,10 +579,6 @@ class PandasDataFrame(DataFrame):
         )
 
     def update_columns(self, columns: PandasColumn[Any] | Sequence[PandasColumn[Any]], /) -> PandasDataFrame:  # type: ignore[override]
-        if self._api_version == "2023.08-beta":
-            raise NotImplementedError(
-                "DataFrame.insert_column is only available for api versions after 2023.08-beta. "
-            )
         if isinstance(columns, PandasColumn):
             columns = [columns]
         df = self.dataframe.copy()

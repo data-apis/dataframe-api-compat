@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pandas as pd
-import pytest
 
 from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import integer_dataframe_1
 from tests.utils import interchange_to_pandas
+
+if TYPE_CHECKING:
+    import pytest
 
 
 def test_insert(library: str, request: pytest.FixtureRequest) -> None:
@@ -14,8 +18,6 @@ def test_insert(library: str, request: pytest.FixtureRequest) -> None:
     new_col = namespace.column_from_sequence(
         [7, 8, 9], dtype=namespace.Int64(), name="result"
     )
-    with pytest.raises(NotImplementedError):
-        result = df.insert_column(new_col)
     result = df.insert(1, "c", new_col)
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
@@ -34,8 +36,6 @@ def test_insert_columns(library: str, request: pytest.FixtureRequest) -> None:
     new_col = namespace.column_from_sequence(
         [7, 8, 9], dtype=namespace.Int64(), name="result"
     )
-    with pytest.raises(NotImplementedError):
-        result = df.insert(1, "c", new_col)
     result = df.insert_column(new_col.rename("c"))
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)

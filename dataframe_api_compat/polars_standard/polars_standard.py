@@ -81,7 +81,7 @@ def _is_integer_dtype(dtype: Any) -> bool:
 
 
 LATEST_API_VERSION = "2023.09-beta"
-SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.10-beta"))
+SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.08-beta"))
 
 
 class PolarsColumn(Column[DType]):
@@ -897,11 +897,6 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(self.df.filter(mask.column), api_version=self._api_version)
 
     def insert(self, loc: int, label: str, value: Column[Any]) -> PolarsDataFrame:
-        if self._api_version != "2023.08-beta":
-            raise NotImplementedError(
-                "DataFrame.insert is only available for api version 2023.08-beta. "
-                "Please use `DataFrame.insert_column` instead."
-            )
         self._validate_column(value)  # type: ignore[arg-type]
         columns = self.dataframe.columns
         new_columns = columns[:loc] + [label] + columns[loc:]
@@ -909,11 +904,6 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(df, api_version=self._api_version)
 
     def insert_column(self, value: Column[Any]) -> PolarsDataFrame:
-        if self._api_version == "2023.08-beta":
-            raise NotImplementedError(
-                "DataFrame.insert is only available for api version 2023.08-beta. "
-                "Please use `DataFrame.insert_column` instead."
-            )
         self._validate_column(value)  # type: ignore[arg-type]
         columns = self.dataframe.columns
         label = value.name
@@ -922,11 +912,6 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(df, api_version=self._api_version)
 
     def update_columns(self, columns: PolarsColumn[Any] | Sequence[PolarsColumn[Any]], /) -> PolarsDataFrame:  # type: ignore[override]
-        if self._api_version == "2023.08-beta":
-            raise NotImplementedError(
-                "DataFrame.insert is only available for api version 2023.08-beta. "
-                "Please use `DataFrame.insert_column` instead."
-            )
         if isinstance(columns, PolarsColumn):
             columns = [columns]
         for col in columns:
