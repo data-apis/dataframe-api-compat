@@ -517,7 +517,7 @@ class PandasDataFrame(DataFrame):
         if isinstance(keys, str):
             raise TypeError("Expected sequence of strings, got: str")
         for key in keys:
-            if key not in self.get_column_names():
+            if key not in self.column_names:
                 raise KeyError(f"key {key} not present in DataFrame's columns")
         return PandasGroupBy(self.dataframe, keys, api_version=self._api_version)
 
@@ -605,10 +605,14 @@ class PandasDataFrame(DataFrame):
             self.dataframe.rename(columns=mapping), api_version=self._api_version
         )
 
-    def get_column_names(self) -> list[str]:
+    def get_column_names(self) -> list[str]:  # pragma: no cover
         # DO NOT REMOVE
         # This one is used in upstream tests - even if deprecated,
         # just leave it in for backwards compatibility
+        return self.dataframe.columns.tolist()
+
+    @property
+    def column_names(self) -> list[str]:
         return self.dataframe.columns.tolist()
 
     def sorted_indices(

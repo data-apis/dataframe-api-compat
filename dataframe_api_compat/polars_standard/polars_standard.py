@@ -939,10 +939,14 @@ class PolarsDataFrame(DataFrame):
             self.dataframe.rename(dict(mapping)), api_version=self._api_version
         )
 
-    def get_column_names(self) -> list[str]:
+    def get_column_names(self) -> list[str]:  # pragma: no cover
         # DO NOT REMOVE
         # This one is used in upstream tests - even if deprecated,
         # just leave it in for backwards compatibility
+        return self.dataframe.columns
+
+    @property
+    def column_names(self) -> list[str]:
         return self.dataframe.columns
 
     def __eq__(  # type: ignore[override]
@@ -1033,9 +1037,7 @@ class PolarsDataFrame(DataFrame):
 
     def __pow__(self, other: Any) -> PolarsDataFrame:
         original_type = self.dataframe.schema
-        ret = self.dataframe.select(
-            [pl.col(col).pow(other) for col in self.get_column_names()]
-        )
+        ret = self.dataframe.select([pl.col(col).pow(other) for col in self.column_names])
         for column in self.dataframe.columns:
             if _is_integer_dtype(original_type[column]) and isinstance(other, int):
                 if other < 0:  # pragma: no cover (todo)

@@ -23,7 +23,7 @@ def test_is_dtype(library: str, dtype: str, expected: list[str]) -> None:
     namespace = df.__dataframe_namespace__()
     result = [
         i
-        for i in df.get_column_names()
+        for i in df.column_names
         if namespace.is_dtype(df.get_column_by_name(i).dtype, dtype)
     ]
     assert result == expected

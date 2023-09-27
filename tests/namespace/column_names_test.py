@@ -13,7 +13,7 @@ def test_column_names(library: str, request: pytest.FixtureRequest) -> None:
     ser = df.get_column_by_name("a")
     namespace = ser.__column_namespace__()
     result = namespace.dataframe_from_dict({"result": ser})
-    assert result.get_column_names() == ["result"]
+    assert result.column_names == ["result"]
     assert result.get_column_by_name("result").name == "result"
 
     # named column
@@ -21,7 +21,7 @@ def test_column_names(library: str, request: pytest.FixtureRequest) -> None:
         [1, 2, 3], dtype=namespace.Float64(), name="result"
     )
     result = namespace.dataframe_from_dict({"result": ser})
-    assert result.get_column_names() == ["result"]
+    assert result.column_names == ["result"]
     assert result.get_column_by_name("result").name == "result"
 
     # named column (different name)

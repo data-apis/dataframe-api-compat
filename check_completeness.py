@@ -61,7 +61,7 @@ exclude = {
     "Sequence",
     "column_object",
     "dataframe_object",
-    "group_by_object",
+    "groupby_object",
     "DType",
 }
 spec = [i for i in dataframe_api.__dir__() if i not in exclude and not i.startswith("_")]
