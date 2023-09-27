@@ -373,7 +373,7 @@ class PandasGroupBy(GroupBy):
             # defensive check
             raise AssertionError(
                 "Groupby operation could not be performed on columns "
-                f"{failed_columns}. Please drop them before calling groupby."
+                f"{failed_columns}. Please drop them before calling group_by."
             )
 
     def size(self) -> PandasDataFrame:
@@ -511,7 +511,7 @@ class PandasDataFrame(DataFrame):
     def shape(self) -> tuple[int, int]:
         return self.dataframe.shape
 
-    def groupby(self, keys: Sequence[str]) -> PandasGroupBy:
+    def group_by(self, keys: Sequence[str]) -> PandasGroupBy:
         if not isinstance(keys, collections.abc.Sequence):
             raise TypeError(f"Expected sequence of strings, got: {type(keys)}")
         if isinstance(keys, str):
@@ -606,6 +606,9 @@ class PandasDataFrame(DataFrame):
         )
 
     def get_column_names(self) -> list[str]:
+        # DO NOT REMOVE
+        # This one is used in upstream tests - even if deprecated,
+        # just leave it in for backwards compatibility
         return self.dataframe.columns.tolist()
 
     def sorted_indices(

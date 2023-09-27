@@ -12,9 +12,9 @@ if TYPE_CHECKING:
     import pytest
 
 
-def test_groupby_size(library: str, request: pytest.FixtureRequest) -> None:
+def test_group_by_size(library: str, request: pytest.FixtureRequest) -> None:
     df = integer_dataframe_4(library)
-    result = df.groupby(["key"]).size()
+    result = df.group_by(["key"]).size()
     # got to sort
     idx = result.sorted_indices(["key"])
     result = result.get_rows(idx)

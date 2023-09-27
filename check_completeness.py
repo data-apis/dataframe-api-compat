@@ -36,16 +36,16 @@ for i in spec:
     if i not in polars_spec:
         print(f"Series.{i} missing from polars spec!")
 
-# groupby
+# group_by
 spec = dataframe_api.GroupBy().__dir__()
 pandas_spec = (
     pandas_standard.PandasDataFrame(pd.DataFrame({"a": [1]}), api_version="2023.08-beta")
-    .groupby(["a"])
+    .group_by(["a"])
     .__dir__()
 )
 polars_spec = (
     polars_standard.PolarsDataFrame(pl.DataFrame({"a": [1]}), api_version="2023.08-beta")
-    .groupby(["a"])
+    .group_by(["a"])
     .__dir__()
 )
 
@@ -61,7 +61,7 @@ exclude = {
     "Sequence",
     "column_object",
     "dataframe_object",
-    "groupby_object",
+    "group_by_object",
     "DType",
 }
 spec = [i for i in dataframe_api.__dir__() if i not in exclude and not i.startswith("_")]

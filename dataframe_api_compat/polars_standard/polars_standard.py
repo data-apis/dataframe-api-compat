@@ -770,7 +770,9 @@ class PolarsGroupBy(GroupBy):
         self.df = df
         self.keys = keys
         self._api_version = api_version
-        self.group_by = self.df.groupby if pl.__version__ < "0.19.0" else self.df.group_by
+        self.group_by = (
+            self.df.group_by if pl.__version__ < "0.19.0" else self.df.group_by
+        )
 
     def size(self) -> PolarsDataFrame:
         result = self.group_by(self.keys).count().rename({"count": "size"})
@@ -866,7 +868,7 @@ class PolarsDataFrame(DataFrame):
     def dataframe(self) -> pl.LazyFrame:
         return self.df
 
-    def groupby(self, keys: Sequence[str]) -> PolarsGroupBy:
+    def group_by(self, keys: Sequence[str]) -> PolarsGroupBy:
         return PolarsGroupBy(self.df, keys, api_version=self._api_version)
 
     def get_column_by_name(self, name: str) -> PolarsColumn[DType]:
@@ -938,6 +940,9 @@ class PolarsDataFrame(DataFrame):
         )
 
     def get_column_names(self) -> list[str]:
+        # DO NOT REMOVE
+        # This one is used in upstream tests - even if deprecated,
+        # just leave it in for backwards compatibility
         return self.dataframe.columns
 
     def __eq__(  # type: ignore[override]

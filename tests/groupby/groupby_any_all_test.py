@@ -17,7 +17,7 @@ from tests.utils import interchange_to_pandas
         ("all", [False, True], [False, False]),
     ],
 )
-def test_groupby_boolean(
+def test_group_by_boolean(
     library: str,
     aggregation: str,
     expected_b: list[bool],
@@ -25,7 +25,7 @@ def test_groupby_boolean(
     request: pytest.FixtureRequest,
 ) -> None:
     df = bool_dataframe_2(library)
-    result = getattr(df.groupby(["key"]), aggregation)()
+    result = getattr(df.group_by(["key"]), aggregation)()
     # need to sort
     idx = result.sorted_indices(["key"])
     result = result.get_rows(idx)
@@ -35,9 +35,9 @@ def test_groupby_boolean(
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_groupby_invalid_any_all(library: str, request: pytest.FixtureRequest) -> None:
+def test_group_by_invalid_any_all(library: str, request: pytest.FixtureRequest) -> None:
     df = integer_dataframe_4(library)
     with pytest.raises((ValueError, SchemaError)):
-        df.groupby(["key"]).any()
+        df.group_by(["key"]).any()
     with pytest.raises((ValueError, SchemaError)):
-        df.groupby(["key"]).all()
+        df.group_by(["key"]).all()
