@@ -615,6 +615,13 @@ class PandasDataFrame(DataFrame):
     def column_names(self) -> list[str]:
         return self.dataframe.columns.tolist()
 
+    @property
+    def schema(self) -> dict[str, Any]:
+        return {
+            column_name: dataframe_api_compat.pandas_standard.DTYPE_MAP[dtype.name]
+            for column_name, dtype in self.dataframe.dtypes.items()
+        }
+
     def sorted_indices(
         self,
         keys: Sequence[str] | None = None,
