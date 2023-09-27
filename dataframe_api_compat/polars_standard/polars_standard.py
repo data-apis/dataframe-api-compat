@@ -949,6 +949,13 @@ class PolarsDataFrame(DataFrame):
     def column_names(self) -> list[str]:
         return self.dataframe.columns
 
+    @property
+    def schema(self) -> dict[str, Any]:
+        return {
+            column_name: dataframe_api_compat.polars_standard.DTYPE_MAP[dtype]
+            for column_name, dtype in self.dataframe.schema.items()
+        }
+
     def __eq__(  # type: ignore[override]
         self,
         other: Any,
