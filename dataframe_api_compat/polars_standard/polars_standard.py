@@ -952,7 +952,7 @@ class PolarsDataFrame(DataFrame):
     @property
     def schema(self) -> dict[str, Any]:
         return {
-            column_name: dataframe_api_compat.polars_standard.DTYPE_MAP[dtype]
+            column_name: dataframe_api_compat.polars_standard.DTYPE_MAP[dtype]  # type: ignore[index]
             for column_name, dtype in self.dataframe.schema.items()
         }
 

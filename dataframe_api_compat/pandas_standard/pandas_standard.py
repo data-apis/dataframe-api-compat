@@ -618,7 +618,7 @@ class PandasDataFrame(DataFrame):
     @property
     def schema(self) -> dict[str, Any]:
         return {
-            column_name: dataframe_api_compat.pandas_standard.DTYPE_MAP[dtype.name]
+            column_name: dataframe_api_compat.pandas_standard.DTYPE_MAP[dtype.name]  # type: ignore[misc]
             for column_name, dtype in self.dataframe.dtypes.items()
         }
 
