@@ -963,7 +963,9 @@ class PolarsDataFrame(DataFrame):
     @property
     def schema(self) -> dict[str, Any]:
         return {
-            column_name: dataframe_api_compat.polars_standard.DTYPE_MAP[dtype]
+            column_name: dataframe_api_compat.polars_standard.map_polars_dtype_to_standard_dtype(
+                dtype
+            )
             for column_name, dtype in self.dataframe.schema.items()
         }
 
@@ -1349,7 +1351,9 @@ class PolarsPermissiveFrame(PermissiveFrame):
     @property
     def schema(self) -> dict[str, Any]:
         return {
-            column_name: dataframe_api_compat.polars_standard.DTYPE_MAP[dtype]
+            column_name: dataframe_api_compat.polars_standard.map_polars_dtype_to_standard_dtype(
+                dtype
+            )
             for column_name, dtype in self.dataframe.schema.items()
         }
 

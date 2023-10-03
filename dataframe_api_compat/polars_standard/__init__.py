@@ -17,6 +17,7 @@ from dataframe_api_compat.polars_standard.polars_standard import PolarsPermissiv
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+    from dataframe_api._types import DType
 
 col = PolarsColumn
 Column = col
@@ -76,20 +77,38 @@ class String:
     ...
 
 
-DTYPE_MAP = {
-    pl.Int64(): Int64(),
-    pl.Int32(): Int32(),
-    pl.Int16(): Int16(),
-    pl.Int8(): Int8(),
-    pl.UInt64(): UInt64(),
-    pl.UInt32(): UInt32(),
-    pl.UInt16(): UInt16(),
-    pl.UInt8(): UInt8(),
-    pl.Float64(): Float64(),
-    pl.Float32(): Float32(),
-    pl.Boolean(): Bool(),
-    pl.Utf8(): String(),
-}
+class Date:
+    ...
+
+
+def map_polars_dtype_to_standard_dtype(dtype: Any) -> DType:
+    if dtype == pl.Int64:
+        return Int64()
+    if dtype == pl.Int32:
+        return Int32()
+    if dtype == pl.Int16:
+        return Int16()
+    if dtype == pl.Int8:
+        return Int8()
+    if dtype == pl.UInt64:
+        return UInt64()
+    if dtype == pl.UInt32:
+        return UInt32()
+    if dtype == pl.UInt16:
+        return UInt16()
+    if dtype == pl.UInt8:
+        return UInt8()
+    if dtype == pl.Float64:
+        return Float64()
+    if dtype == pl.Float32:
+        return Float32()
+    if dtype == pl.Boolean:
+        return Bool()
+    if dtype == pl.Utf8:
+        return String()
+    if dtype == pl.Date:
+        return Date()
+    raise AssertionError(f"Got invalid dtype: {dtype}")
 
 
 def is_null(value: Any) -> bool:
@@ -121,6 +140,8 @@ def _map_standard_to_polars_dtypes(dtype: Any) -> pl.DataType:
         return pl.Boolean()
     if isinstance(dtype, String):
         return pl.Utf8()
+    if isinstance(dtype, Date):
+        return pl.Date()
     raise AssertionError(f"Unknown dtype: {dtype}")
 
 
