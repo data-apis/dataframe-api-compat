@@ -16,6 +16,7 @@ from dataframe_api_compat.pandas_standard.pandas_standard import PandasPermissiv
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+    from dataframe_api._types import DType
 
 
 def col(name: str) -> PandasColumn:
@@ -79,35 +80,73 @@ class String:
     ...
 
 
-DTYPE_MAP = {
-    "int64": Int64(),
-    "Int64": Int64(),
-    "int32": Int32(),
-    "Int32": Int32(),
-    "int16": Int16(),
-    "Int16": Int16(),
-    "int8": Int8(),
-    "Int8": Int8(),
-    "uint64": UInt64(),
-    "UInt64": UInt64(),
-    "uint32": UInt32(),
-    "UInt32": UInt32(),
-    "uint16": UInt16(),
-    "UInt16": UInt16(),
-    "uint8": UInt8(),
-    "UInt8": UInt8(),
-    "float64": Float64(),
-    "Float64": Float64(),
-    "float32": Float32(),
-    "Float32": Float32(),
-    "bool": Bool(),
-    "boolean": Bool(),
-    "object": String(),
-    "string": String(),
-}
+class Date:
+    ...
 
 
-def map_standard_dtype_to_pandas_dtype(dtype: Any) -> Any:
+class Datetime:
+    ...
+
+
+class Duration:
+    ...
+
+
+def map_pandas_dtype_to_standard_dtype(dtype: Any) -> DType:
+    if dtype == "int64":
+        return Int64()
+    if dtype == "Int64":
+        return Int64()
+    if dtype == "int32":
+        return Int32()
+    if dtype == "Int32":
+        return Int32()
+    if dtype == "int16":
+        return Int16()
+    if dtype == "Int16":
+        return Int16()
+    if dtype == "int8":
+        return Int8()
+    if dtype == "Int8":
+        return Int8()
+    if dtype == "uint64":
+        return UInt64()
+    if dtype == "UInt64":
+        return UInt64()
+    if dtype == "uint32":
+        return UInt32()
+    if dtype == "UInt32":
+        return UInt32()
+    if dtype == "uint16":
+        return UInt16()
+    if dtype == "UInt16":
+        return UInt16()
+    if dtype == "uint8":
+        return UInt8()
+    if dtype == "UInt8":
+        return UInt8()
+    if dtype == "float64":
+        return Float64()
+    if dtype == "Float64":
+        return Float64()
+    if dtype == "float32":
+        return Float32()
+    if dtype == "Float32":
+        return Float32()
+    if dtype == "bool":
+        return Bool()
+    if dtype == "boolean":
+        return Bool()
+    if dtype == "object":
+        return String()
+    if dtype == "string":
+        return String()
+    if dtype == "datetime64[s]":
+        return Date()
+    raise AssertionError(f"Unsupported dtype! {dtype}")
+
+
+def map_standard_dtype_to_pandas_dtype(dtype: DType) -> Any:
     if isinstance(dtype, Int64):
         return "int64"
     if isinstance(dtype, Int32):
@@ -132,6 +171,10 @@ def map_standard_dtype_to_pandas_dtype(dtype: Any) -> Any:
         return "bool"
     if isinstance(dtype, String):
         return "object"
+    if isinstance(dtype, Date):
+        return "datetime64[s]"
+    if isinstance(dtype, Datetime):
+        return f"datetime64[{dtype.time_unit}, {dtype.time_zone}"
     raise AssertionError(f"Unknown dtype: {dtype}")
 
 

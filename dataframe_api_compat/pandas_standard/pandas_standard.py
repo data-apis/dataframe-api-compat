@@ -552,7 +552,9 @@ class PandasPermissiveColumn(PermissiveColumn[DType]):
 
     @property
     def dtype(self) -> Any:
-        return dataframe_api_compat.pandas_standard.DTYPE_MAP[self.column.dtype.name]
+        return dataframe_api_compat.pandas_standard.map_pandas_dtype_to_standard_dtype(
+            self.column.dtype.name
+        )
 
     def get_rows(self, indices: PermissiveColumn[Any]) -> PandasColumn[DType]:
         return self._reuse_expression_implementation("get_rows", indices)
@@ -765,7 +767,9 @@ class PandasDataFrame(DataFrame):
     @property
     def schema(self) -> dict[str, Any]:
         return {
-            column_name: dataframe_api_compat.pandas_standard.DTYPE_MAP[dtype.name]
+            column_name: dataframe_api_compat.pandas_standard.map_pandas_dtype_to_standard_dtype(
+                dtype.name
+            )
             for column_name, dtype in self.dataframe.dtypes.items()
         }
 
@@ -1206,7 +1210,9 @@ class PandasPermissiveFrame(PermissiveFrame):
     @property
     def schema(self) -> dict[str, Any]:
         return {
-            column_name: dataframe_api_compat.pandas_standard.DTYPE_MAP[dtype.name]
+            column_name: dataframe_api_compat.pandas_standard.map_pandas_dtype_to_standard_dtype(
+                dtype.name
+            )
             for column_name, dtype in self.dataframe.dtypes.items()
         }
 

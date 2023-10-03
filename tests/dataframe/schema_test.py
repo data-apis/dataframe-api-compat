@@ -26,6 +26,7 @@ def test_schema(library: str, maybe_collect: Callable[[Any], Any]) -> None:
         "j",
         "k",
         "l",
+        "m",
     ]
     assert isinstance(result["a"], namespace.Int64)
     assert isinstance(result["b"], namespace.Int32)
@@ -39,3 +40,4 @@ def test_schema(library: str, maybe_collect: Callable[[Any], Any]) -> None:
     assert isinstance(result["j"], namespace.Float32)
     assert isinstance(result["k"], namespace.Bool)
     assert isinstance(result["l"], namespace.String)
+    assert isinstance(result["m"], namespace.Date)

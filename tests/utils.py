@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date
 from typing import Any
 from typing import cast
 from typing import TYPE_CHECKING
@@ -469,6 +470,7 @@ def mixed_dataframe_1(library) -> Any:
         "j": [1.0, 2.0, 3.0],
         "k": [True, False, True],
         "l": ["a", "b", "c"],
+        "m": [date(2020, 1, 1), date(2020, 1, 2), date(2020, 1, 3)],
     }
     if library == "pandas-numpy":
         df = pd.DataFrame(data).astype(
@@ -485,6 +487,7 @@ def mixed_dataframe_1(library) -> Any:
                 "j": "float32",
                 "k": "bool",
                 "l": "object",
+                "m": "datetime64[s]",
             }
         )
         return convert_to_standard_compliant_dataframe(df)
@@ -503,6 +506,7 @@ def mixed_dataframe_1(library) -> Any:
                 "j": "Float32",
                 "k": "bool",
                 "l": "string[pyarrow]",
+                "m": "datetime64[s]",
             }
         )
         return convert_to_standard_compliant_dataframe(df)
@@ -522,6 +526,7 @@ def mixed_dataframe_1(library) -> Any:
                 "j": pl.Float32,
                 "k": pl.Boolean,
                 "l": pl.Utf8,
+                "m": pl.Date,
             },
         )
         return convert_to_standard_compliant_dataframe(df)
