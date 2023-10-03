@@ -1341,7 +1341,7 @@ class PolarsEagerFrame(EagerFrame):
 
     def get_column_by_name(self, name) -> PolarsColumn:
         return PolarsColumn(
-            self.dataframe.get_column_by_name(name), api_version=self._api_version
+            self.dataframe.get_column(name), api_version=self._api_version
         )
 
     def get_rows(self, indices: PolarsColumn[Any]) -> PolarsDataFrame:  # type: ignore[override]
