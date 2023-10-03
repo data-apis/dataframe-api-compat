@@ -11,7 +11,7 @@ def test_update_column(library: str) -> None:
     df = integer_dataframe_1(library, api_version="2023.09-beta")
     namespace = df.__dataframe_namespace__()
     new_col = namespace.col("b") + 3
-    result = df.update_columns(new_col)
+    result = df.assign(new_col)
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"a": [1, 2, 3], "b": [7, 8, 9]})
@@ -28,7 +28,7 @@ def test_update_columns(library: str) -> None:
     namespace = df.__dataframe_namespace__()
     new_col_a = namespace.col("a") + 1
     new_col_b = namespace.col("b") + 3
-    result = df.update_columns(new_col_a, new_col_b)
+    result = df.assign(new_col_a, new_col_b)
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"a": [2, 3, 4], "b": [7, 8, 9]})

@@ -1254,8 +1254,8 @@ class PandasEagerFrame(EagerFrame):
     def assign(self, *columns: Expression | EagerColumn) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("assign", *columns)
 
-    def drop_column(self, label: str) -> PandasEagerFrame:
-        return self._reuse_dataframe_implementation("drop_column", label=label)
+    def drop_columns(self, *labels: str) -> PandasEagerFrame:
+        return self._reuse_dataframe_implementation("drop_columns", *labels)
 
     def rename_columns(self, mapping: Mapping[str, str]) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("rename_columns", mapping=mapping)

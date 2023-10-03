@@ -1023,10 +1023,8 @@ class PolarsDataFrame(DataFrame):
             raise ValueError("tried inserting a new column, use insert_columns instead")
         return df
 
-    def drop_column(self, label: str) -> PolarsDataFrame:
-        if not isinstance(label, str):
-            raise TypeError(f"Expected str, got: {type(label)}")
-        return PolarsDataFrame(self.dataframe.drop(label), api_version=self._api_version)
+    def drop_columns(self, *labels: str) -> PolarsDataFrame:
+        return PolarsDataFrame(self.dataframe.drop(labels), api_version=self._api_version)
 
     def rename_columns(self, mapping: Mapping[str, str]) -> PolarsDataFrame:
         if not isinstance(mapping, collections.abc.Mapping):
@@ -1377,10 +1375,8 @@ class PolarsEagerFrame(EagerFrame):
     def assign(self, *columns: PolarsExpression | PolarsColumn) -> PolarsDataFrame:
         return self.relax().assign(*columns).collect()
 
-    def drop_column(self, label: str) -> PolarsDataFrame:
-        if not isinstance(label, str):
-            raise TypeError(f"Expected str, got: {type(label)}")
-        return PolarsEagerFrame(self.dataframe.drop(label), api_version=self._api_version)
+    def drop_columns(self, *labels: str) -> PolarsDataFrame:
+        return self.relax().drop_columns(*labels).collect()
 
     def rename_columns(self, mapping: Mapping[str, str]) -> PolarsDataFrame:
         if not isinstance(mapping, collections.abc.Mapping):

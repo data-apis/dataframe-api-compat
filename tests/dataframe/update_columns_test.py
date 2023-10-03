@@ -15,7 +15,7 @@ def test_update_columns(library: str, relax: Callable[[Any], Any]) -> None:
     df = relax(integer_dataframe_1(library))
     namespace = df.__dataframe_namespace__()
     col = namespace.col
-    result = df.update_columns(col("a") + 1)
+    result = df.assign(col("a") + 1)
     result_pd = interchange_to_pandas(result, library)
     expected = pd.DataFrame({"a": [2, 3, 4], "b": [4, 5, 6]})
     pd.testing.assert_frame_equal(result_pd, expected)
@@ -26,7 +26,7 @@ def test_update_multiple_columns(library: str, relax: Callable[[Any], Any]) -> N
     df = relax(integer_dataframe_1(library))
     namespace = df.__dataframe_namespace__()
     col = namespace.col
-    result = df.update_columns(col("a") + 1, col("b") + 2)
+    result = df.assign(col("a") + 1, col("b") + 2)
     result_pd = interchange_to_pandas(result, library)
     expected = pd.DataFrame({"a": [2, 3, 4], "b": [6, 7, 8]})
     pd.testing.assert_frame_equal(result_pd, expected)
@@ -38,14 +38,14 @@ def test_update_columns_invalid(library: str, relax: Callable[[Any], Any]) -> No
     namespace = df.__dataframe_namespace__()
     col = namespace.col
     with pytest.raises(ValueError):
-        df.update_columns(col("a").rename("c"))
+        df.assign(col("a").rename("c"))
 
 
 def test_update_broadcast(library: str) -> None:
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
     col = namespace.col
-    result = df.update_columns(col("a").mean(), col("b") + 2)
+    result = df.assign(col("a").mean(), col("b") + 2)
     result_pd = interchange_to_pandas(result, library)
     expected = pd.DataFrame({"a": [2.0, 2.0, 2.0], "b": [6, 7, 8]})
     pd.testing.assert_frame_equal(result_pd, expected)
