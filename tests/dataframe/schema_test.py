@@ -27,6 +27,8 @@ def test_schema(library: str, maybe_collect: Callable[[Any], Any]) -> None:
         "k",
         "l",
         "m",
+        "n",
+        "o",
     ]
     assert isinstance(result["a"], namespace.Int64)
     assert isinstance(result["b"], namespace.Int32)
@@ -41,3 +43,13 @@ def test_schema(library: str, maybe_collect: Callable[[Any], Any]) -> None:
     assert isinstance(result["k"], namespace.Bool)
     assert isinstance(result["l"], namespace.String)
     assert isinstance(result["m"], namespace.Date)
+    assert (
+        isinstance(result["n"], namespace.Datetime)
+        and result["n"].time_unit == "ms"
+        and result["n"].time_zone is None
+    )
+    assert (
+        isinstance(result["o"], namespace.Datetime)
+        and result["o"].time_unit == "us"
+        and result["o"].time_zone is None
+    )

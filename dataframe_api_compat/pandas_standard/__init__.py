@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any
 from typing import Literal
 from typing import TYPE_CHECKING
@@ -85,7 +86,10 @@ class Date:
 
 
 class Datetime:
-    ...
+    def __init__(self, time_unit, time_zone=None):
+        self.time_unit = time_unit
+        # todo validate time zone
+        self.time_zone = time_zone
 
 
 class Duration:
@@ -143,6 +147,9 @@ def map_pandas_dtype_to_standard_dtype(dtype: Any) -> DType:
         return String()
     if dtype == "datetime64[s]":
         return Date()
+    if dtype.startswith("datetime64["):
+        time_unit = re.search(r"datetime64\[(\w{1,2})", dtype).group(1)
+        return Datetime(time_unit)
     raise AssertionError(f"Unsupported dtype! {dtype}")
 
 

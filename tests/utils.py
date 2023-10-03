@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+from datetime import datetime
 from typing import Any
 from typing import cast
 from typing import TYPE_CHECKING
@@ -471,6 +472,8 @@ def mixed_dataframe_1(library) -> Any:
         "k": [True, False, True],
         "l": ["a", "b", "c"],
         "m": [date(2020, 1, 1), date(2020, 1, 2), date(2020, 1, 3)],
+        "n": [datetime(2020, 1, 1), datetime(2020, 1, 2), datetime(2020, 1, 3)],
+        "o": [datetime(2020, 1, 1), datetime(2020, 1, 2), datetime(2020, 1, 3)],
     }
     if library == "pandas-numpy":
         df = pd.DataFrame(data).astype(
@@ -488,6 +491,8 @@ def mixed_dataframe_1(library) -> Any:
                 "k": "bool",
                 "l": "object",
                 "m": "datetime64[s]",
+                "n": "datetime64[ms]",
+                "o": "datetime64[us]",
             }
         )
         return convert_to_standard_compliant_dataframe(df)
@@ -507,6 +512,8 @@ def mixed_dataframe_1(library) -> Any:
                 "k": "bool",
                 "l": "string[pyarrow]",
                 "m": "datetime64[s]",
+                "n": "datetime64[ms]",
+                "o": "datetime64[us]",
             }
         )
         return convert_to_standard_compliant_dataframe(df)
@@ -527,6 +534,8 @@ def mixed_dataframe_1(library) -> Any:
                 "k": pl.Boolean,
                 "l": pl.Utf8,
                 "m": pl.Date,
+                "n": pl.Datetime("ms"),
+                "o": pl.Datetime("us"),
             },
         )
         return convert_to_standard_compliant_dataframe(df)

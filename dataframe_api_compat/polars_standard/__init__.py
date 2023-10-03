@@ -81,6 +81,12 @@ class Date:
     ...
 
 
+class Datetime:
+    def __init__(self, time_unit, time_zone=None):
+        self.time_unit = time_unit
+        self.time_zone = time_zone
+
+
 def map_polars_dtype_to_standard_dtype(dtype: Any) -> DType:
     if dtype == pl.Int64:
         return Int64()
@@ -108,6 +114,8 @@ def map_polars_dtype_to_standard_dtype(dtype: Any) -> DType:
         return String()
     if dtype == pl.Date:
         return Date()
+    if isinstance(dtype, pl.Datetime):
+        return Datetime(dtype.time_unit, dtype.time_zone)
     raise AssertionError(f"Got invalid dtype: {dtype}")
 
 
