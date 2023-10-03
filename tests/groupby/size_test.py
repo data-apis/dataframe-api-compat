@@ -12,9 +12,9 @@ if TYPE_CHECKING:
     import pytest
 
 
-def test_groupby_size(library: str, request: pytest.FixtureRequest) -> None:
+def test_group_by_size(library: str, request: pytest.FixtureRequest) -> None:
     df = integer_dataframe_4(library)
-    result = df.groupby("key").size()
+    result = df.group_by("key").size()
     result = result.sort("key")
     result_pd = interchange_to_pandas(result, library)
     expected = pd.DataFrame({"key": [1, 2], "size": [2, 2]})

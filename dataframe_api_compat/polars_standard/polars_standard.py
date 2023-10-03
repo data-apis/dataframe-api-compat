@@ -93,8 +93,8 @@ def _is_integer_dtype(dtype: Any) -> bool:
     )
 
 
-LATEST_API_VERSION = "2023.08-beta"
-SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.09-beta"))
+LATEST_API_VERSION = "2023.09-beta"
+SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.08-beta"))
 
 
 class PolarsColumn(EagerColumn[DType]):
@@ -491,7 +491,9 @@ class PolarsGroupBy(GroupBy):
         self.df = df
         self.keys = keys
         self._api_version = api_version
-        self.group_by = self.df.groupby if pl.__version__ < "0.19.0" else self.df.group_by
+        self.group_by = (
+            self.df.group_by if pl.__version__ < "0.19.0" else self.df.group_by
+        )
 
     def size(self) -> PolarsDataFrame:
         result = self.group_by(self.keys).count().rename({"count": "size"})
@@ -955,7 +957,7 @@ class PolarsDataFrame(DataFrame):
     def dataframe(self) -> pl.LazyFrame:
         return self.df
 
-    def groupby(self, *keys: str) -> PolarsGroupBy:
+    def group_by(self, *keys: str) -> PolarsGroupBy:
         return PolarsGroupBy(self.df, list(keys), api_version=self._api_version)
 
     def select(self, *columns: str | Expression | EagerColumn[Any]) -> PolarsDataFrame:
@@ -987,18 +989,7 @@ class PolarsDataFrame(DataFrame):
     def filter(self, mask: Expression | EagerColumn[Any]) -> PolarsDataFrame:
         return PolarsDataFrame(self.df.filter(mask._expr), api_version=self._api_version)
 
-    def insert(self, loc: int, label: str, value: PolarsExpression) -> PolarsDataFrame:
-        if self._api_version != "2023.08-beta":
-            raise NotImplementedError(
-                "DataFrame.insert is only available for api version 2023.08-beta. "
-                "Please use `DataFrame.insert_column` instead."
-            )
-        columns = self.dataframe.columns
-        new_columns = columns[:loc] + [label] + columns[loc:]
-        df = self.dataframe.with_columns(value._expr.alias(label)).select(new_columns)
-        return PolarsDataFrame(df, api_version=self._api_version)
-
-    def insert_columns(self, *columns: Expression | EagerColumn[Any]) -> PolarsDataFrame:
+    def assign(self, *columns: Expression | EagerColumn[Any]) -> PolarsDataFrame:
         new_columns = []
         for col in columns:
             if isinstance(col, PolarsExpression):
@@ -1044,7 +1035,10 @@ class PolarsDataFrame(DataFrame):
             self.dataframe.rename(dict(mapping)), api_version=self._api_version
         )
 
-    def get_column_names(self) -> list[str]:
+    def get_column_names(self) -> list[str]:  # pragma: no cover
+        # DO NOT REMOVE
+        # This one is used in upstream tests - even if deprecated,
+        # just leave it in for backwards compatibility
         return self.dataframe.columns
 
     def __eq__(  # type: ignore[override]
@@ -1135,9 +1129,7 @@ class PolarsDataFrame(DataFrame):
 
     def __pow__(self, other: Any) -> PolarsDataFrame:
         original_type = self.dataframe.schema
-        ret = self.dataframe.select(
-            [pl.col(col).pow(other) for col in self.get_column_names()]
-        )
+        ret = self.dataframe.select([pl.col(col).pow(other) for col in self.column_names])
         for column in self.dataframe.columns:
             if _is_integer_dtype(original_type[column]) and isinstance(other, int):
                 if other < 0:  # pragma: no cover (todo)
@@ -1382,13 +1374,8 @@ class PolarsEagerFrame(EagerFrame):
         df = self.dataframe.with_columns(value._expr.alias(label)).select(new_columns)
         return PolarsEagerFrame(df, api_version=self._api_version)
 
-    def insert_columns(
-        self, *columns: PolarsExpression | PolarsColumn
-    ) -> PolarsDataFrame:
-        return self.relax().insert_columns(*columns).collect()
-
-    def update_columns(self, *columns: PolarsExpression | PolarsColumn) -> PolarsDataFrame:  # type: ignore[override]
-        return self.relax().update_columns(*columns).collect()
+    def assign(self, *columns: PolarsExpression | PolarsColumn) -> PolarsDataFrame:
+        return self.relax().assign(*columns).collect()
 
     def drop_column(self, label: str) -> PolarsDataFrame:
         if not isinstance(label, str):

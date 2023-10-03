@@ -25,7 +25,7 @@ from tests.utils import interchange_to_pandas
         ("var", [0.5, 0.5], [0.5, 0.5]),
     ],
 )
-def test_groupby_numeric(
+def test_group_by_numeric(
     library: str,
     aggregation: str,
     expected_b: list[float],
@@ -33,7 +33,7 @@ def test_groupby_numeric(
     request: pytest.FixtureRequest,
 ) -> None:
     df = integer_dataframe_4(library)
-    result = getattr(df.groupby("key"), aggregation)()
+    result = getattr(df.group_by("key"), aggregation)()
     result = result.sort("key")
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)

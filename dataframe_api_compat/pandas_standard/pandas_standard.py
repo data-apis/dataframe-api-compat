@@ -428,7 +428,7 @@ class PandasGroupBy(GroupBy):
             # defensive check
             raise AssertionError(
                 "Groupby operation could not be performed on columns "
-                f"{failed_columns}. Please drop them before calling groupby."
+                f"{failed_columns}. Please drop them before calling group_by."
             )
 
     def size(self) -> PandasDataFrame:
@@ -502,8 +502,8 @@ class PandasGroupBy(GroupBy):
         return PandasDataFrame(result, api_version=self._api_version)
 
 
-LATEST_API_VERSION = "2023.08-beta"
-SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.09-beta"))
+LATEST_API_VERSION = "2023.09-beta"
+SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.08-beta"))
 
 
 class PandasColumn(EagerColumn[DType]):
@@ -762,7 +762,7 @@ class PandasDataFrame(DataFrame):
         if api_version not in SUPPORTED_VERSIONS:
             raise ValueError(
                 "Unsupported API version, expected one of: "
-                f"{SUPPORTED_VERSIONS}. "
+                f"{SUPPORTED_VERSIONS}. Got: {api_version}"
                 "Try updating dataframe-api-compat?"
             )
         self._api_version = api_version
@@ -811,13 +811,13 @@ class PandasDataFrame(DataFrame):
     def dataframe(self) -> pd.DataFrame:
         return self._dataframe
 
-    def groupby(self, *keys: str) -> PandasGroupBy:
+    def group_by(self, *keys: str) -> PandasGroupBy:
         if not isinstance(keys, collections.abc.Sequence):
             raise TypeError(f"Expected sequence of strings, got: {type(keys)}")
         if isinstance(keys, str):
             raise TypeError("Expected sequence of strings, got: str")
         for key in keys:
-            if key not in self.get_column_names():
+            if key not in self.column_names:
                 raise KeyError(f"key {key} not present in DataFrame's columns")
         return PandasGroupBy(self.dataframe, keys, api_version=self._api_version)
 
@@ -900,37 +900,17 @@ class PandasDataFrame(DataFrame):
         df = df.loc[self._resolve_expression(mask)]
         return PandasDataFrame(df, api_version=self._api_version)
 
-    def insert_columns(self, *columns: Expression) -> PandasDataFrame:
-        new_columns = self._broadcast_and_concat(columns)
-        if (len(new_columns) == 1) & (len(self.dataframe) > 1):
-            new_columns = pd.DataFrame(
-                {
-                    col_name: [new_columns[col_name][0]] * len(self.dataframe)
-                    for col_name in new_columns.columns
-                }
-            )
-        return PandasDataFrame(
-            pd.concat([self.dataframe, new_columns], axis=1),
-            api_version=self._api_version,
-        )
-
-    def update_columns(self, *columns: Expression | EagerColumn[Any]) -> PandasDataFrame:
-        df = self.dataframe.copy()
+    def assign(self, *columns: Expression | EagerColumn[Any]) -> PandasDataFrame:
+        df = self.dataframe.copy()  # todo: remove defensive copy with CoW?
         for col in columns:
             new_column = self._resolve_expression(col)
-            if new_column.name not in df.columns:
-                raise ValueError(
-                    f"column {new_column.name} not in dataframe, use insert instead"
-                )
-            new_column, _ = self._broadcast(new_column, df[new_column.name])
+            new_column, _ = self._broadcast(new_column, df.index.to_series())
             df[new_column.name] = new_column
         return PandasDataFrame(df, api_version=self._api_version)
 
-    def drop_column(self, label: str) -> PandasDataFrame:
-        if not isinstance(label, str):
-            raise TypeError(f"Expected str, got: {type(label)}")
+    def drop_columns(self, *labels: str) -> PandasDataFrame:
         return PandasDataFrame(
-            self.dataframe.drop(label, axis=1), api_version=self._api_version
+            self.dataframe.drop(list(labels), axis=1), api_version=self._api_version
         )
 
     def rename_columns(self, mapping: Mapping[str, str]) -> PandasDataFrame:
@@ -940,7 +920,10 @@ class PandasDataFrame(DataFrame):
             self.dataframe.rename(columns=mapping), api_version=self._api_version
         )
 
-    def get_column_names(self) -> list[str]:
+    def get_column_names(self) -> list[str]:  # pragma: no cover
+        # DO NOT REMOVE
+        # This one is used in upstream tests - even if deprecated,
+        # just leave it in for backwards compatibility
         return self.dataframe.columns.tolist()
 
     def sort(
@@ -1268,11 +1251,8 @@ class PandasEagerFrame(EagerFrame):
     def filter(self, mask: Expression | EagerColumn) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("filter", mask)
 
-    def insert_columns(self, *columns: Expression | EagerColumn[Any]) -> PandasEagerFrame:
-        return self._reuse_dataframe_implementation("insert_columns", *columns)
-
-    def update_columns(self, *columns: Expression | EagerColumn[Any]) -> PandasEagerFrame:
-        return self._reuse_dataframe_implementation("update_columns", *columns)
+    def assign(self, *columns: Expression | EagerColumn) -> PandasEagerFrame:
+        return self._reuse_dataframe_implementation("assign", *columns)
 
     def drop_column(self, label: str) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("drop_column", label=label)

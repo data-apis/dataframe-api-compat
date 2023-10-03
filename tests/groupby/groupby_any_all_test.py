@@ -40,9 +40,9 @@ def test_groupby_boolean(
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-def test_groupby_invalid_any_all(library: str, request: pytest.FixtureRequest) -> None:
+def test_group_by_invalid_any_all(library: str, request: pytest.FixtureRequest) -> None:
     df = integer_dataframe_4(library)
     with pytest.raises((ValueError, SchemaError)):
-        df.groupby("key").any()
+        df.group_by("key").any()
     with pytest.raises((ValueError, SchemaError)):
-        df.groupby("key").all()
+        df.group_by("key").all()
