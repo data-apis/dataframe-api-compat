@@ -13,13 +13,16 @@ from dataframe_api_compat.polars_standard.polars_standard import PolarsColumn
 from dataframe_api_compat.polars_standard.polars_standard import PolarsDataFrame
 from dataframe_api_compat.polars_standard.polars_standard import PolarsGroupBy
 from dataframe_api_compat.polars_standard.polars_standard import PolarsPermissiveColumn
+from dataframe_api_compat.polars_standard.polars_standard import PolarsPermissiveFrame
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
 col = PolarsColumn
 Column = col
+PermissiveColumn = PolarsPermissiveColumn
 DataFrame = PolarsDataFrame
+PermissiveFrame = PolarsPermissiveFrame
 GroupBy = PolarsGroupBy
 
 PolarsType = TypeVar("PolarsType", pl.DataFrame, pl.LazyFrame)

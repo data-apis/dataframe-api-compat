@@ -12,6 +12,7 @@ from dataframe_api_compat.pandas_standard.pandas_standard import PandasColumn
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasDataFrame
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasGroupBy
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasPermissiveColumn
+from dataframe_api_compat.pandas_standard.pandas_standard import PandasPermissiveFrame
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -24,7 +25,9 @@ def col(name: str) -> PandasColumn:
 
 
 Column = PandasColumn
+PermissiveColumn = PandasPermissiveColumn
 DataFrame = PandasDataFrame
+PermissiveFrame = PandasPermissiveFrame
 GroupBy = PandasGroupBy
 
 
