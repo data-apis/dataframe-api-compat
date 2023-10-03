@@ -418,7 +418,7 @@ class PandasExpression(Expression):
 class PandasGroupBy(GroupBy):
     def __init__(self, df: pd.DataFrame, keys: Sequence[str], api_version: str) -> None:
         self.df = df
-        self.grouped = df.group_by(list(keys), sort=False, as_index=False)
+        self.grouped = df.groupby(list(keys), sort=False, as_index=False)
         self.keys = list(keys)
         self._api_version = api_version
 
@@ -531,7 +531,7 @@ class PandasColumn(EagerColumn[DType]):
             PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
             .select(getattr(self._to_expression(), function_name)(*args, **kwargs))
             .collect()
-            .get_column(self.name)
+            .get_column_by_name(self.name)
         )
 
     # In the standard
@@ -1222,7 +1222,7 @@ class PandasEagerFrame(EagerFrame):
     def dataframe(self) -> pd.DataFrame:
         return self._dataframe
 
-    def groupby(self, *keys: str) -> PandasGroupBy:
+    def group_by(self, *keys: str) -> PandasGroupBy:
         if not isinstance(keys, collections.abc.Sequence):
             raise TypeError(f"Expected sequence of strings, got: {type(keys)}")
         if isinstance(keys, str):
@@ -1235,7 +1235,7 @@ class PandasEagerFrame(EagerFrame):
     def select(self, *columns: str | Expression | EagerColumn[Any]) -> PandasEagerFrame:
         return self._reuse_dataframe_implementation("select", *columns)
 
-    def get_column(self, name) -> PandasColumn:
+    def get_column_by_name(self, name) -> PandasColumn:
         return PandasColumn(self.dataframe.loc[:, name], api_version=self._api_version)
 
     def get_rows(self, indices: Expression | EagerColumn) -> PandasEagerFrame:

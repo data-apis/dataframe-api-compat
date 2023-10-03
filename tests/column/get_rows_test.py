@@ -8,7 +8,7 @@ from tests.utils import interchange_to_pandas
 
 def test_column_get_rows(library: str) -> None:
     df = integer_dataframe_1(library).collect()
-    ser = df.get_column("a")
+    ser = df.get_column_by_name("a")
     namespace = ser.__column_namespace__()
     indices = namespace.column_from_sequence(
         [0, 2, 1], dtype=namespace.Int64(), name="result"

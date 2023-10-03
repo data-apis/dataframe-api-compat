@@ -197,7 +197,7 @@ class PolarsColumn(EagerColumn[DType]):
         df = self.column.to_frame()
         keys = df.columns
         return PolarsColumn(
-            df.with_row_count().unique(keys).get_column("row_nr"),
+            df.with_row_count().unique(keys).get_column_by_name("row_nr"),
             api_version=self._api_version,
         )
 
@@ -1333,15 +1333,15 @@ class PolarsEagerFrame(EagerFrame):
     def dataframe(self) -> pl.LazyFrame:
         return self.df
 
-    def groupby(self, *keys: str) -> PolarsGroupBy:
+    def group_by(self, *keys: str) -> PolarsGroupBy:
         return PolarsGroupBy(self.df.lazy(), list(keys), api_version=self._api_version)
 
     def select(self, *columns: str | Expression | EagerColumn[Any]) -> PolarsEagerFrame:
         return self.relax().select(*columns).collect()
 
-    def get_column(self, name) -> PolarsColumn:
+    def get_column_by_name(self, name) -> PolarsColumn:
         return PolarsColumn(
-            self.dataframe.get_column(name), api_version=self._api_version
+            self.dataframe.get_column_by_name(name), api_version=self._api_version
         )
 
     def get_rows(self, indices: PolarsColumn[Any]) -> PolarsDataFrame:  # type: ignore[override]

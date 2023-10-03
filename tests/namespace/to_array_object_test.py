@@ -13,7 +13,7 @@ def test_to_array_object(library: str) -> None:
 
 
 def test_column_to_array_object(library: str) -> None:
-    col = integer_dataframe_1(library).collect().get_column("a")
+    col = integer_dataframe_1(library).collect().get_column_by_name("a")
     result = np.asarray(col.to_array_object(dtype="int64"))
     result = np.asarray(col.to_array_object(dtype="int64"))
     expected = np.array([1, 2, 3], dtype=np.int64)
