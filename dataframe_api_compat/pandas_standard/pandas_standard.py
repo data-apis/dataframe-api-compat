@@ -418,7 +418,7 @@ class PandasExpression(Expression):
 class PandasGroupBy(GroupBy):
     def __init__(self, df: pd.DataFrame, keys: Sequence[str], api_version: str) -> None:
         self.df = df
-        self.grouped = df.groupby(list(keys), sort=False, as_index=False)
+        self.grouped = df.group_by(list(keys), sort=False, as_index=False)
         self.keys = list(keys)
         self._api_version = api_version
 

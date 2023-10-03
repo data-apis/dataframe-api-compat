@@ -30,7 +30,7 @@ def test_groupby_boolean(
 ) -> None:
     df = maybe_collect(bool_dataframe_2(library))
     namespace = df.__dataframe_namespace__()
-    result = getattr(df.groupby("key"), aggregation)()
+    result = getattr(df.group_by("key"), aggregation)()
     # need to sort
     idx = namespace.sorted_indices("key")
     result = result.get_rows(idx)

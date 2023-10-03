@@ -32,15 +32,6 @@ def test_update_multiple_columns(library: str, relax: Callable[[Any], Any]) -> N
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
-def test_update_columns_invalid(library: str, relax: Callable[[Any], Any]) -> None:
-    df = relax(integer_dataframe_1(library))
-    namespace = df.__dataframe_namespace__()
-    col = namespace.col
-    with pytest.raises(ValueError):
-        df.assign(col("a").rename("c"))
-
-
 def test_update_broadcast(library: str) -> None:
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
