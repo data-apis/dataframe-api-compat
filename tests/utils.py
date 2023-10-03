@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 from datetime import datetime
+from datetime import timedelta
 from typing import Any
 from typing import cast
 from typing import TYPE_CHECKING
@@ -474,6 +475,8 @@ def mixed_dataframe_1(library) -> Any:
         "m": [date(2020, 1, 1), date(2020, 1, 2), date(2020, 1, 3)],
         "n": [datetime(2020, 1, 1), datetime(2020, 1, 2), datetime(2020, 1, 3)],
         "o": [datetime(2020, 1, 1), datetime(2020, 1, 2), datetime(2020, 1, 3)],
+        "p": [timedelta(days=1), timedelta(days=2), timedelta(days=3)],
+        "q": [timedelta(days=1), timedelta(days=2), timedelta(days=3)],
     }
     if library == "pandas-numpy":
         df = pd.DataFrame(data).astype(
@@ -493,6 +496,8 @@ def mixed_dataframe_1(library) -> Any:
                 "m": "datetime64[s]",
                 "n": "datetime64[ms]",
                 "o": "datetime64[us]",
+                "p": "timedelta64[ms]",
+                "q": "timedelta64[us]",
             }
         )
         return convert_to_standard_compliant_dataframe(df)
@@ -514,6 +519,8 @@ def mixed_dataframe_1(library) -> Any:
                 "m": "datetime64[s]",
                 "n": "datetime64[ms]",
                 "o": "datetime64[us]",
+                "p": "timedelta64[ms]",
+                "q": "timedelta64[us]",
             }
         )
         return convert_to_standard_compliant_dataframe(df)
@@ -536,6 +543,8 @@ def mixed_dataframe_1(library) -> Any:
                 "m": pl.Date,
                 "n": pl.Datetime("ms"),
                 "o": pl.Datetime("us"),
+                "p": pl.Duration("ms"),
+                "q": pl.Duration("us"),
             },
         )
         return convert_to_standard_compliant_dataframe(df)

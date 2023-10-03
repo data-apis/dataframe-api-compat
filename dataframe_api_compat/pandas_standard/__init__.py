@@ -93,7 +93,8 @@ class Datetime:
 
 
 class Duration:
-    ...
+    def __init__(self, time_unit):
+        self.time_unit = time_unit
 
 
 def map_pandas_dtype_to_standard_dtype(dtype: Any) -> DType:
@@ -150,6 +151,9 @@ def map_pandas_dtype_to_standard_dtype(dtype: Any) -> DType:
     if dtype.startswith("datetime64["):
         time_unit = re.search(r"datetime64\[(\w{1,2})", dtype).group(1)
         return Datetime(time_unit)
+    if dtype.startswith("timedelta64["):
+        time_unit = re.search(r"timedelta64\[(\w{1,2})", dtype).group(1)
+        return Duration(time_unit)
     raise AssertionError(f"Unsupported dtype! {dtype}")
 
 

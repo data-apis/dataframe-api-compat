@@ -147,7 +147,9 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
 
     @property
     def dtype(self) -> Any:
-        return dataframe_api_compat.polars_standard.DTYPE_MAP[self._dtype]
+        return dataframe_api_compat.polars_standard.map_polars_dtype_to_standard_dtype(
+            self._dtype
+        )
 
     def get_rows(self, indices: PermissiveColumn[Any]) -> PolarsPermissiveColumn[DType]:
         return PolarsPermissiveColumn(
@@ -190,7 +192,7 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
 
     def is_in(self, values: PolarsPermissiveColumn[DType]) -> PolarsPermissiveColumn[Bool]:  # type: ignore[override]
         self._validate_column(values)
-        if values.dtype != self.dtype:
+        if not isinstance(values.dtype, type(self.dtype)):
             raise ValueError(f"`value` has dtype {values.dtype}, expected {self.dtype}")
         return PolarsPermissiveColumn(
             self.column.is_in(values.column), api_version=self._api_version  # type: ignore[arg-type]
