@@ -8,7 +8,7 @@ from tests.utils import interchange_to_pandas
 
 
 def test_column_len(library: str) -> None:
-    result = len(integer_series_1(library))
+    result = integer_series_1(library).len()
     assert result == 3
 
 

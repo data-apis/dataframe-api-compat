@@ -142,7 +142,7 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
     def column(self) -> pl.Series | pl.Expr:
         return self._series
 
-    def __len__(self) -> int:
+    def len(self) -> int:
         return len(self.column)
 
     @property

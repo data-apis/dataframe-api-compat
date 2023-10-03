@@ -544,7 +544,7 @@ class PandasPermissiveColumn(PermissiveColumn[DType]):
     def column(self) -> pd.Series[Any]:
         return self._series
 
-    def __len__(self) -> int:
+    def len(self) -> int:
         return len(self.column)
 
     def __iter__(self) -> NoReturn:
