@@ -12,7 +12,7 @@ def test_column_filter(library: str) -> None:
     mask = ser > 1
     ser = ser.filter(mask)
     result = df.filter(mask)
-    result = result.insert_columns(ser.rename("result"))
+    result = result.assign(ser.rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series([2, 3], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
@@ -25,7 +25,7 @@ def test_expression_filter(library: str) -> None:
     mask = ser > 1
     ser = ser.filter(mask)
     result = df.filter(mask)
-    result = result.insert_columns(ser.rename("result"))
+    result = result.assign(ser.rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series([2, 3], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
@@ -37,7 +37,7 @@ def test_column_get_rows_by_mask_noop(library: str) -> None:
     ser = namespace.col("a")
     mask = ser > 0
     ser = ser.filter(mask)
-    result = df.insert_columns(ser.rename("result"))
+    result = df.assign(ser.rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series([1, 2, 3], name="result")
     pd.testing.assert_series_equal(result_pd, expected)

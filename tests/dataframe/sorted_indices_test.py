@@ -37,7 +37,7 @@ def test_sorted_indices_descending(
 def test_sorted_indices_with_insert(library: str) -> None:
     return None  # todo
     df = integer_dataframe_5(library)
-    result = df.insert_columns(df.sorted_indices().rename("idx"))
+    result = df.assign(df.sorted_indices().rename("idx"))
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     result_pd["idx"] = result_pd["idx"].astype("int64")

@@ -10,7 +10,7 @@ def test_expression_invert(library: str) -> None:
     df = bool_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
     ser = namespace.col("a")
-    result = df.insert_columns((~ser).rename("result"))
+    result = df.assign((~ser).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series([False, False, True], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
@@ -19,7 +19,7 @@ def test_expression_invert(library: str) -> None:
 def test_column_invert(library: str) -> None:
     df = bool_dataframe_1(library).collect()
     ser = df.get_column("a")
-    result = df.insert_columns((~ser).rename("result"))
+    result = df.assign((~ser).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series([False, False, True], name="result")
     pd.testing.assert_series_equal(result_pd, expected)

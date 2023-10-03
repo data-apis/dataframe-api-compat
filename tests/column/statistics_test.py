@@ -16,9 +16,7 @@ if TYPE_CHECKING:
 def test_mean(library: str) -> None:
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
-    result = df.insert_columns(
-        (namespace.col("a") - namespace.col("a").mean()).rename("result")
-    )
+    result = df.assign((namespace.col("a") - namespace.col("a").mean()).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series([-1, 0, 1.0], name="result")
     pd.testing.assert_series_equal(result_pd, expected)

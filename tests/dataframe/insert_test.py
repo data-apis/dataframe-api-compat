@@ -32,7 +32,7 @@ def test_insert_multiple_columns(library: str, request: pytest.FixtureRequest) -
     df = integer_dataframe_1(library, api_version="2023.09-beta")
     namespace = df.__dataframe_namespace__()
     new_col = (namespace.col("b") + 3).rename("result")
-    result = df.insert_columns(new_col.rename("c"), new_col.rename("d"))
+    result = df.assign(new_col.rename("c"), new_col.rename("d"))
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame(
@@ -49,7 +49,7 @@ def test_insert_multiple_columns(library: str, request: pytest.FixtureRequest) -
 def test_insert_eager_columns(library: str, request: pytest.FixtureRequest) -> None:
     df = integer_dataframe_1(library, api_version="2023.09-beta")
     new_col = (df.collect().get_column("b") + 3).rename("result")
-    result = df.insert_columns(new_col.rename("c"), new_col.rename("d"))
+    result = df.assign(new_col.rename("c"), new_col.rename("d"))
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame(
@@ -67,7 +67,7 @@ def test_insert_reduction(library: str) -> None:
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
     new_col = (namespace.col("b").mean()).rename("result")
-    result = df.insert_columns(new_col)
+    result = df.assign(new_col)
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6], "result": [5.0, 5.0, 5.0]})
@@ -78,7 +78,7 @@ def test_insert_reduction_and_column(library: str) -> None:
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
     col = namespace.col
-    result = df.insert_columns(col("b").mean().rename("c"), col("b").rename("d"))
+    result = df.assign(col("b").mean().rename("c"), col("b").rename("d"))
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame(
