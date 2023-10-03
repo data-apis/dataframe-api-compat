@@ -46,10 +46,10 @@ if TYPE_CHECKING:
 
     from dataframe_api import (
         Bool,
-        EagerColumn,
-        Expression,
+        PermissiveColumn,
+        Column,
         DataFrame,
-        EagerFrame,
+        PermissiveFrame,
         GroupBy,
     )
 else:
@@ -57,13 +57,13 @@ else:
     class DataFrame:
         ...
 
-    class EagerFrame:
+    class PermissiveFrame:
         ...
 
-    class EagerColumn(Generic[DType]):
+    class PermissiveColumn(Generic[DType]):
         ...
 
-    class Expression:
+    class Column:
         ...
 
     class GroupBy:
@@ -78,7 +78,7 @@ ExtraCall = tuple[
 ]
 
 
-class PandasExpression(Expression):
+class PandasColumn(Column):
     def __init__(
         self,
         root_names: list[str] | None,
@@ -121,19 +121,19 @@ class PandasExpression(Expression):
         func: Callable[[pd.Series, pd.Series | None], pd.Series],
         rhs: pd.Series | None,
         output_name: str | None = None,
-    ) -> PandasExpression:
+    ) -> PandasColumn:
         calls = [*self._calls, (func, self, rhs)]
-        if isinstance(rhs, PandasExpression):
+        if isinstance(rhs, PandasColumn):
             root_names = self.root_names + rhs.root_names
         else:
             root_names = self.root_names
-        return PandasExpression(
+        return PandasColumn(
             root_names=root_names,
             output_name=output_name or self.output_name,
             extra_calls=calls,
         )
 
-    def get_rows(self, indices: Expression | EagerColumn[Any]) -> PandasExpression:
+    def get_rows(self, indices: Column | PermissiveColumn[Any]) -> PandasColumn:
         def func(lhs: pd.Series, rhs: pd.Series) -> pd.Series:
             return lhs.iloc[rhs].reset_index(drop=True)
 
@@ -160,94 +160,92 @@ class PandasExpression(Expression):
             functools.partial(func, start=start, stop=stop, step=step), None
         )
 
-    def len(self) -> PandasExpression:
+    def len(self) -> PandasColumn:
         return self._record_call(
             lambda ser, _rhs: pd.Series([len(ser)], name=ser.name), None
         )
 
-    def filter(self, mask: Expression | EagerColumn[Any]) -> PandasExpression:
+    def filter(self, mask: Column | PermissiveColumn[Any]) -> PandasColumn:
         return self._record_call(lambda ser, mask: ser.loc[mask], mask)
 
     def get_value(self, row: int) -> Any:
         return self._record_call(lambda ser, _rhs: ser.iloc[[row]], None)
 
-    def __eq__(self, other: PandasExpression | Any) -> PandasExpression:  # type: ignore[override]
+    def __eq__(self, other: PandasColumn | Any) -> PandasColumn:  # type: ignore[override]
         return self._record_call(
             lambda ser, other: (ser == other).rename(ser.name), other
         )
 
-    def __ne__(self, other: Expression | EagerColumn[Any]) -> PandasExpression:  # type: ignore[override]
+    def __ne__(self, other: Column | PermissiveColumn[Any]) -> PandasColumn:  # type: ignore[override]
         return self._record_call(
             lambda ser, other: (ser != other).rename(ser.name), other
         )
 
-    def __ge__(self, other: Expression | Any) -> PandasExpression:
+    def __ge__(self, other: Column | Any) -> PandasColumn:
         return self._record_call(
             lambda ser, other: (ser >= other).rename(ser.name), other
         )
 
-    def __gt__(self, other: Expression | Any) -> PandasExpression:
+    def __gt__(self, other: Column | Any) -> PandasColumn:
         return self._record_call(lambda ser, other: (ser > other).rename(ser.name), other)
 
-    def __le__(self, other: Expression | Any) -> PandasExpression:
+    def __le__(self, other: Column | Any) -> PandasColumn:
         return self._record_call(
             lambda ser, other: (ser <= other).rename(ser.name), other
         )
 
-    def __lt__(self, other: Expression | Any) -> PandasExpression:
+    def __lt__(self, other: Column | Any) -> PandasColumn:
         return self._record_call(lambda ser, other: (ser < other).rename(ser.name), other)
 
-    def __and__(self, other: Expression | bool) -> PandasExpression:
+    def __and__(self, other: Column | bool) -> PandasColumn:
         return self._record_call(lambda ser, other: (ser & other).rename(ser.name), other)
 
-    def __or__(self, other: Expression | bool) -> PandasExpression:
+    def __or__(self, other: Column | bool) -> PandasColumn:
         return self._record_call(lambda ser, other: (ser | other).rename(ser.name), other)
 
-    def __add__(self, other: Expression | Any) -> PandasExpression:
+    def __add__(self, other: Column | Any) -> PandasColumn:
         return self._record_call(
             lambda ser, other: ((ser + other).rename(ser.name)).rename(ser.name), other
         )
 
-    def __sub__(self, other: Expression | Any) -> PandasExpression:
+    def __sub__(self, other: Column | Any) -> PandasColumn:
         return self._record_call(lambda ser, other: (ser - other).rename(ser.name), other)
 
-    def __mul__(self, other: Expression | Any) -> PandasExpression:
+    def __mul__(self, other: Column | Any) -> PandasColumn:
         return self._record_call(lambda ser, other: (ser * other).rename(ser.name), other)
 
-    def __truediv__(self, other: Expression | Any) -> PandasExpression:
+    def __truediv__(self, other: Column | Any) -> PandasColumn:
         return self._record_call(lambda ser, other: (ser / other).rename(ser.name), other)
 
-    def __floordiv__(self, other: Expression | Any) -> PandasExpression:
+    def __floordiv__(self, other: Column | Any) -> PandasColumn:
         return self._record_call(
             lambda ser, other: (ser // other).rename(ser.name), other
         )
 
-    def __pow__(self, other: Expression | Any) -> PandasExpression:
+    def __pow__(self, other: Column | Any) -> PandasColumn:
         return self._record_call(
             lambda ser, other: (ser**other).rename(ser.name), other
         )
 
-    def __mod__(self, other: Expression | Any) -> PandasExpression:
+    def __mod__(self, other: Column | Any) -> PandasColumn:
         return self._record_call(lambda ser, other: (ser % other).rename(ser.name), other)
 
-    def __divmod__(
-        self, other: Expression | Any
-    ) -> tuple[PandasExpression, PandasExpression]:
+    def __divmod__(self, other: Column | Any) -> tuple[PandasColumn, PandasColumn]:
         quotient = self // other
         remainder = self - quotient * other
         return quotient, remainder
 
-    def __invert__(self: PandasExpression) -> PandasExpression:
+    def __invert__(self: PandasColumn) -> PandasColumn:
         return self._record_call(lambda ser, _rhs: ~ser, None)
 
     # Reductions
 
-    def any(self, *, skip_nulls: bool = True) -> PandasExpression:
+    def any(self, *, skip_nulls: bool = True) -> PandasColumn:
         return self._record_call(
             lambda ser, _rhs: pd.Series([ser.any()], name=ser.name), None
         )
 
-    def all(self, *, skip_nulls: bool = True) -> PandasExpression:
+    def all(self, *, skip_nulls: bool = True) -> PandasColumn:
         return self._record_call(
             lambda ser, _rhs: pd.Series([ser.all()], name=ser.name), None
         )
@@ -292,10 +290,10 @@ class PandasExpression(Expression):
             lambda ser, _rhs: pd.Series([ser.var()], name=ser.name), None
         )
 
-    def is_null(self) -> PandasExpression:
+    def is_null(self) -> PandasColumn:
         return self._record_call(lambda ser, _rhs: ser.isna(), None)
 
-    def is_nan(self) -> PandasExpression:
+    def is_nan(self) -> PandasColumn:
         def func(ser, _rhs):
             if is_extension_array_dtype(ser.dtype):
                 return np.isnan(ser).replace(pd.NA, False).astype(bool)
@@ -305,7 +303,7 @@ class PandasExpression(Expression):
 
     def sort(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
-    ) -> PandasExpression:
+    ) -> PandasColumn:
         return self._record_call(
             lambda ser, _rhs: ser.sort_values(ascending=ascending).reset_index(drop=True),
             None,
@@ -313,7 +311,7 @@ class PandasExpression(Expression):
 
     def sorted_indices(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
-    ) -> PandasExpression:
+    ) -> PandasColumn:
         def func(ser, _rhs):
             if ascending:
                 return (
@@ -332,21 +330,21 @@ class PandasExpression(Expression):
             None,
         )
 
-    def is_in(self, values: Expression | EagerColumn[Any]) -> PandasExpression:
+    def is_in(self, values: Column | PermissiveColumn[Any]) -> PandasColumn:
         return self._record_call(
             lambda ser, other: ser.isin(other),
             values,
         )
 
-    def unique_indices(self, *, skip_nulls: bool = True) -> PandasExpression:
+    def unique_indices(self, *, skip_nulls: bool = True) -> PandasColumn:
         raise NotImplementedError("not yet supported")
-        return PandasExpression(
+        return PandasColumn(
             self.column.drop_duplicates().index.to_series(), api_version=self._api_version
         )
 
     def fill_nan(
         self, value: float | pd.NAType  # type: ignore[name-defined]
-    ) -> PandasExpression:
+    ) -> PandasColumn:
         def func(ser, _rhs):
             ser = ser.copy()
             ser[
@@ -362,7 +360,7 @@ class PandasExpression(Expression):
     def fill_null(
         self,
         value: Any,
-    ) -> PandasExpression:
+    ) -> PandasColumn:
         def func(ser, value):
             ser = ser.copy()
             if is_extension_array_dtype(ser.dtype):
@@ -384,31 +382,31 @@ class PandasExpression(Expression):
             None,
         )
 
-    def cumulative_sum(self, *, skip_nulls: bool = True) -> PandasExpression:
+    def cumulative_sum(self, *, skip_nulls: bool = True) -> PandasColumn:
         return self._record_call(
             lambda ser, _rhs: ser.cumsum(),
             None,
         )
 
-    def cumulative_prod(self, *, skip_nulls: bool = True) -> PandasExpression:
+    def cumulative_prod(self, *, skip_nulls: bool = True) -> PandasColumn:
         return self._record_call(
             lambda ser, _rhs: ser.cumprod(),
             None,
         )
 
-    def cumulative_max(self, *, skip_nulls: bool = True) -> PandasExpression:
+    def cumulative_max(self, *, skip_nulls: bool = True) -> PandasColumn:
         return self._record_call(
             lambda ser, _rhs: ser.cummax(),
             None,
         )
 
-    def cumulative_min(self, *, skip_nulls: bool = True) -> PandasExpression:
+    def cumulative_min(self, *, skip_nulls: bool = True) -> PandasColumn:
         return self._record_call(
             lambda ser, _rhs: ser.cummin(),
             None,
         )
 
-    def rename(self, name: str) -> PandasExpression:
+    def rename(self, name: str) -> PandasColumn:
         expr = self._record_call(
             lambda ser, _rhs: ser.rename(name), None, output_name=name
         )
@@ -506,7 +504,7 @@ LATEST_API_VERSION = "2023.09-beta"
 SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.08-beta"))
 
 
-class PandasColumn(EagerColumn[DType]):
+class PandasPermissiveColumn(PermissiveColumn[DType]):
     # private, not technically part of the standard
     def __init__(self, column: pd.Series[Any], api_version: str) -> None:
         self._name = column.name
@@ -519,8 +517,8 @@ class PandasColumn(EagerColumn[DType]):
                 "Try updating dataframe-api-compat?"
             )
 
-    def _to_expression(self) -> PandasExpression:
-        return PandasExpression(
+    def _to_expression(self) -> PandasColumn:
+        return PandasColumn(
             root_names=[],
             output_name=self.name,
             base_call=lambda _df: self.column.rename(self.name),
@@ -556,23 +554,17 @@ class PandasColumn(EagerColumn[DType]):
     def dtype(self) -> Any:
         return dataframe_api_compat.pandas_standard.DTYPE_MAP[self.column.dtype.name]
 
-    def get_rows(self, indices: EagerColumn[Any]) -> PandasColumn[DType]:
+    def get_rows(self, indices: PermissiveColumn[Any]) -> PandasColumn[DType]:
         return self._reuse_expression_implementation("get_rows", indices)
 
     def slice_rows(
         self, start: int | None, stop: int | None, step: int | None
-    ) -> PandasColumn[DType]:
-        if start is None:
-            start = 0
-        if stop is None:
-            stop = len(self.column)
-        if step is None:
-            step = 1
-        return PandasColumn(
-            self.column.iloc[start:stop:step], api_version=self._api_version
+    ) -> PandasPermissiveColumn[DType]:
+        return self._reuse_expression_implementation(
+            "slice_rows", start=start, stop=stop, step=step
         )
 
-    def filter(self, mask: Expression | EagerColumn[Any]) -> PandasColumn[DType]:
+    def filter(self, mask: Column | PermissiveColumn[Any]) -> PandasColumn[DType]:
         return self._reuse_expression_implementation("filter", mask)
 
     def get_value(self, row: int) -> Any:
@@ -584,51 +576,51 @@ class PandasColumn(EagerColumn[DType]):
         return self._reuse_expression_implementation("__eq__", other)
 
     def __ne__(  # type: ignore[override]
-        self, other: EagerColumn[DType]
+        self, other: PermissiveColumn[DType]
     ) -> PandasColumn[Bool]:
         return self._reuse_expression_implementation("__ne__", other)
 
-    def __ge__(self, other: EagerColumn[DType] | Any) -> PandasColumn[Bool]:
+    def __ge__(self, other: PermissiveColumn[DType] | Any) -> PandasColumn[Bool]:
         return self._reuse_expression_implementation("__ge__", other)
 
-    def __gt__(self, other: EagerColumn[DType] | Any) -> PandasColumn[Bool]:
+    def __gt__(self, other: PermissiveColumn[DType] | Any) -> PandasColumn[Bool]:
         return self._reuse_expression_implementation("__gt__", other)
 
-    def __le__(self, other: EagerColumn[DType] | Any) -> PandasColumn[Bool]:
+    def __le__(self, other: PermissiveColumn[DType] | Any) -> PandasColumn[Bool]:
         return self._reuse_expression_implementation("__le__", other)
 
-    def __lt__(self, other: EagerColumn[DType] | Any) -> PandasColumn[Bool]:
+    def __lt__(self, other: PermissiveColumn[DType] | Any) -> PandasColumn[Bool]:
         return self._reuse_expression_implementation("__lt__", other)
 
-    def __and__(self, other: EagerColumn[Bool] | bool) -> PandasColumn[Bool]:
+    def __and__(self, other: PermissiveColumn[Bool] | bool) -> PandasColumn[Bool]:
         return self._reuse_expression_implementation("__and__", other)
 
-    def __or__(self, other: EagerColumn[Bool] | bool) -> PandasColumn[Bool]:
+    def __or__(self, other: PermissiveColumn[Bool] | bool) -> PandasColumn[Bool]:
         return self._reuse_expression_implementation("__or__", other)
 
-    def __add__(self, other: EagerColumn[DType] | Any) -> PandasColumn[DType]:
+    def __add__(self, other: PermissiveColumn[DType] | Any) -> PandasColumn[DType]:
         return self._reuse_expression_implementation("__add__", other)
 
-    def __sub__(self, other: EagerColumn[DType] | Any) -> PandasColumn[DType]:
+    def __sub__(self, other: PermissiveColumn[DType] | Any) -> PandasColumn[DType]:
         return self._reuse_expression_implementation("__sub__", other)
 
-    def __mul__(self, other: EagerColumn[DType] | Any) -> PandasColumn[Any]:
+    def __mul__(self, other: PermissiveColumn[DType] | Any) -> PandasColumn[Any]:
         return self._reuse_expression_implementation("__mul__", other)
 
-    def __truediv__(self, other: EagerColumn[DType] | Any) -> PandasColumn[Any]:
+    def __truediv__(self, other: PermissiveColumn[DType] | Any) -> PandasColumn[Any]:
         return self._reuse_expression_implementation("__truediv__", other)
 
-    def __floordiv__(self, other: EagerColumn[DType] | Any) -> PandasColumn[Any]:
+    def __floordiv__(self, other: PermissiveColumn[DType] | Any) -> PandasColumn[Any]:
         return self._reuse_expression_implementation("__floordiv__", other)
 
-    def __pow__(self, other: EagerColumn[DType] | Any) -> PandasColumn[Any]:
+    def __pow__(self, other: PermissiveColumn[DType] | Any) -> PandasColumn[Any]:
         return self._reuse_expression_implementation("__pow__", other)
 
-    def __mod__(self, other: EagerColumn[DType] | Any) -> PandasColumn[Any]:
+    def __mod__(self, other: PermissiveColumn[DType] | Any) -> PandasColumn[Any]:
         return self._reuse_expression_implementation("__mod__", other)
 
     def __divmod__(
-        self, other: EagerColumn[DType] | Any
+        self, other: PermissiveColumn[DType] | Any
     ) -> tuple[PandasColumn[Any], PandasColumn[Any]]:
         quotient = self // other
         remainder = self - quotient * other
@@ -692,7 +684,7 @@ class PandasColumn(EagerColumn[DType]):
             "sort", ascending=ascending, nulls_position=nulls_position
         )
 
-    def is_in(self, values: EagerColumn[DType]) -> PandasColumn[Bool]:
+    def is_in(self, values: PermissiveColumn[DType]) -> PandasColumn[Bool]:
         return self._reuse_expression_implementation("is_in", values)
 
     def unique_indices(self, *, skip_nulls: bool = True) -> PandasColumn[Any]:
@@ -834,7 +826,7 @@ class PandasDataFrame(DataFrame):
                     )
         return pd.concat(columns, axis=1)
 
-    def select(self, *columns: str | Expression | EagerColumn[Any]) -> PandasDataFrame:
+    def select(self, *columns: str | Column | PermissiveColumn[Any]) -> PandasDataFrame:
         new_columns = []
         for name in columns:
             if isinstance(name, str):
@@ -846,7 +838,7 @@ class PandasDataFrame(DataFrame):
             api_version=self._api_version,
         )
 
-    def get_rows(self, indices: Expression) -> PandasDataFrame:
+    def get_rows(self, indices: Column) -> PandasDataFrame:
         return PandasDataFrame(
             self.dataframe.iloc[self._resolve_expression(indices), :],
             api_version=self._api_version,
@@ -877,11 +869,11 @@ class PandasDataFrame(DataFrame):
         return lhs, rhs
 
     def _resolve_expression(
-        self, expression: PandasExpression | PandasColumn | pd.Series | object
+        self, expression: PandasColumn | PandasPermissiveColumn | pd.Series | object
     ) -> pd.Series:
-        if isinstance(expression, PandasColumn):
+        if isinstance(expression, PandasPermissiveColumn):
             return expression.column
-        if not isinstance(expression, PandasExpression):
+        if not isinstance(expression, PandasColumn):
             # e.g. scalar
             return expression
         if not expression._calls:
@@ -895,12 +887,12 @@ class PandasDataFrame(DataFrame):
         assert output_name == expression.name, f"{output_name} != {expression.name}"
         return expression
 
-    def filter(self, mask: Expression | EagerColumn[Any]) -> PandasDataFrame:
+    def filter(self, mask: Column | PermissiveColumn[Any]) -> PandasDataFrame:
         df = self.dataframe
         df = df.loc[self._resolve_expression(mask)]
         return PandasDataFrame(df, api_version=self._api_version)
 
-    def assign(self, *columns: Expression | EagerColumn[Any]) -> PandasDataFrame:
+    def assign(self, *columns: Column | PermissiveColumn[Any]) -> PandasDataFrame:
         df = self.dataframe.copy()  # todo: remove defensive copy with CoW?
         for col in columns:
             new_column = self._resolve_expression(col)
@@ -928,7 +920,7 @@ class PandasDataFrame(DataFrame):
 
     def sort(
         self,
-        *keys: str | Expression | EagerColumn[Any],
+        *keys: str | Column | PermissiveColumn[Any],
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
     ) -> PandasDataFrame:
@@ -1145,7 +1137,7 @@ class PandasDataFrame(DataFrame):
         value: Any,
         *,
         column_names: list[str] | None = None,
-    ) -> PandasEagerFrame:
+    ) -> PandasPermissiveFrame:
         if column_names is None:
             column_names = self.dataframe.columns.tolist()
         df = self.dataframe.copy()
@@ -1184,16 +1176,16 @@ class PandasDataFrame(DataFrame):
             api_version=self._api_version,
         )
 
-    def collect(self) -> PandasEagerFrame:
-        return PandasEagerFrame(self.dataframe, api_version=self._api_version)
+    def collect(self) -> PandasPermissiveFrame:
+        return PandasPermissiveFrame(self.dataframe, api_version=self._api_version)
 
 
-class PandasEagerFrame(EagerFrame):
+class PandasPermissiveFrame(PermissiveFrame):
     # Not technically part of the standard
 
     def __init__(self, dataframe: pd.DataFrame, api_version: str) -> None:
         # note: less validation is needed here, as the validation will already
-        # have happened in DataFrame, and EagerFrame can only be created from that.
+        # have happened in DataFrame, and PermissiveFrame can only be created from that.
         self._dataframe = dataframe.reset_index(drop=True)
         self._api_version = api_version
 
@@ -1232,32 +1224,36 @@ class PandasEagerFrame(EagerFrame):
                 raise KeyError(f"key {key} not present in DataFrame's columns")
         return PandasGroupBy(self.dataframe, keys, api_version=self._api_version)
 
-    def select(self, *columns: str | Expression | EagerColumn[Any]) -> PandasEagerFrame:
+    def select(
+        self, *columns: str | Column | PermissiveColumn[Any]
+    ) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("select", *columns)
 
     def get_column_by_name(self, name) -> PandasColumn:
-        return PandasColumn(self.dataframe.loc[:, name], api_version=self._api_version)
+        return PandasPermissiveColumn(
+            self.dataframe.loc[:, name], api_version=self._api_version
+        )
 
-    def get_rows(self, indices: Expression | EagerColumn) -> PandasEagerFrame:
+    def get_rows(self, indices: Column | PermissiveColumn) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("get_rows", indices)
 
     def slice_rows(
         self, start: int | None, stop: int | None, step: int | None
-    ) -> PandasEagerFrame:
+    ) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation(
             "slice_rows", start=start, stop=stop, step=step
         )
 
-    def filter(self, mask: Expression | EagerColumn) -> PandasEagerFrame:
+    def filter(self, mask: Column | PermissiveColumn) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("filter", mask)
 
-    def assign(self, *columns: Expression | EagerColumn) -> PandasEagerFrame:
+    def assign(self, *columns: Column | PermissiveColumn) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("assign", *columns)
 
-    def drop_columns(self, *labels: str) -> PandasEagerFrame:
+    def drop_columns(self, *labels: str) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("drop_columns", *labels)
 
-    def rename_columns(self, mapping: Mapping[str, str]) -> PandasEagerFrame:
+    def rename_columns(self, mapping: Mapping[str, str]) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("rename_columns", mapping=mapping)
 
     def get_column_names(self) -> list[str]:
@@ -1265,121 +1261,121 @@ class PandasEagerFrame(EagerFrame):
 
     def sort(
         self,
-        *keys: str | Expression | EagerColumn,
+        *keys: str | Column | PermissiveColumn,
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
-    ) -> PandasEagerFrame:
+    ) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation(
             "sort", *keys, ascending=ascending, nulls_position=nulls_position
         )
 
-    def __eq__(self, other: Any) -> PandasEagerFrame:  # type: ignore[override]
+    def __eq__(self, other: Any) -> PandasPermissiveFrame:  # type: ignore[override]
         return self._reuse_dataframe_implementation("__eq__", other)
 
-    def __ne__(self, other: Any) -> PandasEagerFrame:  # type: ignore[override]
+    def __ne__(self, other: Any) -> PandasPermissiveFrame:  # type: ignore[override]
         return self._reuse_dataframe_implementation("__ne__", other)
 
-    def __ge__(self, other: Any) -> PandasEagerFrame:
+    def __ge__(self, other: Any) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("__ge__", other)
 
-    def __gt__(self, other: Any) -> PandasEagerFrame:
+    def __gt__(self, other: Any) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("__gt__", other)
 
-    def __le__(self, other: Any) -> PandasEagerFrame:
+    def __le__(self, other: Any) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("__le__", other)
 
-    def __lt__(self, other: Any) -> PandasEagerFrame:
+    def __lt__(self, other: Any) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("__lt__", other)
 
-    def __and__(self, other: Any) -> PandasEagerFrame:
+    def __and__(self, other: Any) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("__and__", other)
 
-    def __or__(self, other: Any) -> PandasEagerFrame:
+    def __or__(self, other: Any) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("__or__", other)
 
-    def __add__(self, other: Any) -> PandasEagerFrame:
+    def __add__(self, other: Any) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("__add__", other)
 
-    def __sub__(self, other: Any) -> PandasEagerFrame:
+    def __sub__(self, other: Any) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("__sub__", other)
 
-    def __mul__(self, other: Any) -> PandasEagerFrame:
+    def __mul__(self, other: Any) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("__mul__", other)
 
-    def __truediv__(self, other: Any) -> PandasEagerFrame:
+    def __truediv__(self, other: Any) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("__truediv__", other)
 
-    def __floordiv__(self, other: Any) -> PandasEagerFrame:
+    def __floordiv__(self, other: Any) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("__floordiv__", other)
 
-    def __pow__(self, other: Any) -> PandasEagerFrame:
+    def __pow__(self, other: Any) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("__pow__", other)
 
-    def __mod__(self, other: Any) -> PandasEagerFrame:
+    def __mod__(self, other: Any) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("__mod__", other)
 
     def __divmod__(
         self,
         other: DataFrame | Any,
-    ) -> tuple[PandasEagerFrame, PandasEagerFrame]:
+    ) -> tuple[PandasPermissiveFrame, PandasPermissiveFrame]:
         quotient, remainder = self.dataframe.__divmod__(other)
-        return PandasEagerFrame(
+        return PandasPermissiveFrame(
             quotient, api_version=self._api_version
-        ), PandasEagerFrame(remainder, api_version=self._api_version)
+        ), PandasPermissiveFrame(remainder, api_version=self._api_version)
 
-    def __invert__(self) -> PandasEagerFrame:
+    def __invert__(self) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("__invert__")
 
     def __iter__(self) -> NoReturn:
         raise NotImplementedError()
 
-    def any(self, *, skip_nulls: bool = True) -> PandasEagerFrame:
+    def any(self, *, skip_nulls: bool = True) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("any", skip_nulls=skip_nulls)
 
-    def all(self, *, skip_nulls: bool = True) -> PandasEagerFrame:
+    def all(self, *, skip_nulls: bool = True) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("all", skip_nulls=skip_nulls)
 
-    def min(self, *, skip_nulls: bool = True) -> PandasEagerFrame:
+    def min(self, *, skip_nulls: bool = True) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("min", skip_nulls=skip_nulls)
 
-    def max(self, *, skip_nulls: bool = True) -> PandasEagerFrame:
+    def max(self, *, skip_nulls: bool = True) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("max", skip_nulls=skip_nulls)
 
-    def sum(self, *, skip_nulls: bool = True) -> PandasEagerFrame:
+    def sum(self, *, skip_nulls: bool = True) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("sum", skip_nulls=skip_nulls)
 
-    def prod(self, *, skip_nulls: bool = True) -> PandasEagerFrame:
+    def prod(self, *, skip_nulls: bool = True) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("prod", skip_nulls=skip_nulls)
 
-    def median(self, *, skip_nulls: bool = True) -> PandasEagerFrame:
+    def median(self, *, skip_nulls: bool = True) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("median", skip_nulls=skip_nulls)
 
-    def mean(self, *, skip_nulls: bool = True) -> PandasEagerFrame:
+    def mean(self, *, skip_nulls: bool = True) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("mean", skip_nulls=skip_nulls)
 
     def std(
         self, *, correction: int | float = 1.0, skip_nulls: bool = True
-    ) -> PandasEagerFrame:
+    ) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation(
             "std", correction=correction, skip_nulls=skip_nulls
         )
 
     def var(
         self, *, correction: int | float = 1.0, skip_nulls: bool = True
-    ) -> PandasEagerFrame:
+    ) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation(
             "var", correction=correction, skip_nulls=skip_nulls
         )
 
-    def is_null(self) -> PandasEagerFrame:
+    def is_null(self) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("is_null")
 
-    def is_nan(self) -> PandasEagerFrame:
+    def is_nan(self) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("is_nan")
 
     def fill_nan(
         self, value: float | pd.NAType  # type: ignore[name-defined]
-    ) -> PandasEagerFrame:
+    ) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("fill_nan", value)
 
     def fill_null(
@@ -1387,7 +1383,7 @@ class PandasEagerFrame(EagerFrame):
         value: Any,
         *,
         column_names: list[str] | None = None,
-    ) -> PandasEagerFrame:
+    ) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation("fill_null", value)
 
     def to_array_object(self, dtype: str) -> Any:
@@ -1399,12 +1395,12 @@ class PandasEagerFrame(EagerFrame):
 
     def join(
         self,
-        other: EagerFrame,
+        other: PermissiveFrame,
         *,
         how: Literal["left", "inner", "outer"],
         left_on: str | list[str],
         right_on: str | list[str],
-    ) -> PandasEagerFrame:
+    ) -> PandasPermissiveFrame:
         return self._reuse_dataframe_implementation(
             "join",
             other=other.relax(),

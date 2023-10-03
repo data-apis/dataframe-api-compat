@@ -11,14 +11,14 @@ from dataframe_api_compat.polars_standard.polars_standard import LATEST_API_VERS
 from dataframe_api_compat.polars_standard.polars_standard import null
 from dataframe_api_compat.polars_standard.polars_standard import PolarsColumn
 from dataframe_api_compat.polars_standard.polars_standard import PolarsDataFrame
-from dataframe_api_compat.polars_standard.polars_standard import PolarsExpression
 from dataframe_api_compat.polars_standard.polars_standard import PolarsGroupBy
+from dataframe_api_compat.polars_standard.polars_standard import PolarsPermissiveColumn
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-col = PolarsExpression
-Expression = col
+col = PolarsColumn
+Column = col
 DataFrame = PolarsDataFrame
 GroupBy = PolarsGroupBy
 
@@ -133,11 +133,11 @@ def concat(dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
 
 
 def dataframe_from_dict(
-    data: dict[str, PolarsColumn[Any]], *, api_version: str | None = None
+    data: dict[str, PolarsPermissiveColumn[Any]], *, api_version: str | None = None
 ) -> PolarsDataFrame:
     for _, col in data.items():
-        if not isinstance(col, PolarsColumn):  # pragma: no cover
-            raise TypeError(f"Expected PolarsColumn, got {type(col)}")
+        if not isinstance(col, PolarsPermissiveColumn):  # pragma: no cover
+            raise TypeError(f"Expected PolarsPermissiveColumn, got {type(col)}")
         if isinstance(col.column, pl.Expr):
             raise NotImplementedError(
                 "dataframe_from_dict not supported for lazy columns"
@@ -152,9 +152,9 @@ def dataframe_from_dict(
 
 def column_from_1d_array(
     data: Any, *, dtype: Any, name: str, api_version: str | None = None
-) -> PolarsColumn[Any]:  # pragma: no cover
+) -> PolarsPermissiveColumn[Any]:  # pragma: no cover
     ser = pl.Series(values=data, dtype=_map_standard_to_polars_dtypes(dtype), name=name)
-    return PolarsColumn(ser, api_version=api_version or LATEST_API_VERSION)
+    return PolarsPermissiveColumn(ser, api_version=api_version or LATEST_API_VERSION)
 
 
 def column_from_sequence(
@@ -163,8 +163,8 @@ def column_from_sequence(
     dtype: Any,
     name: str | None = None,
     api_version: str | None = None,
-) -> PolarsColumn[Any]:
-    return PolarsColumn(
+) -> PolarsPermissiveColumn[Any]:
+    return PolarsPermissiveColumn(
         pl.Series(
             values=sequence, dtype=_map_standard_to_polars_dtypes(dtype), name=name
         ),
@@ -197,8 +197,8 @@ def convert_to_standard_compliant_dataframe(
 
 def convert_to_standard_compliant_column(
     ser: pl.Series, api_version: str | None = None
-) -> PolarsColumn[Any]:  # pragma: no cover  (todo: is this even needed?)
-    return PolarsColumn(ser, api_version=api_version or LATEST_API_VERSION)
+) -> PolarsPermissiveColumn[Any]:  # pragma: no cover  (todo: is this even needed?)
+    return PolarsPermissiveColumn(ser, api_version=api_version or LATEST_API_VERSION)
 
 
 def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:
@@ -220,11 +220,11 @@ def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:
 
 
 def any_rowwise(keys: list[str] | None = None, *, skip_nulls: bool = True):
-    return PolarsExpression(pl.any_horizontal(keys or "*").alias("any"))
+    return PolarsColumn(pl.any_horizontal(keys or "*").alias("any"))
 
 
 def all_rowwise(keys: list[str] | None = None, *, skip_nulls: bool = True):
-    return PolarsExpression(pl.all_horizontal(keys or "*").alias("all"))
+    return PolarsColumn(pl.all_horizontal(keys or "*").alias("all"))
 
 
 def sorted_indices(
@@ -232,11 +232,11 @@ def sorted_indices(
     *,
     ascending: Sequence[bool] | bool = True,
     nulls_position: Literal["first", "last"] = "last",
-) -> Expression:
-    return PolarsExpression(pl.arg_sort_by(keys or "*", descending=not ascending))
+) -> Column:
+    return PolarsColumn(pl.arg_sort_by(keys or "*", descending=not ascending))
 
 
 def unique_indices(
     keys: str | list[str] | None = None, *, skip_nulls: bool = True
-) -> Expression:
+) -> Column:
     raise NotImplementedError("namespace.unique_indices not implemented for polars yet")

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 from typing import cast
-from typing import Generic
 from typing import TYPE_CHECKING
 from typing import TypeVar
 
@@ -18,8 +17,8 @@ DType = TypeVar("DType")
 if TYPE_CHECKING:
     from dataframe_api import (
         Bool,
+        PermissiveColumn,
         Column,
-        Expression,
         DataFrame,
         GroupBy,
     )
@@ -28,10 +27,10 @@ else:
     class DataFrame:
         ...
 
-    class Column(Generic[DType]):
+    class PermissiveColumn:
         ...
 
-    class Expression:
+    class Column:
         ...
 
     class GroupBy:
