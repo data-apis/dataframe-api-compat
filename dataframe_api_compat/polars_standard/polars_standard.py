@@ -123,10 +123,7 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
 
     @property
     def name(self) -> str:
-        if isinstance(self.column, pl.Series):
-            return self.column.name
-        name = self.column.meta.output_name()
-        return name
+        return self.column.name
 
     @property
     def column(self) -> pl.Series | pl.Expr:
@@ -180,8 +177,6 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
         raise NotImplementedError()
 
     def is_in(self, values: PolarsPermissiveColumn[DType]) -> PolarsPermissiveColumn[Bool]:  # type: ignore[override]
-        if not isinstance(values.dtype, type(self.dtype)):
-            raise ValueError(f"`value` has dtype {values.dtype}, expected {self.dtype}")
         return PolarsPermissiveColumn(
             self.column.is_in(values.column), api_version=self._api_version  # type: ignore[arg-type]
         )
