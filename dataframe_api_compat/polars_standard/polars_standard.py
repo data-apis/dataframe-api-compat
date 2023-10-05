@@ -182,12 +182,6 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
 
     def unique_indices(self, *, skip_nulls: bool = True) -> PolarsPermissiveColumn[Any]:
         raise NotImplementedError("not yet supported")
-        df = self.column.to_frame()
-        keys = df.columns
-        return PolarsPermissiveColumn(
-            df.with_row_count().unique(keys).get_column_by_name("row_nr"),
-            api_version=self._api_version,
-        )
 
     def is_null(self) -> PolarsPermissiveColumn[Bool]:
         return self._from_expression(self._to_expression().is_null())

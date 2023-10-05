@@ -342,9 +342,6 @@ class PandasColumn(Column):
 
     def unique_indices(self, *, skip_nulls: bool = True) -> PandasColumn:
         raise NotImplementedError("not yet supported")
-        return PandasColumn(
-            self.column.drop_duplicates().index.to_series(), api_version=self._api_version
-        )
 
     def fill_nan(
         self, value: float | pd.NAType  # type: ignore[name-defined]
