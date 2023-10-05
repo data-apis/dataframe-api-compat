@@ -262,12 +262,12 @@ def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:
     return isinstance(dtype, tuple(dtypes))
 
 
-def any_rowwise(keys: list[str] | None = None, *, skip_nulls: bool = True):
-    return PolarsColumn(pl.any_horizontal(keys or "*").alias("any"))
+def any_rowwise(*columns: str, skip_nulls: bool = True):
+    return PolarsColumn(pl.any_horizontal(list(columns) or "*").alias("any"))
 
 
-def all_rowwise(keys: list[str] | None = None, *, skip_nulls: bool = True):
-    return PolarsColumn(pl.all_horizontal(keys or "*").alias("all"))
+def all_rowwise(*columns: str, skip_nulls: bool = True):
+    return PolarsColumn(pl.all_horizontal(list(columns) or "*").alias("all"))
 
 
 def sorted_indices(

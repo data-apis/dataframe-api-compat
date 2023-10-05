@@ -296,26 +296,19 @@ def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:
     return isinstance(dtype, tuple(dtypes))
 
 
-def any_rowwise(
-    keys: list[str] | None = None, *, skip_nulls: bool = True
-) -> PandasColumn:
+def any_rowwise(*columns: str, skip_nulls: bool = True) -> PandasColumn:
+    # todo: accept expressions
     def func(df):
-        if keys is None:
-            return df.any(axis=1)
-        return df.loc[:, keys].any(axis=1)
+        return df.loc[:, list(columns) or df.columns.tolist()].any(axis=1)
 
-    return PandasColumn(root_names=keys, output_name="any", base_call=func)
+    return PandasColumn(root_names=list(columns), output_name="any", base_call=func)
 
 
-def all_rowwise(
-    keys: list[str] | None = None, *, skip_nulls: bool = True
-) -> PandasColumn:
+def all_rowwise(*columns: str, skip_nulls: bool = True) -> PandasColumn:
     def func(df: pd.DataFrame) -> pd.Series:
-        if keys is None:
-            return df.all(axis=1)
-        return df.loc[:, keys].all(axis=1)
+        return df.loc[:, list(columns) or df.columns.tolist()].all(axis=1)
 
-    return PandasColumn(root_names=keys, output_name="all", base_call=func)
+    return PandasColumn(root_names=list(columns), output_name="all", base_call=func)
 
 
 def sorted_indices(
