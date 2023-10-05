@@ -36,3 +36,27 @@ def test_is_in(
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series(expected_values, name="result")
     pd.testing.assert_series_equal(result_pd, expected)
+
+
+@pytest.mark.parametrize(
+    ("df_factory", "expected_values"),
+    [
+        (float_dataframe_1, [False, True]),
+        (float_dataframe_2, [True, False]),
+        (float_dataframe_3, [True, False]),
+    ],
+)
+def test_expr_is_in(
+    library: str,
+    df_factory: Callable[[str, pytest.FixtureRequest], Any],
+    expected_values: list[bool],
+    request: pytest.FixtureRequest,
+) -> None:
+    df = df_factory(library, request)
+    col = df.__dataframe_namespace__().col
+    ser = col("a")
+    other = ser + 1
+    result = df.assign(ser.is_in(other).rename("result"))
+    result_pd = interchange_to_pandas(result, library)["result"]
+    expected = pd.Series(expected_values, name="result")
+    pd.testing.assert_series_equal(result_pd, expected)

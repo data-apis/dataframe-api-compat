@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 import pandas as pd
+import polars as pl
 import pytest
 
 from tests.utils import integer_dataframe_1
@@ -122,5 +123,5 @@ def test_combine_column_and_expression(library: str) -> None:
     namespace = df.__dataframe_namespace__()
     ser = df.get_column_by_name("a")
     other = namespace.col("b")
-    with pytest.raises((KeyError, AttributeError, TypeError)):
+    with pytest.raises((KeyError, AttributeError, TypeError, pl.ColumnNotFoundError)):
         _ = ser > other
