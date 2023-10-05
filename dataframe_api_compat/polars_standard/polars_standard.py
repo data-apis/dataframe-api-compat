@@ -5,7 +5,6 @@ from typing import Any
 from typing import Generic
 from typing import Literal
 from typing import NoReturn
-from typing import Type
 from typing import TYPE_CHECKING
 from typing import TypeVar
 
@@ -74,7 +73,7 @@ class Null:
 
 
 null = Null()
-NullType = Type[Null]
+NullType = type[Null]
 
 
 def _is_integer_dtype(dtype: Any) -> bool:
