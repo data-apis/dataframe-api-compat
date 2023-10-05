@@ -157,6 +157,10 @@ def _map_standard_to_polars_dtypes(dtype: Any) -> pl.DataType:
         return pl.Utf8()
     if isinstance(dtype, Date):
         return pl.Date()
+    if isinstance(dtype, Datetime):
+        return pl.Datetime(dtype.time_unit, dtype.time_zone)
+    if isinstance(dtype, Duration):
+        return pl.Duration(dtype.time_unit)
     raise AssertionError(f"Unknown dtype: {dtype}")
 
 

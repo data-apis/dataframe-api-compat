@@ -139,8 +139,7 @@ def map_pandas_dtype_to_standard_dtype(dtype: Any) -> DType:
     if dtype == "Float32":
         return Float32()
     if dtype == "bool":
-        return Bool()
-    if dtype == "boolean":
+        # 'boolean' not yet covered, as the default dtype in pandas is still 'bool'
         return Bool()
     if dtype == "object":
         return String()
@@ -182,10 +181,12 @@ def map_standard_dtype_to_pandas_dtype(dtype: DType) -> Any:
         return "bool"
     if isinstance(dtype, String):
         return "object"
-    if isinstance(dtype, Date):
-        return "datetime64[s]"
     if isinstance(dtype, Datetime):
-        return f"datetime64[{dtype.time_unit}, {dtype.time_zone}"
+        if dtype.time_zone is not None:  # pragma: no cover (todo)
+            return f"datetime64[{dtype.time_unit}, {dtype.time_zone}]"
+        return f"datetime64[{dtype.time_unit}]"
+    if isinstance(dtype, Duration):
+        return f"timedelta64[{dtype.time_unit}]"
     raise AssertionError(f"Unknown dtype: {dtype}")
 
 
