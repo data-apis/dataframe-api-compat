@@ -32,7 +32,7 @@ def test_column_sorted_indices_ascending(library: str) -> None:
         result_pd["result"] = result_pd["result"].astype("int64")
     try:
         pd.testing.assert_frame_equal(result_pd, expected_1)
-    except AssertionError:
+    except AssertionError:  # pragma: no cover
         # order isn't determinist, so try both
         pd.testing.assert_frame_equal(result_pd, expected_2)
 
