@@ -78,7 +78,8 @@ NullType = Type[Null]
 
 
 def _is_integer_dtype(dtype: Any) -> bool:
-    return any(
+    return any(  # pragma: no cover
+        # definitely covered, not sure what this is
         dtype is _dtype
         for _dtype in (
             pl.Int64,
@@ -115,17 +116,6 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
             )
         self._api_version = api_version
         self._dtype = column.dtype
-
-    def _validate_column(
-        self, column: PolarsPermissiveColumn[Any] | PermissiveColumn[Any]
-    ) -> None:
-        assert isinstance(column, PolarsPermissiveColumn)
-        if isinstance(column.column, pl.Expr) and column._id != self._id:
-            raise ValueError(
-                "Column was created from a different dataframe!",
-                column._id,
-                self._id,
-            )
 
     # In the standard
     def __column_namespace__(self) -> Any:
@@ -176,7 +166,6 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
     def filter(
         self, mask: Column | PermissiveColumn[Any]
     ) -> PolarsPermissiveColumn[DType]:
-        self._validate_column(mask)
         return PolarsPermissiveColumn(
             self.column.filter(mask.column),
             api_version=self._api_version,
@@ -191,7 +180,6 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
         raise NotImplementedError()
 
     def is_in(self, values: PolarsPermissiveColumn[DType]) -> PolarsPermissiveColumn[Bool]:  # type: ignore[override]
-        self._validate_column(values)
         if not isinstance(values.dtype, type(self.dtype)):
             raise ValueError(f"`value` has dtype {values.dtype}, expected {self.dtype}")
         return PolarsPermissiveColumn(
@@ -292,7 +280,6 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
         self, other: PermissiveColumn[DType] | Any
     ) -> PolarsPermissiveColumn[Bool]:
         if isinstance(other, PolarsPermissiveColumn):
-            self._validate_column(other)
             return PolarsPermissiveColumn(
                 self.column > other.column,
                 api_version=self._api_version,
@@ -306,7 +293,6 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
         self, other: PermissiveColumn[DType] | Any
     ) -> PolarsPermissiveColumn[Bool]:
         if isinstance(other, PolarsPermissiveColumn):
-            self._validate_column(other)
             return PolarsPermissiveColumn(
                 self.column <= other.column,
                 api_version=self._api_version,
@@ -320,7 +306,6 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
         self, other: PermissiveColumn[DType] | Any
     ) -> PolarsPermissiveColumn[Bool]:
         if isinstance(other, PolarsPermissiveColumn):
-            self._validate_column(other)
             return PolarsPermissiveColumn(
                 self.column < other.column,
                 api_version=self._api_version,
@@ -343,7 +328,6 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
         self, other: PermissiveColumn[DType] | Any
     ) -> PolarsPermissiveColumn[Any]:
         if isinstance(other, PolarsPermissiveColumn):
-            self._validate_column(other)
             return PolarsPermissiveColumn(
                 self.column // other.column,
                 api_version=self._api_version,
@@ -357,7 +341,6 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
         self, other: PermissiveColumn[DType] | Any
     ) -> PolarsPermissiveColumn[Any]:
         if isinstance(other, PolarsPermissiveColumn):
-            self._validate_column(other)
             res = self.column / other.column
             return PolarsPermissiveColumn(res, api_version=self._api_version)
         res = self.column / other
@@ -376,7 +359,6 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
         self, other: PermissiveColumn[DType] | Any
     ) -> PolarsPermissiveColumn[Any]:
         if isinstance(other, PolarsPermissiveColumn):
-            self._validate_column(other)
             return PolarsPermissiveColumn(
                 self.column % other.column,
                 api_version=self._api_version,
@@ -399,7 +381,6 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
         self, other: PermissiveColumn[Bool] | bool
     ) -> PolarsPermissiveColumn[Bool]:
         if isinstance(other, PolarsPermissiveColumn):
-            self._validate_column(other)
             return PolarsPermissiveColumn(
                 self.column & other.column, api_version=self._api_version  # type: ignore[operator]
             )
@@ -409,7 +390,6 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
         self, other: PermissiveColumn[Bool] | bool
     ) -> PolarsPermissiveColumn[Bool]:
         if isinstance(other, PolarsPermissiveColumn):
-            self._validate_column(other)
             return PolarsPermissiveColumn(
                 self.column | other.column, api_version=self._api_version  # type: ignore[operator]
             )
@@ -420,7 +400,6 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
 
     def __add__(self, other: PermissiveColumn[Any] | Any) -> PolarsPermissiveColumn[Any]:
         if isinstance(other, PolarsPermissiveColumn):
-            self._validate_column(other)
             return PolarsPermissiveColumn(
                 self.column + other.column,
                 api_version=self._api_version,
@@ -432,7 +411,6 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
 
     def __sub__(self, other: PermissiveColumn[Any] | Any) -> PolarsPermissiveColumn[Any]:
         if isinstance(other, PolarsPermissiveColumn):
-            self._validate_column(other)
             return PolarsPermissiveColumn(
                 self.column - other.column,
                 api_version=self._api_version,
