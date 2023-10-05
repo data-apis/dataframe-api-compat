@@ -337,45 +337,37 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
     def __and__(
         self, other: PermissiveColumn[Bool] | bool
     ) -> PolarsPermissiveColumn[Bool]:
-        if isinstance(other, PolarsPermissiveColumn):
-            return PolarsPermissiveColumn(
-                self.column & other.column, api_version=self._api_version  # type: ignore[operator]
+        if isinstance(other, PermissiveColumn):
+            return self._from_expression(
+                self._to_expression().__and__(other._to_expression())
             )
-        return PolarsPermissiveColumn(self.column & other, api_version=self._api_version)  # type: ignore[operator]
+        return self._from_expression(self._to_expression().__and__(other))
 
     def __or__(
         self, other: PermissiveColumn[Bool] | bool
     ) -> PolarsPermissiveColumn[Bool]:
-        if isinstance(other, PolarsPermissiveColumn):
-            return PolarsPermissiveColumn(
-                self.column | other.column, api_version=self._api_version  # type: ignore[operator]
+        if isinstance(other, PermissiveColumn):
+            return self._from_expression(
+                self._to_expression().__or__(other._to_expression())
             )
-        return PolarsPermissiveColumn(self.column | other, api_version=self._api_version)  # type: ignore[operator]
+        return self._from_expression(self._to_expression().__or__(other))
 
     def __invert__(self) -> PolarsPermissiveColumn[Bool]:
-        return PolarsPermissiveColumn(~self.column, api_version=self._api_version)
+        return self._from_expression(self._to_expression().__invert__())
 
     def __add__(self, other: PermissiveColumn[Any] | Any) -> PolarsPermissiveColumn[Any]:
-        if isinstance(other, PolarsPermissiveColumn):
-            return PolarsPermissiveColumn(
-                self.column + other.column,
-                api_version=self._api_version,
+        if isinstance(other, PermissiveColumn):
+            return self._from_expression(
+                self._to_expression().__add__(other._to_expression())
             )
-        return PolarsPermissiveColumn(
-            self.column + other,
-            api_version=self._api_version,
-        )
+        return self._from_expression(self._to_expression().__add__(other))
 
     def __sub__(self, other: PermissiveColumn[Any] | Any) -> PolarsPermissiveColumn[Any]:
-        if isinstance(other, PolarsPermissiveColumn):
-            return PolarsPermissiveColumn(
-                self.column - other.column,
-                api_version=self._api_version,
+        if isinstance(other, PermissiveColumn):
+            return self._from_expression(
+                self._to_expression().__sub__(other._to_expression())
             )
-        return PolarsPermissiveColumn(
-            self.column - other,
-            api_version=self._api_version,
-        )
+        return self._from_expression(self._to_expression().__sub__(other))
 
     def sorted_indices(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
@@ -396,13 +388,10 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
         )
 
     def fill_nan(self, value: float | NullType) -> PolarsPermissiveColumn[DType]:
-        return PolarsPermissiveColumn(self.column.fill_nan(value), api_version=self._api_version)  # type: ignore[arg-type]
+        return self._from_expression(self._to_expression().fill_nan(value))
 
     def fill_null(self, value: Any) -> PolarsPermissiveColumn[DType]:
-        return PolarsPermissiveColumn(
-            self.column.fill_null(value),
-            api_version=self._api_version,
-        )
+        return self._from_expression(self._to_expression().fill_null(value))
 
     def cumulative_sum(self, *, skip_nulls: bool = True) -> PolarsPermissiveColumn[DType]:
         return PolarsPermissiveColumn(
