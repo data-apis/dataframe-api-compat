@@ -761,7 +761,7 @@ class PandasDataFrame(DataFrame):
             )
         self._api_version = api_version
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str:  # pragma: no cover
         return self.dataframe.__repr__()
 
     @property
@@ -808,10 +808,6 @@ class PandasDataFrame(DataFrame):
         return self._dataframe
 
     def group_by(self, *keys: str) -> PandasGroupBy:
-        if not isinstance(keys, collections.abc.Sequence):
-            raise TypeError(f"Expected sequence of strings, got: {type(keys)}")
-        if isinstance(keys, str):
-            raise TypeError("Expected sequence of strings, got: str")
         for key in keys:
             if key not in self.column_names:
                 raise KeyError(f"key {key} not present in DataFrame's columns")
@@ -1193,7 +1189,7 @@ class PandasPermissiveFrame(PermissiveFrame):
         self._dataframe = dataframe.reset_index(drop=True)
         self._api_version = api_version
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str:  # pragma: no cover
         return self.dataframe.__repr__()
 
     def _reuse_dataframe_implementation(self, function_name, *args, **kwargs):
@@ -1221,10 +1217,6 @@ class PandasPermissiveFrame(PermissiveFrame):
         return self._dataframe
 
     def group_by(self, *keys: str) -> PandasGroupBy:
-        if not isinstance(keys, collections.abc.Sequence):
-            raise TypeError(f"Expected sequence of strings, got: {type(keys)}")
-        if isinstance(keys, str):
-            raise TypeError("Expected sequence of strings, got: str")
         for key in keys:
             if key not in self.get_column_names():
                 raise KeyError(f"key {key} not present in DataFrame's columns")
