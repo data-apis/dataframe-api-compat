@@ -43,9 +43,8 @@ def test_column_or(library: str) -> None:
 
 
 def test_column_and_with_scalar(library: str, request: pytest.FixtureRequest) -> None:
-    df = bool_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    ser = namespace.col("a")
+    df = bool_dataframe_1(library).collect()
+    ser = df.get_column_by_name("a")
     other = True
     result = df.assign((ser & other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
@@ -54,9 +53,8 @@ def test_column_and_with_scalar(library: str, request: pytest.FixtureRequest) ->
 
 
 def test_column_or_with_scalar(library: str, request: pytest.FixtureRequest) -> None:
-    df = bool_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    ser = namespace.col("a")
+    df = bool_dataframe_1(library).collect()
+    ser = df.get_column_by_name("a")
     other = True
     result = df.assign((ser | other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
