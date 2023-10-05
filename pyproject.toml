@@ -24,7 +24,7 @@ classifiers = [
 [tool.ruff]
 line-length = 90
 fix = true
-target-version = "py38"
+target-version = "py39"
 
 select = [
   "E", # pycodestyle

@@ -52,6 +52,11 @@ if TYPE_CHECKING:
         PermissiveFrame,
         GroupBy,
     )
+
+    ExtraCall = tuple[
+        Callable[[pd.Series, pd.Series | None], pd.Series], pd.Series, pd.Series
+    ]
+
 else:
 
     class DataFrame:
@@ -71,11 +76,6 @@ else:
 
     class Bool:
         ...
-
-
-ExtraCall = tuple[
-    Callable[[pd.Series, pd.Series | None], pd.Series], pd.Series, pd.Series
-]
 
 
 class PandasColumn(Column):
