@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from typing import Any
+from typing import Callable
+
 import pandas as pd
-import polars as pl
 import pytest
 
 from tests.utils import convert_dataframe_to_pandas_numpy
@@ -27,25 +29,17 @@ from tests.utils import interchange_to_pandas
         ("__mod__", {"a": [1, 0, 1], "b": [0, 1, 0]}),
     ],
 )
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
 def test_comparisons_with_scalar(
     library: str,
     comparison: str,
     expected_data: dict[str, object],
-    request: pytest.FixtureRequest,
+    relax: Callable[[Any], Any],
 ) -> None:
-    df = integer_dataframe_1(library)
+    df = relax(integer_dataframe_1(library))
     other = 2
     result = getattr(df, comparison)(other)
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame(expected_data)
     pd.testing.assert_frame_equal(result_pd, expected)
-
-
-def test_comparison_invalid(library: str, request: pytest.FixtureRequest) -> None:
-    df = integer_dataframe_1(library).select(["a"])
-    other = integer_dataframe_1(library).select(["b"])
-    with pytest.raises(
-        (ValueError, pl.exceptions.DuplicateError, NotImplementedError),
-    ):
-        assert df > other

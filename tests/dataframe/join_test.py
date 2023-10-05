@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from typing import Any
+from typing import Callable
+
 import pandas as pd
 import pytest
 
@@ -8,9 +11,10 @@ from tests.utils import integer_dataframe_2
 from tests.utils import interchange_to_pandas
 
 
-def test_join_left(library: str) -> None:
-    left = integer_dataframe_1(library)
-    right = integer_dataframe_2(library).rename_columns({"b": "c"})
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
+def test_join_left(library: str, relax: Callable[[Any], Any]):
+    left = relax(integer_dataframe_1(library))
+    right = relax(integer_dataframe_2(library).rename_columns({"b": "c"}))
     result = left.join(right, left_on="a", right_on="a", how="left")
     result_pd = interchange_to_pandas(result, library)
     expected = pd.DataFrame(

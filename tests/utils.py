@@ -1,7 +1,12 @@
 from __future__ import annotations
 
+from datetime import date
+from datetime import datetime
+from datetime import timedelta
 from typing import Any
 from typing import cast
+from typing import TYPE_CHECKING
+from typing import TypeVar
 
 import pandas as pd
 import polars as pl
@@ -10,10 +15,37 @@ import pytest
 import dataframe_api_compat.pandas_standard
 import dataframe_api_compat.polars_standard
 
+DType = TypeVar("DType")
+
+if TYPE_CHECKING:
+    from dataframe_api import (
+        Bool,
+        PermissiveColumn,
+        Column,
+        DataFrame,
+        GroupBy,
+    )
+else:
+
+    class DataFrame:
+        ...
+
+    class PermissiveColumn:
+        ...
+
+    class Column:
+        ...
+
+    class GroupBy:
+        ...
+
+    class Bool:
+        ...
+
 
 def convert_to_standard_compliant_dataframe(
     df: pd.DataFrame | pl.DataFrame, api_version: str | None = None
-) -> Any:
+) -> DataFrame:
     # todo: type return
     if isinstance(df, pd.DataFrame):
         return (
@@ -66,7 +98,7 @@ def convert_dataframe_to_pandas_numpy(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def integer_dataframe_1(library: str, api_version: str | None = None) -> Any:
+def integer_dataframe_1(library: str, api_version: str | None = None) -> DataFrame:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}, dtype="int64")
@@ -80,7 +112,7 @@ def integer_dataframe_1(library: str, api_version: str | None = None) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def integer_dataframe_2(library: str) -> Any:
+def integer_dataframe_2(library) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1, 2, 4], "b": [4, 2, 6]}, dtype="int64")
@@ -94,7 +126,7 @@ def integer_dataframe_2(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def integer_dataframe_3(library: str) -> Any:
+def integer_dataframe_3(library) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame(
@@ -112,7 +144,7 @@ def integer_dataframe_3(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def integer_dataframe_4(library: str) -> Any:
+def integer_dataframe_4(library) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame(
@@ -158,7 +190,7 @@ def integer_dataframe_6(library: str, api_version: str | None = None) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def integer_dataframe_7(library: str) -> Any:
+def integer_dataframe_7(library) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1, 2, 3], "b": [1, 2, 4]}, dtype="int64")
@@ -172,7 +204,7 @@ def integer_dataframe_7(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def nan_dataframe_1(library: str) -> Any:
+def nan_dataframe_1(library) -> DataFrame:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1.0, 2.0, float("nan")]}, dtype="float64")
@@ -187,7 +219,7 @@ def nan_dataframe_1(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def nan_dataframe_2(library: str) -> Any:
+def nan_dataframe_2(library) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [0.0, 1.0, float("nan")]}, dtype="float64")
@@ -202,7 +234,7 @@ def nan_dataframe_2(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def null_dataframe_1(library: str) -> Any:
+def null_dataframe_1(library) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1.0, 2.0, float("nan")]}, dtype="float64")
@@ -216,7 +248,7 @@ def null_dataframe_1(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def null_dataframe_2(library: str) -> Any:
+def null_dataframe_2(library) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame(
@@ -235,25 +267,25 @@ def null_dataframe_2(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def bool_dataframe_1(library: str) -> Any:
+def bool_dataframe_1(library: str, api_version="2023.09-beta") -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame(
             {"a": [True, True, False], "b": [True, True, True]}, dtype="bool"
         )
-        return convert_to_standard_compliant_dataframe(df)
+        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
     if library == "pandas-nullable":
         df = pd.DataFrame(
             {"a": [True, True, False], "b": [True, True, True]}, dtype="boolean"
         )
-        return convert_to_standard_compliant_dataframe(df)
+        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [True, True, False], "b": [True, True, True]})
-        return convert_to_standard_compliant_dataframe(df)
+        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def bool_dataframe_2(library: str) -> Any:
+def bool_dataframe_2(library) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame(
@@ -285,7 +317,7 @@ def bool_dataframe_2(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def bool_dataframe_3(library: str) -> Any:
+def bool_dataframe_3(library) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame(
@@ -303,7 +335,7 @@ def bool_dataframe_3(library: str) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def integer_series_1(library: str) -> Any:
+def integer_series_1(library) -> Any:
     ser: Any
     if library == "pandas-numpy":
         ser = pd.Series([1, 2, 3])
@@ -321,10 +353,14 @@ def integer_series_5(library: str, request: pytest.FixtureRequest) -> Any:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1, 1, 4]}, dtype="int64")
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
+        return (
+            convert_to_standard_compliant_dataframe(df).collect().get_column_by_name("a")
+        )
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1, 1, 4]}, dtype="Int64")
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
+        return (
+            convert_to_standard_compliant_dataframe(df).collect().get_column_by_name("a")
+        )
     if library == "polars-lazy":
         request.node.add_marker(pytest.mark.xfail())
     raise AssertionError(f"Got unexpected library: {library}")
@@ -373,14 +409,13 @@ def float_dataframe_3(library: str, request: pytest.FixtureRequest) -> object:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def bool_series_1(library: str) -> Any:
-    df: Any
+def bool_series_1(library) -> Any:
     if library == "pandas-numpy":
-        df = pd.DataFrame({"a": [True, False, True]}, dtype="bool")
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
+        ser = pd.Series([True, False, True], name="a", dtype="bool")
+        return convert_to_standard_compliant_column(ser)
     if library == "pandas-nullable":
-        df = pd.DataFrame({"a": [True, False, True]}, dtype="boolean")
-        return convert_to_standard_compliant_dataframe(df).get_column_by_name("a")
+        ser = pd.Series([True, False, True], name="a", dtype="boolean")
+        return convert_to_standard_compliant_column(ser)
     if library == "polars-lazy":
         ser = pl.Series("a", [True, False, True])
         return convert_to_standard_compliant_column(ser)
@@ -388,22 +423,21 @@ def bool_series_1(library: str) -> Any:
 
 
 def interchange_to_pandas(result: Any, library: str) -> pd.DataFrame:
-    df = (
-        result.dataframe.collect()
-        if library in ("polars", "polars-lazy")
-        else result.dataframe
-    )
+    if isinstance(result.dataframe, pl.LazyFrame):
+        df = result.dataframe.collect()
+    else:
+        df = result.dataframe
     df = pd.api.interchange.from_dataframe(df)
     df = convert_dataframe_to_pandas_numpy(df)
     return cast(pd.DataFrame, df)
 
 
-def maybe_collect(result: Any, library: str) -> Any:
-    df = result.dataframe.collect() if library == "polars-lazy" else result.dataframe
+def maybe_collect(result: Any) -> Any:
+    df = result.collect().dataframe if hasattr(result, "collect") else result.dataframe
     return df
 
 
-def mixed_dataframe_1(library: str) -> Any:
+def mixed_dataframe_1(library) -> Any:
     df: Any
     data = {
         "a": [1, 2, 3],
@@ -418,6 +452,11 @@ def mixed_dataframe_1(library: str) -> Any:
         "j": [1.0, 2.0, 3.0],
         "k": [True, False, True],
         "l": ["a", "b", "c"],
+        "m": [date(2020, 1, 1), date(2020, 1, 2), date(2020, 1, 3)],
+        "n": [datetime(2020, 1, 1), datetime(2020, 1, 2), datetime(2020, 1, 3)],
+        "o": [datetime(2020, 1, 1), datetime(2020, 1, 2), datetime(2020, 1, 3)],
+        "p": [timedelta(days=1), timedelta(days=2), timedelta(days=3)],
+        "q": [timedelta(days=1), timedelta(days=2), timedelta(days=3)],
     }
     if library == "pandas-numpy":
         df = pd.DataFrame(data).astype(
@@ -434,6 +473,11 @@ def mixed_dataframe_1(library: str) -> Any:
                 "j": "float32",
                 "k": "bool",
                 "l": "object",
+                "m": "datetime64[s]",
+                "n": "datetime64[ms]",
+                "o": "datetime64[us]",
+                "p": "timedelta64[ms]",
+                "q": "timedelta64[us]",
             }
         )
         return convert_to_standard_compliant_dataframe(df)
@@ -452,6 +496,11 @@ def mixed_dataframe_1(library: str) -> Any:
                 "j": "Float32",
                 "k": "bool",
                 "l": "string[pyarrow]",
+                "m": "datetime64[s]",
+                "n": "datetime64[ms]",
+                "o": "datetime64[us]",
+                "p": "timedelta64[ms]",
+                "q": "timedelta64[us]",
             }
         )
         return convert_to_standard_compliant_dataframe(df)
@@ -471,6 +520,11 @@ def mixed_dataframe_1(library: str) -> Any:
                 "j": pl.Float32,
                 "k": pl.Boolean,
                 "l": pl.Utf8,
+                "m": pl.Date,
+                "n": pl.Datetime("ms"),
+                "o": pl.Datetime("us"),
+                "p": pl.Duration("ms"),
+                "q": pl.Duration("us"),
             },
         )
         return convert_to_standard_compliant_dataframe(df)

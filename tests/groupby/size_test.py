@@ -14,10 +14,8 @@ if TYPE_CHECKING:
 
 def test_group_by_size(library: str, request: pytest.FixtureRequest) -> None:
     df = integer_dataframe_4(library)
-    result = df.group_by(["key"]).size()
-    # got to sort
-    idx = result.sorted_indices(["key"])
-    result = result.get_rows(idx)
+    result = df.group_by("key").size()
+    result = result.sort("key")
     result_pd = interchange_to_pandas(result, library)
     expected = pd.DataFrame({"key": [1, 2], "size": [2, 2]})
     # TODO polars returns uint32. what do we standardise to?

@@ -27,7 +27,7 @@ def test_column_reductions(
     df = integer_dataframe_1(library)
     ser = integer_series_1(library)
     ser = ser - getattr(ser, reduction)()
-    result = df.insert(0, "result", ser)
+    result = df.assign(ser.rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     ser_pd = interchange_to_pandas(df, library)["a"].rename("result")
     expected_pd = ser_pd - expected
@@ -47,13 +47,14 @@ def test_column_reductions(
         ("var", 1.0),
     ],
 )
-def test_column_reference_reductions(
+def test_expression_reductions(
     library: str, reduction: str, expected: float, request: pytest.FixtureRequest
 ) -> None:
     df = integer_dataframe_1(library)
-    ser = df.get_column_by_name("a")
+    namespace = df.__dataframe_namespace__()
+    ser = namespace.col("a")
     ser = ser - getattr(ser, reduction)()
-    result = df.insert(0, "result", ser)
+    result = df.assign(ser.rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     ser_pd = interchange_to_pandas(df, library)["a"].rename("result")
     expected_pd = ser_pd - expected

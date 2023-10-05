@@ -38,7 +38,8 @@ def test_column_from_sequence(
     expected: pd.Series[Any],
 ) -> None:
     df = integer_dataframe_1(library)
-    ser = df.get_column_by_name("a")
+    namespace = df.__dataframe_namespace__()
+    ser = namespace.col("a")
     namespace = ser.__column_namespace__()
     result = namespace.dataframe_from_dict(
         {

@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from typing import Any
+from typing import Callable
+
 import pandas as pd
 import pytest
 from polars.exceptions import SchemaError
@@ -17,17 +20,19 @@ from tests.utils import interchange_to_pandas
         ("all", [False, True], [False, False]),
     ],
 )
-def test_group_by_boolean(
+@pytest.mark.parametrize("maybe_collect", [lambda x: x, lambda x: x.collect()])
+def test_groupby_boolean(
     library: str,
     aggregation: str,
     expected_b: list[bool],
     expected_c: list[bool],
-    request: pytest.FixtureRequest,
+    maybe_collect: Callable[[Any], Any],
 ) -> None:
-    df = bool_dataframe_2(library)
-    result = getattr(df.group_by(["key"]), aggregation)()
+    df = maybe_collect(bool_dataframe_2(library))
+    namespace = df.__dataframe_namespace__()
+    result = getattr(df.group_by("key"), aggregation)()
     # need to sort
-    idx = result.sorted_indices(["key"])
+    idx = namespace.sorted_indices("key")
     result = result.get_rows(idx)
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
@@ -38,6 +43,6 @@ def test_group_by_boolean(
 def test_group_by_invalid_any_all(library: str, request: pytest.FixtureRequest) -> None:
     df = integer_dataframe_4(library)
     with pytest.raises((ValueError, SchemaError)):
-        df.group_by(["key"]).any()
+        df.group_by("key").any()
     with pytest.raises((ValueError, SchemaError)):
-        df.group_by(["key"]).all()
+        df.group_by("key").all()

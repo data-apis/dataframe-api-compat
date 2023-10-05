@@ -1,28 +1,27 @@
 from __future__ import annotations
 
-import pytest
+from typing import TYPE_CHECKING
 
 from tests.utils import integer_dataframe_1
 
+if TYPE_CHECKING:
+    import pytest
+
 
 def test_column_names(library: str, request: pytest.FixtureRequest) -> None:
-    if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
     # nameless column
-    df = integer_dataframe_1(library)
+    df = integer_dataframe_1(library).collect()
+    namespace = df.__dataframe_namespace__()
     ser = df.get_column_by_name("a")
-    namespace = ser.__column_namespace__()
     result = namespace.dataframe_from_dict({"result": ser})
-    assert result.column_names == ["result"]
-    assert result.get_column_by_name("result").name == "result"
+    assert result.get_column_names() == ["result"]
 
     # named column
     ser = namespace.column_from_sequence(
         [1, 2, 3], dtype=namespace.Float64(), name="result"
     )
     result = namespace.dataframe_from_dict({"result": ser})
-    assert result.column_names == ["result"]
-    assert result.get_column_by_name("result").name == "result"
+    assert result.get_column_names() == ["result"]
 
     # named column (different name)
     ser = namespace.column_from_sequence(
