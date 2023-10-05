@@ -393,30 +393,24 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
     def fill_null(self, value: Any) -> PolarsPermissiveColumn[DType]:
         return self._from_expression(self._to_expression().fill_null(value))
 
-    def cumulative_sum(self, *, skip_nulls: bool = True) -> PolarsPermissiveColumn[DType]:
-        return PolarsPermissiveColumn(
-            self.column.cumsum(),
-            api_version=self._api_version,
+    def cumulative_sum(self, *, skip_nulls: bool = True) -> PolarsColumn:
+        return self._from_expression(
+            self._to_expression().cumulative_sum(skip_nulls=skip_nulls)
         )
 
-    def cumulative_prod(
-        self, *, skip_nulls: bool = True
-    ) -> PolarsPermissiveColumn[DType]:
-        return PolarsPermissiveColumn(
-            self.column.cumprod(),
-            api_version=self._api_version,
+    def cumulative_prod(self, *, skip_nulls: bool = True) -> PolarsColumn:
+        return self._from_expression(
+            self._to_expression().cumulative_prod(skip_nulls=skip_nulls)
         )
 
-    def cumulative_max(self, *, skip_nulls: bool = True) -> PolarsPermissiveColumn[DType]:
-        return PolarsPermissiveColumn(
-            self.column.cummax(),
-            api_version=self._api_version,
+    def cumulative_max(self, *, skip_nulls: bool = True) -> PolarsColumn:
+        return self._from_expression(
+            self._to_expression().cumulative_max(skip_nulls=skip_nulls)
         )
 
-    def cumulative_min(self, *, skip_nulls: bool = True) -> PolarsPermissiveColumn[DType]:
-        return PolarsPermissiveColumn(
-            self.column.cummin(),
-            api_version=self._api_version,
+    def cumulative_min(self, *, skip_nulls: bool = True) -> PolarsColumn:
+        return self._from_expression(
+            self._to_expression().cumulative_min(skip_nulls=skip_nulls)
         )
 
     def to_array_object(self, dtype: str) -> Any:
