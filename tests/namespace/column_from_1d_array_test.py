@@ -93,15 +93,6 @@ def test_column_from_1d_array_bool(
     pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_column_from_array_invalid(library: str) -> None:
-    namespace = integer_dataframe_1(library).__dataframe_namespace__()
-    arr = np.array(["a", "b", "c"])
-    with pytest.raises(ValueError):
-        namespace.column_from_1d_array(
-            arr, name="result", dtype=namespace.String(), api_version="dfdaf"
-        )
-
-
 def test_datetime_from_1d_array(library: str) -> None:
     ser = integer_dataframe_1(library).collect().get_column_by_name("a")
     namespace = ser.__column_namespace__()

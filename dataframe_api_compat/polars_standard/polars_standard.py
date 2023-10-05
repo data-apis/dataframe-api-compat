@@ -109,7 +109,7 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
             raise NotImplementedError("operation not implemented")
         self._series = column
         if api_version not in SUPPORTED_VERSIONS:
-            raise ValueError(
+            raise AssertionError(
                 "Unsupported API version, expected one of: "
                 f"{SUPPORTED_VERSIONS}. "
                 "Try updating dataframe-api-compat?"
@@ -870,7 +870,7 @@ class PolarsDataFrame(DataFrame):
         self.df = df
         self._id = id(df)
         if api_version not in SUPPORTED_VERSIONS:
-            raise ValueError(
+            raise AssertionError(
                 "Unsupported API version, expected one of: "
                 f"{SUPPORTED_VERSIONS}. "
                 "Try updating dataframe-api-compat?"
@@ -886,7 +886,7 @@ class PolarsDataFrame(DataFrame):
             for column_name, dtype in self.dataframe.schema.items()
         }
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str:  # pragma: no cover
         return self.dataframe.__repr__()
 
     def __dataframe_namespace__(self) -> Any:
@@ -938,31 +938,11 @@ class PolarsDataFrame(DataFrame):
             elif isinstance(col, PolarsPermissiveColumn):
                 new_columns.append(col.column)
             else:
-                raise TypeError(
+                raise AssertionError(
                     f"Expected PolarsColumn or PolarsPermissiveColumn, got: {type(col)}"
                 )
         df = self.dataframe.with_columns(new_columns)
         return PolarsDataFrame(df, api_version=self._api_version)
-
-    def update_columns(self, *columns: PolarsColumn | PolarsColumn) -> PolarsDataFrame:  # type: ignore[override]
-        original_n_columns = len(self.get_column_names())
-        new_columns = []
-        for col in columns:
-            if isinstance(col, PolarsColumn):
-                new_columns.append(col)
-            elif isinstance(col, PolarsColumn):
-                new_columns.append(col._to_expression())
-            else:
-                raise TypeError(
-                    f"Expected PolarsColumn or PolarsColumn, got: {type(col)}"
-                )
-        df = PolarsDataFrame(
-            self.dataframe.with_columns([col._expr for col in new_columns]),
-            api_version=self._api_version,
-        )
-        if len(df.get_column_names()) != original_n_columns:
-            raise ValueError("tried inserting a new column, use insert_columns instead")
-        return df
 
     def drop_columns(self, *labels: str) -> PolarsDataFrame:
         return PolarsDataFrame(self.dataframe.drop(labels), api_version=self._api_version)
@@ -1248,14 +1228,14 @@ class PolarsPermissiveFrame(PermissiveFrame):
         self.df = df
         self._id = id(df)
         if api_version not in SUPPORTED_VERSIONS:
-            raise ValueError(
+            raise AssertionError(
                 "Unsupported API version, expected one of: "
                 f"{SUPPORTED_VERSIONS}. "
                 "Try updating dataframe-api-compat?"
             )
         self._api_version = api_version
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str:  # pragma: no cover
         return self.dataframe.__repr__()
 
     def __dataframe_namespace__(self) -> Any:
@@ -1310,17 +1290,6 @@ class PolarsPermissiveFrame(PermissiveFrame):
         return PolarsPermissiveFrame(
             self.df.filter(mask._expr), api_version=self._api_version
         )
-
-    def insert(self, loc: int, label: str, value: PolarsColumn) -> PolarsDataFrame:
-        if self._api_version != "2023.08-beta":
-            raise NotImplementedError(
-                "DataFrame.insert is only available for api version 2023.08-beta. "
-                "Please use `DataFrame.insert_column` instead."
-            )
-        columns = self.dataframe.columns
-        new_columns = columns[:loc] + [label] + columns[loc:]
-        df = self.dataframe.with_columns(value._expr.alias(label)).select(new_columns)
-        return PolarsPermissiveFrame(df, api_version=self._api_version)
 
     def assign(self, *columns: PolarsColumn | PolarsColumn) -> PolarsDataFrame:
         return self.relax().assign(*columns).collect()

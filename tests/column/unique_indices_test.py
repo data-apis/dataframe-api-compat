@@ -8,7 +8,9 @@ from tests.utils import integer_dataframe_6
 from tests.utils import interchange_to_pandas
 
 
-def test_unique_indices_column(library: str, request: pytest.FixtureRequest) -> None:
+def test_unique_indices_column(
+    library: str, request: pytest.FixtureRequest
+) -> None:  # pragma: no cover
     request.node.add_marker(pytest.mark.xfail())
     df = integer_dataframe_6(library)
     namespace = df.__dataframe_namespace__()

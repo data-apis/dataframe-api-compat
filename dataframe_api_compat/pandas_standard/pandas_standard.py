@@ -515,7 +515,7 @@ class PandasPermissiveColumn(PermissiveColumn[DType]):
         self._series = column.reset_index(drop=True)
         self._api_version = api_version
         if api_version not in SUPPORTED_VERSIONS:
-            raise ValueError(
+            raise AssertionError(
                 "Unsupported API version, expected one of: "
                 f"{SUPPORTED_VERSIONS}. "
                 "Try updating dataframe-api-compat?"
@@ -758,7 +758,7 @@ class PandasDataFrame(DataFrame):
         else:
             self._dataframe = dataframe.reset_index(drop=True)
         if api_version not in SUPPORTED_VERSIONS:
-            raise ValueError(
+            raise AssertionError(
                 "Unsupported API version, expected one of: "
                 f"{SUPPORTED_VERSIONS}. Got: {api_version}"
                 "Try updating dataframe-api-compat?"

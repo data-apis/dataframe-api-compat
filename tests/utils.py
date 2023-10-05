@@ -335,26 +335,6 @@ def bool_dataframe_3(library) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def bool_dataframe_4(library) -> Any:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame(
-            {"a": [False, True, False], "b": [True, True, True]}, dtype="bool"
-        )
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "pandas-nullable":
-        df = pd.DataFrame(
-            {"a": [False, True, False], "b": [True, True, True]}, dtype="boolean"
-        )
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "polars":
-        df = pl.DataFrame({"a": [False, True, False], "b": [True, True, True]})
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "polars-lazy":
-        df = pl.LazyFrame({"a": [False, True, False], "b": [True, True, True]})
-        return convert_to_standard_compliant_dataframe(df)
-
-
 def integer_series_1(library) -> Any:
     ser: Any
     if library == "pandas-numpy":
