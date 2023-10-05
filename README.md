@@ -37,24 +37,42 @@ The object `df_std` is a Standard-compliant DataFrame. Check the
 [API Specification](https://data-apis.org/dataframe-api/draft/API_specification/index.html)
 for the full list of methods supported on it.
 
+Here's an example of a dataframe-agnostic function:
+```python
+from typing import Any
+
+from dataframe_api._types import SupportsDataFrameAPI
+
+def my_dataframe_agnostic_function(df_non_standard: SupportsDataFrameAPI) -> Any:
+    df = df_non_standard.__dataframe_consortium_standard__()
+    xp = df.__dataframe_namespace__()
+
+    for column_name in df.column_names:
+        new_column = xp.col(column_name)
+        new_column = (new_column - new_column.mean()) / new_column.std()
+        df = df.assign(new_column.rename(f'{column_name}_scaled'))
+
+    return df.dataframe
+```
+
+As long as you have this package installed, then either a pandas or Polars DataFrame
+should work with the code above, e.g.:
+
+```python
+import pandas as pd
+import polars as pl
+
+df_pd = pd.DataFrame({'a': [1,2,3], 'b': [4,5,6]})
+df_pl = pl.DataFrame({'a': [1,2,3], 'b': [4,5,6]})
+
+my_dataframe_agnostic_function(df_pd)
+my_dataframe_agnostic_function(df_pl)
+```
+
 Compliance with the Standard
 ----------------------------
-This is mostly compliant. Notable differences:
-- for pandas numpy dtypes, the null values (NaN) don't follow Kleene logic;
-- for polars lazy, columns can only be used within the context of the same
-  dataframe. For example:
-
-  Not allowed:
-  ```python
-  mask = df2.get_column_by_name('a') > 0
-  df1.filter(mask)
-  ```
-  Allowed:
-  ```python
-  mask = df1.get_column_by_name('a') > 0
-  df1.filter(mask)
-  ```
-- for polars lazy, comparisons between different dataframes are not implemented.
+This implementation adds some extra syntax and constructs which are not yet part of the Standard.
+Follow along with the discussion at https://github.com/data-apis/dataframe-api/pull/249.
 
 Installation
 ------------
