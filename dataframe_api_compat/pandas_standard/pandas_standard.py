@@ -108,6 +108,10 @@ class PandasColumn(Column):
         self._output_name = output_name
         # TODO: keep track of output name
 
+    # In the standard
+    def __column_namespace__(self) -> Any:
+        return dataframe_api_compat.pandas_standard
+
     @property
     def root_names(self):
         return sorted(set(self._root_names))

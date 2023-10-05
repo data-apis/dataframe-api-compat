@@ -578,7 +578,7 @@ class PolarsColumn:
         self._api_version = api_version or LATEST_API_VERSION
 
     # In the standard
-    def __column_namespace__(self) -> Any:
+    def __column_namespace__(self) -> Any:  # pragma: no cover
         return dataframe_api_compat.polars_standard
 
     @property
@@ -588,15 +588,6 @@ class PolarsColumn:
     @property
     def output_name(self) -> list[str]:
         return self._expr.meta.output_name()
-
-    @property
-    def name(self) -> str:
-        if isinstance(self._expr, pl.Series):
-            # TODO: can we avoid this completely?
-            name = self._expr.name
-        else:
-            name = self._expr.meta.output_name()
-        return name
 
     def len(self) -> PolarsColumn:
         return PolarsColumn(self._expr.len(), api_version=self._api_version)

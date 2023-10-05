@@ -19,3 +19,15 @@ def test_column_get_rows(library: str) -> None:
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series([1, 3, 2], name="result")
     pd.testing.assert_series_equal(result_pd, expected)
+
+
+def test_expression_get_rows(library: str) -> None:
+    df = integer_dataframe_1(library)
+    col = df.__dataframe_namespace__().col
+    ser = col("a")
+    ser.__column_namespace__()
+    indices = col("a") - 1
+    result = df.select(ser.get_rows(indices).rename("result"))
+    result_pd = interchange_to_pandas(result, library)["result"]
+    expected = pd.Series([1, 2, 3], name="result")
+    pd.testing.assert_series_equal(result_pd, expected)
