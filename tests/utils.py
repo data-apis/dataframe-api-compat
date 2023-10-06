@@ -422,6 +422,99 @@ def bool_series_1(library) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
+def temporal_dataframe_1(library: str) -> DataFrame:
+    if library in ["pandas-numpy", "pandas-nullable"]:
+        df = pd.DataFrame(
+            {
+                "a": [
+                    datetime(2020, 1, 1, 1, 2, 1, 123543),
+                    datetime(2020, 1, 2, 3, 1, 2, 321654),
+                    datetime(2020, 1, 3, 5, 4, 9, 987321),
+                ],
+                "b": [
+                    timedelta(1, milliseconds=1),
+                    timedelta(2, milliseconds=3),
+                    timedelta(3, milliseconds=5),
+                ],
+                "c": [
+                    datetime(2020, 1, 1, 1, 2, 1, 123543),
+                    datetime(2020, 1, 2, 3, 1, 2, 321654),
+                    datetime(2020, 1, 3, 5, 4, 9, 987321),
+                ],
+                "d": [
+                    timedelta(1, milliseconds=1),
+                    timedelta(2, milliseconds=3),
+                    timedelta(3, milliseconds=5),
+                ],
+                "e": [
+                    datetime(2020, 1, 1, 1, 2, 1, 123543),
+                    datetime(2020, 1, 2, 3, 1, 2, 321654),
+                    datetime(2020, 1, 3, 5, 4, 9, 987321),
+                ],
+                "f": [
+                    timedelta(1, milliseconds=1),
+                    timedelta(2, milliseconds=3),
+                    timedelta(3, milliseconds=5),
+                ],
+            }
+        ).astype(
+            {
+                "a": "datetime64[ms]",
+                "b": "timedelta64[ms]",
+                "c": "datetime64[us]",
+                "d": "timedelta64[us]",
+                "e": "datetime64[ns]",
+                "f": "timedelta64[ns]",
+            }
+        )
+        return convert_to_standard_compliant_dataframe(df)
+    if library == "polars-lazy":
+        df = pl.DataFrame(
+            {
+                "a": [
+                    datetime(2020, 1, 1, 1, 2, 1, 123543),
+                    datetime(2020, 1, 2, 3, 1, 2, 321654),
+                    datetime(2020, 1, 3, 5, 4, 9, 987321),
+                ],
+                "b": [
+                    timedelta(1, milliseconds=1),
+                    timedelta(2, milliseconds=3),
+                    timedelta(3, milliseconds=5),
+                ],
+                "c": [
+                    datetime(2020, 1, 1, 1, 2, 1, 123543),
+                    datetime(2020, 1, 2, 3, 1, 2, 321654),
+                    datetime(2020, 1, 3, 5, 4, 9, 987321),
+                ],
+                "d": [
+                    timedelta(1, milliseconds=1),
+                    timedelta(2, milliseconds=3),
+                    timedelta(3, milliseconds=5),
+                ],
+                "e": [
+                    datetime(2020, 1, 1, 1, 2, 1, 123543),
+                    datetime(2020, 1, 2, 3, 1, 2, 321654),
+                    datetime(2020, 1, 3, 5, 4, 9, 987321),
+                ],
+                "f": [
+                    timedelta(1, milliseconds=1),
+                    timedelta(2, milliseconds=3),
+                    timedelta(3, milliseconds=5),
+                ],
+            },
+            schema={
+                "a": pl.Datetime("ms"),
+                "b": pl.Duration("ms"),
+                "c": pl.Datetime("us"),
+                "d": pl.Duration("us"),
+                "e": pl.Datetime("ns"),
+                "f": pl.Duration("ns"),
+            },
+        )
+        return convert_to_standard_compliant_dataframe(df)
+    raise AssertionError(f"Got unexpected library: {library}")
+
+
 def interchange_to_pandas(result: Any, library: str) -> pd.DataFrame:
     if isinstance(result.dataframe, pl.LazyFrame):
         df = result.dataframe.collect()
