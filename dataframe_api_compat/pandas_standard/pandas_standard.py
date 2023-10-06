@@ -113,11 +113,9 @@ class PandasColumn(Column):
     def __column_namespace__(self) -> Any:
         return dataframe_api_compat.pandas_standard
 
-    @property
     def root_names(self):
         return sorted(set(self._root_names))
 
-    @property
     def output_name(self):
         return self._output_name
 
@@ -129,12 +127,12 @@ class PandasColumn(Column):
     ) -> PandasColumn:
         calls = [*self._calls, (func, self, rhs)]
         if isinstance(rhs, PandasColumn):
-            root_names = self.root_names + rhs.root_names
+            root_names = self.root_names() + rhs.root_names()
         else:
-            root_names = self.root_names
+            root_names = self.root_names()
         return PandasColumn(
             root_names=root_names,
-            output_name=output_name or self.output_name,
+            output_name=output_name or self.output_name(),
             extra_calls=calls,
         )
 
@@ -321,12 +319,12 @@ class PandasColumn(Column):
             if ascending:
                 return (
                     ser.sort_values()
-                    .index.to_series(name=self.output_name)
+                    .index.to_series(name=self.output_name())
                     .reset_index(drop=True)
                 )
             return (
                 ser.sort_values()
-                .index.to_series(name=self.output_name)[::-1]
+                .index.to_series(name=self.output_name())[::-1]
                 .reset_index(drop=True)
             )
 
@@ -377,7 +375,7 @@ class PandasColumn(Column):
                 ser = num / other
             else:
                 ser = ser.fillna(value)
-            return ser.rename(self.output_name)
+            return ser.rename(self.output_name())
 
         return self._record_call(
             lambda ser, _rhs: func(ser, value),
@@ -423,122 +421,62 @@ class PandasColumn(Column):
 
 
 class ColumnDatetimeAccessor:
-    """
-    Method which operate on temporal Columns.
-    """
+    def __init__(self, column: PandasColumn | PandasPermissiveColumn) -> None:
+        if isinstance(column, PandasPermissiveColumn):
+            self.eager = True
+            self.column = column._to_expression()
+            self._api_version = column._api_version
+        else:
+            self.eager = False
+            self.column = column
 
-    def __init__(self, column: PandasColumn) -> None:
-        self.column = column
+    def _return(self, expr: PandasColumn):
+        if not self.eager:
+            return expr
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(expr)
+            .collect()
+            .get_column_by_name(self.column.output_name())
+        )
 
     def year(self) -> Column:
-        """
-        Return 'year' component of each element.
-
-        For example, return 1981 for 1981-01-02T12:34:56.123456.
-        """
         expr = self.column._record_call(lambda ser, _rhs: ser.dt.year, None)
-        return expr
+        return self._return(expr)
 
     def month(self) -> Column:
-        """
-        Return 'month' component of each element.
-
-        For example, return 1 for 1981-01-02T12:34:56.123456.
-        """
         expr = self.column._record_call(lambda ser, _rhs: ser.dt.month, None)
         return expr
 
     def day(self) -> Column:
-        """
-        Return 'day' component of each element.
-
-        For example, return 2 for 1981-01-02T12:34:56.123456.
-        """
         expr = self.column._record_call(lambda ser, _rhs: ser.dt.day, None)
         return expr
 
     def hour(self) -> Column:
-        """
-        Return 'hour' component of each element.
-
-        For example, return 12 for 1981-01-02T12:34:56.123456.
-        """
         expr = self.column._record_call(lambda ser, _rhs: ser.dt.hour, None)
         return expr
 
     def minute(self) -> Column:
-        """
-        Return 'minute' component of each element.
-
-        For example, return 34 for 1981-01-02T12:34:56.123456.
-        """
         expr = self.column._record_call(lambda ser, _rhs: ser.dt.minute, None)
         return expr
 
     def second(self) -> Column:
-        """
-        Return 'second' component of each element.
-
-        For example, return 56 for 1981-01-02T12:34:56.123456.
-        """
         expr = self.column._record_call(lambda ser, _rhs: ser.dt.second, None)
         return expr
 
     def microsecond(self) -> Column:
-        """
-        Return number of microseconds since last second, for each element.
-
-        For example, return 123456 for 1981-01-02T12:34:56.123456.
-        """
         expr = self.column._record_call(lambda ser, _rhs: ser.dt.microsecond, None)
         return expr
 
     def floor(self, frequency: str) -> Column:
-        """
-        Return floor of each element according to the specified frequency.
-
-        Flooring is done according to local time. For example,
-        for a ``Datetime('us', 'Europe/London')`` column,
-        ``"2020-10-25T00:30:00 BST"`` floored by ``"1day"`` gives
-        ``"2020-10-25T00:00:00 BST"``.
-
-        Behaviours in the face of ambiguous and non-existent times are
-        currently unspecified and may vary across implementations.
-
-        Flooring by non-fixed durations (e.g. calendar month) are not supported.
-        Note that flooring by ``timedelta(days=1)`` is equivalent to flooring
-        by ``timedelta(hours=24)``.
-
-        Parameters
-        ----------
-        freq : timedelta
-            Frequency to floor by.
-        """
         expr = self.column._record_call(lambda ser, _rhs: ser.dt.floor(frequency), None)
         return expr
 
     def iso_weekday(self) -> Column:
-        """
-        Return ISO weekday for each element.
-
-        Note that Monday=1, ..., Sunday=7.
-        """
         expr = self.column._record_call(lambda ser, _rhs: ser.dt.weekday + 1, None)
         return expr
 
     def timestamp(self) -> Column:
-        """
-        Return number of units since UNIX epoch (1970-01-01).
-
-        Units depend on the dtype of the column:
-
-        - For a :class:`Date` column, ``1970-01-02`` should return `1`;
-        - For a :class:`Datetime('ms', '*')` column, ``1970-01-02``
-          should return `86_400_000`;
-        - For a :class:`Datetime('us', '*')` column, ``1970-01-02``
-          should return `86_400_000_000`;
-        """
-
         def func(ser, _rhs):
             td = ser - datetime(1970, 1, 1)
             res = td.dt.total_seconds()
@@ -552,8 +490,7 @@ class ColumnDatetimeAccessor:
                 raise NotImplementedError()
             return res
 
-        expr = self.column._record_call(func, None)
-        return expr
+        return self._return(self.column._record_call(func, None))
 
 
 class PandasGroupBy(GroupBy):
@@ -659,6 +596,9 @@ class PandasPermissiveColumn(PermissiveColumn[DType]):
                 f"{SUPPORTED_VERSIONS}. "
                 "Try updating dataframe-api-compat?"
             )
+
+    def __repr__(self) -> str:
+        return self.column.__repr__()
 
     def _to_expression(self) -> PandasColumn:
         return PandasColumn(
@@ -879,6 +819,13 @@ class PandasPermissiveColumn(PermissiveColumn[DType]):
             )
         return self.column.to_numpy(dtype=dtype)
 
+    @property
+    def dt(self) -> ColumnDatetimeAccessor:
+        """
+        Return accessor with functions which work on temporal dtypes.
+        """
+        return ColumnDatetimeAccessor(self)
+
 
 class PandasDataFrame(DataFrame):
     # Not technically part of the standard
@@ -1021,7 +968,7 @@ class PandasDataFrame(DataFrame):
             return expression
         if not expression._calls:
             return expression._base_call(self.dataframe)
-        output_name = expression.output_name
+        output_name = expression.output_name()
         for func, lhs, rhs in expression._calls:
             lhs = self._resolve_expression(lhs)
             rhs = self._resolve_expression(rhs)
