@@ -525,11 +525,9 @@ class PolarsColumn:
     def __column_namespace__(self) -> Any:  # pragma: no cover
         return dataframe_api_compat.polars_standard
 
-    @property
     def root_names(self) -> list[str]:
         return sorted(set(self._expr.meta.root_names()))
 
-    @property
     def output_name(self) -> list[str]:
         return self._expr.meta.output_name()
 
