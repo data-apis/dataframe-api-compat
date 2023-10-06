@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import collections
+from datetime import datetime
 from typing import Any
 from typing import Callable
 from typing import cast
@@ -411,6 +412,147 @@ class PandasColumn(Column):
         expr = self._record_call(
             lambda ser, _rhs: ser.rename(name), None, output_name=name
         )
+        return expr
+
+    @property
+    def dt(self) -> ColumnDatetimeAccessor:
+        """
+        Return accessor with functions which work on temporal dtypes.
+        """
+        return ColumnDatetimeAccessor(self)
+
+
+class ColumnDatetimeAccessor:
+    """
+    Method which operate on temporal Columns.
+    """
+
+    def __init__(self, column: PandasColumn) -> None:
+        self.column = column
+
+    def year(self) -> Column:
+        """
+        Return 'year' component of each element.
+
+        For example, return 1981 for 1981-01-02T12:34:56.123456.
+        """
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.year, None)
+        return expr
+
+    def month(self) -> Column:
+        """
+        Return 'month' component of each element.
+
+        For example, return 1 for 1981-01-02T12:34:56.123456.
+        """
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.month, None)
+        return expr
+
+    def day(self) -> Column:
+        """
+        Return 'day' component of each element.
+
+        For example, return 2 for 1981-01-02T12:34:56.123456.
+        """
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.day, None)
+        return expr
+
+    def hour(self) -> Column:
+        """
+        Return 'hour' component of each element.
+
+        For example, return 12 for 1981-01-02T12:34:56.123456.
+        """
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.hour, None)
+        return expr
+
+    def minute(self) -> Column:
+        """
+        Return 'minute' component of each element.
+
+        For example, return 34 for 1981-01-02T12:34:56.123456.
+        """
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.minute, None)
+        return expr
+
+    def second(self) -> Column:
+        """
+        Return 'second' component of each element.
+
+        For example, return 56 for 1981-01-02T12:34:56.123456.
+        """
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.second, None)
+        return expr
+
+    def microsecond(self) -> Column:
+        """
+        Return number of microseconds since last second, for each element.
+
+        For example, return 123456 for 1981-01-02T12:34:56.123456.
+        """
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.microsecond, None)
+        return expr
+
+    def floor(self, frequency: str) -> Column:
+        """
+        Return floor of each element according to the specified frequency.
+
+        Flooring is done according to local time. For example,
+        for a ``Datetime('us', 'Europe/London')`` column,
+        ``"2020-10-25T00:30:00 BST"`` floored by ``"1day"`` gives
+        ``"2020-10-25T00:00:00 BST"``.
+
+        Behaviours in the face of ambiguous and non-existent times are
+        currently unspecified and may vary across implementations.
+
+        Flooring by non-fixed durations (e.g. calendar month) are not supported.
+        Note that flooring by ``timedelta(days=1)`` is equivalent to flooring
+        by ``timedelta(hours=24)``.
+
+        Parameters
+        ----------
+        freq : timedelta
+            Frequency to floor by.
+        """
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.floor(frequency), None)
+        return expr
+
+    def iso_weekday(self) -> Column:
+        """
+        Return ISO weekday for each element.
+
+        Note that Monday=1, ..., Sunday=7.
+        """
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.weekday + 1, None)
+        return expr
+
+    def timestamp(self) -> Column:
+        """
+        Return number of units since UNIX epoch (1970-01-01).
+
+        Units depend on the dtype of the column:
+
+        - For a :class:`Date` column, ``1970-01-02`` should return `1`;
+        - For a :class:`Datetime('ms', '*')` column, ``1970-01-02``
+          should return `86_400_000`;
+        - For a :class:`Datetime('us', '*')` column, ``1970-01-02``
+          should return `86_400_000_000`;
+        """
+
+        def func(ser, _rhs):
+            td = ser - datetime(1970, 1, 1)
+            res = td.dt.total_seconds()
+            if ser.dtype.name == "datetime64[ms]":
+                res = res * 1000 + td.dt.milliseconds
+            elif ser.dtype.name == "datetime64[us]":
+                res = res * 1000_000 + td.dt.microseconds
+            elif ser.dtype.name == "datetime64[ns]":
+                res = res * 1000_000_000 + td.dt.nanoseconds
+            else:
+                raise NotImplementedError()
+            return res
+
+        expr = self.column._record_call(func, None)
         return expr
 
 
