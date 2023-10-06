@@ -41,9 +41,8 @@ Here's an example of a dataframe-agnostic function:
 ```python
 from typing import Any
 
-from dataframe_api._types import SupportsDataFrameAPI
 
-def my_dataframe_agnostic_function(df_non_standard: SupportsDataFrameAPI) -> Any:
+def my_dataframe_agnostic_function(df_non_standard: Any) -> Any:
     df = df_non_standard.__dataframe_consortium_standard__()
     xp = df.__dataframe_namespace__()
 
