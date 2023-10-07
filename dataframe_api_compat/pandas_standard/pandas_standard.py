@@ -112,11 +112,9 @@ class PandasColumn(Column):
     def __column_namespace__(self) -> Any:
         return dataframe_api_compat.pandas_standard
 
-    @property
     def root_names(self):
         return sorted(set(self._root_names))
 
-    @property
     def output_name(self):
         return self._output_name
 
@@ -128,12 +126,12 @@ class PandasColumn(Column):
     ) -> PandasColumn:
         calls = [*self._calls, (func, self, rhs)]
         if isinstance(rhs, PandasColumn):
-            root_names = self.root_names + rhs.root_names
+            root_names = self.root_names() + rhs.root_names()
         else:
-            root_names = self.root_names
+            root_names = self.root_names()
         return PandasColumn(
             root_names=root_names,
-            output_name=output_name or self.output_name,
+            output_name=output_name or self.output_name(),
             extra_calls=calls,
         )
 
@@ -320,12 +318,12 @@ class PandasColumn(Column):
             if ascending:
                 return (
                     ser.sort_values()
-                    .index.to_series(name=self.output_name)
+                    .index.to_series(name=self.output_name())
                     .reset_index(drop=True)
                 )
             return (
                 ser.sort_values()
-                .index.to_series(name=self.output_name)[::-1]
+                .index.to_series(name=self.output_name())[::-1]
                 .reset_index(drop=True)
             )
 
@@ -376,7 +374,7 @@ class PandasColumn(Column):
                 ser = num / other
             else:
                 ser = ser.fillna(value)
-            return ser.rename(self.output_name)
+            return ser.rename(self.output_name())
 
         return self._record_call(
             lambda ser, _rhs: func(ser, value),
@@ -411,6 +409,66 @@ class PandasColumn(Column):
         expr = self._record_call(
             lambda ser, _rhs: ser.rename(name), None, output_name=name
         )
+        return expr
+
+    @property
+    def dt(self) -> ColumnDatetimeAccessor:
+        """
+        Return accessor with functions which work on temporal dtypes.
+        """
+        return ColumnDatetimeAccessor(self)
+
+
+class ColumnDatetimeAccessor:
+    def __init__(self, column: PandasColumn | PandasPermissiveColumn) -> None:
+        if isinstance(column, PandasPermissiveColumn):
+            self.eager = True
+            self.column = column._to_expression()
+            self._api_version = column._api_version
+        else:
+            self.eager = False
+            self.column = column
+
+    def _return(self, expr: PandasColumn):
+        if not self.eager:
+            return expr
+        return (
+            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
+            .select(expr)
+            .collect()
+            .get_column_by_name(self.column.output_name())
+        )
+
+    def year(self) -> Column:
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.year, None)
+        return self._return(expr)
+
+    def month(self) -> Column:
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.month, None)
+        return expr
+
+    def day(self) -> Column:
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.day, None)
+        return expr
+
+    def hour(self) -> Column:
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.hour, None)
+        return expr
+
+    def minute(self) -> Column:
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.minute, None)
+        return expr
+
+    def second(self) -> Column:
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.second, None)
+        return expr
+
+    def microsecond(self) -> Column:
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.microsecond, None)
+        return expr
+
+    def iso_weekday(self) -> Column:
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.weekday + 1, None)
         return expr
 
 
@@ -517,6 +575,9 @@ class PandasPermissiveColumn(PermissiveColumn[DType]):
                 f"{SUPPORTED_VERSIONS}. "
                 "Try updating dataframe-api-compat?"
             )
+
+    def __repr__(self) -> str:  # pragma: no cover
+        return self.column.__repr__()
 
     def _to_expression(self) -> PandasColumn:
         return PandasColumn(
@@ -737,6 +798,13 @@ class PandasPermissiveColumn(PermissiveColumn[DType]):
             )
         return self.column.to_numpy(dtype=dtype)
 
+    @property
+    def dt(self) -> ColumnDatetimeAccessor:
+        """
+        Return accessor with functions which work on temporal dtypes.
+        """
+        return ColumnDatetimeAccessor(self)
+
 
 class PandasDataFrame(DataFrame):
     # Not technically part of the standard
@@ -879,7 +947,7 @@ class PandasDataFrame(DataFrame):
             return expression
         if not expression._calls:
             return expression._base_call(self.dataframe)
-        output_name = expression.output_name
+        output_name = expression.output_name()
         for func, lhs, rhs in expression._calls:
             lhs = self._resolve_expression(lhs)
             rhs = self._resolve_expression(rhs)
