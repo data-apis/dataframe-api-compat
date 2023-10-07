@@ -972,7 +972,7 @@ class ColumnDatetimeAccessor:
 
     def iso_weekday(self) -> Column:
         return PolarsColumn(
-            self.column._expr.dt.iso_weekday(),
+            self.column._expr.dt.weekday(),
             api_version=self._api_version,
         )
 

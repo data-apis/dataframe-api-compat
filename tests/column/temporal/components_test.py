@@ -14,6 +14,7 @@ from tests.utils import temporal_dataframe_1
         ("hour", [1, 3, 5]),
         ("minute", [2, 1, 4]),
         ("second", [1, 2, 9]),
+        ("iso_weekday", [3, 4, 5]),
     ],
 )
 def test_expr_components(library: str, attr: str, expected: list[int]) -> None:
@@ -26,10 +27,19 @@ def test_expr_components(library: str, attr: str, expected: list[int]) -> None:
     assert result_list.get_value(2) == expected[2]
 
 
-@pytest.mark.parametrize("attr", ["year", "month", "day", "hour", "minute", "second"])
-def test_col_components(library: str, attr: str) -> None:
-    attr = "year"
-    expected = [2020, 2020, 2020]
+@pytest.mark.parametrize(
+    ("attr", "expected"),
+    [
+        ("year", [2020, 2020, 2020]),
+        ("month", [1, 1, 1]),
+        ("day", [1, 2, 3]),
+        ("hour", [1, 3, 5]),
+        ("minute", [2, 1, 4]),
+        ("second", [1, 2, 9]),
+        ("iso_weekday", [3, 4, 5]),
+    ],
+)
+def test_col_components(library: str, attr: str, expected: list[int]) -> None:
     df = temporal_dataframe_1(library).collect()
     result = getattr(df.get_column_by_name("a").dt, attr)()
     assert result.get_value(0) == expected[0]

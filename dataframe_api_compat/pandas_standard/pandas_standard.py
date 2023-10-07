@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import collections
-from datetime import datetime
 from typing import Any
 from typing import Callable
 from typing import cast
@@ -475,22 +474,6 @@ class ColumnDatetimeAccessor:
     def iso_weekday(self) -> Column:
         expr = self.column._record_call(lambda ser, _rhs: ser.dt.weekday + 1, None)
         return expr
-
-    def timestamp(self) -> Column:
-        def func(ser, _rhs):
-            td = ser - datetime(1970, 1, 1)
-            res = td.dt.total_seconds()
-            if ser.dtype.name == "datetime64[ms]":
-                res = res * 1000 + td.dt.milliseconds
-            elif ser.dtype.name == "datetime64[us]":
-                res = res * 1000_000 + td.dt.microseconds
-            elif ser.dtype.name == "datetime64[ns]":
-                res = res * 1000_000_000 + td.dt.nanoseconds
-            else:
-                raise NotImplementedError()
-            return res
-
-        return self._return(self.column._record_call(func, None))
 
 
 class PandasGroupBy(GroupBy):
