@@ -471,6 +471,22 @@ class ColumnDatetimeAccessor:
         expr = self.column._record_call(lambda ser, _rhs: ser.dt.weekday + 1, None)
         return expr
 
+    def floor(self, frequency: str) -> Column:
+        frequency = (
+            frequency.replace("day", "D")
+            .replace("hour", "H")
+            .replace("minute", "T")
+            .replace("second", "S")
+            .replace("millisecond", "ms")
+            .replace("microsecond", "us")
+            .replace("nanosecond", "ns")
+        )
+
+        def func(ser, _rhs):
+            return ser.dt.floor(frequency)
+
+        return self.column._record_call(func, None)
+
 
 class PandasGroupBy(GroupBy):
     def __init__(self, df: pd.DataFrame, keys: Sequence[str], api_version: str) -> None:

@@ -976,6 +976,21 @@ class ColumnDatetimeAccessor:
             api_version=self._api_version,
         )
 
+    def floor(self, frequency: str) -> Column:
+        frequency = (
+            frequency.replace("day", "d")
+            .replace("hour", "h")
+            .replace("minute", "m")
+            .replace("second", "s")
+            .replace("millisecond", "ms")
+            .replace("microsecond", "us")
+            .replace("nanosecond", "ns")
+        )
+        return PolarsColumn(
+            self.column._expr.dt.truncate(frequency),
+            api_version=self._api_version,
+        )
+
 
 class PolarsDataFrame(DataFrame):
     def __init__(self, df: pl.LazyFrame, api_version: str) -> None:
