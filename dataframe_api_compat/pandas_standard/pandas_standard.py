@@ -467,10 +467,6 @@ class ColumnDatetimeAccessor:
         expr = self.column._record_call(lambda ser, _rhs: ser.dt.microsecond, None)
         return expr
 
-    def floor(self, frequency: str) -> Column:
-        expr = self.column._record_call(lambda ser, _rhs: ser.dt.floor(frequency), None)
-        return expr
-
     def iso_weekday(self) -> Column:
         expr = self.column._record_call(lambda ser, _rhs: ser.dt.weekday + 1, None)
         return expr
@@ -580,7 +576,7 @@ class PandasPermissiveColumn(PermissiveColumn[DType]):
                 "Try updating dataframe-api-compat?"
             )
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str:  # pragma: no cover
         return self.column.__repr__()
 
     def _to_expression(self) -> PandasColumn:

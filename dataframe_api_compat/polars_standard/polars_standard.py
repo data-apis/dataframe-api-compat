@@ -116,7 +116,7 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
         self._api_version = api_version
         self._dtype = column.dtype
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str:  # pragma: no cover
         return self.column.__repr__()
 
     # In the standard
