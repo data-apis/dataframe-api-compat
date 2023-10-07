@@ -991,6 +991,12 @@ class ColumnDatetimeAccessor:
             api_version=self._api_version,
         )
 
+    def unix_timestamp(self) -> Column:
+        return PolarsColumn(
+            self.column._expr.dt.timestamp("ms") // 1000,
+            api_version=self._api_version,
+        )
+
 
 class PolarsDataFrame(DataFrame):
     def __init__(self, df: pl.LazyFrame, api_version: str) -> None:

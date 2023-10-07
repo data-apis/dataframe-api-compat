@@ -15,6 +15,7 @@ from tests.utils import temporal_dataframe_1
         ("minute", [2, 1, 4]),
         ("second", [1, 2, 9]),
         ("iso_weekday", [3, 4, 5]),
+        ("unix_timestamp", [1577840521, 1577934062, 1578027849]),
     ],
 )
 def test_expr_components(library: str, attr: str, expected: list[int]) -> None:
@@ -38,6 +39,7 @@ def test_expr_components(library: str, attr: str, expected: list[int]) -> None:
         ("minute", [2, 1, 4]),
         ("second", [1, 2, 9]),
         ("iso_weekday", [3, 4, 5]),
+        ("unix_timestamp", [1577840521, 1577934062, 1578027849]),
     ],
 )
 def test_col_components(library: str, attr: str, expected: list[int]) -> None:

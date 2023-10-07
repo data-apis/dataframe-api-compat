@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import collections
+from datetime import datetime
 from typing import Any
 from typing import Callable
 from typing import cast
@@ -484,6 +485,12 @@ class ColumnDatetimeAccessor:
 
         def func(ser, _rhs):
             return ser.dt.floor(frequency)
+
+        return self.column._record_call(func, None)
+
+    def unix_timestamp(self) -> PandasColumn:
+        def func(ser, _rhs):
+            return ((ser - datetime(1970, 1, 1)).dt.total_seconds()).astype("int64")
 
         return self.column._record_call(func, None)
 
