@@ -116,6 +116,9 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
         self._api_version = api_version
         self._dtype = column.dtype
 
+    def __repr__(self) -> str:
+        return self.column.__repr__()
+
     # In the standard
     def __column_namespace__(self) -> Any:
         return dataframe_api_compat.polars_standard
@@ -184,10 +187,10 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
         raise NotImplementedError("not yet supported")
 
     def is_null(self) -> PolarsPermissiveColumn[Bool]:
-        return self._from_expression(self._to_expression().is_null())
+        return self._from_expression(self._to_expression().is_null(), self._api_version)
 
     def is_nan(self) -> PolarsPermissiveColumn[Bool]:
-        return self._from_expression(self._to_expression().is_nan())
+        return self._from_expression(self._to_expression().is_nan(), self._api_version)
 
     def any(self, *, skip_nulls: bool = True) -> bool | None:
         return self.column.any()
@@ -224,99 +227,123 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
     ) -> PolarsPermissiveColumn[Bool]:
         if isinstance(other, PermissiveColumn):
             return self._from_expression(
-                self._to_expression().__eq__(other._to_expression())
+                self._to_expression().__eq__(other._to_expression()), self._api_version
             )
-        return self._from_expression(self._to_expression().__eq__(other))
+        return self._from_expression(
+            self._to_expression().__eq__(other), self._api_version
+        )
 
     def __ne__(  # type: ignore[override]
         self, other: PermissiveColumn[DType] | Any
     ) -> PolarsPermissiveColumn[Bool]:
         if isinstance(other, PermissiveColumn):
             return self._from_expression(
-                self._to_expression().__ne__(other._to_expression())
+                self._to_expression().__ne__(other._to_expression()), self._api_version
             )
-        return self._from_expression(self._to_expression().__ne__(other))
+        return self._from_expression(
+            self._to_expression().__ne__(other), self._api_version
+        )
 
     def __ge__(
         self, other: PermissiveColumn[DType] | Any
     ) -> PolarsPermissiveColumn[Bool]:
         if isinstance(other, PermissiveColumn):
             return self._from_expression(
-                self._to_expression().__ge__(other._to_expression())
+                self._to_expression().__ge__(other._to_expression()), self._api_version
             )
-        return self._from_expression(self._to_expression().__ge__(other))
+        return self._from_expression(
+            self._to_expression().__ge__(other), self._api_version
+        )
 
     def __gt__(
         self, other: PermissiveColumn[DType] | Any
     ) -> PolarsPermissiveColumn[Bool]:
         if isinstance(other, PermissiveColumn):
             return self._from_expression(
-                self._to_expression().__gt__(other._to_expression())
+                self._to_expression().__gt__(other._to_expression()), self._api_version
             )
-        return self._from_expression(self._to_expression().__gt__(other))
+        return self._from_expression(
+            self._to_expression().__gt__(other), self._api_version
+        )
 
     def __le__(
         self, other: PermissiveColumn[DType] | Any
     ) -> PolarsPermissiveColumn[Bool]:
         if isinstance(other, PermissiveColumn):
             return self._from_expression(
-                self._to_expression().__le__(other._to_expression())
+                self._to_expression().__le__(other._to_expression()), self._api_version
             )
-        return self._from_expression(self._to_expression().__le__(other))
+        return self._from_expression(
+            self._to_expression().__le__(other), self._api_version
+        )
 
     def __lt__(
         self, other: PermissiveColumn[DType] | Any
     ) -> PolarsPermissiveColumn[Bool]:
         if isinstance(other, PermissiveColumn):
             return self._from_expression(
-                self._to_expression().__lt__(other._to_expression())
+                self._to_expression().__lt__(other._to_expression()), self._api_version
             )
-        return self._from_expression(self._to_expression().__lt__(other))
+        return self._from_expression(
+            self._to_expression().__lt__(other), self._api_version
+        )
 
     def __mul__(
         self, other: PermissiveColumn[DType] | Any
     ) -> PolarsPermissiveColumn[Any]:
         if isinstance(other, PermissiveColumn):
             return self._from_expression(
-                self._to_expression().__mul__(other._to_expression())
+                self._to_expression().__mul__(other._to_expression()), self._api_version
             )
-        return self._from_expression(self._to_expression().__mul__(other))
+        return self._from_expression(
+            self._to_expression().__mul__(other), self._api_version
+        )
 
     def __floordiv__(
         self, other: PermissiveColumn[DType] | Any
     ) -> PolarsPermissiveColumn[Any]:
         if isinstance(other, PermissiveColumn):
             return self._from_expression(
-                self._to_expression().__floordiv__(other._to_expression())
+                self._to_expression().__floordiv__(other._to_expression()),
+                self._api_version,
             )
-        return self._from_expression(self._to_expression().__floordiv__(other))
+        return self._from_expression(
+            self._to_expression().__floordiv__(other), self._api_version
+        )
 
     def __truediv__(
         self, other: PermissiveColumn[DType] | Any
     ) -> PolarsPermissiveColumn[Any]:
         if isinstance(other, PermissiveColumn):
             return self._from_expression(
-                self._to_expression().__truediv__(other._to_expression())
+                self._to_expression().__truediv__(other._to_expression()),
+                self._api_version,
             )
-        return self._from_expression(self._to_expression().__truediv__(other))
+        return self._from_expression(
+            self._to_expression().__truediv__(other), self._api_version
+        )
 
     def __pow__(
         self, other: PermissiveColumn[DType] | Any
     ) -> PolarsPermissiveColumn[Any]:
         if isinstance(other, PermissiveColumn):
             return self._from_expression(
-                self._to_expression().__pow__(other._to_expression())
+                self._to_expression().__pow__(other._to_expression()), self._api_version
             )
-        return self._from_expression(self._to_expression().__pow__(other))
+        return self._from_expression(
+            self._to_expression().__pow__(other), self._api_version
+        )
 
     def __mod__(
         self, other: PermissiveColumn[DType] | Any
     ) -> PolarsPermissiveColumn[Any]:
         if isinstance(other, PermissiveColumn):
             return self._from_expression(
-                self._to_expression().__mod__(other._to_expression())
+                self._to_expression().__mod__(other._to_expression()), self._api_version
             )
-        return self._from_expression(self._to_expression().__mod__(other))
+        return self._from_expression(
+            self._to_expression().__mod__(other), self._api_version
+        )
 
     def __divmod__(
         self,
@@ -332,35 +359,45 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
     ) -> PolarsPermissiveColumn[Bool]:
         if isinstance(other, PermissiveColumn):
             return self._from_expression(
-                self._to_expression().__and__(other._to_expression())
+                self._to_expression().__and__(other._to_expression()), self._api_version
             )
-        return self._from_expression(self._to_expression().__and__(other))
+        return self._from_expression(
+            self._to_expression().__and__(other), self._api_version
+        )
 
     def __or__(
         self, other: PermissiveColumn[Bool] | bool
     ) -> PolarsPermissiveColumn[Bool]:
         if isinstance(other, PermissiveColumn):
             return self._from_expression(
-                self._to_expression().__or__(other._to_expression())
+                self._to_expression().__or__(other._to_expression()), self._api_version
             )
-        return self._from_expression(self._to_expression().__or__(other))
+        return self._from_expression(
+            self._to_expression().__or__(other), self._api_version
+        )
 
     def __invert__(self) -> PolarsPermissiveColumn[Bool]:
-        return self._from_expression(self._to_expression().__invert__())
+        return self._from_expression(
+            self._to_expression().__invert__(), self._api_version
+        )
 
     def __add__(self, other: PermissiveColumn[Any] | Any) -> PolarsPermissiveColumn[Any]:
         if isinstance(other, PermissiveColumn):
             return self._from_expression(
-                self._to_expression().__add__(other._to_expression())
+                self._to_expression().__add__(other._to_expression()), self._api_version
             )
-        return self._from_expression(self._to_expression().__add__(other))
+        return self._from_expression(
+            self._to_expression().__add__(other), self._api_version
+        )
 
     def __sub__(self, other: PermissiveColumn[Any] | Any) -> PolarsPermissiveColumn[Any]:
         if isinstance(other, PermissiveColumn):
             return self._from_expression(
-                self._to_expression().__sub__(other._to_expression())
+                self._to_expression().__sub__(other._to_expression()), self._api_version
             )
-        return self._from_expression(self._to_expression().__sub__(other))
+        return self._from_expression(
+            self._to_expression().__sub__(other), self._api_version
+        )
 
     def sorted_indices(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
@@ -381,29 +418,35 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
         )
 
     def fill_nan(self, value: float | NullType) -> PolarsPermissiveColumn[DType]:
-        return self._from_expression(self._to_expression().fill_nan(value))
+        return self._from_expression(
+            self._to_expression().fill_nan(value), self._api_version
+        )
 
     def fill_null(self, value: Any) -> PolarsPermissiveColumn[DType]:
-        return self._from_expression(self._to_expression().fill_null(value))
+        return self._from_expression(
+            self._to_expression().fill_null(value), self._api_version
+        )
 
     def cumulative_sum(self, *, skip_nulls: bool = True) -> PolarsColumn:
         return self._from_expression(
-            self._to_expression().cumulative_sum(skip_nulls=skip_nulls)
+            self._to_expression().cumulative_sum(skip_nulls=skip_nulls), self._api_version
         )
 
     def cumulative_prod(self, *, skip_nulls: bool = True) -> PolarsColumn:
         return self._from_expression(
-            self._to_expression().cumulative_prod(skip_nulls=skip_nulls)
+            self._to_expression().cumulative_prod(skip_nulls=skip_nulls),
+            self._api_version,
         )
 
     def cumulative_max(self, *, skip_nulls: bool = True) -> PolarsColumn:
         return self._from_expression(
-            self._to_expression().cumulative_max(skip_nulls=skip_nulls)
+            self._to_expression().cumulative_max(skip_nulls=skip_nulls), self._api_version
         )
 
     def cumulative_min(self, *, skip_nulls: bool = True) -> PolarsColumn:
         return self._from_expression(
-            self._to_expression().cumulative_min(skip_nulls=skip_nulls)
+            self._to_expression().cumulative_min(skip_nulls=skip_nulls),
+            self._api_version,
         )
 
     def to_array_object(self, dtype: str) -> Any:
@@ -422,11 +465,19 @@ class PolarsPermissiveColumn(PermissiveColumn[DType]):
     def _to_expression(self) -> PolarsColumn:
         return PolarsColumn(pl.lit(self.column), api_version=self._api_version)
 
-    def _from_expression(self, expression: PolarsColumn):
+    @classmethod
+    def _from_expression(cls, expression: PolarsColumn, api_version: str):
         df = pl.select(expression._expr)
         return PolarsPermissiveColumn(
-            df.get_column(df.columns[0]), api_version=self._api_version
+            df.get_column(df.columns[0]), api_version=api_version
         )
+
+    @property
+    def dt(self) -> ColumnDatetimeAccessor:
+        """
+        Return accessor with functions which work on temporal dtypes.
+        """
+        return ColumnDatetimeAccessor(self)
 
 
 class PolarsGroupBy(GroupBy):
@@ -849,6 +900,71 @@ class PolarsColumn:
             self._expr.alias(name),
             api_version=self._api_version,
         )
+
+    @property
+    def dt(self) -> ColumnDatetimeAccessor:
+        """
+        Return accessor with functions which work on temporal dtypes.
+        """
+        return ColumnDatetimeAccessor(self)
+
+
+class ColumnDatetimeAccessor:
+    def __init__(self, column: PolarsColumn | PolarsPermissiveColumn) -> None:
+        if isinstance(column, PolarsPermissiveColumn):
+            self.eager = True
+            self.column = column._to_expression()
+        else:
+            self.eager = False
+            self.column = column
+        self._api_version = column._api_version
+
+    def _return(self, expr: PolarsColumn):
+        if not self.eager:
+            return expr
+        return PolarsPermissiveColumn._from_expression(expr, self._api_version)
+
+    def year(self) -> Column:
+        return self._return(
+            PolarsColumn(
+                self.column._expr.dt.year(),
+                api_version=self._api_version,
+            )
+        )
+
+    def month(self) -> Column:
+        return PolarsColumn(
+            self.column.dt.year(),
+            api_version=self._api_version,
+        )
+
+    def day(self) -> Column:
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.day, None)
+        return expr
+
+    def hour(self) -> Column:
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.hour, None)
+        return expr
+
+    def minute(self) -> Column:
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.minute, None)
+        return expr
+
+    def second(self) -> Column:
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.second, None)
+        return expr
+
+    def microsecond(self) -> Column:
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.microsecond, None)
+        return expr
+
+    def floor(self, frequency: str) -> Column:
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.floor(frequency), None)
+        return expr
+
+    def iso_weekday(self) -> Column:
+        expr = self.column._record_call(lambda ser, _rhs: ser.dt.weekday + 1, None)
+        return expr
 
 
 class PolarsDataFrame(DataFrame):
