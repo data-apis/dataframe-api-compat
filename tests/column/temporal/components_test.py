@@ -13,6 +13,6 @@ def test_components(library: str, attr: str) -> None:
     col = df.__dataframe_namespace__().col
     result = df.select(getattr(col("a").dt, attr)())
     result_list = result.collect().get_column_by_name("a")
-    assert result_list[0] == expected[0]
-    assert result_list[1] == expected[1]
-    assert result_list[2] == expected[2]
+    assert result_list.get_value(0) == expected[0]
+    assert result_list.get_value(1) == expected[1]
+    assert result_list.get_value(2) == expected[2]
