@@ -78,3 +78,9 @@ def test_select_broadcast_left(library: str) -> None:
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"a": [2.0, 2.0, 2.0], "b": [4, 5, 6]})
     pd.testing.assert_frame_equal(result_pd, expected)
+
+
+def test_select_empty(library: str) -> None:
+    df = integer_dataframe_1(library)
+    result = df.select()
+    assert result.column_names == []

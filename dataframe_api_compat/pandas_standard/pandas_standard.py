@@ -446,31 +446,31 @@ class ColumnDatetimeAccessor:
 
     def month(self) -> Column:
         expr = self.column._record_call(lambda ser, _rhs: ser.dt.month, None)
-        return expr
+        return self._return(expr)
 
     def day(self) -> Column:
         expr = self.column._record_call(lambda ser, _rhs: ser.dt.day, None)
-        return expr
+        return self._return(expr)
 
     def hour(self) -> Column:
         expr = self.column._record_call(lambda ser, _rhs: ser.dt.hour, None)
-        return expr
+        return self._return(expr)
 
     def minute(self) -> Column:
         expr = self.column._record_call(lambda ser, _rhs: ser.dt.minute, None)
-        return expr
+        return self._return(expr)
 
     def second(self) -> Column:
         expr = self.column._record_call(lambda ser, _rhs: ser.dt.second, None)
-        return expr
+        return self._return(expr)
 
     def microsecond(self) -> Column:
         expr = self.column._record_call(lambda ser, _rhs: ser.dt.microsecond, None)
-        return expr
+        return self._return(expr)
 
     def iso_weekday(self) -> Column:
         expr = self.column._record_call(lambda ser, _rhs: ser.dt.weekday + 1, None)
-        return expr
+        return self._return(expr)
 
     def floor(self, frequency: str) -> Column:
         frequency = (
@@ -486,13 +486,33 @@ class ColumnDatetimeAccessor:
         def func(ser, _rhs):
             return ser.dt.floor(frequency)
 
-        return self.column._record_call(func, None)
+        return self._return(self.column._record_call(func, None))
 
     def unix_timestamp(self) -> PandasColumn:
         def func(ser, _rhs):
-            return ((ser - datetime(1970, 1, 1)).dt.total_seconds()).astype("int64")
+            if ser.dt.tz is None:
+                return pd.Series(
+                    np.floor(
+                        ((ser - datetime(1970, 1, 1)).dt.total_seconds()).astype(
+                            "float64"
+                        )
+                    ),
+                    name=ser.name,
+                )
+            else:  # pragma: no cover (todo: tz-awareness)
+                return pd.Series(
+                    np.floor(
+                        (
+                            (
+                                ser.dt.tz_convert("UTC").dt.tz_localize(None)
+                                - datetime(1970, 1, 1)
+                            ).dt.total_seconds()
+                        ).astype("float64")
+                    ),
+                    name=ser.name,
+                )
 
-        return self.column._record_call(func, None)
+        return self._return(self.column._record_call(func, None))
 
 
 class PandasGroupBy(GroupBy):
@@ -906,6 +926,8 @@ class PandasDataFrame(DataFrame):
         return PandasGroupBy(self.dataframe, keys, api_version=self._api_version)
 
     def _broadcast_and_concat(self, columns) -> pd.DataFrame:
+        if not columns:
+            return pd.DataFrame(index=self.dataframe.index)
         columns = [self._resolve_expression(col) for col in columns]
         lengths = [len(col) for col in columns]
         if len(set(lengths)) > 1:
@@ -1280,6 +1302,9 @@ class PandasPermissiveFrame(PermissiveFrame):
         # have happened in DataFrame, and PermissiveFrame can only be created from that.
         self._dataframe = dataframe.reset_index(drop=True)
         self._api_version = api_version
+
+    def shape(self):  # pragma: no cover (not sure if this is in the standard lol)
+        return self.dataframe.shape
 
     def __repr__(self) -> str:  # pragma: no cover
         return self.dataframe.__repr__()
