@@ -5,10 +5,18 @@ import pytest
 from tests.utils import temporal_dataframe_1
 
 
-@pytest.mark.parametrize("attr", ["year", "month", "day", "hour", "minute", "second"])
-def test_expr_components(library: str, attr: str) -> None:
-    attr = "year"
-    expected = [2020, 2020, 2020]
+@pytest.mark.parametrize(
+    ("attr", "expected"),
+    [
+        ("year", [2020, 2020, 2020]),
+        ("month", [1, 1, 1]),
+        ("day", [1, 2, 3]),
+        ("hour", [1, 3, 5]),
+        ("minute", [2, 1, 4]),
+        ("second", [1, 2, 9]),
+    ],
+)
+def test_expr_components(library: str, attr: str, expected: list[int]) -> None:
     df = temporal_dataframe_1(library)
     col = df.__dataframe_namespace__().col
     result = df.select(getattr(col("a").dt, attr)())

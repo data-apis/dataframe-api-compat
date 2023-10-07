@@ -933,38 +933,48 @@ class ColumnDatetimeAccessor:
         )
 
     def month(self) -> Column:
-        return PolarsColumn(
-            self.column.dt.year(),
-            api_version=self._api_version,
+        return self._return(
+            PolarsColumn(
+                self.column._expr.dt.month(),
+                api_version=self._api_version,
+            )
         )
 
     def day(self) -> Column:
-        expr = self.column._record_call(lambda ser, _rhs: ser.dt.day, None)
-        return expr
+        return PolarsColumn(
+            self.column._expr.dt.day(),
+            api_version=self._api_version,
+        )
 
     def hour(self) -> Column:
-        expr = self.column._record_call(lambda ser, _rhs: ser.dt.hour, None)
-        return expr
+        return PolarsColumn(
+            self.column._expr.dt.hour(),
+            api_version=self._api_version,
+        )
 
     def minute(self) -> Column:
-        expr = self.column._record_call(lambda ser, _rhs: ser.dt.minute, None)
-        return expr
+        return PolarsColumn(
+            self.column._expr.dt.minute(),
+            api_version=self._api_version,
+        )
 
     def second(self) -> Column:
-        expr = self.column._record_call(lambda ser, _rhs: ser.dt.second, None)
-        return expr
+        return PolarsColumn(
+            self.column._expr.dt.second(),
+            api_version=self._api_version,
+        )
 
     def microsecond(self) -> Column:
-        expr = self.column._record_call(lambda ser, _rhs: ser.dt.microsecond, None)
-        return expr
-
-    def floor(self, frequency: str) -> Column:
-        expr = self.column._record_call(lambda ser, _rhs: ser.dt.floor(frequency), None)
-        return expr
+        return PolarsColumn(
+            self.column._expr.dt.microsecond(),
+            api_version=self._api_version,
+        )
 
     def iso_weekday(self) -> Column:
-        expr = self.column._record_call(lambda ser, _rhs: ser.dt.weekday + 1, None)
-        return expr
+        return PolarsColumn(
+            self.column._expr.dt.iso_weekday(),
+            api_version=self._api_version,
+        )
 
 
 class PolarsDataFrame(DataFrame):
