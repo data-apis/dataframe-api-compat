@@ -14,7 +14,7 @@ def test_column_len(library: str) -> None:
 
 def test_expr_len(library: str) -> None:
     df = integer_dataframe_1(library)
-    col = df.__dataframe_namespace__().col
+    col = df.col
     result = df.select(col("a").len())
     result_pd = interchange_to_pandas(result, library)
     expected = pd.DataFrame({"a": [3]})

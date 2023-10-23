@@ -9,8 +9,8 @@ from tests.utils import interchange_to_pandas
 
 def test_filter(library: str) -> None:
     df = integer_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    mask = namespace.col("a") % 2 == 1
+    df.__dataframe_namespace__()
+    mask = df.col("a") % 2 == 1
     result = df.filter(mask)
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)

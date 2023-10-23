@@ -23,7 +23,7 @@ def test_column_get_rows(library: str) -> None:
 
 def test_expression_get_rows(library: str) -> None:
     df = integer_dataframe_1(library)
-    col = df.__dataframe_namespace__().col
+    col = df.col
     ser = col("a")
     ser.__column_namespace__()
     indices = col("a") - 1

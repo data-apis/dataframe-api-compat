@@ -53,8 +53,8 @@ def test_expr_slice_rows(
     expected: pd.Series[Any],
 ) -> None:
     df = integer_dataframe_3(library)
-    namespace = df.__dataframe_namespace__()
-    col = namespace.col
+    df.__dataframe_namespace__()
+    col = df.col
     result_pd = interchange_to_pandas(
         df.select(col("a").slice_rows(start, stop, step).rename("result")),
         library=library,

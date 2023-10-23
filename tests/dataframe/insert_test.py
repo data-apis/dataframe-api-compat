@@ -14,8 +14,8 @@ if TYPE_CHECKING:
 
 def test_insert_columns(library: str, request: pytest.FixtureRequest) -> None:
     df = integer_dataframe_1(library, api_version="2023.09-beta")
-    namespace = df.__dataframe_namespace__()
-    new_col = (namespace.col("b") + 3).rename("result")
+    df.__dataframe_namespace__()
+    new_col = (df.col("b") + 3).rename("result")
     result = df.assign(new_col.rename("c"))
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
@@ -30,8 +30,8 @@ def test_insert_columns(library: str, request: pytest.FixtureRequest) -> None:
 
 def test_insert_multiple_columns(library: str, request: pytest.FixtureRequest) -> None:
     df = integer_dataframe_1(library, api_version="2023.09-beta")
-    namespace = df.__dataframe_namespace__()
-    new_col = (namespace.col("b") + 3).rename("result")
+    df.__dataframe_namespace__()
+    new_col = (df.col("b") + 3).rename("result")
     result = df.assign(new_col.rename("c"), new_col.rename("d"))
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
@@ -65,8 +65,8 @@ def test_insert_eager_columns(library: str, request: pytest.FixtureRequest) -> N
 
 def test_insert_reduction(library: str) -> None:
     df = integer_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    new_col = (namespace.col("b").mean()).rename("result")
+    df.__dataframe_namespace__()
+    new_col = (df.col("b").mean()).rename("result")
     result = df.assign(new_col)
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
@@ -76,8 +76,8 @@ def test_insert_reduction(library: str) -> None:
 
 def test_insert_reduction_and_column(library: str) -> None:
     df = integer_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    col = namespace.col
+    df.__dataframe_namespace__()
+    col = df.col
     result = df.assign(col("b").mean().rename("c"), col("b").rename("d"))
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)

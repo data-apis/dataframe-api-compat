@@ -569,7 +569,7 @@ class PolarsColumn:
             self._expr = pl.col(expr)
         else:
             self._expr = expr
-        # need to pass this down from namespace.col
+        # need to pass this down from df.col
         self._api_version = api_version or LATEST_API_VERSION
 
     # In the standard
@@ -1402,7 +1402,7 @@ class PolarsPermissiveFrame(PermissiveFrame):
     def select(
         self, *columns: str | Column | PermissiveColumn[Any]
     ) -> PolarsPermissiveFrame:
-        return self.relax().select(*columns).collect()
+        return self.select(*columns).collect()
 
     def col(self, name) -> PolarsPermissiveColumn:
         return PolarsPermissiveColumn(
@@ -1430,10 +1430,10 @@ class PolarsPermissiveFrame(PermissiveFrame):
         )
 
     def assign(self, *columns: PolarsColumn | PolarsColumn) -> PolarsDataFrame:
-        return self.relax().assign(*columns).collect()
+        return self.assign(*columns).collect()
 
     def drop_columns(self, *labels: str) -> PolarsDataFrame:
-        return self.relax().drop_columns(*labels).collect()
+        return self.drop_columns(*labels).collect()
 
     def rename_columns(self, mapping: Mapping[str, str]) -> PolarsDataFrame:
         if not isinstance(mapping, collections.abc.Mapping):
@@ -1639,11 +1639,9 @@ class PolarsPermissiveFrame(PermissiveFrame):
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
     ) -> PolarsDataFrame:
-        return (
-            self.relax()
-            .sort(*keys, ascending=ascending, nulls_position=nulls_position)
-            .collect()
-        )
+        return self.sort(
+            *keys, ascending=ascending, nulls_position=nulls_position
+        ).collect()
 
     def fill_nan(
         self,
@@ -1681,11 +1679,7 @@ class PolarsPermissiveFrame(PermissiveFrame):
         left_on: str | list[str],
         right_on: str | list[str],
     ) -> PolarsDataFrame:
-        return (
-            self.relax()
-            .join(other.relax(), left_on=left_on, right_on=right_on, how=how)
-            .collect()
-        )
+        return self.join(other, left_on=left_on, right_on=right_on, how=how).collect()
 
     def relax(self) -> PolarsDataFrame:
         return PolarsDataFrame(self.dataframe.lazy(), api_version=self._api_version)

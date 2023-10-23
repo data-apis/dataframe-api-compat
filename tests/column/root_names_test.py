@@ -6,7 +6,7 @@ from tests.utils import integer_dataframe_1
 def test_root_names(library: str) -> None:
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
-    col = namespace.col
+    col = df.col
 
     assert col("a").root_names() == ["a"]
     assert col("b").root_names() == ["b"]

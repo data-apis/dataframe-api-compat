@@ -23,9 +23,9 @@ def test_column_and(library: str) -> None:
 
 def test_expression_and(library: str) -> None:
     df = bool_dataframe_1(library, api_version="2023.09-beta")
-    namespace = df.__dataframe_namespace__()
-    ser = namespace.col("a")
-    other = namespace.col("b")
+    df.__dataframe_namespace__()
+    ser = df.col("a")
+    other = df.col("b")
     result = df.assign((ser & other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series([True, True, False], name="result")

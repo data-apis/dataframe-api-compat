@@ -53,7 +53,7 @@ def test_expr_is_in(
     request: pytest.FixtureRequest,
 ) -> None:
     df = df_factory(library, request)
-    col = df.__dataframe_namespace__().col
+    col = df.col
     ser = col("a")
     other = ser + 1
     result = df.assign(ser.is_in(other).rename("result"))

@@ -20,7 +20,7 @@ from tests.utils import temporal_dataframe_1
 )
 def test_expr_components(library: str, attr: str, expected: list[int]) -> None:
     df = temporal_dataframe_1(library)
-    col = df.__dataframe_namespace__().col
+    col = df.col
     for col_name in ("a", "c", "e"):
         result = df.select(getattr(col(col_name).dt, attr)())
         result_list = result.collect().col(col_name)
@@ -61,7 +61,7 @@ def test_col_components(library: str, attr: str, expected: list[int]) -> None:
 )
 def test_expr_microsecond(library: str, col_name: str, expected: list[int]) -> None:
     df = temporal_dataframe_1(library)
-    col = df.__dataframe_namespace__().col
+    col = df.col
     result = df.select(col(col_name).dt.microsecond())
     result_list = result.collect().col(col_name)
     assert result_list.get_value(0) == expected[0]

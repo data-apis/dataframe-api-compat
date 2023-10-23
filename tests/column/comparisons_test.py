@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any
 
 import pandas as pd
-import polars as pl
 import pytest
 
 from tests.utils import integer_dataframe_1
@@ -107,8 +106,8 @@ def test_expression_comparisons_scalar(
 ) -> None:
     ser: Any
     df = integer_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    ser = namespace.col("a")
+    df.__dataframe_namespace__()
+    ser = df.col("a")
     other = 3
     result = df.assign(getattr(ser, comparison)(other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
@@ -116,12 +115,3 @@ def test_expression_comparisons_scalar(
     if comparison == "__pow__" and library in ("polars", "polars-lazy"):
         result_pd = result_pd.astype("int64")
     pd.testing.assert_series_equal(result_pd, expected)
-
-
-def test_combine_column_and_expression(library: str) -> None:
-    df = integer_dataframe_1(library).collect()
-    namespace = df.__dataframe_namespace__()
-    ser = df.col("a")
-    other = namespace.col("b")
-    with pytest.raises((KeyError, AttributeError, TypeError, pl.ColumnNotFoundError)):
-        _ = ser > other

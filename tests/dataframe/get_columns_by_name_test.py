@@ -27,8 +27,8 @@ def test_select_list_of_str(library: str) -> None:
 
 def test_select_expressions(library: str) -> None:
     df = integer_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    col = namespace.col
+    df.__dataframe_namespace__()
+    col = df.col
     result = df.select(col("b") + 1)
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
@@ -38,8 +38,8 @@ def test_select_expressions(library: str) -> None:
 
 def test_select_multiple_expressions(library: str) -> None:
     df = integer_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    col = namespace.col
+    df.__dataframe_namespace__()
+    col = df.col
     result = df.select(col("b") + 1, col("b").rename("c") + 2)
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
@@ -49,8 +49,8 @@ def test_select_multiple_expressions(library: str) -> None:
 
 def test_select_reduction(library: str) -> None:
     df = integer_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    col = namespace.col
+    df.__dataframe_namespace__()
+    col = df.col
     result = df.select(col("a").mean(), col("b").mean())
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
@@ -60,8 +60,8 @@ def test_select_reduction(library: str) -> None:
 
 def test_select_broadcast_right(library: str) -> None:
     df = integer_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    col = namespace.col
+    df.__dataframe_namespace__()
+    col = df.col
     result = df.select(col("a"), col("b").mean())
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
@@ -71,8 +71,8 @@ def test_select_broadcast_right(library: str) -> None:
 
 def test_select_broadcast_left(library: str) -> None:
     df = integer_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    col = namespace.col
+    df.__dataframe_namespace__()
+    col = df.col
     result = df.select(col("a").mean(), col("b"))
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)

@@ -43,9 +43,9 @@ def test_column_divmod_with_scalar(library: str) -> None:
 
 def test_expression_divmod(library: str) -> None:
     df = integer_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    ser = namespace.col("a")
-    other = namespace.col("b")
+    df.__dataframe_namespace__()
+    ser = df.col("a")
+    other = df.col("b")
     result_quotient, result_remainder = ser.__divmod__(other)
     # quotient
     result = df.assign(result_quotient.rename("result"))
@@ -61,8 +61,8 @@ def test_expression_divmod(library: str) -> None:
 
 def test_expression_divmod_with_scalar(library: str) -> None:
     df = integer_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    ser = namespace.col("a")
+    df.__dataframe_namespace__()
+    ser = df.col("a")
     result_quotient, result_remainder = ser.__divmod__(2)
     # quotient
     result = df.assign(result_quotient.rename("result"))

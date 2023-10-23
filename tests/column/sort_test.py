@@ -9,8 +9,8 @@ from tests.utils import interchange_to_pandas
 
 def test_expression_sort_ascending(library: str) -> None:
     df = integer_dataframe_6(library, api_version="2023.09-beta")
-    namespace = df.__dataframe_namespace__()
-    sorted = namespace.col("b").sort().rename("c")
+    df.__dataframe_namespace__()
+    sorted = df.col("b").sort().rename("c")
     result = df.assign(sorted)
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
@@ -26,8 +26,8 @@ def test_expression_sort_ascending(library: str) -> None:
 
 def test_expression_sort_descending(library: str) -> None:
     df = integer_dataframe_6(library, api_version="2023.09-beta")
-    namespace = df.__dataframe_namespace__()
-    sorted = namespace.col("b").sort(ascending=False).rename("c")
+    df.__dataframe_namespace__()
+    sorted = df.col("b").sort(ascending=False).rename("c")
     result = df.assign(sorted)
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)

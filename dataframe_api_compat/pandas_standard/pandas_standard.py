@@ -100,23 +100,31 @@ class PandasColumn(Column):
             Extra calls to chain to output of `base_call`. Must take Series
             and output Series.
         """
+        self._name = series.name or ""
         self._column = series
         self._api_version = api_version
         # TODO: keep track of output name
 
+    def __repr__(self):
+        return self.column.__repr__()
+
     def _from_series(self, series):
-        return PandasColumn(series, api_version=self._api_version)
+        return PandasColumn(series.reset_index(drop=True), api_version=self._api_version)
 
     # In the standard
     def __column_namespace__(self) -> Any:
         return dataframe_api_compat.pandas_standard
 
     @property
+    def name(self) -> str:
+        return self._name
+
+    @property
     def column(self):
         return self._column
 
     def get_rows(self, indices: Column | PermissiveColumn[Any]) -> PandasColumn:
-        return self._from_series(self.iloc[indices].reset_index(drop=True))
+        return self._from_series(self.column.iloc[indices.column])
 
     def slice_rows(
         self, start: int | None, stop: int | None, step: int | None
@@ -133,73 +141,88 @@ class PandasColumn(Column):
         # TODO only if collected?
         return len(self.column)
 
-    def filter(self, mask: Column | PermissiveColumn[Any]) -> PandasColumn:
+    def filter(self, mask: Column) -> PandasColumn:
         ser = self.column
-        self._from_series(ser.loc[mask])
+        return self._from_series(ser.loc[mask.column])
 
     def get_value(self, row: int) -> Any:
         ser = self.column
-        self._from_series(ser.iloc[row])
+        return self._from_series(ser.iloc[row])
 
     def __eq__(self, other: PandasColumn | Any) -> PandasColumn:  # type: ignore[override]
+        other = other.column if isinstance(other, PandasColumn) else other
         ser = self.column
-        self._from_series(ser == other).rename(ser.name)
+        return self._from_series(ser == other).rename(ser.name)
 
     def __ne__(self, other: Column | PermissiveColumn[Any]) -> PandasColumn:  # type: ignore[override]
+        other = other.column if isinstance(other, PandasColumn) else other
         ser = self.column
-        self._from_series(ser != other).rename(ser.name)
+        return self._from_series(ser != other).rename(ser.name)
 
     def __ge__(self, other: Column | Any) -> PandasColumn:
+        other = other.column if isinstance(other, PandasColumn) else other
         ser = self.column
-        self._from_series(ser >= other).rename(ser.name)
+        return self._from_series(ser >= other).rename(ser.name)
 
     def __gt__(self, other: Column | Any) -> PandasColumn:
+        other = other.column if isinstance(other, PandasColumn) else other
         ser = self.column
-        self._from_series(ser > other).rename(ser.name)
+        return self._from_series(ser > other).rename(ser.name)
 
     def __le__(self, other: Column | Any) -> PandasColumn:
+        other = other.column if isinstance(other, PandasColumn) else other
         ser = self.column
-        self._from_series(ser <= other).rename(ser.name)
+        return self._from_series(ser <= other).rename(ser.name)
 
     def __lt__(self, other: Column | Any) -> PandasColumn:
+        other = other.column if isinstance(other, PandasColumn) else other
         ser = self.column
-        self._from_series(ser < other).rename(ser.name)
+        return self._from_series(ser < other).rename(ser.name)
 
     def __and__(self, other: Column | bool) -> PandasColumn:
         ser = self.column
-        self._from_series(ser & other).rename(ser.name)
+        other = other.column if isinstance(other, PandasColumn) else other
+        return self._from_series(ser & other).rename(ser.name)
 
     def __or__(self, other: Column | bool) -> PandasColumn:
         ser = self.column
-        self._from_series(ser | other).rename(ser.name)
+        other = other.column if isinstance(other, PandasColumn) else other
+        return self._from_series(ser | other).rename(ser.name)
 
     def __add__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
-        self._from_series(ser + other).rename(ser.name)
+        other = other.column if isinstance(other, PandasColumn) else other
+        return self._from_series(ser + other).rename(ser.name)
 
     def __sub__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
-        self._from_series(ser - other).rename(ser.name)
+        other = other.column if isinstance(other, PandasColumn) else other
+        return self._from_series(ser - other).rename(ser.name)
 
     def __mul__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
-        self._from_series(ser * other).rename(ser.name)
+        other = other.column if isinstance(other, PandasColumn) else other
+        return self._from_series(ser * other).rename(ser.name)
 
     def __truediv__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
-        self._from_series(ser / other).rename(ser.name)
+        other = other.column if isinstance(other, PandasColumn) else other
+        return self._from_series(ser / other).rename(ser.name)
 
     def __floordiv__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
-        self._from_series(ser // other).rename(ser.name)
+        other = other.column if isinstance(other, PandasColumn) else other
+        return self._from_series(ser // other).rename(ser.name)
 
     def __pow__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
-        self._from_series(ser**other).rename(ser.name)
+        other = other.column if isinstance(other, PandasColumn) else other
+        return self._from_series(ser**other).rename(ser.name)
 
     def __mod__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
-        self._from_series(ser % other).rename(ser.name)
+        other = other.column if isinstance(other, PandasColumn) else other
+        return self._from_series(ser % other).rename(ser.name)
 
     def __divmod__(self, other: Column | Any) -> tuple[PandasColumn, PandasColumn]:
         quotient = self // other
@@ -208,7 +231,7 @@ class PandasColumn(Column):
 
     def __invert__(self: PandasColumn) -> PandasColumn:
         ser = self.column
-        self._from_series(~ser)
+        return self._from_series(~ser)
 
     # Reductions
 
@@ -270,14 +293,10 @@ class PandasColumn(Column):
         ser = self.column
         if ascending:
             return (
-                ser.sort_values()
-                .index.to_series(name=self.output_name())
-                .reset_index(drop=True)
+                ser.sort_values().index.to_series(name=self.name).reset_index(drop=True)
             )
         return (
-            ser.sort_values()
-            .index.to_series(name=self.output_name())[::-1]
-            .reset_index(drop=True)
+            ser.sort_values().index.to_series(name=self.name)[::-1].reset_index(drop=True)
         )
 
     def is_in(self, values: Column | PermissiveColumn[Any]) -> PandasColumn:
@@ -292,7 +311,7 @@ class PandasColumn(Column):
     ) -> PandasColumn:
         ser = self.column.copy()
         ser[cast("pd.Series[bool]", np.isnan(ser)).fillna(False).to_numpy(bool)] = value
-        return ser
+        return self._from_series(ser)
 
     def fill_null(
         self,
@@ -311,7 +330,7 @@ class PandasColumn(Column):
             ser = num / other
         else:
             ser = ser.fillna(value)
-        return ser.rename(self.output_name())
+        return self._from_series(ser.rename(self.name))
 
     def cumulative_sum(self, *, skip_nulls: bool = True) -> PandasColumn:
         ser = self.column

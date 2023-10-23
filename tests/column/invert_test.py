@@ -8,8 +8,8 @@ from tests.utils import interchange_to_pandas
 
 def test_expression_invert(library: str) -> None:
     df = bool_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    ser = namespace.col("a")
+    df.__dataframe_namespace__()
+    ser = df.col("a")
     result = df.assign((~ser).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series([False, False, True], name="result")

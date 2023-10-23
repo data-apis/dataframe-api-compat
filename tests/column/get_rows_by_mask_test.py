@@ -20,8 +20,8 @@ def test_column_filter(library: str) -> None:
 
 def test_expression_filter(library: str) -> None:
     df = integer_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    ser = namespace.col("a")
+    df.__dataframe_namespace__()
+    ser = df.col("a")
     mask = ser > 1
     ser = ser.filter(mask)
     result = df.filter(mask)
@@ -33,8 +33,8 @@ def test_expression_filter(library: str) -> None:
 
 def test_column_get_rows_by_mask_noop(library: str) -> None:
     df = integer_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    ser = namespace.col("a")
+    df.__dataframe_namespace__()
+    ser = df.col("a")
     mask = ser > 0
     ser = ser.filter(mask)
     result = df.assign(ser.rename("result"))

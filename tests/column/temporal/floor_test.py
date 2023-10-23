@@ -15,7 +15,7 @@ from tests.utils import temporal_dataframe_1
 )
 def test_floor(library: str, freq: str, expected: list[datetime]) -> None:
     df = temporal_dataframe_1(library)
-    col = df.__dataframe_namespace__().col
+    col = df.col
     result = df.select(col("a").dt.floor(freq)).collect().col("a")
     assert result.get_value(0) == expected[0]
     assert result.get_value(1) == expected[1]

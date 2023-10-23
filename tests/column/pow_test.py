@@ -14,9 +14,9 @@ if TYPE_CHECKING:
 
 def test_float_powers_column(library: str, request: pytest.FixtureRequest) -> None:
     df = integer_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    ser = namespace.col("a")
-    other = namespace.col("b") * 1.0
+    df.__dataframe_namespace__()
+    ser = df.col("a")
+    other = df.col("b") * 1.0
     result = df.assign(ser.__pow__(other).rename("result"))
     result_pd = interchange_to_pandas(result, library)
     expected = pd.DataFrame(
@@ -28,8 +28,8 @@ def test_float_powers_column(library: str, request: pytest.FixtureRequest) -> No
 
 def test_float_powers_scalar_column(library: str, request: pytest.FixtureRequest) -> None:
     df = integer_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    ser = namespace.col("a")
+    df.__dataframe_namespace__()
+    ser = df.col("a")
     other = 1.0
     result = df.assign(ser.__pow__(other).rename("result"))
     result_pd = interchange_to_pandas(result, library)
@@ -40,9 +40,9 @@ def test_float_powers_scalar_column(library: str, request: pytest.FixtureRequest
 
 def test_int_powers_column(library: str, request: pytest.FixtureRequest) -> None:
     df = integer_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    ser = namespace.col("a")
-    other = namespace.col("b") * 1
+    df.__dataframe_namespace__()
+    ser = df.col("a")
+    other = df.col("b") * 1
     result = df.assign(ser.__pow__(other).rename("result"))
     result_pd = interchange_to_pandas(result, library)
     expected = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6], "result": [1, 32, 729]})
@@ -54,8 +54,8 @@ def test_int_powers_column(library: str, request: pytest.FixtureRequest) -> None
 
 def test_int_powers_scalar_column(library: str, request: pytest.FixtureRequest) -> None:
     df = integer_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    ser = namespace.col("a")
+    df.__dataframe_namespace__()
+    ser = df.col("a")
     other = 1
     result = df.assign(ser.__pow__(other).rename("result"))
     result_pd = interchange_to_pandas(result, library)

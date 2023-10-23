@@ -9,8 +9,8 @@ from tests.utils import interchange_to_pandas
 
 def test_expression_sorted_indices_ascending(library: str) -> None:
     df = integer_dataframe_6(library)
-    namespace = df.__dataframe_namespace__()
-    col = namespace.col
+    df.__dataframe_namespace__()
+    col = df.col
     sorted_indices = col("b").sorted_indices()
     result = df.get_rows(sorted_indices)
     result_pd = interchange_to_pandas(result, library)
@@ -26,8 +26,8 @@ def test_expression_sorted_indices_ascending(library: str) -> None:
 
 def test_expression_sorted_indices_descending(library: str) -> None:
     df = integer_dataframe_6(library)
-    namespace = df.__dataframe_namespace__()
-    col = namespace.col
+    df.__dataframe_namespace__()
+    col = df.col
     sorted_indices = col("b").sorted_indices(ascending=False)
     result = df.get_rows(sorted_indices)
     result_pd = interchange_to_pandas(result, library)
