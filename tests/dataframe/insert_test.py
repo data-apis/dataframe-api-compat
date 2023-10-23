@@ -48,7 +48,7 @@ def test_insert_multiple_columns(library: str, request: pytest.FixtureRequest) -
 
 def test_insert_eager_columns(library: str, request: pytest.FixtureRequest) -> None:
     df = integer_dataframe_1(library, api_version="2023.09-beta")
-    new_col = (df.collect().get_column_by_name("b") + 3).rename("result")
+    new_col = (df.collect().col("b") + 3).rename("result")
     result = df.assign(new_col.rename("c"), new_col.rename("d"))
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)

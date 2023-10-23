@@ -12,8 +12,6 @@ from dataframe_api_compat.pandas_standard.pandas_standard import null
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasColumn
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasDataFrame
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasGroupBy
-from dataframe_api_compat.pandas_standard.pandas_standard import PandasPermissiveColumn
-from dataframe_api_compat.pandas_standard.pandas_standard import PandasPermissiveFrame
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -27,9 +25,7 @@ def col(name: str) -> PandasColumn:
 
 
 Column = PandasColumn
-PermissiveColumn = PandasPermissiveColumn
 DataFrame = PandasDataFrame
-PermissiveFrame = PandasPermissiveFrame
 GroupBy = PandasGroupBy
 
 
@@ -198,7 +194,7 @@ def convert_to_standard_compliant_column(
     if ser.name is not None and not isinstance(ser.name, str):
         raise ValueError(f"Expected column with string name, got: {ser.name}")
     name = ser.name or ""
-    return PandasPermissiveColumn(ser.rename(name), api_version=api_version)
+    return PandasColumn(ser.rename(name), api_version=api_version)
 
 
 def convert_to_standard_compliant_dataframe(
@@ -235,16 +231,16 @@ def concat(dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:
 
 def column_from_sequence(
     sequence: Sequence[Any], *, dtype: Any, name: str, api_version: str | None = None
-) -> PandasPermissiveColumn[Any]:
+) -> PandasColumn[Any]:
     ser = pd.Series(sequence, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
-    return PandasPermissiveColumn(ser, api_version=api_version or LATEST_API_VERSION)
+    return PandasColumn(ser, api_version=api_version or LATEST_API_VERSION)
 
 
 def dataframe_from_dict(
-    data: dict[str, PandasPermissiveColumn[Any]], api_version: str | None = None
+    data: dict[str, PandasColumn[Any]], api_version: str | None = None
 ) -> PandasDataFrame:
     for _, col in data.items():
-        if not isinstance(col, PandasPermissiveColumn):  # pragma: no cover
+        if not isinstance(col, PandasColumn):  # pragma: no cover
             raise TypeError(f"Expected PandasPermissiveColumn, got {type(col)}")
     return PandasDataFrame(
         pd.DataFrame(
@@ -256,9 +252,9 @@ def dataframe_from_dict(
 
 def column_from_1d_array(
     data: Any, *, dtype: Any, name: str | None = None, api_version: str | None = None
-) -> PandasPermissiveColumn[Any]:  # pragma: no cover
+) -> PandasColumn[Any]:  # pragma: no cover
     ser = pd.Series(data, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
-    return PandasPermissiveColumn(ser, api_version=api_version or LATEST_API_VERSION)
+    return PandasColumn(ser, api_version=api_version or LATEST_API_VERSION)
 
 
 def dataframe_from_2d_array(

@@ -1404,7 +1404,7 @@ class PolarsPermissiveFrame(PermissiveFrame):
     ) -> PolarsPermissiveFrame:
         return self.relax().select(*columns).collect()
 
-    def get_column_by_name(self, name) -> PolarsPermissiveColumn:
+    def col(self, name) -> PolarsPermissiveColumn:
         return PolarsPermissiveColumn(
             self.dataframe.get_column(name), api_version=self._api_version
         )

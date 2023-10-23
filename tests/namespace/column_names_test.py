@@ -12,7 +12,7 @@ def test_column_names(library: str, request: pytest.FixtureRequest) -> None:
     # nameless column
     df = integer_dataframe_1(library).collect()
     namespace = df.__dataframe_namespace__()
-    ser = df.get_column_by_name("a")
+    ser = df.col("a")
     result = namespace.dataframe_from_dict({"result": ser})
     assert result.get_column_names() == ["result"]
 

@@ -21,9 +21,5 @@ from tests.utils import mixed_dataframe_1
 def test_is_dtype(library: str, dtype: str, expected: list[str]) -> None:
     df = mixed_dataframe_1(library).collect()
     namespace = df.__dataframe_namespace__()
-    result = [
-        i
-        for i in df.column_names
-        if namespace.is_dtype(df.get_column_by_name(i).dtype, dtype)
-    ]
+    result = [i for i in df.column_names if namespace.is_dtype(df.col(i).dtype, dtype)]
     assert result == expected

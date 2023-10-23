@@ -30,7 +30,7 @@ from tests.utils import interchange_to_pandas
 def test_column_from_1d_array(
     library: str, namespace_dtype: str, pandas_dtype: str
 ) -> None:
-    ser = integer_dataframe_1(library).collect().get_column_by_name("a")
+    ser = integer_dataframe_1(library).collect().col("a")
     namespace = ser.__column_namespace__()
     arr = np.array([1, 2, 3])
     result = namespace.dataframe_from_dict(
@@ -54,7 +54,7 @@ def test_column_from_1d_array(
 def test_column_from_1d_array_string(
     library: str, namespace_dtype: str, pandas_dtype: str
 ) -> None:
-    ser = integer_dataframe_1(library).collect().get_column_by_name("a")
+    ser = integer_dataframe_1(library).collect().col("a")
     namespace = ser.__column_namespace__()
     arr = np.array(["a", "b", "c"])
     result = namespace.dataframe_from_dict(
@@ -78,7 +78,7 @@ def test_column_from_1d_array_string(
 def test_column_from_1d_array_bool(
     library: str, namespace_dtype: str, pandas_dtype: str
 ) -> None:
-    ser = integer_dataframe_1(library).collect().get_column_by_name("a")
+    ser = integer_dataframe_1(library).collect().col("a")
     namespace = ser.__column_namespace__()
     arr = np.array([True, False, True])
     result = namespace.dataframe_from_dict(
@@ -94,7 +94,7 @@ def test_column_from_1d_array_bool(
 
 
 def test_datetime_from_1d_array(library: str) -> None:
-    ser = integer_dataframe_1(library).collect().get_column_by_name("a")
+    ser = integer_dataframe_1(library).collect().col("a")
     namespace = ser.__column_namespace__()
     arr = np.array([date(2020, 1, 1), date(2020, 1, 2)], dtype="datetime64[ms]")
     result = namespace.dataframe_from_dict(
@@ -117,7 +117,7 @@ def test_duration_from_1d_array(library: str) -> None:
     if library == "polars-lazy":
         # needs fixing upstream
         return
-    ser = integer_dataframe_1(library).collect().get_column_by_name("a")
+    ser = integer_dataframe_1(library).collect().col("a")
     namespace = ser.__column_namespace__()
     arr = np.array([timedelta(1), timedelta(2)], dtype="timedelta64[ms]")
     result = namespace.dataframe_from_dict(

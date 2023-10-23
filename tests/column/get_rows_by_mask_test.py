@@ -8,7 +8,7 @@ from tests.utils import interchange_to_pandas
 
 def test_column_filter(library: str) -> None:
     df = integer_dataframe_1(library).collect()
-    ser = df.get_column_by_name("a")
+    ser = df.col("a")
     mask = ser > 1
     ser = ser.filter(mask)
     result = df.filter(mask)
