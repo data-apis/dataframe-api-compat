@@ -126,28 +126,12 @@ class PandasColumn(Column):
     def get_rows(self, indices: Column | PermissiveColumn[Any]) -> PandasColumn:
         return self._from_series(self.column.iloc[indices.column])
 
-    def slice_rows(
-        self, start: int | None, stop: int | None, step: int | None
-    ) -> PandasColumn[DType]:
-        if start is None:
-            start = 0
-        if stop is None:
-            stop = len(self.column)
-        if step is None:
-            step = 1
-        return self._from_series(self.column.iloc[start:stop:step])
-
-    def len(self) -> PandasColumn:
-        # TODO only if collected?
-        return len(self.column)
-
     def filter(self, mask: Column) -> PandasColumn:
         ser = self.column
         return self._from_series(ser.loc[mask.column])
 
     def get_value(self, row: int) -> Any:
-        ser = self.column
-        return ser.iloc[row]
+        raise NotImplementedError("can't get value out, use to_array instead")
 
     def __eq__(self, other: PandasColumn | Any) -> PandasColumn:  # type: ignore[override]
         other = other.column if isinstance(other, PandasColumn) else other
@@ -624,13 +608,6 @@ class PandasDataFrame(DataFrame):
         return PandasDataFrame(
             self.dataframe.iloc[indices.column, :],
             api_version=self._api_version,
-        )
-
-    def slice_rows(
-        self, start: int | None, stop: int | None, step: int | None
-    ) -> PandasDataFrame:
-        return PandasDataFrame(
-            self.dataframe.iloc[start:stop:step], api_version=self._api_version
         )
 
     def filter(self, mask: Column | PermissiveColumn[Any]) -> PandasDataFrame:

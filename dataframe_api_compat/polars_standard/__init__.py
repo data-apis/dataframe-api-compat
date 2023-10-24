@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import Any
-from typing import Literal
 from typing import TYPE_CHECKING
 from typing import TypeVar
 
@@ -257,15 +256,6 @@ def any_rowwise(*columns: str, skip_nulls: bool = True):
 
 def all_rowwise(*columns: str, skip_nulls: bool = True):
     return PolarsColumn(pl.all_horizontal(list(columns) or "*").alias("all"))
-
-
-def sorted_indices(
-    keys: str | list[str] | None = None,
-    *,
-    ascending: Sequence[bool] | bool = True,
-    nulls_position: Literal["first", "last"] = "last",
-) -> Column:
-    return PolarsColumn(pl.arg_sort_by(keys or "*", descending=not ascending))
 
 
 def unique_indices(

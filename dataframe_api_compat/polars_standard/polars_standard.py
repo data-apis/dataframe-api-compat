@@ -197,9 +197,6 @@ class PolarsColumn:
     def name(self):
         return self._name
 
-    def len(self) -> PolarsColumn:
-        return self._from_expr(self._expr.len())
-
     def get_rows(self, indices: PolarsColumn) -> PolarsColumn:
         return self._from_expr(self._expr.take(indices._expr))
 
