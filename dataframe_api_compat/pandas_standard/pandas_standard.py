@@ -567,7 +567,7 @@ class PandasDataFrame(DataFrame):
         return self.dataframe.__repr__()
 
     def col(self, name):
-        return PandasColumn(self.dataframe.loc[:, name], df=self.dataframe)
+        return PandasColumn(self.dataframe.loc[:, name], df=self)
 
     @property
     def schema(self) -> dict[str, Any]:
@@ -601,7 +601,7 @@ class PandasDataFrame(DataFrame):
             )
 
     def _validate_column(self, column: Column) -> None:
-        if id(self.dataframe) != id(column._df):
+        if id(self) != id(column._df):
             raise ValueError("cannot compare columns from different dataframes")
 
     # In the standard
