@@ -115,6 +115,16 @@ class PandasColumn(Column):
             series.reset_index(drop=True), api_version=self._api_version, id_=self._id
         )
 
+    def _validate_comparand(self, other: Column | Any) -> Column | Any:
+        if isinstance(other, PandasColumn):
+            if self._id != other._id:
+                raise ValueError("cannot compare columns from different dataframes")
+            if len(other.column) == 1 and len(self.column) > 1:
+                # Let pandas take care of broadcasting
+                return other.column[0]
+            return other.column
+        return other
+
     # In the standard
     def __column_namespace__(self) -> Any:
         return dataframe_api_compat.pandas_standard
@@ -127,11 +137,6 @@ class PandasColumn(Column):
     def column(self):
         return self._column
 
-    def _resolve_comparand(self, other: Column | Any) -> Column | Any:
-        if isinstance(other, PandasColumn) and self._id != other._id:
-            raise ValueError("cannot compare columns from different dataframes")
-        return other.column if isinstance(other, PandasColumn) else other
-
     def get_rows(self, indices: Column | PermissiveColumn[Any]) -> PandasColumn:
         return self._from_series(self.column.iloc[indices.column])
 
@@ -142,79 +147,81 @@ class PandasColumn(Column):
     def get_value(self, row: int) -> Any:
         raise NotImplementedError("can't get value out, use to_array instead")
 
+    # Binary comparisons
+
     def __eq__(self, other: PandasColumn | Any) -> PandasColumn:  # type: ignore[override]
-        other = self._resolve_comparand(other)
+        other = self._validate_comparand(other)
         ser = self.column
         return self._from_series(ser == other).rename(ser.name)
 
     def __ne__(self, other: Column | PermissiveColumn[Any]) -> PandasColumn:  # type: ignore[override]
-        other = self._resolve_comparand(other)
+        other = self._validate_comparand(other)
         ser = self.column
         return self._from_series(ser != other).rename(ser.name)
 
     def __ge__(self, other: Column | Any) -> PandasColumn:
-        other = self._resolve_comparand(other)
+        other = self._validate_comparand(other)
         ser = self.column
         return self._from_series(ser >= other).rename(ser.name)
 
     def __gt__(self, other: Column | Any) -> PandasColumn:
-        other = self._resolve_comparand(other)
+        other = self._validate_comparand(other)
         ser = self.column
         return self._from_series(ser > other).rename(ser.name)
 
     def __le__(self, other: Column | Any) -> PandasColumn:
-        other = self._resolve_comparand(other)
+        other = self._validate_comparand(other)
         ser = self.column
         return self._from_series(ser <= other).rename(ser.name)
 
     def __lt__(self, other: Column | Any) -> PandasColumn:
-        other = self._resolve_comparand(other)
+        other = self._validate_comparand(other)
         ser = self.column
         return self._from_series(ser < other).rename(ser.name)
 
     def __and__(self, other: Column | bool) -> PandasColumn:
         ser = self.column
-        other = self._resolve_comparand(other)
+        other = self._validate_comparand(other)
         return self._from_series(ser & other).rename(ser.name)
 
     def __or__(self, other: Column | bool) -> PandasColumn:
         ser = self.column
-        other = self._resolve_comparand(other)
+        other = self._validate_comparand(other)
         return self._from_series(ser | other).rename(ser.name)
 
     def __add__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
-        other = self._resolve_comparand(other)
+        other = self._validate_comparand(other)
         return self._from_series(ser + other).rename(ser.name)
 
     def __sub__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
-        other = self._resolve_comparand(other)
+        other = self._validate_comparand(other)
         return self._from_series(ser - other).rename(ser.name)
 
     def __mul__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
-        other = self._resolve_comparand(other)
+        other = self._validate_comparand(other)
         return self._from_series(ser * other).rename(ser.name)
 
     def __truediv__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
-        other = self._resolve_comparand(other)
+        other = self._validate_comparand(other)
         return self._from_series(ser / other).rename(ser.name)
 
     def __floordiv__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
-        other = self._resolve_comparand(other)
+        other = self._validate_comparand(other)
         return self._from_series(ser // other).rename(ser.name)
 
     def __pow__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
-        other = self._resolve_comparand(other)
+        other = self._validate_comparand(other)
         return self._from_series(ser**other).rename(ser.name)
 
     def __mod__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
-        other = self._resolve_comparand(other)
+        other = self._validate_comparand(other)
         return self._from_series(ser % other).rename(ser.name)
 
     def __divmod__(self, other: Column | Any) -> tuple[PandasColumn, PandasColumn]:
@@ -230,43 +237,43 @@ class PandasColumn(Column):
 
     def any(self, *, skip_nulls: bool = True) -> PandasColumn:
         ser = self.column
-        return ser.any()
+        return self._from_series(pd.Series([ser.any()], name=self.name))
 
     def all(self, *, skip_nulls: bool = True) -> PandasColumn:
         ser = self.column
-        return ser.all()
+        return self._from_series(pd.Series([ser.all()], name=self.name))
 
     def min(self, *, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return ser.min()
+        return self._from_series(pd.Series([ser.min()], name=self.name))
 
     def max(self, *, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return ser.max()
+        return self._from_series(pd.Series([ser.max()], name=self.name))
 
     def sum(self, *, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return ser.sum()
+        return self._from_series(pd.Series([ser.sum()], name=self.name))
 
     def prod(self, *, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return ser.prod()
+        return self._from_series(pd.Series([ser.prod()], name=self.name))
 
     def median(self, *, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return ser.median()
+        return self._from_series(pd.Series([ser.median()], name=self.name))
 
     def mean(self, *, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return ser.mean()
+        return self._from_series(pd.Series([ser.mean()], name=self.name))
 
     def std(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return ser.std()
+        return self._from_series(pd.Series([ser.std(ddof=correction)], name=self.name))
 
     def var(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return ser.var()
+        return self._from_series(pd.Series([ser.var(ddof=correction)], name=self.name))
 
     # Transformations
 
