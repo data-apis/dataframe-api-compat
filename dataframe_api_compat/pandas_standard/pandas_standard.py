@@ -84,6 +84,7 @@ class PandasColumn(Column):
         self,
         series,
         *,
+        id_: int,
         api_version: str | None = None,  # todo: propagate
     ) -> None:
         """
@@ -103,13 +104,16 @@ class PandasColumn(Column):
         self._name = series.name or ""
         self._column = series
         self._api_version = api_version
+        self._id = id_
         # TODO: keep track of output name
 
     def __repr__(self):
         return self.column.__repr__()
 
     def _from_series(self, series):
-        return PandasColumn(series.reset_index(drop=True), api_version=self._api_version)
+        return PandasColumn(
+            series.reset_index(drop=True), api_version=self._api_version, id_=self._id
+        )
 
     # In the standard
     def __column_namespace__(self) -> Any:
@@ -124,6 +128,8 @@ class PandasColumn(Column):
         return self._column
 
     def _resolve_comparand(self, other: Column | Any) -> Column | Any:
+        if isinstance(other, PandasColumn) and self._id != other._id:
+            raise ValueError("cannot compare columns from different dataframes")
         return other.column if isinstance(other, PandasColumn) else other
 
     def get_rows(self, indices: Column | PermissiveColumn[Any]) -> PandasColumn:
@@ -362,7 +368,11 @@ class ColumnDatetimeAccessor:
         self._api_version = column._api_version
 
     def _from_series(self, series):
-        return PandasColumn(series.reset_index(drop=True), api_version=self._api_version)
+        return PandasColumn(
+            series.reset_index(drop=True),
+            api_version=self._api_version,
+            id_=self.column._id,
+        )
 
     def year(self) -> Column:
         ser = self.column.column
@@ -545,12 +555,13 @@ class PandasDataFrame(DataFrame):
                 "Try updating dataframe-api-compat?"
             )
         self._api_version = api_version
+        self._id = id(dataframe)
 
     def __repr__(self) -> str:  # pragma: no cover
         return self.dataframe.__repr__()
 
     def col(self, name):
-        return PandasColumn(self.dataframe.loc[:, name])
+        return PandasColumn(self.dataframe.loc[:, name], id_=self._id)
 
     @property
     def schema(self) -> dict[str, Any]:
@@ -583,6 +594,10 @@ class PandasDataFrame(DataFrame):
                 "'any' can only be called on DataFrame " "where all dtypes are 'bool'"
             )
 
+    def _validate_column(self, column: Column) -> None:
+        if self._id != column._id:
+            raise ValueError("cannot compare columns from different dataframes")
+
     # In the standard
     def __dataframe_namespace__(self) -> Any:
         return dataframe_api_compat.pandas_standard
@@ -614,14 +629,16 @@ class PandasDataFrame(DataFrame):
         )
 
     def filter(self, mask: Column | PermissiveColumn[Any]) -> PandasDataFrame:
+        self._validate_column(mask)
         df = self.dataframe
         df = df.loc[mask.column]
         return PandasDataFrame(df, api_version=self._api_version)
 
     def assign(self, *columns: Column) -> PandasDataFrame:
         df = self.dataframe.copy()  # todo: remove defensive copy with CoW?
-        for col in columns:
-            df[col.name] = col.column
+        for column in columns:
+            self._validate_column(column)
+            df[column.name] = column.column
         return PandasDataFrame(df, api_version=self._api_version)
 
     def drop_columns(self, *labels: str) -> PandasDataFrame:
