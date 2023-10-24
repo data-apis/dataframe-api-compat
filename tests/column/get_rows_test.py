@@ -27,7 +27,7 @@ def test_expression_get_rows(library: str) -> None:
     ser = col("a")
     ser.__column_namespace__()
     indices = col("a") - 1
-    result = df.select(ser.get_rows(indices).rename("result"))
+    result = df.assign(ser.get_rows(indices).rename("result")).select("result")
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series([1, 2, 3], name="result")
     pd.testing.assert_series_equal(result_pd, expected)

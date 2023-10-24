@@ -147,7 +147,7 @@ class PandasColumn(Column):
 
     def get_value(self, row: int) -> Any:
         ser = self.column
-        return self._from_series(ser.iloc[row])
+        return ser.iloc[row]
 
     def __eq__(self, other: PandasColumn | Any) -> PandasColumn:  # type: ignore[override]
         other = other.column if isinstance(other, PandasColumn) else other
@@ -284,24 +284,28 @@ class PandasColumn(Column):
     def is_nan(self) -> PandasColumn:
         ser = self.column
         if is_extension_array_dtype(ser.dtype):
-            return np.isnan(ser).replace(pd.NA, False).astype(bool)
-        return ser.isna()
+            return self._from_series(np.isnan(ser).replace(pd.NA, False).astype(bool))
+        return self._from_series(ser.isna())
+
+    def sort(
+        self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
+    ) -> PandasColumn:
+        ser = self.column
+        if ascending:
+            return self._from_series(ser.sort_values().rename(self.name))
+        return self._from_series(ser.sort_values().rename(self.name)[::-1])
 
     def sorted_indices(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
     ) -> PandasColumn:
         ser = self.column
         if ascending:
-            return (
-                ser.sort_values().index.to_series(name=self.name).reset_index(drop=True)
-            )
-        return (
-            ser.sort_values().index.to_series(name=self.name)[::-1].reset_index(drop=True)
-        )
+            return self._from_series(ser.sort_values().index.to_series(name=self.name))
+        return self._from_series(ser.sort_values().index.to_series(name=self.name)[::-1])
 
-    def is_in(self, values: Column | PermissiveColumn[Any]) -> PandasColumn:
+    def is_in(self, values: Column) -> PandasColumn:
         ser = self.column
-        return ser.isin(values)
+        return self._from_series(ser.isin(values.column))
 
     def unique_indices(self, *, skip_nulls: bool = True) -> PandasColumn:
         raise NotImplementedError("not yet supported")
@@ -359,54 +363,51 @@ class PandasColumn(Column):
         """
         return ColumnDatetimeAccessor(self)
 
+    def to_array(self):
+        # todo put dtype here
+        return self.column.to_numpy()
+
 
 class ColumnDatetimeAccessor:
     def __init__(self, column: PandasColumn) -> None:
         self.eager = True
-        self.column = column._to_expression()
+        self.column = column
         self._api_version = column._api_version
 
-    def _return(self, expr: PandasColumn):
-        if not self.eager:
-            return expr
-        return (
-            PandasDataFrame(pd.DataFrame(), api_version=self._api_version)
-            .select(expr)
-            .collect()
-            .col(self.column.output_name())
-        )
+    def _from_series(self, series):
+        return PandasColumn(series.reset_index(drop=True), api_version=self._api_version)
 
     def year(self) -> Column:
-        expr = self.column._record_call(lambda ser, _rhs: ser.dt.year, None)
-        return self._return(expr)
+        ser = self.column.column
+        return self._from_series(ser.dt.year)
 
     def month(self) -> Column:
-        expr = self.column._record_call(lambda ser, _rhs: ser.dt.month, None)
-        return self._return(expr)
+        ser = self.column.column
+        return self._from_series(ser.dt.month)
 
     def day(self) -> Column:
-        expr = self.column._record_call(lambda ser, _rhs: ser.dt.day, None)
-        return self._return(expr)
+        ser = self.column.column
+        return self._from_series(ser.dt.day)
 
     def hour(self) -> Column:
-        expr = self.column._record_call(lambda ser, _rhs: ser.dt.hour, None)
-        return self._return(expr)
+        ser = self.column.column
+        return self._from_series(ser.dt.hour)
 
     def minute(self) -> Column:
-        expr = self.column._record_call(lambda ser, _rhs: ser.dt.minute, None)
-        return self._return(expr)
+        ser = self.column.column
+        return self._from_series(ser.dt.minute)
 
     def second(self) -> Column:
-        expr = self.column._record_call(lambda ser, _rhs: ser.dt.second, None)
-        return self._return(expr)
+        ser = self.column.column
+        return self._from_series(ser.dt.second)
 
     def microsecond(self) -> Column:
-        expr = self.column._record_call(lambda ser, _rhs: ser.dt.microsecond, None)
-        return self._return(expr)
+        ser = self.column.column
+        return self._from_series(ser.dt.microsecond)
 
     def iso_weekday(self) -> Column:
-        expr = self.column._record_call(lambda ser, _rhs: ser.dt.weekday + 1, None)
-        return self._return(expr)
+        ser = self.column.column
+        return self._from_series(ser.dt.weekday + 1)
 
     def floor(self, frequency: str) -> Column:
         frequency = (
@@ -418,16 +419,14 @@ class ColumnDatetimeAccessor:
             .replace("microsecond", "us")
             .replace("nanosecond", "ns")
         )
-
-        def func(ser, _rhs):
-            return ser.dt.floor(frequency)
-
-        return self._return(self.column._record_call(func, None))
+        ser = self.column.column
+        return self._from_series(ser.dt.floor(frequency))
 
     def unix_timestamp(self) -> PandasColumn:
-        def func(ser, _rhs):
-            if ser.dt.tz is None:
-                return pd.Series(
+        ser = self.column.column
+        if ser.dt.tz is None:
+            return self._from_series(
+                pd.Series(
                     np.floor(
                         ((ser - datetime(1970, 1, 1)).dt.total_seconds()).astype(
                             "float64"
@@ -435,8 +434,10 @@ class ColumnDatetimeAccessor:
                     ),
                     name=ser.name,
                 )
-            else:  # pragma: no cover (todo: tz-awareness)
-                return pd.Series(
+            )
+        else:  # pragma: no cover (todo: tz-awareness)
+            return self._from_series(
+                pd.Series(
                     np.floor(
                         (
                             (
@@ -447,8 +448,7 @@ class ColumnDatetimeAccessor:
                     ),
                     name=ser.name,
                 )
-
-        return self._return(self.column._record_call(func, None))
+            )
 
 
 class PandasGroupBy(GroupBy):
@@ -622,7 +622,7 @@ class PandasDataFrame(DataFrame):
 
     def get_rows(self, indices: Column) -> PandasDataFrame:
         return PandasDataFrame(
-            self.dataframe.iloc[indices, :],
+            self.dataframe.iloc[indices.column, :],
             api_version=self._api_version,
         )
 
@@ -924,3 +924,6 @@ class PandasDataFrame(DataFrame):
         return PandasDataFrame(
             self.dataframe, api_version=self._api_version, collected=True
         )
+
+    def to_array(self, dtype):
+        return self.dataframe.to_numpy(dtype)
