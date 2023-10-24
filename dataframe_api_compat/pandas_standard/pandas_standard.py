@@ -989,6 +989,8 @@ class PandasDataFrame(DataFrame):
         )
 
     def collect(self) -> PandasDataFrame:
+        if self._is_collected:
+            raise ValueError("Dataframe is already collected")
         return PandasDataFrame(
             self.dataframe, api_version=self._api_version, is_collected=True
         )

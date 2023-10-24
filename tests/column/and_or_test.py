@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 def test_column_and(library: str) -> None:
-    df = bool_dataframe_1(library, api_version="2023.09-beta").collect()
+    df = bool_dataframe_1(library, api_version="2023.09-beta")
     ser = df.col("a")
     other = df.col("b")
     result = df.assign((ser & other).rename("result"))
