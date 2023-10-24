@@ -123,6 +123,9 @@ class PandasColumn(Column):
     def column(self):
         return self._column
 
+    def _resolve_comparand(self, other: Column | Any) -> Column | Any:
+        return other.column if isinstance(other, PandasColumn) else other
+
     def get_rows(self, indices: Column | PermissiveColumn[Any]) -> PandasColumn:
         return self._from_series(self.column.iloc[indices.column])
 
@@ -134,78 +137,78 @@ class PandasColumn(Column):
         raise NotImplementedError("can't get value out, use to_array instead")
 
     def __eq__(self, other: PandasColumn | Any) -> PandasColumn:  # type: ignore[override]
-        other = other.column if isinstance(other, PandasColumn) else other
+        other = self._resolve_comparand(other)
         ser = self.column
         return self._from_series(ser == other).rename(ser.name)
 
     def __ne__(self, other: Column | PermissiveColumn[Any]) -> PandasColumn:  # type: ignore[override]
-        other = other.column if isinstance(other, PandasColumn) else other
+        other = self._resolve_comparand(other)
         ser = self.column
         return self._from_series(ser != other).rename(ser.name)
 
     def __ge__(self, other: Column | Any) -> PandasColumn:
-        other = other.column if isinstance(other, PandasColumn) else other
+        other = self._resolve_comparand(other)
         ser = self.column
         return self._from_series(ser >= other).rename(ser.name)
 
     def __gt__(self, other: Column | Any) -> PandasColumn:
-        other = other.column if isinstance(other, PandasColumn) else other
+        other = self._resolve_comparand(other)
         ser = self.column
         return self._from_series(ser > other).rename(ser.name)
 
     def __le__(self, other: Column | Any) -> PandasColumn:
-        other = other.column if isinstance(other, PandasColumn) else other
+        other = self._resolve_comparand(other)
         ser = self.column
         return self._from_series(ser <= other).rename(ser.name)
 
     def __lt__(self, other: Column | Any) -> PandasColumn:
-        other = other.column if isinstance(other, PandasColumn) else other
+        other = self._resolve_comparand(other)
         ser = self.column
         return self._from_series(ser < other).rename(ser.name)
 
     def __and__(self, other: Column | bool) -> PandasColumn:
         ser = self.column
-        other = other.column if isinstance(other, PandasColumn) else other
+        other = self._resolve_comparand(other)
         return self._from_series(ser & other).rename(ser.name)
 
     def __or__(self, other: Column | bool) -> PandasColumn:
         ser = self.column
-        other = other.column if isinstance(other, PandasColumn) else other
+        other = self._resolve_comparand(other)
         return self._from_series(ser | other).rename(ser.name)
 
     def __add__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
-        other = other.column if isinstance(other, PandasColumn) else other
+        other = self._resolve_comparand(other)
         return self._from_series(ser + other).rename(ser.name)
 
     def __sub__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
-        other = other.column if isinstance(other, PandasColumn) else other
+        other = self._resolve_comparand(other)
         return self._from_series(ser - other).rename(ser.name)
 
     def __mul__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
-        other = other.column if isinstance(other, PandasColumn) else other
+        other = self._resolve_comparand(other)
         return self._from_series(ser * other).rename(ser.name)
 
     def __truediv__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
-        other = other.column if isinstance(other, PandasColumn) else other
+        other = self._resolve_comparand(other)
         return self._from_series(ser / other).rename(ser.name)
 
     def __floordiv__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
-        other = other.column if isinstance(other, PandasColumn) else other
+        other = self._resolve_comparand(other)
         return self._from_series(ser // other).rename(ser.name)
 
     def __pow__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
-        other = other.column if isinstance(other, PandasColumn) else other
+        other = self._resolve_comparand(other)
         return self._from_series(ser**other).rename(ser.name)
 
     def __mod__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
-        other = other.column if isinstance(other, PandasColumn) else other
+        other = self._resolve_comparand(other)
         return self._from_series(ser % other).rename(ser.name)
 
     def __divmod__(self, other: Column | Any) -> tuple[PandasColumn, PandasColumn]:
