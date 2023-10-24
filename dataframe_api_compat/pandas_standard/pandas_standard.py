@@ -19,6 +19,18 @@ import dataframe_api_compat.pandas_standard
 
 DType = TypeVar("DType")
 
+NUMPY_MAPPING = {
+    "Int64": "int64",
+    "Int32": "int32",
+    "Int16": "int16",
+    "Int8": "int8",
+    "UInt64": "uint64",
+    "UInt32": "uint32",
+    "UInt16": "uint16",
+    "UInt8": "uint8",
+    "Bool": "bool",
+}
+
 
 class Null:
     ...
@@ -366,9 +378,10 @@ class PandasColumn(Column):
         return ColumnDatetimeAccessor(self)
 
     def to_array(self):
-        # todo put dtype here
         self._df._validate_is_collected("Column.to_array")
-        return self.column.to_numpy()
+        return self.column.to_numpy(
+            dtype=NUMPY_MAPPING.get(self.column.dtype.name, self.column.dtype.name)
+        )
 
 
 class ColumnDatetimeAccessor:
