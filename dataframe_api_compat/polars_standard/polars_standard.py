@@ -178,7 +178,7 @@ class PolarsColumn:
         self,
         expr: pl.Expr,
         *,
-        df: pl.DataFrame,
+        df: PolarsDataFrame,
         api_version: str | None = None,
     ) -> None:
         self._expr = expr
@@ -214,7 +214,8 @@ class PolarsColumn:
         return self._from_expr(self._expr.filter(mask._expr))
 
     def get_value(self, row: int) -> Any:
-        raise NotImplementedError("can't get value out, use to_array instead")
+        self._df._validate_is_collected("Column.get_value")
+        return self._df.dataframe.select(self._expr)[self.name][row]
 
     def __iter__(self) -> NoReturn:
         raise NotImplementedError()
@@ -437,7 +438,6 @@ class ColumnDatetimeAccessor:
 class PolarsDataFrame(DataFrame):
     def __init__(self, df: pl.LazyFrame | pl.DataFrame, api_version: str) -> None:
         self.df = df
-        self._id = id(df)
         if api_version not in SUPPORTED_VERSIONS:
             raise AssertionError(
                 "Unsupported API version, expected one of: "
@@ -446,10 +446,22 @@ class PolarsDataFrame(DataFrame):
             )
         self._api_version = api_version
 
+    @property
+    def _is_collected(self):
+        return isinstance(self.dataframe, pl.DataFrame)
+
+    def _validate_is_collected(self, method: str) -> None:
+        if not self._is_collected:
+            raise ValueError(
+                f"Method {method} requires you to call `.collect` first.\n"
+                "\n"
+                "Note: `.collect` forces materialisation in lazy libraries and "
+                "so should be called as late as possible in your pipeline, and "
+                "only once per dataframe."
+            )
+
     def col(self, value) -> PolarsColumn:
-        return PolarsColumn(
-            pl.col(value), df=self.dataframe, api_version=self._api_version
-        )
+        return PolarsColumn(pl.col(value), df=self, api_version=self._api_version)
 
     @property
     def schema(self) -> dict[str, Any]:
@@ -509,7 +521,7 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(self.df[start:stop:step], api_version=self._api_version)
 
     def _validate_column(self, column: PolarsColumn) -> None:
-        if id(self.dataframe) != id(column._df):
+        if id(self) != id(column._df):
             raise ValueError("Column is from a different dataframe")
 
     def filter(self, mask: Column) -> PolarsDataFrame:
