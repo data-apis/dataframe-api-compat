@@ -10,6 +10,6 @@ def pytest_generate_tests(metafunc: Any) -> None:
             [
                 "pandas-numpy",
                 "pandas-nullable",
-                # "polars-lazy",
+                "polars-lazy",
             ],
         )

@@ -20,11 +20,8 @@ from tests.utils import null_dataframe_2
         ["b"],
     ],
 )
-@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
-def test_fill_null(
-    library: str, column_names: list[str] | None, relax: Callable[[Any], Any]
-) -> None:
-    df = relax(null_dataframe_2(library))
+def test_fill_null(library: str, column_names: list[str] | None) -> None:
+    df = null_dataframe_2(library)
     df.__dataframe_namespace__()
     result = df.fill_null(0, column_names=column_names)
 

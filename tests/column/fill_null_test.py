@@ -6,7 +6,7 @@ from tests.utils import null_dataframe_2
 
 
 def test_fill_null_column(library: str) -> None:
-    df = null_dataframe_2(library).collect()
+    df = null_dataframe_2(library)
     ser = df.col("a")
     result = df.assign(ser.fill_null(0).rename("result"))
     result = maybe_collect(result)["result"]
@@ -16,7 +16,7 @@ def test_fill_null_column(library: str) -> None:
 
 
 def test_fill_null_noop_column(library: str) -> None:
-    df = nan_dataframe_1(library).collect()
+    df = nan_dataframe_1(library)
     ser = df.col("a")
     result = df.assign(ser.fill_null(0).rename("result"))
     result = maybe_collect(result)["result"]

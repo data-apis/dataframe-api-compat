@@ -71,6 +71,7 @@ def convert_to_standard_compliant_column(ser: pd.Series[Any] | pl.Series) -> Any
             ser, None
         )
     elif isinstance(ser, pl.Series):
+        raise NotImplementedError()
         return dataframe_api_compat.polars_standard.convert_to_standard_compliant_column(
             ser, None
         )

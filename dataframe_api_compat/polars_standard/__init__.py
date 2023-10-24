@@ -12,8 +12,6 @@ from dataframe_api_compat.polars_standard.polars_standard import null
 from dataframe_api_compat.polars_standard.polars_standard import PolarsColumn
 from dataframe_api_compat.polars_standard.polars_standard import PolarsDataFrame
 from dataframe_api_compat.polars_standard.polars_standard import PolarsGroupBy
-from dataframe_api_compat.polars_standard.polars_standard import PolarsPermissiveColumn
-from dataframe_api_compat.polars_standard.polars_standard import PolarsPermissiveFrame
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -21,9 +19,7 @@ if TYPE_CHECKING:
 
 col = PolarsColumn
 Column = col
-PermissiveColumn = PolarsPermissiveColumn
 DataFrame = PolarsDataFrame
-PermissiveFrame = PolarsPermissiveFrame
 GroupBy = PolarsGroupBy
 
 PolarsType = TypeVar("PolarsType", pl.DataFrame, pl.LazyFrame)
@@ -175,10 +171,10 @@ def concat(dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
 
 
 def dataframe_from_dict(
-    data: dict[str, PolarsPermissiveColumn[Any]], *, api_version: str | None = None
+    data: dict[str, PolarsColumn[Any]], *, api_version: str | None = None
 ) -> PolarsDataFrame:
     for _, col in data.items():
-        if not isinstance(col, PolarsPermissiveColumn):  # pragma: no cover
+        if not isinstance(col, PolarsColumn):  # pragma: no cover
             raise TypeError(f"Expected PolarsPermissiveColumn, got {type(col)}")
         if isinstance(col.column, pl.Expr):
             raise NotImplementedError(
@@ -194,24 +190,24 @@ def dataframe_from_dict(
 
 def column_from_1d_array(
     data: Any, *, dtype: Any, name: str, api_version: str | None = None
-) -> PolarsPermissiveColumn[Any]:  # pragma: no cover
+) -> PolarsColumn[Any]:  # pragma: no cover
     ser = pl.Series(values=data, dtype=_map_standard_to_polars_dtypes(dtype), name=name)
-    return PolarsPermissiveColumn(ser, api_version=api_version or LATEST_API_VERSION)
+    return PolarsColumn(ser, api_version=api_version or LATEST_API_VERSION)
 
 
-def column_from_sequence(
-    sequence: Sequence[Any],
-    *,
-    dtype: Any,
-    name: str | None = None,
-    api_version: str | None = None,
-) -> PolarsPermissiveColumn[Any]:
-    return PolarsPermissiveColumn(
-        pl.Series(
-            values=sequence, dtype=_map_standard_to_polars_dtypes(dtype), name=name
-        ),
-        api_version=api_version or LATEST_API_VERSION,
-    )
+# def column_from_sequence(
+#     sequence: Sequence[Any],
+#     *,
+#     dtype: Any,
+#     name: str | None = None,
+#     api_version: str | None = None,
+# ) -> PolarsPermissiveColumn[Any]:
+#     return PolarsPermissiveColumn(
+#         pl.Series(
+#             values=sequence, dtype=_map_standard_to_polars_dtypes(dtype), name=name
+#         ),
+#         api_version=api_version or LATEST_API_VERSION,
+#     )
 
 
 def dataframe_from_2d_array(
@@ -235,12 +231,6 @@ def convert_to_standard_compliant_dataframe(
 ) -> PolarsDataFrame:
     df_lazy = df.lazy() if isinstance(df, pl.DataFrame) else df
     return PolarsDataFrame(df_lazy, api_version=api_version or LATEST_API_VERSION)
-
-
-def convert_to_standard_compliant_column(
-    ser: pl.Series, api_version: str | None = None
-) -> PolarsPermissiveColumn[Any]:  # pragma: no cover  (todo: is this even needed?)
-    return PolarsPermissiveColumn(ser, api_version=api_version or LATEST_API_VERSION)
 
 
 def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:

@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 import pandas as pd
 
 from tests.utils import integer_dataframe_1
-from tests.utils import integer_series_1
 from tests.utils import integer_series_5
 from tests.utils import interchange_to_pandas
 
@@ -27,6 +26,6 @@ def test_std(library: str, request: pytest.FixtureRequest) -> None:
     assert abs(result - 1.7320508075688772) < 1e-8
 
 
-def test_column_max(library: str) -> None:
-    result = integer_series_1(library).max()
-    assert result == 3
+# def test_column_max(library: str) -> None:
+#     result = integer_series_1(library).max()
+#     assert result == 3
