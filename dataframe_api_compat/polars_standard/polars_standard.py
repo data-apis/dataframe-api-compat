@@ -217,6 +217,10 @@ class PolarsColumn:
         self._df._validate_is_collected("Column.get_value")
         return self._df.dataframe.select(self._expr)[self.name][row]
 
+    def to_array(self) -> Any:
+        self._df._validate_is_collected("Column.to_array")
+        return self._df.dataframe.select(self._expr)[self.name].to_numpy()
+
     def __iter__(self) -> NoReturn:
         raise NotImplementedError()
 
