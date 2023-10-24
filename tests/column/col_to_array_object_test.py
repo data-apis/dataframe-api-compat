@@ -30,8 +30,7 @@ def test_column_to_array_object(library: str, dtype: str) -> None:
 
 
 def test_column_to_array_object_bool(library: str) -> None:
-    dtype = "bool"
     df = bool_dataframe_1(library).collect().col("a")
-    result = np.asarray(df.to_array_object(dtype=dtype))
-    expected = np.array([True, False, True], dtype="bool")
+    result = np.asarray(df.to_array())
+    expected = np.array([True, True, False], dtype="bool")
     np.testing.assert_array_equal(result, expected)
