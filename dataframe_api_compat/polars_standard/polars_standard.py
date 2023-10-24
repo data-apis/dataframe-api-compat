@@ -510,9 +510,7 @@ class PolarsDataFrame(DataFrame):
             if isinstance(col, PolarsColumn):
                 new_columns.append(col._expr)
             else:
-                raise AssertionError(
-                    f"Expected PolarsColumn or PolarsPermissiveColumn, got: {type(col)}"
-                )
+                raise AssertionError(f"Expected PolarsColumn, got: {type(col)}")
         df = self.dataframe.with_columns(new_columns)
         return PolarsDataFrame(df, api_version=self._api_version)
 
