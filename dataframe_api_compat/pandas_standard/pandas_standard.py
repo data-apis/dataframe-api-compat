@@ -383,6 +383,10 @@ class PandasColumn(Column):
             dtype=NUMPY_MAPPING.get(self.column.dtype.name, self.column.dtype.name)
         )
 
+    def __len__(self):
+        self._df._validate_is_collected("Column.__len__")
+        return len(self.column)
+
 
 class ColumnDatetimeAccessor:
     def __init__(self, column: PandasColumn) -> None:

@@ -388,6 +388,10 @@ class PolarsColumn:
         """
         return ColumnDatetimeAccessor(self)
 
+    def __len__(self) -> int:
+        self._df._validate_is_collected("Column.__len__")
+        return len(self._df.dataframe.select(self._expr)[self.name])
+
 
 class ColumnDatetimeAccessor:
     def __init__(self, column: PolarsColumn) -> None:
@@ -817,13 +821,5 @@ class PolarsDataFrame(DataFrame):
         raise ValueError("DataFrame was already collected")
 
     def to_array(self, dtype) -> Any:
-        if not isinstance(self.dataframe, pl.DataFrame):
-            raise ValueError(
-                "to_array() can only be called if the dataframe has already been collected.\n"
-                "\n"
-                "Try calling .collect() first.\n"
-                "\n"
-                "NOTE: `.collect()` forces materialisation. Only call it once per dataframe, and "
-                "as late as possible in your pipeline!"
-            )
+        self._validate_is_collected("DataFrame.to_array")
         return self.dataframe.to_numpy()
