@@ -261,51 +261,59 @@ class PolarsColumn:
     def var(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
         return self._from_expr(self._expr.var())
 
+    def _validate_comparand(self, other: PolarsColumn | Any) -> PolarsColumn | Any:
+        if isinstance(other, PolarsColumn):
+            if self._id != other._id:
+                raise ValueError("Columns are from different dataframes")
+            return other.expr
+
+        return other
+
     def __eq__(self, other: PolarsColumn | Any) -> PolarsColumn:  # type: ignore[override]
-        other = other._expr if isinstance(other, PolarsColumn) else other
+        self._validate_comparand(other)
         return self._from_expr(self._expr == other)
 
     def __ne__(self, other: PolarsColumn | Any) -> PolarsColumn:  # type: ignore[override]
-        other = other._expr if isinstance(other, PolarsColumn) else other
+        self._validate_comparand(other)
         return self._from_expr(self._expr != other)
 
     def __ge__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        other = other._expr if isinstance(other, PolarsColumn) else other
+        self._validate_comparand(other)
         return self._from_expr(self._expr >= other)
 
     def __gt__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        other = other._expr if isinstance(other, PolarsColumn) else other
+        self._validate_comparand(other)
         return self._from_expr(self._expr > other)
 
     def __le__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        other = other._expr if isinstance(other, PolarsColumn) else other
+        self._validate_comparand(other)
         return self._from_expr(self._expr <= other)
 
     def __lt__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        other = other._expr if isinstance(other, PolarsColumn) else other
+        self._validate_comparand(other)
         return self._from_expr(self._expr < other)
 
     def __mul__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        other = other._expr if isinstance(other, PolarsColumn) else other
+        self._validate_comparand(other)
         res = self._expr * other
         return self._from_expr(res)
 
     def __floordiv__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        other = other._expr if isinstance(other, PolarsColumn) else other
+        self._validate_comparand(other)
         return self._from_expr(self._expr // other)
 
     def __truediv__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        other = other._expr if isinstance(other, PolarsColumn) else other
+        self._validate_comparand(other)
         res = self._expr / other
         return self._from_expr(res)
 
     def __pow__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        other = other._expr if isinstance(other, PolarsColumn) else other
+        self._validate_comparand(other)
         ret = self._expr.pow(other)  # type: ignore[arg-type]
         return self._from_expr(ret)
 
     def __mod__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        other = other._expr if isinstance(other, PolarsColumn) else other
+        self._validate_comparand(other)
         return self._from_expr(self._expr % other)
 
     def __divmod__(
@@ -318,22 +326,22 @@ class PolarsColumn:
         return quotient, remainder
 
     def __and__(self, other: PolarsColumn | bool) -> PolarsColumn:
-        other = other._expr if isinstance(other, PolarsColumn) else other
+        self._validate_comparand(other)
         return self._from_expr(self._expr & other)  # type: ignore[operator]
 
     def __or__(self, other: PolarsColumn | bool) -> PolarsColumn:
-        other = other._expr if isinstance(other, PolarsColumn) else other
+        self._validate_comparand(other)
         return self._from_expr(self._expr | other)
 
     def __invert__(self) -> PolarsColumn:
         return self._from_expr(~self._expr)
 
     def __add__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        other = other._expr if isinstance(other, PolarsColumn) else other
+        self._validate_comparand(other)
         return self._from_expr(self._expr + other)
 
     def __sub__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        other = other._expr if isinstance(other, PolarsColumn) else other
+        self._validate_comparand(other)
         return self._from_expr(self._expr - other)
 
     def sorted_indices(
