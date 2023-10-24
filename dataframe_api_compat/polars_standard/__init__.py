@@ -244,7 +244,7 @@ def dataframe_from_2d_array(
 
 
 def convert_to_standard_compliant_column(
-    ser: pl.LazyFrame, api_version: str | None = None
+    ser: pl.Series, api_version: str | None = None
 ) -> PolarsDataFrame:
     df = (
         ser.to_frame()
