@@ -642,6 +642,13 @@ class PandasDataFrame(DataFrame):
     def column_names(self) -> list[str]:
         return self.dataframe.columns.tolist()
 
+    def slice_rows(
+        self, start: int | None, stop: int | None, step: int | None
+    ) -> PandasDataFrame:
+        return PandasDataFrame(
+            self.dataframe.iloc[start:stop:step], api_version=self._api_version
+        )
+
     @property
     def dataframe(self) -> pd.DataFrame:
         return self._dataframe
