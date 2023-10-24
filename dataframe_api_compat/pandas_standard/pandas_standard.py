@@ -141,9 +141,8 @@ class PandasColumn(Column):
         self._column = series
         self._api_version = api_version
         self._df = df
-        # TODO: keep track of output name
 
-    def __repr__(self):
+    def __repr__(self):  # pragma: no cover
         return self.column.__repr__()
 
     def _from_series(self, series):
@@ -184,8 +183,7 @@ class PandasColumn(Column):
         return self._from_series(ser.loc[mask.column])
 
     def get_value(self, row: int) -> Any:
-        if not self._df._is_collected:
-            self._df._validate_is_collected("Column.get_value")
+        self._df._validate_is_collected("Column.get_value")
         return self.column.iloc[row]
 
     def slice_rows(

@@ -539,14 +539,9 @@ class PolarsDataFrame(DataFrame):
     def select(self, *columns: str | Column | PermissiveColumn[Any]) -> PolarsDataFrame:
         resolved_names = []
         for name in columns:
-            if isinstance(name, PolarsColumn):
-                resolved_names.append(name._expr)
-            elif isinstance(name, str):
-                resolved_names.append(name)
-            else:
-                raise AssertionError(f"Expected str or PolarsColumn, got: {type(name)}")
+            resolved_names.append(name)
         return PolarsDataFrame(
-            self.df.select(resolved_names), api_version=self._api_version
+            self.df.select(list(columns)), api_version=self._api_version
         )
 
     def get_rows(self, indices: PolarsColumn) -> PolarsDataFrame:  # type: ignore[override]

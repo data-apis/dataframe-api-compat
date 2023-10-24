@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import re
 from typing import Any
-from typing import Literal
 from typing import TYPE_CHECKING
 
 import pandas as pd
@@ -16,12 +15,6 @@ from dataframe_api_compat.pandas_standard.pandas_standard import PandasGroupBy
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from dataframe_api._types import DType
-
-
-def col(name: str) -> PandasColumn:
-    return PandasColumn(
-        root_names=[name], output_name=name, base_call=lambda df: df.loc[:, name]
-    )
 
 
 Column = PandasColumn
@@ -288,47 +281,3 @@ def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:
         if _kind == "string":
             dtypes.add(String)
     return isinstance(dtype, tuple(dtypes))
-
-
-def any_rowwise(*columns: str, skip_nulls: bool = True) -> PandasColumn:
-    # todo: accept expressions
-    def func(df):
-        return df.loc[:, list(columns) or df.columns.tolist()].any(axis=1)
-
-    return PandasColumn(root_names=list(columns), output_name="any", base_call=func)
-
-
-def all_rowwise(*columns: str, skip_nulls: bool = True) -> PandasColumn:
-    def func(df: pd.DataFrame) -> pd.Series:
-        return df.loc[:, list(columns) or df.columns.tolist()].all(axis=1)
-
-    return PandasColumn(root_names=list(columns), output_name="all", base_call=func)
-
-
-def sorted_indices(
-    *keys: str,
-    ascending: Sequence[bool] | bool = True,
-    nulls_position: Literal["first", "last"] = "last",
-) -> Column:
-    def func(df: pd.DataFrame) -> pd.Series:
-        if ascending:
-            return (
-                df.loc[:, list(keys)]
-                .sort_values(list(keys))
-                .index.to_series()
-                .reset_index(drop=True)
-            )
-        return (
-            df.loc[:, list(keys)]
-            .sort_values(list(keys))
-            .index.to_series()[::-1]
-            .reset_index(drop=True)
-        )
-
-    return PandasColumn(root_names=list(keys), output_name="indices", base_call=func)
-
-
-def unique_indices(
-    keys: str | list[str] | None = None, *, skip_nulls: bool = True
-) -> Column:
-    raise NotImplementedError("namespace.unique_indices not implemented for pandas yet")

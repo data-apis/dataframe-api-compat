@@ -248,17 +248,3 @@ def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:
         if _kind == "string":
             dtypes.add(String)
     return isinstance(dtype, tuple(dtypes))
-
-
-def any_rowwise(*columns: str, skip_nulls: bool = True):
-    return PolarsColumn(pl.any_horizontal(list(columns) or "*").alias("any"))
-
-
-def all_rowwise(*columns: str, skip_nulls: bool = True):
-    return PolarsColumn(pl.all_horizontal(list(columns) or "*").alias("all"))
-
-
-def unique_indices(
-    keys: str | list[str] | None = None, *, skip_nulls: bool = True
-) -> Column:
-    raise NotImplementedError("namespace.unique_indices not implemented for polars yet")
