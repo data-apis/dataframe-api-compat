@@ -97,6 +97,25 @@ LATEST_API_VERSION = "2023.09-beta"
 SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.08-beta"))
 
 
+class PolarsScalar:
+    def __init__(self, value, api_version, df: PolarsDataFrame):
+        self._value = value
+        self._api_version = api_version
+        self._df = df
+
+    def __bool__(self):
+        self._df._validate_is_collected("Scalar.__bool__")
+        return self._df._materialise(self._value).item().__bool__()
+
+    def __int__(self):
+        self._df._validate_is_collected("Scalar.__int__")
+        return self._df._materialise(self._value).item().__int__()
+
+    def __float__(self):
+        self._df._validate_is_collected("Scalar.__float__")
+        return self._df._materialise(self._value).item().__float__()
+
+
 class PolarsGroupBy(GroupBy):
     def __init__(self, df: pl.LazyFrame, keys: Sequence[str], api_version: str) -> None:
         assert isinstance(df, pl.LazyFrame)
@@ -193,6 +212,20 @@ class PolarsColumn:
     def __column_namespace__(self) -> Any:  # pragma: no cover
         return dataframe_api_compat.polars_standard
 
+    def _validate_comparand(self, other: PolarsColumn | Any) -> PolarsColumn | Any:
+        if isinstance(other, PolarsScalar):
+            if id(self._df) != id(other._df):
+                raise ValueError("Columns/scalars are from different dataframes")
+            return other._value
+        if isinstance(other, PolarsColumn):
+            if id(self._df) != id(other._df):
+                raise ValueError("Columns are from different dataframes")
+            return other._expr
+        return other
+
+    def _to_scalar(self, value):
+        return PolarsScalar(value, api_version=self._api_version, df=self._df)
+
     @property
     def name(self):
         return self._name
@@ -236,42 +269,39 @@ class PolarsColumn:
     def is_nan(self) -> PolarsColumn:
         return self._from_expr(self._expr.is_nan())
 
+    # Reductions
+
     def any(self, *, skip_nulls: bool = True) -> bool | None:
-        return self._from_expr(self._expr.any())
+        return self._to_scalar(self._expr.any())
 
     def all(self, *, skip_nulls: bool = True) -> bool | None:
-        return self._from_expr(self._expr.all())
+        return self._to_scalar(self._expr.all())
 
     def min(self, *, skip_nulls: bool = True) -> Any:
-        return self._from_expr(self._expr.min())
+        return self._to_scalar(self._expr.min())
 
     def max(self, *, skip_nulls: bool = True) -> Any:
-        return self._from_expr(self._expr.max())
+        return self._to_scalar(self._expr.max())
 
     def sum(self, *, skip_nulls: bool = True) -> Any:
-        return self._from_expr(self._expr.sum())
+        return self._to_scalar(self._expr.sum())
 
     def prod(self, *, skip_nulls: bool = True) -> Any:
-        return self._from_expr(self._expr.product())
+        return self._to_scalar(self._expr.product())
 
     def mean(self, *, skip_nulls: bool = True) -> Any:
-        return self._from_expr(self._expr.mean())
+        return self._to_scalar(self._expr.mean())
 
     def median(self, *, skip_nulls: bool = True) -> Any:
-        return self._from_expr(self._expr.median())
+        return self._to_scalar(self._expr.median())
 
     def std(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
-        return self._from_expr(self._expr.std())
+        return self._to_scalar(self._expr.std())
 
     def var(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
-        return self._from_expr(self._expr.var())
+        return self._to_scalar(self._expr.var())
 
-    def _validate_comparand(self, other: PolarsColumn | Any) -> PolarsColumn | Any:
-        if isinstance(other, PolarsColumn):
-            if id(self._df) != id(other._df):
-                raise ValueError("Columns are from different dataframes")
-            return other._expr
-        return other
+    # Binary
 
     def __eq__(self, other: PolarsColumn | Any) -> PolarsColumn:  # type: ignore[override]
         other = self._validate_comparand(other)
@@ -457,6 +487,9 @@ class PolarsDataFrame(DataFrame):
     @property
     def _is_collected(self):
         return isinstance(self.dataframe, pl.DataFrame)
+
+    def _materialise(self, expr):
+        return self.dataframe.select(expr)[expr.meta.output_name()]
 
     def _validate_is_collected(self, method: str) -> None:
         if not self._is_collected:

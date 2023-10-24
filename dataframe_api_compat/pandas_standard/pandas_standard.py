@@ -28,7 +28,7 @@ NUMPY_MAPPING = {
     "UInt32": "uint32",
     "UInt16": "uint16",
     "UInt8": "uint8",
-    "Bool": "bool",
+    "boolean": "bool",
 }
 
 
@@ -91,6 +91,30 @@ else:
         ...
 
 
+class PandasScalar:
+    def __init__(self, value, api_version, df: PandasDataFrame):
+        self._value = value
+        self._api_version = api_version
+        self._df = df
+
+    def __getattr__(self, _value):
+        raise NotImplementedError(
+            "Standalone scalars are intentionally not supported for now"
+        )
+
+    def __bool__(self):
+        self._df._validate_is_collected("Scalar.__bool__")
+        return self._value.__bool__()
+
+    def __int__(self):
+        self._df._validate_is_collected("Scalar.__int__")
+        return self._value.__int__()
+
+    def __float__(self):
+        self._df._validate_is_collected("Scalar.__float__")
+        return self._value.__float__()
+
+
 class PandasColumn(Column):
     def __init__(
         self,
@@ -128,12 +152,15 @@ class PandasColumn(Column):
         )
 
     def _validate_comparand(self, other: Column | Any) -> Column | Any:
+        if isinstance(other, PandasScalar):
+            if id(self._df) != id(other._df):
+                raise ValueError(
+                    "cannot compare columns/scalars from different dataframes"
+                )
+            return other._value
         if isinstance(other, PandasColumn):
             if id(self._df) != id(other._df):
                 raise ValueError("cannot compare columns from different dataframes")
-            if len(other.column) == 1 and len(self.column) > 1:
-                # Let pandas take care of broadcasting
-                return other.column[0]
             return other.column
         return other
 
@@ -256,43 +283,47 @@ class PandasColumn(Column):
 
     def any(self, *, skip_nulls: bool = True) -> PandasColumn:
         ser = self.column
-        return self._from_series(pd.Series([ser.any()], name=self.name))
+        return PandasScalar(ser.any(), api_version=self._api_version, df=self._df)
 
     def all(self, *, skip_nulls: bool = True) -> PandasColumn:
         ser = self.column
-        return self._from_series(pd.Series([ser.all()], name=self.name))
+        return PandasScalar(ser.all(), api_version=self._api_version, df=self._df)
 
     def min(self, *, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return self._from_series(pd.Series([ser.min()], name=self.name))
+        return PandasScalar(ser.min(), api_version=self._api_version, df=self._df)
 
     def max(self, *, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return self._from_series(pd.Series([ser.max()], name=self.name))
+        return PandasScalar(ser.max(), api_version=self._api_version, df=self._df)
 
     def sum(self, *, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return self._from_series(pd.Series([ser.sum()], name=self.name))
+        return PandasScalar(ser.sum(), api_version=self._api_version, df=self._df)
 
     def prod(self, *, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return self._from_series(pd.Series([ser.prod()], name=self.name))
+        return PandasScalar(ser.prod(), api_version=self._api_version, df=self._df)
 
     def median(self, *, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return self._from_series(pd.Series([ser.median()], name=self.name))
+        return PandasScalar(ser.median(), api_version=self._api_version, df=self._df)
 
     def mean(self, *, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return self._from_series(pd.Series([ser.mean()], name=self.name))
+        return PandasScalar(ser.mean(), api_version=self._api_version, df=self._df)
 
     def std(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return self._from_series(pd.Series([ser.std(ddof=correction)], name=self.name))
+        return PandasScalar(
+            ser.std(ddof=correction), api_version=self._api_version, df=self._df
+        )
 
     def var(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return self._from_series(pd.Series([ser.var(ddof=correction)], name=self.name))
+        return PandasScalar(
+            ser.var(ddof=correction), api_version=self._api_version, df=self._df
+        )
 
     # Transformations
 
