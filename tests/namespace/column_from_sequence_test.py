@@ -39,14 +39,12 @@ def test_column_from_sequence(
 ) -> None:
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
-    ser = namespace.col("a")
+    ser = df.col("a")
     namespace = ser.__column_namespace__()
-    result = namespace.dataframe_from_dict(
-        {
-            "result": namespace.column_from_sequence(
-                values, dtype=getattr(namespace, dtype)(), name="result"
-            )
-        }
+    result = namespace.dataframe_from_columns(
+        namespace.column_from_sequence(
+            values, dtype=getattr(namespace, dtype)(), name="result"
+        )
     )
     result_pd = interchange_to_pandas(result, library)["result"]
     pd.testing.assert_series_equal(result_pd, expected)

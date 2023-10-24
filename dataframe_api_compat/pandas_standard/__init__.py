@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import re
 from typing import Any
-from typing import Literal
 from typing import TYPE_CHECKING
 
 import pandas as pd
@@ -12,24 +11,14 @@ from dataframe_api_compat.pandas_standard.pandas_standard import null
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasColumn
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasDataFrame
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasGroupBy
-from dataframe_api_compat.pandas_standard.pandas_standard import PandasPermissiveColumn
-from dataframe_api_compat.pandas_standard.pandas_standard import PandasPermissiveFrame
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from dataframe_api._types import DType
 
 
-def col(name: str) -> PandasColumn:
-    return PandasColumn(
-        root_names=[name], output_name=name, base_call=lambda df: df.loc[:, name]
-    )
-
-
 Column = PandasColumn
-PermissiveColumn = PandasPermissiveColumn
 DataFrame = PandasDataFrame
-PermissiveFrame = PandasPermissiveFrame
 GroupBy = PandasGroupBy
 
 
@@ -197,8 +186,10 @@ def convert_to_standard_compliant_column(
         api_version = LATEST_API_VERSION
     if ser.name is not None and not isinstance(ser.name, str):
         raise ValueError(f"Expected column with string name, got: {ser.name}")
-    name = ser.name or ""
-    return PandasPermissiveColumn(ser.rename(name), api_version=api_version)
+    if ser.name is None:
+        ser = ser.rename("")
+    df = ser.to_frame().__dataframe_consortium_standard__().collect()
+    return PandasColumn(df.col(ser.name).column, api_version=api_version, df=df)
 
 
 def convert_to_standard_compliant_dataframe(
@@ -233,32 +224,32 @@ def concat(dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:
     )
 
 
-def column_from_sequence(
-    sequence: Sequence[Any], *, dtype: Any, name: str, api_version: str | None = None
-) -> PandasPermissiveColumn[Any]:
-    ser = pd.Series(sequence, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
-    return PandasPermissiveColumn(ser, api_version=api_version or LATEST_API_VERSION)
-
-
-def dataframe_from_dict(
-    data: dict[str, PandasPermissiveColumn[Any]], api_version: str | None = None
-) -> PandasDataFrame:
-    for _, col in data.items():
-        if not isinstance(col, PandasPermissiveColumn):  # pragma: no cover
-            raise TypeError(f"Expected PandasPermissiveColumn, got {type(col)}")
-    return PandasDataFrame(
-        pd.DataFrame(
-            {label: column.column.rename(label) for label, column in data.items()}
-        ),
-        api_version=api_version or LATEST_API_VERSION,
-    )
+def dataframe_from_columns(*columns: PandasColumn) -> PandasDataFrame:
+    data = {}
+    api_version = set()
+    for col in columns:
+        col._df._validate_is_collected("dataframe_from_columns")
+        data[col.name] = col.column
+        api_version.add(col._api_version)
+    return PandasDataFrame(pd.DataFrame(data), list(api_version)[0])
 
 
 def column_from_1d_array(
-    data: Any, *, dtype: Any, name: str | None = None, api_version: str | None = None
-) -> PandasPermissiveColumn[Any]:  # pragma: no cover
+    data: Any, *, dtype: Any, name: str | None = None
+) -> PandasColumn[Any]:  # pragma: no cover
     ser = pd.Series(data, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
-    return PandasPermissiveColumn(ser, api_version=api_version or LATEST_API_VERSION)
+    df = ser.to_frame().__dataframe_consortium_standard__().collect()
+    # todo: propagate api version
+    return PandasColumn(df.col(name).column, api_version=LATEST_API_VERSION, df=df)
+
+
+def column_from_sequence(
+    sequence: Sequence[Any], *, dtype: Any, name: str, api_version: str | None = None
+) -> PandasColumn[Any]:
+    ser = pd.Series(sequence, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
+    df = ser.to_frame().__dataframe_consortium_standard__().collect()
+    # todo: propagate api version
+    return PandasColumn(df.col(name).column, api_version=LATEST_API_VERSION, df=df)
 
 
 def dataframe_from_2d_array(
@@ -294,47 +285,3 @@ def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:
         if _kind == "string":
             dtypes.add(String)
     return isinstance(dtype, tuple(dtypes))
-
-
-def any_rowwise(*columns: str, skip_nulls: bool = True) -> PandasColumn:
-    # todo: accept expressions
-    def func(df):
-        return df.loc[:, list(columns) or df.columns.tolist()].any(axis=1)
-
-    return PandasColumn(root_names=list(columns), output_name="any", base_call=func)
-
-
-def all_rowwise(*columns: str, skip_nulls: bool = True) -> PandasColumn:
-    def func(df: pd.DataFrame) -> pd.Series:
-        return df.loc[:, list(columns) or df.columns.tolist()].all(axis=1)
-
-    return PandasColumn(root_names=list(columns), output_name="all", base_call=func)
-
-
-def sorted_indices(
-    *keys: str,
-    ascending: Sequence[bool] | bool = True,
-    nulls_position: Literal["first", "last"] = "last",
-) -> Column:
-    def func(df: pd.DataFrame) -> pd.Series:
-        if ascending:
-            return (
-                df.loc[:, list(keys)]
-                .sort_values(list(keys))
-                .index.to_series()
-                .reset_index(drop=True)
-            )
-        return (
-            df.loc[:, list(keys)]
-            .sort_values(list(keys))
-            .index.to_series()[::-1]
-            .reset_index(drop=True)
-        )
-
-    return PandasColumn(root_names=list(keys), output_name="indices", base_call=func)
-
-
-def unique_indices(
-    keys: str | list[str] | None = None, *, skip_nulls: bool = True
-) -> Column:
-    raise NotImplementedError("namespace.unique_indices not implemented for pandas yet")

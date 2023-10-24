@@ -29,11 +29,10 @@ def test_groupby_boolean(
     maybe_collect: Callable[[Any], Any],
 ) -> None:
     df = maybe_collect(bool_dataframe_2(library))
-    namespace = df.__dataframe_namespace__()
+    df.__dataframe_namespace__()
     result = getattr(df.group_by("key"), aggregation)()
     # need to sort
-    idx = namespace.sorted_indices("key")
-    result = result.get_rows(idx)
+    result = result.sort("key")
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"key": [1, 2], "b": expected_b, "c": expected_c})

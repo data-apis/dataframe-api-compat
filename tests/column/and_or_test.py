@@ -12,9 +12,9 @@ if TYPE_CHECKING:
 
 
 def test_column_and(library: str) -> None:
-    df = bool_dataframe_1(library, api_version="2023.09-beta").collect()
-    ser = df.get_column_by_name("a")
-    other = df.get_column_by_name("b")
+    df = bool_dataframe_1(library, api_version="2023.09-beta")
+    ser = df.col("a")
+    other = df.col("b")
     result = df.assign((ser & other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series([True, True, False], name="result")
@@ -23,9 +23,9 @@ def test_column_and(library: str) -> None:
 
 def test_expression_and(library: str) -> None:
     df = bool_dataframe_1(library, api_version="2023.09-beta")
-    namespace = df.__dataframe_namespace__()
-    ser = namespace.col("a")
-    other = namespace.col("b")
+    df.__dataframe_namespace__()
+    ser = df.col("a")
+    other = df.col("b")
     result = df.assign((ser & other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series([True, True, False], name="result")
@@ -34,8 +34,8 @@ def test_expression_and(library: str) -> None:
 
 def test_column_or(library: str) -> None:
     df = bool_dataframe_1(library).collect()
-    ser = df.get_column_by_name("a")
-    other = df.get_column_by_name("b")
+    ser = df.col("a")
+    other = df.col("b")
     result = df.assign((ser | other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series([True, True, True], name="result")
@@ -44,7 +44,7 @@ def test_column_or(library: str) -> None:
 
 def test_column_and_with_scalar(library: str, request: pytest.FixtureRequest) -> None:
     df = bool_dataframe_1(library).collect()
-    ser = df.get_column_by_name("a")
+    ser = df.col("a")
     other = True
     result = df.assign((ser & other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
@@ -54,7 +54,7 @@ def test_column_and_with_scalar(library: str, request: pytest.FixtureRequest) ->
 
 def test_column_or_with_scalar(library: str, request: pytest.FixtureRequest) -> None:
     df = bool_dataframe_1(library).collect()
-    ser = df.get_column_by_name("a")
+    ser = df.col("a")
     other = True
     result = df.assign((ser | other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]

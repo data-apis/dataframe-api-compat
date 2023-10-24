@@ -9,8 +9,7 @@ from tests.utils import interchange_to_pandas
 
 def test_column_sorted_indices_ascending(library: str) -> None:
     df = integer_dataframe_6(library)
-    namespace = df.__dataframe_namespace__()
-    sorted_indices = namespace.sorted_indices("b")
+    sorted_indices = df.col("b").sorted_indices()
     result = df.assign(sorted_indices.rename("result"))
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
@@ -39,8 +38,7 @@ def test_column_sorted_indices_ascending(library: str) -> None:
 
 def test_column_sorted_indices_descending(library: str) -> None:
     df = integer_dataframe_6(library)
-    namespace = df.__dataframe_namespace__()
-    sorted_indices = namespace.sorted_indices("b", ascending=False)
+    sorted_indices = df.col("b").sorted_indices(ascending=False)
     result = df.assign(sorted_indices.rename("result"))
     result_pd = interchange_to_pandas(result, library)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)

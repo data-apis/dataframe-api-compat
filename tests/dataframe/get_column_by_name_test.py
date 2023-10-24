@@ -9,8 +9,8 @@ from tests.utils import interchange_to_pandas
 
 def test_get_column(library: str) -> None:
     df = integer_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    col = namespace.col
+    df.__dataframe_namespace__()
+    col = df.col
     result = col("a").rename("_tmp")
     result = df.assign(result).drop_columns("a").rename_columns({"_tmp": "a"})
     df.__dataframe_namespace__()

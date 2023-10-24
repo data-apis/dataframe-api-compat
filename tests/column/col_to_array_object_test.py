@@ -3,9 +3,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from tests.utils import bool_series_1
+from tests.utils import bool_dataframe_1
 from tests.utils import integer_dataframe_1
-from tests.utils import integer_series_1
 
 
 @pytest.mark.parametrize(
@@ -24,24 +23,14 @@ from tests.utils import integer_series_1
     ],
 )
 def test_column_to_array_object(library: str, dtype: str) -> None:
-    ser = integer_series_1(library)
-    result = np.asarray(ser.to_array_object(dtype=dtype))
+    ser = integer_dataframe_1(library).collect().col("a")
+    result = np.asarray(ser.to_array())
     expected = np.array([1, 2, 3], dtype=np.int64)
     np.testing.assert_array_equal(result, expected)
 
 
 def test_column_to_array_object_bool(library: str) -> None:
-    dtype = "bool"
-    df = bool_series_1(library)
-    result = np.asarray(df.to_array_object(dtype=dtype))
-    expected = np.array([True, False, True], dtype="bool")
+    df = bool_dataframe_1(library).collect().col("a")
+    result = np.asarray(df.to_array())
+    expected = np.array([True, True, False], dtype="bool")
     np.testing.assert_array_equal(result, expected)
-
-
-def test_column_to_array_object_invalid(library: str) -> None:
-    dtype = "object"
-    df = integer_dataframe_1(library)
-    with pytest.raises(ValueError):
-        np.asarray(df.collect().to_array_object(dtype=dtype))
-    with pytest.raises(ValueError):
-        np.asarray(integer_series_1(library).to_array_object(dtype=dtype))

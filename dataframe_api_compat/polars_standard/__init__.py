@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import Any
-from typing import Literal
 from typing import TYPE_CHECKING
 from typing import TypeVar
 
@@ -12,8 +11,6 @@ from dataframe_api_compat.polars_standard.polars_standard import null
 from dataframe_api_compat.polars_standard.polars_standard import PolarsColumn
 from dataframe_api_compat.polars_standard.polars_standard import PolarsDataFrame
 from dataframe_api_compat.polars_standard.polars_standard import PolarsGroupBy
-from dataframe_api_compat.polars_standard.polars_standard import PolarsPermissiveColumn
-from dataframe_api_compat.polars_standard.polars_standard import PolarsPermissiveFrame
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -21,9 +18,7 @@ if TYPE_CHECKING:
 
 col = PolarsColumn
 Column = col
-PermissiveColumn = PolarsPermissiveColumn
 DataFrame = PolarsDataFrame
-PermissiveFrame = PolarsPermissiveFrame
 GroupBy = PolarsGroupBy
 
 PolarsType = TypeVar("PolarsType", pl.DataFrame, pl.LazyFrame)
@@ -174,29 +169,29 @@ def concat(dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
     return PolarsDataFrame(pl.concat(dfs), api_version=api_versions.pop())
 
 
-def dataframe_from_dict(
-    data: dict[str, PolarsPermissiveColumn[Any]], *, api_version: str | None = None
-) -> PolarsDataFrame:
-    for _, col in data.items():
-        if not isinstance(col, PolarsPermissiveColumn):  # pragma: no cover
-            raise TypeError(f"Expected PolarsPermissiveColumn, got {type(col)}")
-        if isinstance(col.column, pl.Expr):
-            raise NotImplementedError(
-                "dataframe_from_dict not supported for lazy columns"
-            )
-    return PolarsDataFrame(
-        pl.DataFrame(
-            {label: column.column.rename(label) for label, column in data.items()}  # type: ignore[union-attr]
-        ).lazy(),
-        api_version=api_version or LATEST_API_VERSION,
-    )
+def dataframe_from_columns(*columns: PolarsColumn) -> PolarsDataFrame:
+    data = {}
+    api_version = set()
+    for col in columns:
+        col._df._validate_is_collected("dataframe_from_columns")
+        data[col.name] = col._df.dataframe.select(col._expr)[col.name]
+        api_version.add(col._api_version)
+    if len(api_version) > 1:  # pragma: no cover
+        raise ValueError(f"found multiple api versions: {api_version}")
+    return PolarsDataFrame(pl.DataFrame(data).lazy(), api_version=list(api_version)[0])
 
 
 def column_from_1d_array(
     data: Any, *, dtype: Any, name: str, api_version: str | None = None
-) -> PolarsPermissiveColumn[Any]:  # pragma: no cover
+) -> PolarsColumn[Any]:  # pragma: no cover
     ser = pl.Series(values=data, dtype=_map_standard_to_polars_dtypes(dtype), name=name)
-    return PolarsPermissiveColumn(ser, api_version=api_version or LATEST_API_VERSION)
+    # TODO propagate api version
+    df = (
+        ser.to_frame()
+        .__dataframe_consortium_standard__(api_version=LATEST_API_VERSION)
+        .collect()
+    )
+    return df.col(name)
 
 
 def column_from_sequence(
@@ -204,14 +199,32 @@ def column_from_sequence(
     *,
     dtype: Any,
     name: str | None = None,
-    api_version: str | None = None,
-) -> PolarsPermissiveColumn[Any]:
-    return PolarsPermissiveColumn(
-        pl.Series(
-            values=sequence, dtype=_map_standard_to_polars_dtypes(dtype), name=name
-        ),
-        api_version=api_version or LATEST_API_VERSION,
+) -> PolarsColumn[Any]:
+    ser = pl.Series(
+        values=sequence, dtype=_map_standard_to_polars_dtypes(dtype), name=name
     )
+    # TODO propagate api version
+    df = (
+        ser.to_frame()
+        .__dataframe_consortium_standard__(api_version=LATEST_API_VERSION)
+        .collect()
+    )
+    return df.col(name)
+
+
+# def column_from_sequence(
+#     sequence: Sequence[Any],
+#     *,
+#     dtype: Any,
+#     name: str | None = None,
+#     api_version: str | None = None,
+# ) -> PolarsPermissiveColumn[Any]:
+#     return PolarsPermissiveColumn(
+#         pl.Series(
+#             values=sequence, dtype=_map_standard_to_polars_dtypes(dtype), name=name
+#         ),
+#         api_version=api_version or LATEST_API_VERSION,
+#     )
 
 
 def dataframe_from_2d_array(
@@ -230,17 +243,22 @@ def dataframe_from_2d_array(
     return PolarsDataFrame(df, api_version=api_version or LATEST_API_VERSION)
 
 
+def convert_to_standard_compliant_column(
+    ser: pl.LazyFrame, api_version: str | None = None
+) -> PolarsDataFrame:
+    df = (
+        ser.to_frame()
+        .__dataframe_consortium_standard__(api_version=LATEST_API_VERSION)
+        .collect()
+    )
+    return df.col(ser.name)
+
+
 def convert_to_standard_compliant_dataframe(
     df: pl.LazyFrame, api_version: str | None = None
 ) -> PolarsDataFrame:
     df_lazy = df.lazy() if isinstance(df, pl.DataFrame) else df
     return PolarsDataFrame(df_lazy, api_version=api_version or LATEST_API_VERSION)
-
-
-def convert_to_standard_compliant_column(
-    ser: pl.Series, api_version: str | None = None
-) -> PolarsPermissiveColumn[Any]:  # pragma: no cover  (todo: is this even needed?)
-    return PolarsPermissiveColumn(ser, api_version=api_version or LATEST_API_VERSION)
 
 
 def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:
@@ -259,26 +277,3 @@ def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:
         if _kind == "string":
             dtypes.add(String)
     return isinstance(dtype, tuple(dtypes))
-
-
-def any_rowwise(*columns: str, skip_nulls: bool = True):
-    return PolarsColumn(pl.any_horizontal(list(columns) or "*").alias("any"))
-
-
-def all_rowwise(*columns: str, skip_nulls: bool = True):
-    return PolarsColumn(pl.all_horizontal(list(columns) or "*").alias("all"))
-
-
-def sorted_indices(
-    keys: str | list[str] | None = None,
-    *,
-    ascending: Sequence[bool] | bool = True,
-    nulls_position: Literal["first", "last"] = "last",
-) -> Column:
-    return PolarsColumn(pl.arg_sort_by(keys or "*", descending=not ascending))
-
-
-def unique_indices(
-    keys: str | list[str] | None = None, *, skip_nulls: bool = True
-) -> Column:
-    raise NotImplementedError("namespace.unique_indices not implemented for polars yet")
