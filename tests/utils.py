@@ -5,12 +5,12 @@ from datetime import datetime
 from datetime import timedelta
 from typing import Any
 from typing import cast
+from typing import NoReturn
 from typing import TYPE_CHECKING
 from typing import TypeVar
 
 import pandas as pd
 import polars as pl
-import pytest
 
 import dataframe_api_compat.pandas_standard
 import dataframe_api_compat.polars_standard
@@ -18,6 +18,7 @@ import dataframe_api_compat.polars_standard
 DType = TypeVar("DType")
 
 if TYPE_CHECKING:
+    import pytest
     from dataframe_api import (
         Bool,
         PermissiveColumn,
@@ -64,19 +65,8 @@ def convert_to_standard_compliant_dataframe(
         raise AssertionError(f"Got unexpected type: {type(df)}")
 
 
-def convert_to_standard_compliant_column(ser: pd.Series[Any] | pl.Series) -> Any:
-    # todo: type return
-    if isinstance(ser, pd.Series):
-        return dataframe_api_compat.pandas_standard.convert_to_standard_compliant_column(
-            ser, None
-        )
-    elif isinstance(ser, pl.Series):
-        raise NotImplementedError()
-        return dataframe_api_compat.polars_standard.convert_to_standard_compliant_column(
-            ser, None
-        )
-    else:
-        raise AssertionError(f"Got unexpected type: {type(ser)}")
+def convert_to_standard_compliant_column(ser: pd.Series[Any] | pl.Series) -> NoReturn:
+    raise NotImplementedError("Can't convert to standard column yet")
 
 
 def convert_dataframe_to_pandas_numpy(df: pd.DataFrame) -> pd.DataFrame:
@@ -336,33 +326,6 @@ def bool_dataframe_3(library) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def integer_series_1(library) -> Any:
-    ser: Any
-    if library == "pandas-numpy":
-        ser = pd.Series([1, 2, 3])
-        return convert_to_standard_compliant_column(ser)
-    if library == "pandas-nullable":
-        ser = pd.Series([1, 2, 3], dtype="Int64")
-        return convert_to_standard_compliant_column(ser)
-    if library == "polars-lazy":
-        ser = pl.Series([1, 2, 3])
-        return convert_to_standard_compliant_column(ser)
-    raise AssertionError(f"Got unexpected library: {library}")
-
-
-def integer_series_5(library: str, request: pytest.FixtureRequest) -> Any:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame({"a": [1, 1, 4]}, dtype="int64")
-        return convert_to_standard_compliant_dataframe(df).collect().col("a")
-    if library == "pandas-nullable":
-        df = pd.DataFrame({"a": [1, 1, 4]}, dtype="Int64")
-        return convert_to_standard_compliant_dataframe(df).collect().col("a")
-    if library == "polars-lazy":
-        request.node.add_marker(pytest.mark.xfail())
-    raise AssertionError(f"Got unexpected library: {library}")
-
-
 def float_dataframe_1(library: str, request: pytest.FixtureRequest) -> Any:
     df: Any
     if library == "pandas-numpy":
@@ -403,19 +366,6 @@ def float_dataframe_3(library: str, request: pytest.FixtureRequest) -> object:
     if library == "polars-lazy":  # pragma: no cover
         df = pl.LazyFrame({"a": [float("nan"), 2.0]})
         return convert_to_standard_compliant_dataframe(df)
-    raise AssertionError(f"Got unexpected library: {library}")
-
-
-def bool_series_1(library) -> Any:
-    if library == "pandas-numpy":
-        ser = pd.Series([True, False, True], name="a", dtype="bool")
-        return convert_to_standard_compliant_column(ser)
-    if library == "pandas-nullable":
-        ser = pd.Series([True, False, True], name="a", dtype="boolean")
-        return convert_to_standard_compliant_column(ser)
-    if library == "polars-lazy":
-        ser = pl.Series("a", [True, False, True])
-        return convert_to_standard_compliant_column(ser)
     raise AssertionError(f"Got unexpected library: {library}")
 
 
