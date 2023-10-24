@@ -649,12 +649,6 @@ class PandasDataFrame(DataFrame):
                 raise ValueError(
                     f"Expected unique column names, got {col} {count} time(s)"
                 )
-        for col in columns:
-            if not isinstance(col, str):
-                raise TypeError(
-                    f"Expected column names to be of type str, got {col} "
-                    f"of type {type(col)}"
-                )
 
     def _validate_booleanness(self) -> None:
         if not (

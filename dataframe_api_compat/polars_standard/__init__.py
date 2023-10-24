@@ -194,6 +194,24 @@ def column_from_1d_array(
     return df.col(name)
 
 
+def column_from_sequence(
+    sequence: Sequence[Any],
+    *,
+    dtype: Any,
+    name: str | None = None,
+) -> PolarsColumn[Any]:
+    ser = pl.Series(
+        values=sequence, dtype=_map_standard_to_polars_dtypes(dtype), name=name
+    )
+    # TODO propagate api version
+    df = (
+        ser.to_frame()
+        .__dataframe_consortium_standard__(api_version=LATEST_API_VERSION)
+        .collect()
+    )
+    return df.col(name)
+
+
 # def column_from_sequence(
 #     sequence: Sequence[Any],
 #     *,
@@ -223,6 +241,17 @@ def dataframe_from_2d_array(
         },
     ).lazy()
     return PolarsDataFrame(df, api_version=api_version or LATEST_API_VERSION)
+
+
+def convert_to_standard_compliant_column(
+    ser: pl.LazyFrame, api_version: str | None = None
+) -> PolarsDataFrame:
+    df = (
+        ser.to_frame()
+        .__dataframe_consortium_standard__(api_version=LATEST_API_VERSION)
+        .collect()
+    )
+    return df.col(ser.name)
 
 
 def convert_to_standard_compliant_dataframe(

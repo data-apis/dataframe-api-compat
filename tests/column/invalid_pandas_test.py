@@ -12,12 +12,3 @@ def test_repeated_columns() -> None:
         ValueError, match=r"Expected unique column names, got b 2 time\(s\)"
     ):
         convert_to_standard_compliant_dataframe(df, "2023.08-beta")
-
-
-def test_non_str_columns() -> None:
-    df = pd.DataFrame({0: [1, 2]})
-    with pytest.raises(
-        TypeError,
-        match=r"Expected column names to be of type str, got 0 of type <class 'int'>",
-    ):
-        convert_to_standard_compliant_dataframe(df, "2023.08-beta")

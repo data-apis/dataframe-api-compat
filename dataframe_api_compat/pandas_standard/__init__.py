@@ -186,8 +186,10 @@ def convert_to_standard_compliant_column(
         api_version = LATEST_API_VERSION
     if ser.name is not None and not isinstance(ser.name, str):
         raise ValueError(f"Expected column with string name, got: {ser.name}")
-    name = ser.name or ""
-    return PandasColumn(ser.rename(name), api_version=api_version)
+    if ser.name is None:
+        ser = ser.rename("")
+    df = ser.to_frame().__dataframe_consortium_standard__().collect()
+    return PandasColumn(df.col(ser.name).column, api_version=api_version, df=df)
 
 
 def convert_to_standard_compliant_dataframe(
@@ -222,13 +224,6 @@ def concat(dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:
     )
 
 
-def column_from_sequence(
-    sequence: Sequence[Any], *, dtype: Any, name: str, api_version: str | None = None
-) -> PandasColumn[Any]:
-    ser = pd.Series(sequence, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
-    return PandasColumn(ser, api_version=api_version or LATEST_API_VERSION)
-
-
 def dataframe_from_columns(*columns: PandasColumn) -> PandasDataFrame:
     data = {}
     api_version = set()
@@ -243,6 +238,15 @@ def column_from_1d_array(
     data: Any, *, dtype: Any, name: str | None = None
 ) -> PandasColumn[Any]:  # pragma: no cover
     ser = pd.Series(data, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
+    df = ser.to_frame().__dataframe_consortium_standard__().collect()
+    # todo: propagate api version
+    return PandasColumn(df.col(name).column, api_version=LATEST_API_VERSION, df=df)
+
+
+def column_from_sequence(
+    sequence: Sequence[Any], *, dtype: Any, name: str, api_version: str | None = None
+) -> PandasColumn[Any]:
+    ser = pd.Series(sequence, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
     df = ser.to_frame().__dataframe_consortium_standard__().collect()
     # todo: propagate api version
     return PandasColumn(df.col(name).column, api_version=LATEST_API_VERSION, df=df)
