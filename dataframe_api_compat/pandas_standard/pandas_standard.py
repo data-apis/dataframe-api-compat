@@ -84,7 +84,7 @@ class PandasColumn(Column):
         self,
         series,
         *,
-        df: pd.DataFrame,
+        df: PandasDataFrame,
         api_version: str | None = None,  # todo: propagate
     ) -> None:
         """
@@ -145,7 +145,9 @@ class PandasColumn(Column):
         return self._from_series(ser.loc[mask.column])
 
     def get_value(self, row: int) -> Any:
-        raise NotImplementedError("can't get value out, use to_array instead")
+        if not self._df._is_collected:
+            self._df._validate_is_collected("Column.get_value")
+        return self.column.iloc[row]
 
     # Binary comparisons
 
@@ -365,6 +367,7 @@ class PandasColumn(Column):
 
     def to_array(self):
         # todo put dtype here
+        self._df._validate_is_collected("Column.to_array")
         return self.column.to_numpy()
 
 
@@ -550,9 +553,9 @@ class PandasDataFrame(DataFrame):
     # Not technically part of the standard
 
     def __init__(
-        self, dataframe: pd.DataFrame, api_version: str, collected=False
+        self, dataframe: pd.DataFrame, api_version: str, is_collected=False
     ) -> None:
-        self.collected = collected
+        self._is_collected = is_collected
         self._validate_columns(dataframe.columns)  # type: ignore[arg-type]
         self._dataframe = dataframe.reset_index(drop=True)
         if api_version not in SUPPORTED_VERSIONS:
@@ -562,6 +565,16 @@ class PandasDataFrame(DataFrame):
                 "Try updating dataframe-api-compat?"
             )
         self._api_version = api_version
+
+    def _validate_is_collected(self, method: str) -> None:
+        if not self._is_collected:
+            raise ValueError(
+                f"Method {method} requires you to call `.collect` first.\n"
+                "\n"
+                "Note: `.collect` forces materialisation in lazy libraries and "
+                "so should be called as late as possible in your pipeline, and "
+                "only once per dataframe."
+            )
 
     def __repr__(self) -> str:  # pragma: no cover
         return self.dataframe.__repr__()
@@ -925,8 +938,9 @@ class PandasDataFrame(DataFrame):
 
     def collect(self) -> PandasDataFrame:
         return PandasDataFrame(
-            self.dataframe, api_version=self._api_version, collected=True
+            self.dataframe, api_version=self._api_version, is_collected=True
         )
 
     def to_array(self, dtype):
+        self._validate_is_collected("Column.to_array")
         return self.dataframe.to_numpy(dtype)
