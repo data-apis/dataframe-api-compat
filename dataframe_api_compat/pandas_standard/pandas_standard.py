@@ -161,6 +161,11 @@ class PandasColumn(Column):
             self._df._validate_is_collected("Column.get_value")
         return self.column.iloc[row]
 
+    def slice_rows(
+        self, start: int | None, stop: int | None, step: int | None
+    ) -> PandasColumn:
+        return self._from_series(self.column.iloc[start:stop:step])
+
     # Binary comparisons
 
     def __eq__(self, other: PandasColumn | Any) -> PandasColumn:  # type: ignore[override]
