@@ -178,16 +178,16 @@ class PolarsColumn:
         self,
         expr: pl.Expr,
         *,
-        id_: int,
+        df: pl.DataFrame,
         api_version: str | None = None,
     ) -> None:
         self._expr = expr
-        self._id = id_
+        self._df = df
         self._api_version = api_version
         self._name = expr.meta.output_name()
 
     def _from_expr(self, expr):
-        return self.__class__(expr, id_=self._id, api_version=self._api_version)
+        return self.__class__(expr, df=self._df, api_version=self._api_version)
 
     # In the standard
     def __column_namespace__(self) -> Any:  # pragma: no cover
@@ -263,57 +263,56 @@ class PolarsColumn:
 
     def _validate_comparand(self, other: PolarsColumn | Any) -> PolarsColumn | Any:
         if isinstance(other, PolarsColumn):
-            if self._id != other._id:
+            if id(self._df) != id(other._df):
                 raise ValueError("Columns are from different dataframes")
-            return other.expr
-
+            return other._expr
         return other
 
     def __eq__(self, other: PolarsColumn | Any) -> PolarsColumn:  # type: ignore[override]
-        self._validate_comparand(other)
+        other = self._validate_comparand(other)
         return self._from_expr(self._expr == other)
 
     def __ne__(self, other: PolarsColumn | Any) -> PolarsColumn:  # type: ignore[override]
-        self._validate_comparand(other)
+        other = self._validate_comparand(other)
         return self._from_expr(self._expr != other)
 
     def __ge__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        self._validate_comparand(other)
+        other = self._validate_comparand(other)
         return self._from_expr(self._expr >= other)
 
     def __gt__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        self._validate_comparand(other)
+        other = self._validate_comparand(other)
         return self._from_expr(self._expr > other)
 
     def __le__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        self._validate_comparand(other)
+        other = self._validate_comparand(other)
         return self._from_expr(self._expr <= other)
 
     def __lt__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        self._validate_comparand(other)
+        other = self._validate_comparand(other)
         return self._from_expr(self._expr < other)
 
     def __mul__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        self._validate_comparand(other)
+        other = self._validate_comparand(other)
         res = self._expr * other
         return self._from_expr(res)
 
     def __floordiv__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        self._validate_comparand(other)
+        other = self._validate_comparand(other)
         return self._from_expr(self._expr // other)
 
     def __truediv__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        self._validate_comparand(other)
+        other = self._validate_comparand(other)
         res = self._expr / other
         return self._from_expr(res)
 
     def __pow__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        self._validate_comparand(other)
+        other = self._validate_comparand(other)
         ret = self._expr.pow(other)  # type: ignore[arg-type]
         return self._from_expr(ret)
 
     def __mod__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        self._validate_comparand(other)
+        other = self._validate_comparand(other)
         return self._from_expr(self._expr % other)
 
     def __divmod__(
@@ -326,22 +325,22 @@ class PolarsColumn:
         return quotient, remainder
 
     def __and__(self, other: PolarsColumn | bool) -> PolarsColumn:
-        self._validate_comparand(other)
+        other = self._validate_comparand(other)
         return self._from_expr(self._expr & other)  # type: ignore[operator]
 
     def __or__(self, other: PolarsColumn | bool) -> PolarsColumn:
-        self._validate_comparand(other)
+        other = self._validate_comparand(other)
         return self._from_expr(self._expr | other)
 
     def __invert__(self) -> PolarsColumn:
         return self._from_expr(~self._expr)
 
     def __add__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        self._validate_comparand(other)
+        other = self._validate_comparand(other)
         return self._from_expr(self._expr + other)
 
     def __sub__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        self._validate_comparand(other)
+        other = self._validate_comparand(other)
         return self._from_expr(self._expr - other)
 
     def sorted_indices(
@@ -392,7 +391,7 @@ class ColumnDatetimeAccessor:
 
     def _from_expr(self, expr):
         return self.column.__class__(
-            expr, id_=self.column._id, api_version=self._api_version
+            expr, df=self.column._df, api_version=self._api_version
         )
 
     def year(self) -> Column:
@@ -448,7 +447,9 @@ class PolarsDataFrame(DataFrame):
         self._api_version = api_version
 
     def col(self, value) -> PolarsColumn:
-        return PolarsColumn(pl.col(value), id_=self._id, api_version=self._api_version)
+        return PolarsColumn(
+            pl.col(value), df=self.dataframe, api_version=self._api_version
+        )
 
     @property
     def schema(self) -> dict[str, Any]:
@@ -496,6 +497,7 @@ class PolarsDataFrame(DataFrame):
         )
 
     def get_rows(self, indices: PolarsColumn) -> PolarsDataFrame:  # type: ignore[override]
+        self._validate_column(indices)
         return PolarsDataFrame(
             self.dataframe.select(pl.all().take(indices._expr)),
             api_version=self._api_version,
@@ -506,12 +508,18 @@ class PolarsDataFrame(DataFrame):
     ) -> PolarsDataFrame:
         return PolarsDataFrame(self.df[start:stop:step], api_version=self._api_version)
 
-    def filter(self, mask: Column | PermissiveColumn[Any]) -> PolarsDataFrame:
+    def _validate_column(self, column: PolarsColumn) -> None:
+        if id(self.dataframe) != id(column._df):
+            raise ValueError("Column is from a different dataframe")
+
+    def filter(self, mask: Column) -> PolarsDataFrame:
+        self._validate_column(mask)
         return PolarsDataFrame(self.df.filter(mask._expr), api_version=self._api_version)
 
     def assign(self, *columns: Column | PermissiveColumn[Any]) -> PolarsDataFrame:
         new_columns = []
         for col in columns:
+            self._validate_column(col)
             new_columns.append(col._expr)
         df = self.dataframe.with_columns(new_columns)
         return PolarsDataFrame(df, api_version=self._api_version)

@@ -84,7 +84,7 @@ class PandasColumn(Column):
         self,
         series,
         *,
-        id_: int,
+        df: pd.DataFrame,
         api_version: str | None = None,  # todo: propagate
     ) -> None:
         """
@@ -104,7 +104,7 @@ class PandasColumn(Column):
         self._name = series.name or ""
         self._column = series
         self._api_version = api_version
-        self._id = id_
+        self._df = df
         # TODO: keep track of output name
 
     def __repr__(self):
@@ -112,12 +112,12 @@ class PandasColumn(Column):
 
     def _from_series(self, series):
         return PandasColumn(
-            series.reset_index(drop=True), api_version=self._api_version, id_=self._id
+            series.reset_index(drop=True), api_version=self._api_version, df=self._df
         )
 
     def _validate_comparand(self, other: Column | Any) -> Column | Any:
         if isinstance(other, PandasColumn):
-            if self._id != other._id:
+            if id(self._df) != id(other._df):
                 raise ValueError("cannot compare columns from different dataframes")
             if len(other.column) == 1 and len(self.column) > 1:
                 # Let pandas take care of broadcasting
@@ -378,7 +378,7 @@ class ColumnDatetimeAccessor:
         return PandasColumn(
             series.reset_index(drop=True),
             api_version=self._api_version,
-            id_=self.column._id,
+            df=self.column._df,
         )
 
     def year(self) -> Column:
@@ -562,13 +562,12 @@ class PandasDataFrame(DataFrame):
                 "Try updating dataframe-api-compat?"
             )
         self._api_version = api_version
-        self._id = id(dataframe)
 
     def __repr__(self) -> str:  # pragma: no cover
         return self.dataframe.__repr__()
 
     def col(self, name):
-        return PandasColumn(self.dataframe.loc[:, name], id_=self._id)
+        return PandasColumn(self.dataframe.loc[:, name], df=self.dataframe)
 
     @property
     def schema(self) -> dict[str, Any]:
@@ -602,7 +601,7 @@ class PandasDataFrame(DataFrame):
             )
 
     def _validate_column(self, column: Column) -> None:
-        if self._id != column._id:
+        if id(self.dataframe) != id(column._df):
             raise ValueError("cannot compare columns from different dataframes")
 
     # In the standard
@@ -635,7 +634,7 @@ class PandasDataFrame(DataFrame):
             api_version=self._api_version,
         )
 
-    def filter(self, mask: Column | PermissiveColumn[Any]) -> PandasDataFrame:
+    def filter(self, mask: Column) -> PandasDataFrame:
         self._validate_column(mask)
         df = self.dataframe
         df = df.loc[mask.column]
