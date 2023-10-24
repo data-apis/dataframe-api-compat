@@ -236,25 +236,23 @@ def column_from_sequence(
     return PandasColumn(ser, api_version=api_version or LATEST_API_VERSION)
 
 
-def dataframe_from_dict(
-    data: dict[str, PandasColumn[Any]], api_version: str | None = None
-) -> PandasDataFrame:
-    for _, col in data.items():
-        if not isinstance(col, PandasColumn):  # pragma: no cover
-            raise TypeError(f"Expected PandasPermissiveColumn, got {type(col)}")
-    return PandasDataFrame(
-        pd.DataFrame(
-            {label: column.column.rename(label) for label, column in data.items()}
-        ),
-        api_version=api_version or LATEST_API_VERSION,
-    )
+def dataframe_from_columns(*columns: PandasColumn) -> PandasDataFrame:
+    data = {}
+    api_version = set()
+    for col in columns:
+        col._df._validate_is_collected("dataframe_from_columns")
+        data[col.name] = col.column
+        api_version.add(col._api_version)
+    return PandasDataFrame(pd.DataFrame(data), list(api_version)[0])
 
 
 def column_from_1d_array(
-    data: Any, *, dtype: Any, name: str | None = None, api_version: str | None = None
+    data: Any, *, dtype: Any, name: str | None = None
 ) -> PandasColumn[Any]:  # pragma: no cover
     ser = pd.Series(data, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
-    return PandasColumn(ser, api_version=api_version or LATEST_API_VERSION)
+    df = ser.to_frame().__dataframe_consortium_standard__().collect()
+    # todo: propagate api version
+    return PandasColumn(df.col(name).column, api_version=LATEST_API_VERSION, df=df)
 
 
 def dataframe_from_2d_array(

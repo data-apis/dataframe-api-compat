@@ -169,29 +169,29 @@ def concat(dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
     return PolarsDataFrame(pl.concat(dfs), api_version=api_versions.pop())
 
 
-def dataframe_from_dict(
-    data: dict[str, PolarsColumn[Any]], *, api_version: str | None = None
-) -> PolarsDataFrame:
-    for _, col in data.items():
-        if not isinstance(col, PolarsColumn):  # pragma: no cover
-            raise TypeError(f"Expected PolarsPermissiveColumn, got {type(col)}")
-        if isinstance(col.column, pl.Expr):
-            raise NotImplementedError(
-                "dataframe_from_dict not supported for lazy columns"
-            )
-    return PolarsDataFrame(
-        pl.DataFrame(
-            {label: column.column.rename(label) for label, column in data.items()}  # type: ignore[union-attr]
-        ).lazy(),
-        api_version=api_version or LATEST_API_VERSION,
-    )
+def dataframe_from_columns(*columns: PolarsColumn) -> PolarsDataFrame:
+    data = {}
+    api_version = set()
+    for col in columns:
+        col._df._validate_is_collected("dataframe_from_columns")
+        data[col.name] = col._df.dataframe.select(col._expr)[col.name]
+        api_version.add(col._api_version)
+    if len(api_version) > 1:  # pragma: no cover
+        raise ValueError(f"found multiple api versions: {api_version}")
+    return PolarsDataFrame(pl.DataFrame(data).lazy(), api_version=list(api_version)[0])
 
 
 def column_from_1d_array(
     data: Any, *, dtype: Any, name: str, api_version: str | None = None
 ) -> PolarsColumn[Any]:  # pragma: no cover
     ser = pl.Series(values=data, dtype=_map_standard_to_polars_dtypes(dtype), name=name)
-    return PolarsColumn(ser, api_version=api_version or LATEST_API_VERSION)
+    # TODO propagate api version
+    df = (
+        ser.to_frame()
+        .__dataframe_consortium_standard__(api_version=LATEST_API_VERSION)
+        .collect()
+    )
+    return df.col(name)
 
 
 # def column_from_sequence(
