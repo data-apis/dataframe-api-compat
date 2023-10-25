@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any, Literal, NoReturn
 
 import numpy as np
 import pandas as pd
-from dataframe_api import Column, DataFrame, GroupBy
 from pandas.api.types import is_extension_array_dtype
 
 import dataframe_api_compat.pandas_standard
@@ -49,7 +48,12 @@ _ARRAY_API_DTYPES = frozenset(
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
+    from dataframe_api import Column, DataFrame, GroupBy
     from dataframe_api.typing import DType
+else:
+    Column = object
+    DataFrame = object
+    GroupBy = object
 
 
 class Scalar:
