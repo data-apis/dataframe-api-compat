@@ -130,6 +130,12 @@ class PandasColumn(Column):
     def column(self) -> pd.Series[Any]:
         return self._column
 
+    @property
+    def dtype(self) -> DType:
+        return dataframe_api_compat.pandas_standard.map_pandas_dtype_to_standard_dtype(
+            self._column.dtype
+        )
+
     def get_rows(self, indices: Column) -> PandasColumn:
         return self._from_series(self.column.iloc[indices.column])
 
@@ -594,7 +600,7 @@ class PandasDataFrame(DataFrame):
             )
         self.api_version = api_version
 
-    def validate_is_collected(self, method: str) -> None:
+    def validate_is_collected(self, method: str) -> pd.DataFrame:
         if not self._is_collected:
             raise ValueError(
                 f"Method {method} requires you to call `.collect` first.\n"
@@ -603,9 +609,10 @@ class PandasDataFrame(DataFrame):
                 "so should be called as late as possible in your pipeline, and "
                 "only once per dataframe."
             )
+        return self.dataframe
 
     def __repr__(self) -> str:  # pragma: no cover
-        return self.dataframe.__repr__()
+        return self.dataframe.__repr__()  # type: ignore[no-any-return]
 
     def _validate_columns(self, columns: Sequence[str]) -> None:
         counter = collections.Counter(columns)
@@ -633,6 +640,10 @@ class PandasDataFrame(DataFrame):
         return PandasColumn(
             self.dataframe.loc[:, name], df=self, api_version=self.api_version
         )
+
+    def shape(self) -> tuple[int, int]:
+        df = self.validate_is_collected("Column.shape")
+        return df.shape  # type: ignore[no-any-return]
 
     @property
     def schema(self) -> dict[str, Any]:
@@ -910,6 +921,17 @@ class PandasDataFrame(DataFrame):
             api_version=self.api_version,
             df=self,
         )
+
+    def sorted_indices(
+        self,
+        *keys: str,
+        ascending: Sequence[bool] | bool = True,
+        nulls_position: Literal["first", "last"] = "last",
+    ) -> PandasColumn:
+        raise NotImplementedError()
+
+    def unique_indices(self, *keys: str, skip_nulls: bool = True) -> PandasColumn:
+        raise NotImplementedError()
 
     # Transformations
 
