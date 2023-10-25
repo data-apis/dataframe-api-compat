@@ -684,6 +684,8 @@ class PolarsDataFrame(DataFrame):
         df = self.dataframe.with_columns(pl.col("*").is_nan())
         return PolarsDataFrame(df, api_version=self.api_version)
 
+    # Reductions
+
     def any(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
         return PolarsDataFrame(
             self.dataframe.select(pl.col("*").any()), api_version=self.api_version
@@ -736,6 +738,15 @@ class PolarsDataFrame(DataFrame):
     ) -> PolarsDataFrame:
         return PolarsDataFrame(
             self.dataframe.select(pl.col("*").var()), api_version=self.api_version
+        )
+
+    # Horizontal reductions
+
+    def all_rowwise(self, *columns: str, skip_nulls: bool = True):
+        return PolarsColumn(
+            pl.all_horizontal(list(columns) or "*").alias("all"),
+            api_version=self.api_version,
+            df=self,
         )
 
     def sort(

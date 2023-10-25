@@ -893,6 +893,16 @@ class PandasDataFrame(DataFrame):
             self.dataframe.var().to_frame().T, api_version=self.api_version
         )
 
+    # Horizontal reductions
+
+    def all_rowwise(self, *columns: str, skip_nulls: bool = True) -> PandasColumn:
+        df = self.dataframe
+        return PandasColumn(
+            df.loc[:, list(columns) or df.columns.tolist()].all(axis=1),
+            api_version=self.api_version,
+            df=self,
+        )
+
     # Transformations
 
     def is_null(self, *, skip_nulls: bool = True) -> PandasDataFrame:
