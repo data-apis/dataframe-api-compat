@@ -34,6 +34,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
     from dataframe_api.typing import DType
+    from typing_extensions import Self
 
 
 class Null:
@@ -172,14 +173,14 @@ class PolarsColumn(Column):
         self.api_version = api_version
         self._name = expr.meta.output_name()
 
-    def _from_expr(self, expr: pl.Expr):
+    def _from_expr(self, expr: pl.Expr) -> Self:
         return self.__class__(expr, df=self.df, api_version=self.api_version)
 
     # In the standard
     def __column_namespace__(self) -> Any:  # pragma: no cover
         return dataframe_api_compat.polars_standard
 
-    def _validate_comparand(self, other: PolarsColumn | Any) -> PolarsColumn | Any:
+    def _validate_comparand(self, other: Self | Any) -> Self | Any:
         if isinstance(other, PolarsScalar):
             if id(self.df) != id(other.df):
                 raise ValueError("Columns/scalars are from different dataframes")
@@ -190,11 +191,11 @@ class PolarsColumn(Column):
             return other.expr
         return other
 
-    def _to_scalar(self, value: pl.Expr):
+    def _to_scalar(self, value: pl.Expr) -> PolarsScalar:
         return PolarsScalar(value, api_version=self.api_version, df=self.df)
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
     def get_rows(self, indices: PolarsColumn) -> PolarsColumn:
@@ -224,13 +225,13 @@ class PolarsColumn(Column):
     def __iter__(self) -> NoReturn:
         raise NotImplementedError()
 
-    def is_in(self, values: PolarsColumn) -> PolarsColumn:  # type: ignore[override]
+    def is_in(self, values: Self) -> Self:
         return self._from_expr(self.expr.is_in(values.expr))
 
-    def unique_indices(self, *, skip_nulls: bool = True) -> PolarsColumn:
+    def unique_indices(self, *, skip_nulls: bool = True) -> Self:
         raise NotImplementedError()
 
-    def is_null(self) -> PolarsColumn:
+    def is_null(self) -> Self:
         return self._from_expr(self.expr.is_null())
 
     def is_nan(self) -> PolarsColumn:
@@ -238,34 +239,38 @@ class PolarsColumn(Column):
 
     # Reductions
 
-    def any(self, *, skip_nulls: bool = True) -> bool | None:
+    def any(self, *, skip_nulls: bool = True) -> PolarsScalar:
         return self._to_scalar(self.expr.any())
 
-    def all(self, *, skip_nulls: bool = True) -> bool | None:
+    def all(self, *, skip_nulls: bool = True) -> PolarsScalar:
         return self._to_scalar(self.expr.all())
 
-    def min(self, *, skip_nulls: bool = True) -> Any:
+    def min(self, *, skip_nulls: bool = True) -> PolarsScalar:
         return self._to_scalar(self.expr.min())
 
-    def max(self, *, skip_nulls: bool = True) -> Any:
+    def max(self, *, skip_nulls: bool = True) -> PolarsScalar:
         return self._to_scalar(self.expr.max())
 
-    def sum(self, *, skip_nulls: bool = True) -> Any:
+    def sum(self, *, skip_nulls: bool = True) -> PolarsScalar:
         return self._to_scalar(self.expr.sum())
 
-    def prod(self, *, skip_nulls: bool = True) -> Any:
+    def prod(self, *, skip_nulls: bool = True) -> PolarsScalar:
         return self._to_scalar(self.expr.product())
 
-    def mean(self, *, skip_nulls: bool = True) -> Any:
+    def mean(self, *, skip_nulls: bool = True) -> PolarsScalar:
         return self._to_scalar(self.expr.mean())
 
-    def median(self, *, skip_nulls: bool = True) -> Any:
+    def median(self, *, skip_nulls: bool = True) -> PolarsScalar:
         return self._to_scalar(self.expr.median())
 
-    def std(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
+    def std(
+        self, *, correction: int | float = 1.0, skip_nulls: bool = True
+    ) -> PolarsScalar:
         return self._to_scalar(self.expr.std())
 
-    def var(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
+    def var(
+        self, *, correction: int | float = 1.0, skip_nulls: bool = True
+    ) -> PolarsScalar:
         return self._to_scalar(self.expr.var())
 
     # Binary
@@ -334,13 +339,13 @@ class PolarsColumn(Column):
         remainder = self - quotient * other
         return quotient, remainder
 
-    def __and__(self, other: PolarsColumn | bool) -> PolarsColumn:
+    def __and__(self, other: Self | bool) -> Self:
         other = self._validate_comparand(other)
         return self._from_expr(self.expr & other)  # type: ignore[operator]
 
-    def __or__(self, other: PolarsColumn | bool) -> PolarsColumn:
+    def __or__(self, other: Self | bool) -> Self:
         other = self._validate_comparand(other)
-        return self._from_expr(self.expr | other)
+        return self._from_expr(self.expr | other)  # type: ignore[operator]
 
     def __invert__(self) -> PolarsColumn:
         return self._from_expr(~self.expr)
@@ -452,7 +457,7 @@ class PolarsDataFrame(DataFrame):
         self.api_version = api_version
 
     @property
-    def _is_collected(self):
+    def _is_collected(self) -> bool:
         return isinstance(self.dataframe, pl.DataFrame)
 
     def materialise(self, expr: pl.Expr) -> pl.Series:
@@ -470,7 +475,7 @@ class PolarsDataFrame(DataFrame):
             )
         return self.dataframe  # type: ignore
 
-    def col(self, value: str) -> PolarsColumn:  # type: ignore[override]
+    def col(self, value: str) -> PolarsColumn:
         return PolarsColumn(pl.col(value), df=self, api_version=self.api_version)
 
     @property
@@ -544,7 +549,7 @@ class PolarsDataFrame(DataFrame):
         return PolarsDataFrame(self.dataframe.drop(labels), api_version=self.api_version)
 
     def rename_columns(self, mapping: Mapping[str, str]) -> PolarsDataFrame:
-        if not isinstance(mapping, collections.abc.Mapping):  # type: ignore
+        if not isinstance(mapping, collections.abc.Mapping):
             raise TypeError(f"Expected Mapping, got: {type(mapping)}")
         return PolarsDataFrame(
             self.dataframe.rename(dict(mapping)), api_version=self.api_version
@@ -775,14 +780,14 @@ class PolarsDataFrame(DataFrame):
 
     # Horizontal reductions
 
-    def all_rowwise(self, *, skip_nulls: bool = True):
+    def all_rowwise(self, *, skip_nulls: bool = True) -> PolarsColumn:
         return PolarsColumn(
             pl.all_horizontal(self.column_names).alias("all"),
             api_version=self.api_version,
             df=self,
         )
 
-    def any_rowwise(self, *, skip_nulls: bool = True):
+    def any_rowwise(self, *, skip_nulls: bool = True) -> PolarsColumn:
         return PolarsColumn(
             pl.any_horizontal(self.column_names).alias("all"),
             api_version=self.api_version,
@@ -819,7 +824,7 @@ class PolarsDataFrame(DataFrame):
         value: float | NullType,
     ) -> PolarsDataFrame:
         if isinstance(value, Null):
-            value = None  # type: ignore
+            value = None
         return PolarsDataFrame(self.dataframe.fill_nan(value), api_version=self.api_version)  # type: ignore[arg-type]
 
     def fill_null(

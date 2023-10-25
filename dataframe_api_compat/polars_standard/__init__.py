@@ -205,10 +205,13 @@ def column_from_1d_array(
 ) -> PolarsColumn:  # pragma: no cover
     ser = pl.Series(values=data, dtype=_map_standard_to_polars_dtypes(dtype), name=name)
     # TODO propagate api version
-    df = (
-        ser.to_frame()
-        .__dataframe_consortium_standard__(api_version=LATEST_API_VERSION)
-        .collect()
+    df = cast(
+        PolarsDataFrame,
+        (
+            ser.to_frame()
+            .__dataframe_consortium_standard__(api_version=LATEST_API_VERSION)
+            .collect()
+        ),
     )
     return df.col(name)
 
@@ -217,16 +220,19 @@ def column_from_sequence(
     sequence: Sequence[Any],
     *,
     dtype: Any,
-    name: str | None = None,
+    name: str,
 ) -> PolarsColumn:
     ser = pl.Series(
         values=sequence, dtype=_map_standard_to_polars_dtypes(dtype), name=name
     )
     # TODO propagate api version
-    df = (
-        ser.to_frame()
-        .__dataframe_consortium_standard__(api_version=LATEST_API_VERSION)
-        .collect()
+    df = cast(
+        PolarsDataFrame,
+        (
+            ser.to_frame()
+            .__dataframe_consortium_standard__(api_version=LATEST_API_VERSION)
+            .collect()
+        ),
     )
     return df.col(name)
 
@@ -264,11 +270,14 @@ def dataframe_from_2d_array(
 
 def convert_to_standard_compliant_column(
     ser: pl.Series, api_version: str | None = None
-) -> PolarsDataFrame:
-    df = (
-        ser.to_frame()
-        .__dataframe_consortium_standard__(api_version=LATEST_API_VERSION)
-        .collect()
+) -> PolarsColumn:
+    df = cast(
+        PolarsDataFrame,
+        (
+            ser.to_frame()
+            .__dataframe_consortium_standard__(api_version=LATEST_API_VERSION)
+            .collect()
+        ),
     )
     return df.col(ser.name)
 
