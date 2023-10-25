@@ -798,17 +798,16 @@ class PandasDataFrame(DataFrame):
             self.dataframe.__truediv__(other), api_version=self.api_version
         )
 
-    def __rtruediv__(self, other: Column | Any) -> PandasDataFrame:
-        return 1 / self.__truediv__(other)
+    def __rtruediv__(self, other: Column | Any) -> PandasDataFrame:  # pragma: no cover
+        raise NotImplementedError()
 
     def __floordiv__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(
             self.dataframe.__floordiv__(other), api_version=self.api_version
         )
 
-    def __rfloordiv__(self, other: Column | Any) -> PandasDataFrame:
-        # todo not right
-        return 1 / self.__floordiv__(other)
+    def __rfloordiv__(self, other: Column | Any) -> PandasDataFrame:  # pragma: no cover
+        raise NotImplementedError()
 
     def __pow__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(
@@ -823,9 +822,8 @@ class PandasDataFrame(DataFrame):
             self.dataframe.__mod__(other), api_version=self.api_version
         )
 
-    def __rmod__(self, other: Column | Any) -> PandasDataFrame:
-        # todo not right
-        return self.__pow__(other) ** -1
+    def __rmod__(self, other: Column | Any) -> PandasDataFrame:  # pragma: no cover
+        raise NotImplementedError()
 
     def __divmod__(
         self,

@@ -693,8 +693,8 @@ class PolarsDataFrame(DataFrame):
             api_version=self.api_version,
         )
 
-    def __rtruediv__(self, other: Any) -> PolarsDataFrame:
-        return 1 / self.__truediv__(other)
+    def __rtruediv__(self, other: Any) -> PolarsDataFrame:  # pragma: no cover
+        raise NotImplementedError()
 
     def __floordiv__(self, other: Any) -> PolarsDataFrame:
         return PolarsDataFrame(
