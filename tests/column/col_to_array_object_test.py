@@ -3,8 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from tests.utils import bool_dataframe_1
-from tests.utils import integer_dataframe_1
+from tests.utils import bool_dataframe_1, integer_dataframe_1
 
 
 @pytest.mark.parametrize(
@@ -22,7 +21,7 @@ from tests.utils import integer_dataframe_1
         "float64",
     ],
 )
-def test_column_to_array_object(library: str, dtype: str) -> None:
+def test_column_to_array_object(library: str) -> None:
     ser = integer_dataframe_1(library).collect().col("a")
     result = np.asarray(ser.to_array())
     expected = np.array([1, 2, 3], dtype=np.int64)

@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from tests.utils import integer_dataframe_1
-from tests.utils import integer_dataframe_2
+from tests.utils import integer_dataframe_1, integer_dataframe_2
 
 
 def test_invalid_comparisons(library: str) -> None:
