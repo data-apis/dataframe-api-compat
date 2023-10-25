@@ -6,7 +6,7 @@ from typing import cast
 from typing import Literal
 from typing import TYPE_CHECKING
 
-import pandas as pd  # type: ignore
+import pandas as pd
 from dataframe_api.dtypes import Bool as BoolT
 from dataframe_api.dtypes import Date as DateT
 from dataframe_api.dtypes import Datetime as DatetimeT
@@ -160,7 +160,6 @@ def map_pandas_dtype_to_standard_dtype(dtype: Any) -> DType:
     if dtype.startswith("timedelta64["):
         match = re.search(r"timedelta64\[(\w{1,2})", dtype)
         assert match is not None
-        time_unit = match.group(1)
         time_unit = cast(Literal["ms", "us"], match.group(1))
         return Duration(time_unit)
     raise AssertionError(f"Unsupported dtype! {dtype}")
@@ -208,7 +207,7 @@ def convert_to_standard_compliant_column(
     if ser.name is not None and not isinstance(ser.name, str):
         raise ValueError(f"Expected column with string name, got: {ser.name}")
     if ser.name is None:
-        ser = ser.rename("")  # type: ignore
+        ser = ser.rename("")
     df = cast(PandasDataFrame, ser.to_frame().__dataframe_consortium_standard__())  # type: ignore
     df = df.collect()
     name = cast(str, ser.name)
@@ -224,7 +223,7 @@ def convert_to_standard_compliant_dataframe(
 
 
 def concat(dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:
-    dtypes = dataframes[0].dataframe.dtypes  # type: ignore
+    dtypes = dataframes[0].dataframe.dtypes
     dfs: list[pd.DataFrame] = []
     api_versions: set[str] = set()
     for df in dataframes:
