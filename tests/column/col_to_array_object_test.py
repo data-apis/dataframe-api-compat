@@ -21,7 +21,7 @@ from tests.utils import bool_dataframe_1, integer_dataframe_1
         "float64",
     ],
 )
-def test_column_to_array_object(library: str) -> None:
+def test_column_to_array_object(library: str, dtype: str) -> None:  # noqa: ARG001
     ser = integer_dataframe_1(library).collect().col("a")
     result = np.asarray(ser.to_array())
     expected = np.array([1, 2, 3], dtype=np.int64)

@@ -4,21 +4,6 @@ import re
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 import pandas as pd
-from dataframe_api.dtypes import Bool as BoolT
-from dataframe_api.dtypes import Date as DateT
-from dataframe_api.dtypes import Datetime as DatetimeT
-from dataframe_api.dtypes import Duration as DurationT
-from dataframe_api.dtypes import Float32 as Float32T
-from dataframe_api.dtypes import Float64 as Float64T
-from dataframe_api.dtypes import Int8 as Int8T
-from dataframe_api.dtypes import Int16 as Int16T
-from dataframe_api.dtypes import Int32 as Int32T
-from dataframe_api.dtypes import Int64 as Int64T
-from dataframe_api.dtypes import String as StringT
-from dataframe_api.dtypes import UInt8 as UInt8T
-from dataframe_api.dtypes import UInt16 as UInt16T
-from dataframe_api.dtypes import UInt32 as UInt32T
-from dataframe_api.dtypes import UInt64 as UInt64T
 
 from dataframe_api_compat.pandas_standard.pandas_standard import (
     LATEST_API_VERSION,
@@ -31,7 +16,39 @@ from dataframe_api_compat.pandas_standard.pandas_standard import (
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from dataframe_api.dtypes import Bool as BoolT
+    from dataframe_api.dtypes import Date as DateT
+    from dataframe_api.dtypes import Datetime as DatetimeT
+    from dataframe_api.dtypes import Duration as DurationT
+    from dataframe_api.dtypes import Float32 as Float32T
+    from dataframe_api.dtypes import Float64 as Float64T
+    from dataframe_api.dtypes import Int8 as Int8T
+    from dataframe_api.dtypes import Int16 as Int16T
+    from dataframe_api.dtypes import Int32 as Int32T
+    from dataframe_api.dtypes import Int64 as Int64T
+    from dataframe_api.dtypes import String as StringT
+    from dataframe_api.dtypes import UInt8 as UInt8T
+    from dataframe_api.dtypes import UInt16 as UInt16T
+    from dataframe_api.dtypes import UInt32 as UInt32T
+    from dataframe_api.dtypes import UInt64 as UInt64T
     from dataframe_api.typing import DType
+else:
+    BoolT = object
+    DateT = object
+    DatetimeT = object
+    DurationT = object
+    Float32T = object
+    Float64T = object
+    Int8T = object
+    Int16T = object
+    Int32T = object
+    Int64T = object
+    StringT = object
+    UInt8T = object
+    UInt16T = object
+    UInt32T = object
+    UInt64T = object
+
 
 Column = PandasColumn
 DataFrame = PandasDataFrame
