@@ -516,7 +516,7 @@ class PolarsDataFrame(DataFrame):
         return PolarsColumn(pl.col(value), df=self, api_version=self.api_version)
 
     @property
-    def schema(self) -> dict[str, Any]:
+    def schema(self) -> dict[str, DType]:
         return {
             column_name: dataframe_api_compat.polars_standard.map_polars_dtype_to_standard_dtype(
                 dtype
