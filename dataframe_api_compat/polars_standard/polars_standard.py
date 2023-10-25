@@ -12,6 +12,11 @@ import polars as pl
 import dataframe_api_compat
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
+    from dataframe_api.typing import DType
+
+    from typing_extensions import Self
     from dataframe_api import Column
     from dataframe_api import DataFrame
     from dataframe_api import GroupBy
@@ -35,12 +40,6 @@ _ARRAY_API_DTYPES = frozenset(
         "float64",
     )
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
-
-    from dataframe_api.typing import DType
-    from typing_extensions import Self
 
 
 class Null:
