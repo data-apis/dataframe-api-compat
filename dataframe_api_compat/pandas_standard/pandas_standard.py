@@ -53,7 +53,7 @@ _ARRAY_API_DTYPES = frozenset(
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
-    from dataframe_api import DType
+    from dataframe_api.typing import DType
 
 
 class Scalar:
@@ -62,17 +62,17 @@ class Scalar:
         self._api_version = api_version
         self._df = df
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         self._df.validate_is_collected("Scalar.__bool__")
-        return self.value.__bool__()
+        return self.value.__bool__()  # type: ignore[no-any-return]
 
-    def __int__(self):
+    def __int__(self) -> int:
         self._df.validate_is_collected("Scalar.__int__")
-        return self.value.__int__()
+        return self.value.__int__()  # type: ignore[no-any-return]
 
-    def __float__(self):
+    def __float__(self) -> float:
         self._df.validate_is_collected("Scalar.__float__")
-        return self.value.__float__()
+        return self.value.__float__()  # type: ignore[no-any-return]
 
 
 class PandasColumn(Column):
@@ -94,8 +94,8 @@ class PandasColumn(Column):
         self.api_version = api_version
         self.df = df
 
-    def __repr__(self):  # pragma: no cover
-        return self.column.__repr__()
+    def __repr__(self) -> str:  # pragma: no cover
+        return self.column.__repr__()  # type: ignore[no-any-return]
 
     def _from_series(self, series: pd.Series) -> PandasColumn:
         return PandasColumn(
@@ -357,13 +357,13 @@ class PandasColumn(Column):
         """
         return ColumnDatetimeAccessor(self)
 
-    def to_array(self):
+    def to_array(self) -> Any:
         self.df.validate_is_collected("Column.to_array")
         return self.column.to_numpy(
             dtype=NUMPY_MAPPING.get(self.column.dtype.name, self.column.dtype.name)
         )
 
-    def __len__(self):
+    def __len__(self) -> int:
         self.df.validate_is_collected("Column.__len__")
         return len(self.column)
 
@@ -374,46 +374,46 @@ class ColumnDatetimeAccessor:
         self.column = column
         self._api_version = column.api_version
 
-    def _from_series(self, series: pd.Series):
+    def _from_series(self, series: pd.Series) -> PandasColumn:
         return PandasColumn(
             series.reset_index(drop=True),
             api_version=self._api_version,
             df=self.column.df,
         )
 
-    def year(self) -> Column:
+    def year(self) -> PandasColumn:
         ser = self.column.column
         return self._from_series(ser.dt.year)
 
-    def month(self) -> Column:
+    def month(self) -> PandasColumn:
         ser = self.column.column
         return self._from_series(ser.dt.month)
 
-    def day(self) -> Column:
+    def day(self) -> PandasColumn:
         ser = self.column.column
         return self._from_series(ser.dt.day)
 
-    def hour(self) -> Column:
+    def hour(self) -> PandasColumn:
         ser = self.column.column
         return self._from_series(ser.dt.hour)
 
-    def minute(self) -> Column:
+    def minute(self) -> PandasColumn:
         ser = self.column.column
         return self._from_series(ser.dt.minute)
 
-    def second(self) -> Column:
+    def second(self) -> PandasColumn:
         ser = self.column.column
         return self._from_series(ser.dt.second)
 
-    def microsecond(self) -> Column:
+    def microsecond(self) -> PandasColumn:
         ser = self.column.column
         return self._from_series(ser.dt.microsecond)
 
-    def iso_weekday(self) -> Column:
+    def iso_weekday(self) -> PandasColumn:
         ser = self.column.column
         return self._from_series(ser.dt.weekday + 1)
 
-    def floor(self, frequency: str) -> Column:
+    def floor(self, frequency: str) -> PandasColumn:
         frequency = (
             frequency.replace("day", "D")
             .replace("hour", "H")
@@ -472,8 +472,7 @@ class PandasGroupBy(GroupBy):
             )
 
     def size(self) -> PandasDataFrame:
-        # pandas-stubs is wrong
-        return PandasDataFrame(self.grouped.size(), api_version=self._api_version)  # type: ignore[arg-type]
+        return PandasDataFrame(self.grouped.size(), api_version=self._api_version)
 
     def _validate_booleanness(self) -> None:
         if not (
@@ -553,7 +552,7 @@ class PandasDataFrame(DataFrame):
         self, dataframe: pd.DataFrame, api_version: str, is_collected: bool = False
     ) -> None:
         self._is_collected = is_collected
-        self._validate_columns(dataframe.columns)  # type: ignore[arg-type]
+        self._validate_columns(dataframe.columns)
         self._dataframe = dataframe.reset_index(drop=True)
         if api_version not in SUPPORTED_VERSIONS:
             raise AssertionError(
@@ -616,7 +615,7 @@ class PandasDataFrame(DataFrame):
 
     @property
     def column_names(self) -> list[str]:
-        return self.dataframe.columns.tolist()
+        return self.dataframe.columns.tolist()  # type: ignore[no-any-return]
 
     def slice_rows(
         self, start: int | None, stop: int | None, step: int | None
@@ -626,7 +625,7 @@ class PandasDataFrame(DataFrame):
         )
 
     @property
-    def dataframe(self) -> pd.DataFrame:  # type: ignore[override]
+    def dataframe(self) -> pd.DataFrame:
         return self._dataframe
 
     def group_by(self, *keys: str) -> PandasGroupBy:
@@ -667,7 +666,7 @@ class PandasDataFrame(DataFrame):
         )
 
     def rename_columns(self, mapping: Mapping[str, str]) -> PandasDataFrame:
-        if not isinstance(mapping, collections.abc.Mapping):  # type: ignore
+        if not isinstance(mapping, collections.abc.Mapping):
             raise TypeError(f"Expected Mapping, got: {type(mapping)}")
         return PandasDataFrame(
             self.dataframe.rename(columns=mapping), api_version=self.api_version
@@ -677,7 +676,7 @@ class PandasDataFrame(DataFrame):
         # DO NOT REMOVE
         # This one is used in upstream tests - even if deprecated,
         # just leave it in for backwards compatibility
-        return self.dataframe.columns.tolist()
+        return self.dataframe.columns.tolist()  # type: ignore[no-any-return]
 
     def sort(
         self,
@@ -842,9 +841,7 @@ class PandasDataFrame(DataFrame):
                 result.append(self.dataframe[column].isna())
         return PandasDataFrame(pd.concat(result, axis=1), api_version=self.api_version)
 
-    def fill_nan(
-        self, value: float | pd.NAType  # type: ignore[name-defined]
-    ) -> PandasDataFrame:
+    def fill_nan(self, value: float | pd.NAType) -> PandasDataFrame:
         new_cols = {}
         df = self.dataframe
         for col in df.columns:

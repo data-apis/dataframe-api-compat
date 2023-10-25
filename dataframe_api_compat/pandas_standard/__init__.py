@@ -208,7 +208,7 @@ def convert_to_standard_compliant_column(
         raise ValueError(f"Expected column with string name, got: {ser.name}")
     if ser.name is None:
         ser = ser.rename("")
-    df = cast(PandasDataFrame, ser.to_frame().__dataframe_consortium_standard__())  # type: ignore
+    df = cast(PandasDataFrame, ser.to_frame().__dataframe_consortium_standard__())
     df = df.collect()
     name = cast(str, ser.name)
     return PandasColumn(df.col(name).column, api_version=api_version, df=df)
@@ -284,7 +284,7 @@ def dataframe_from_2d_array(
     dtypes: dict[str, Any],
     api_version: str | None = None,
 ) -> PandasDataFrame:  # pragma: no cover
-    df = pd.DataFrame(data, columns=names).astype(  # type: ignore[call-overload]
+    df = pd.DataFrame(data, columns=names).astype(
         {key: map_standard_dtype_to_pandas_dtype(value) for key, value in dtypes.items()}
     )
     return PandasDataFrame(df, api_version=api_version or LATEST_API_VERSION)
