@@ -97,6 +97,9 @@ class PandasColumn(Column):
     def __repr__(self) -> str:  # pragma: no cover
         return self.column.__repr__()  # type: ignore[no-any-return]
 
+    def __iter__(self) -> NoReturn:
+        raise NotImplementedError("")
+
     def _from_series(self, series: pd.Series) -> PandasColumn:
         return PandasColumn(
             series.reset_index(drop=True), api_version=self.api_version, df=self.df
@@ -180,45 +183,74 @@ class PandasColumn(Column):
         other = self._validate_comparand(other)
         return self._from_series(ser & other).rename(ser.name)
 
+    def __rand__(self, other: Column | Any) -> PandasColumn:
+        return self.__and__(other)
+
     def __or__(self, other: Column | bool) -> PandasColumn:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser | other).rename(ser.name)
+
+    def __ror__(self, other: Column | Any) -> PandasColumn:
+        return self.__or__(other)
 
     def __add__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser + other).rename(ser.name)
 
+    def __radd__(self, other: Column | Any) -> PandasColumn:
+        return self.__add__(other)
+
     def __sub__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser - other).rename(ser.name)
+
+    def __rsub__(self, other: Column | Any) -> PandasColumn:
+        return -1 * self.__sub__(other)
 
     def __mul__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser * other).rename(ser.name)
 
+    def __rmul__(self, other: Column | Any) -> PandasColumn:
+        return self.__mul__(other)
+
     def __truediv__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser / other).rename(ser.name)
+
+    def __rtruediv__(self, other: Column | Any) -> PandasColumn:
+        return 1 / self.__truediv__(other)
 
     def __floordiv__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser // other).rename(ser.name)
 
+    def __rfloordiv__(self, other: Column | Any) -> PandasColumn:
+        # todo not correct
+        return 1 / self.__floordiv__(other)
+
     def __pow__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser**other).rename(ser.name)
 
+    def __rpow__(self, other: Column | Any) -> PandasColumn:
+        return self.__pow__(other) ** -1
+
     def __mod__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser % other).rename(ser.name)
+
+    def __rmod__(self, other: Column | Any) -> PandasColumn:
+        # todo not correct
+        return self.__mod__(other) ** -1
 
     def __divmod__(self, other: Column | Any) -> tuple[PandasColumn, PandasColumn]:
         quotient = self // other
@@ -546,7 +578,7 @@ SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.08-beta"))
 
 
 class PandasDataFrame(DataFrame):
-    # Not technically part of the standard
+    # Not part of the Standard
 
     def __init__(
         self, dataframe: pd.DataFrame, api_version: str, is_collected: bool = False
@@ -575,20 +607,6 @@ class PandasDataFrame(DataFrame):
     def __repr__(self) -> str:  # pragma: no cover
         return self.dataframe.__repr__()
 
-    def col(self, name: str) -> PandasColumn:
-        return PandasColumn(
-            self.dataframe.loc[:, name], df=self, api_version=self.api_version
-        )
-
-    @property
-    def schema(self) -> dict[str, Any]:
-        return {
-            column_name: dataframe_api_compat.pandas_standard.map_pandas_dtype_to_standard_dtype(
-                dtype.name
-            )
-            for column_name, dtype in self.dataframe.dtypes.items()
-        }
-
     def _validate_columns(self, columns: Sequence[str]) -> None:
         counter = collections.Counter(columns)
         for col, count in counter.items():
@@ -609,7 +627,22 @@ class PandasDataFrame(DataFrame):
         if id(self) != id(column.df):  # type: ignore[attr-defined]
             raise ValueError("cannot compare columns from different dataframes")
 
-    # In the standard
+    # In the Standard
+
+    def col(self, name: str) -> PandasColumn:
+        return PandasColumn(
+            self.dataframe.loc[:, name], df=self, api_version=self.api_version
+        )
+
+    @property
+    def schema(self) -> dict[str, Any]:
+        return {
+            column_name: dataframe_api_compat.pandas_standard.map_pandas_dtype_to_standard_dtype(
+                dtype.name
+            )
+            for column_name, dtype in self.dataframe.dtypes.items()
+        }
+
     def __dataframe_namespace__(self) -> Any:
         return dataframe_api_compat.pandas_standard
 
@@ -691,6 +724,8 @@ class PandasDataFrame(DataFrame):
             df.sort_values(list(keys), ascending=ascending), api_version=self.api_version
         )
 
+    # Binary operations
+
     def __eq__(self, other: Any) -> PandasDataFrame:  # type: ignore[override]
         return PandasDataFrame(self.dataframe.__eq__(other), api_version=self.api_version)
 
@@ -714,43 +749,73 @@ class PandasDataFrame(DataFrame):
             self.dataframe.__and__(other), api_version=self.api_version
         )
 
+    def __rand__(self, other: Column | Any) -> PandasDataFrame:
+        return self.__and__(other)
+
     def __or__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(self.dataframe.__or__(other), api_version=self.api_version)
+
+    def __ror__(self, other: Column | Any) -> PandasDataFrame:
+        return self.__or__(other)
 
     def __add__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(
             self.dataframe.__add__(other), api_version=self.api_version
         )
 
+    def __radd__(self, other: Column | Any) -> PandasDataFrame:
+        return self.__add__(other)
+
     def __sub__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(
             self.dataframe.__sub__(other), api_version=self.api_version
         )
+
+    def __rsub__(self, other: Column | Any) -> PandasDataFrame:
+        return -1 * self.__sub__(other)
 
     def __mul__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(
             self.dataframe.__mul__(other), api_version=self.api_version
         )
 
+    def __rmul__(self, other: Column | Any) -> PandasDataFrame:
+        return self.__mul__(other)
+
     def __truediv__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(
             self.dataframe.__truediv__(other), api_version=self.api_version
         )
+
+    def __rtruediv__(self, other: Column | Any) -> PandasDataFrame:
+        return 1 / self.__truediv__(other)
 
     def __floordiv__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(
             self.dataframe.__floordiv__(other), api_version=self.api_version
         )
 
+    def __rfloordiv__(self, other: Column | Any) -> PandasDataFrame:
+        # todo not right
+        return 1 / self.__floordiv__(other)
+
     def __pow__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(
             self.dataframe.__pow__(other), api_version=self.api_version
         )
 
+    def __rpow__(self, other: Column | Any) -> PandasDataFrame:
+        # todo not right
+        return self.__pow__(other) ** -1
+
     def __mod__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(
             self.dataframe.__mod__(other), api_version=self.api_version
         )
+
+    def __rmod__(self, other: Column | Any) -> PandasDataFrame:
+        # todo not right
+        return self.__pow__(other) ** -1
 
     def __divmod__(
         self,
@@ -761,12 +826,16 @@ class PandasDataFrame(DataFrame):
             remainder, api_version=self.api_version
         )
 
+    # Unary
+
     def __invert__(self) -> PandasDataFrame:
         self._validate_booleanness()
         return PandasDataFrame(self.dataframe.__invert__(), api_version=self.api_version)
 
     def __iter__(self) -> NoReturn:
         raise NotImplementedError()
+
+    # Reductions
 
     def any(self, *, skip_nulls: bool = True) -> PandasDataFrame:
         self._validate_booleanness()
@@ -823,6 +892,8 @@ class PandasDataFrame(DataFrame):
         return PandasDataFrame(
             self.dataframe.var().to_frame().T, api_version=self.api_version
         )
+
+    # Transformations
 
     def is_null(self, *, skip_nulls: bool = True) -> PandasDataFrame:
         result: list[pd.Series] = []
@@ -886,6 +957,8 @@ class PandasDataFrame(DataFrame):
                 col = col.fillna(value)
             df[column] = col
         return PandasDataFrame(df, api_version=self.api_version)
+
+    # Other
 
     def join(
         self,
