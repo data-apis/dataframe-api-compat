@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import re
 from typing import Any
+from typing import cast
+from typing import Literal
 from typing import TYPE_CHECKING
 
-import pandas as pd
+import pandas as pd  # type: ignore
 from dataframe_api.dtypes import Bool as BoolT
 from dataframe_api.dtypes import Date as DateT
 from dataframe_api.dtypes import Datetime as DatetimeT
@@ -89,14 +91,14 @@ class Date(DateT):
 
 
 class Datetime(DatetimeT):
-    def __init__(self, time_unit, time_zone=None):
+    def __init__(self, time_unit: Literal["ms", "us"], time_zone: str | None = None):
         self.time_unit = time_unit
         # todo validate time zone
         self.time_zone = time_zone
 
 
 class Duration(DurationT):
-    def __init__(self, time_unit):
+    def __init__(self, time_unit: Literal["ms", "us"]):
         self.time_unit = time_unit
 
 
@@ -153,12 +155,13 @@ def map_pandas_dtype_to_standard_dtype(dtype: Any) -> DType:
     if dtype.startswith("datetime64["):
         match = re.search(r"datetime64\[(\w{1,2})", dtype)
         assert match is not None
-        time_unit = match.group(1)
+        time_unit = cast(Literal["ms", "us"], match.group(1))
         return Datetime(time_unit)
     if dtype.startswith("timedelta64["):
         match = re.search(r"timedelta64\[(\w{1,2})", dtype)
         assert match is not None
         time_unit = match.group(1)
+        time_unit = cast(Literal["ms", "us"], match.group(1))
         return Duration(time_unit)
     raise AssertionError(f"Unsupported dtype! {dtype}")
 
@@ -198,16 +201,18 @@ def map_standard_dtype_to_pandas_dtype(dtype: DType) -> Any:
 
 
 def convert_to_standard_compliant_column(
-    ser: pd.Series, api_version: str | None = None
-) -> PandasDataFrame:
+    ser: pd.Series[Any], api_version: str | None = None
+) -> PandasColumn:
     if api_version is None:  # pragma: no cover
         api_version = LATEST_API_VERSION
     if ser.name is not None and not isinstance(ser.name, str):
         raise ValueError(f"Expected column with string name, got: {ser.name}")
     if ser.name is None:
-        ser = ser.rename("")
-    df = ser.to_frame().__dataframe_consortium_standard__().collect()
-    return PandasColumn(df.col(ser.name).column, api_version=api_version, df=df)
+        ser = ser.rename("")  # type: ignore
+    df = cast(PandasDataFrame, ser.to_frame().__dataframe_consortium_standard__())  # type: ignore
+    df = df.collect()
+    name = cast(str, ser.name)
+    return PandasColumn(df.col(name).column, api_version=api_version, df=df)
 
 
 def convert_to_standard_compliant_dataframe(
@@ -219,17 +224,20 @@ def convert_to_standard_compliant_dataframe(
 
 
 def concat(dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:
-    dtypes = dataframes[0].dataframe.dtypes
-    dfs = []
-    api_versions = set()
-    for _df in dataframes:
+    dtypes = dataframes[0].dataframe.dtypes  # type: ignore
+    dfs: list[pd.DataFrame] = []
+    api_versions: set[str] = set()
+    for df in dataframes:
         try:
-            pd.testing.assert_series_equal(_df.dataframe.dtypes, dtypes)
+            pd.testing.assert_series_equal(
+                df.dataframe.dtypes,
+                dtypes,
+            )
         except Exception as exc:
             raise ValueError("Expected matching columns") from exc
         else:
-            dfs.append(_df.dataframe)
-        api_versions.add(_df._api_version)
+            dfs.append(df.dataframe)
+        api_versions.add(df.api_version)
     if len(api_versions) > 1:  # pragma: no cover
         raise ValueError(f"Multiple api versions found: {api_versions}")
     return PandasDataFrame(
@@ -244,17 +252,17 @@ def concat(dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:
 
 def dataframe_from_columns(*columns: PandasColumn) -> PandasDataFrame:
     data = {}
-    api_version = set()
+    api_versions: set[str] = set()
     for col in columns:
-        col._df._validate_is_collected("dataframe_from_columns")
+        col.df.validate_is_collected("dataframe_from_columns")
         data[col.name] = col.column
-        api_version.add(col._api_version)
-    return PandasDataFrame(pd.DataFrame(data), list(api_version)[0])
+        api_versions.add(col.api_version)
+    return PandasDataFrame(pd.DataFrame(data), list(api_versions)[0])
 
 
 def column_from_1d_array(
     data: Any, *, dtype: Any, name: str | None = None
-) -> PandasColumn[Any]:  # pragma: no cover
+) -> PandasColumn:  # pragma: no cover
     ser = pd.Series(data, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
     df = ser.to_frame().__dataframe_consortium_standard__().collect()
     # todo: propagate api version
@@ -263,7 +271,7 @@ def column_from_1d_array(
 
 def column_from_sequence(
     sequence: Sequence[Any], *, dtype: Any, name: str, api_version: str | None = None
-) -> PandasColumn[Any]:
+) -> PandasColumn:
     ser = pd.Series(sequence, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
     df = ser.to_frame().__dataframe_consortium_standard__().collect()
     # todo: propagate api version
