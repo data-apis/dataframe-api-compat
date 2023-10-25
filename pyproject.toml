@@ -59,6 +59,7 @@ ignore = [
   'PLR0912',
   'PLR5501',
   'PT011',
+  'PTH',
   'RET505',
   'S',
   'TD',

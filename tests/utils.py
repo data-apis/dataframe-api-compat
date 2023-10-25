@@ -37,7 +37,7 @@ def convert_to_standard_compliant_dataframe(
                 api_version=api_version,
             )
         )
-    else:
+    else:  # pragma: no cover
         msg = f"Got unexpected type: {type(df)}"
         raise AssertionError(msg)
 
@@ -74,7 +74,7 @@ def integer_dataframe_1(library: str, api_version: str | None = None) -> DataFra
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
         return convert_to_standard_compliant_dataframe(df, api_version=api_version)
-    msg = f"Got unexpected library: {library}"
+    msg = f"Got unexpected library: {library}"  # pragma: no cover
     raise AssertionError(msg)
 
 
@@ -89,7 +89,7 @@ def integer_dataframe_2(library: str) -> Any:
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [1, 2, 4], "b": [4, 2, 6]})
         return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"
+    msg = f"Got unexpected library: {library}"  # pragma: no cover
     raise AssertionError(msg)
 
 
@@ -110,7 +110,7 @@ def integer_dataframe_3(library: str) -> Any:
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [1, 2, 3, 4, 5, 6, 7], "b": [7, 6, 5, 4, 3, 2, 1]})
         return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"
+    msg = f"Got unexpected library: {library}"  # pragma: no cover
     raise AssertionError(msg)
 
 
@@ -131,7 +131,7 @@ def integer_dataframe_4(library: str) -> Any:
     if library == "polars-lazy":
         df = pl.LazyFrame({"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]})
         return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"
+    msg = f"Got unexpected library: {library}"  # pragma: no cover
     raise AssertionError(msg)
 
 
@@ -143,10 +143,10 @@ def integer_dataframe_5(library: str, api_version: str | None = None) -> Any:
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1, 1], "b": [4, 3]}, dtype="Int64")
         return convert_to_standard_compliant_dataframe(df, api_version=api_version)
-    if library == "polars-lazy":  # pragma: no cover
+    if library == "polars-lazy":
         df = pl.LazyFrame({"a": [1, 1], "b": [4, 3]})
         return convert_to_standard_compliant_dataframe(df, api_version=api_version)
-    msg = f"Got unexpected library: {library}"
+    msg = f"Got unexpected library: {library}"  # pragma: no cover
     raise AssertionError(msg)
 
 
@@ -161,7 +161,7 @@ def integer_dataframe_6(library: str, api_version: str | None = None) -> Any:
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [1, 1, 1, 2, 2], "b": [4, 4, 3, 1, 2]})
         return convert_to_standard_compliant_dataframe(df, api_version=api_version)
-    msg = f"Got unexpected library: {library}"
+    msg = f"Got unexpected library: {library}"  # pragma: no cover
     raise AssertionError(msg)
 
 
@@ -176,7 +176,7 @@ def integer_dataframe_7(library: str) -> DataFrame:
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [1, 2, 3], "b": [1, 2, 4]})
         return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"
+    msg = f"Got unexpected library: {library}"  # pragma: no cover
     raise AssertionError(msg)
 
 
@@ -192,7 +192,7 @@ def nan_dataframe_1(library: str) -> DataFrame:
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [1.0, 2.0, float("nan")]})
         return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"
+    msg = f"Got unexpected library: {library}"  # pragma: no cover
     raise AssertionError(msg)
 
 
@@ -208,7 +208,7 @@ def nan_dataframe_2(library: str) -> Any:
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [0.0, 1.0, float("nan")]})
         return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"
+    msg = f"Got unexpected library: {library}"  # pragma: no cover
     raise AssertionError(msg)
 
 
@@ -223,7 +223,7 @@ def null_dataframe_1(library: str) -> Any:
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [1.0, 2.0, None]})
         return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"
+    msg = f"Got unexpected library: {library}"  # pragma: no cover
     raise AssertionError(msg)
 
 
@@ -244,7 +244,7 @@ def null_dataframe_2(library: str) -> Any:
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [1.0, float("nan"), None], "b": [1.0, 1.0, None]})
         return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"
+    msg = f"Got unexpected library: {library}"  # pragma: no cover
     raise AssertionError(msg)
 
 
@@ -265,7 +265,7 @@ def bool_dataframe_1(library: str, api_version: str = "2023.09-beta") -> DataFra
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [True, True, False], "b": [True, True, True]})
         return convert_to_standard_compliant_dataframe(df, api_version=api_version)
-    msg = f"Got unexpected library: {library}"
+    msg = f"Got unexpected library: {library}"  # pragma: no cover
     raise AssertionError(msg)
 
 
@@ -298,7 +298,7 @@ def bool_dataframe_2(library: str) -> Any:
             },
         )
         return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"
+    msg = f"Got unexpected library: {library}"  # pragma: no cover
     raise AssertionError(msg)
 
 
@@ -319,7 +319,7 @@ def bool_dataframe_3(library: str) -> Any:
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [False, False], "b": [False, True], "c": [True, True]})
         return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"
+    msg = f"Got unexpected library: {library}"  # pragma: no cover
     raise AssertionError(msg)
 
 
@@ -334,7 +334,7 @@ def float_dataframe_1(library: str) -> Any:
     if library == "polars-lazy":
         df = pl.LazyFrame({"a": [2.0, 3.0]})
         return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"
+    msg = f"Got unexpected library: {library}"  # pragma: no cover
     raise AssertionError(msg)
 
 
@@ -349,7 +349,7 @@ def float_dataframe_2(library: str) -> Any:
     if library == "polars-lazy":  # pragma: no cover
         df = pl.LazyFrame({"a": [2.0, 1.0]})
         return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"
+    msg = f"Got unexpected library: {library}"  # pragma: no cover
     raise AssertionError(msg)
 
 
@@ -365,7 +365,7 @@ def float_dataframe_3(library: str) -> object:
     if library == "polars-lazy":  # pragma: no cover
         df = pl.LazyFrame({"a": [float("nan"), 2.0]})
         return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"
+    msg = f"Got unexpected library: {library}"  # pragma: no cover
     raise AssertionError(msg)
 
 
@@ -459,7 +459,7 @@ def temporal_dataframe_1(library: str) -> DataFrame:
             },
         )
         return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"
+    msg = f"Got unexpected library: {library}"  # pragma: no cover
     raise AssertionError(msg)
 
 
@@ -568,5 +568,5 @@ def mixed_dataframe_1(library: str) -> DataFrame:
             },
         )
         return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"
+    msg = f"Got unexpected library: {library}"  # pragma: no cover
     raise AssertionError(msg)

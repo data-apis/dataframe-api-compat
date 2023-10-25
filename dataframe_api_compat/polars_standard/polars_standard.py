@@ -108,7 +108,7 @@ class PolarsGroupBy(GroupBy):
             if col not in self.keys
         ):
             msg = "Expected all boolean columns"
-            raise ValueError(msg)
+            raise TypeError(msg)
         result = grp.agg(pl.col("*").any())
         return PolarsDataFrame(result, api_version=self._api_version)
 
@@ -120,7 +120,7 @@ class PolarsGroupBy(GroupBy):
             if col not in self.keys
         ):
             msg = "Expected all boolean columns"
-            raise ValueError(msg)
+            raise TypeError(msg)
         result = grp.agg(pl.col("*").all())
         return PolarsDataFrame(result, api_version=self._api_version)
 
@@ -509,7 +509,7 @@ class ColumnDatetimeAccessor:
 class PolarsDataFrame(DataFrame):
     def __init__(self, df: pl.LazyFrame | pl.DataFrame, api_version: str) -> None:
         self.df = df
-        if api_version not in SUPPORTED_VERSIONS:
+        if api_version not in SUPPORTED_VERSIONS:  # pragma: no cover
             msg = f"Unsupported API version, expected one of: {SUPPORTED_VERSIONS}. Try updating dataframe-api-compat?"
             raise AssertionError(
                 msg,

@@ -155,7 +155,7 @@ def map_polars_dtype_to_standard_dtype(dtype: Any) -> DType:
     if isinstance(dtype, pl.Duration):
         time_unit = cast(Literal["ms", "us"], dtype.time_unit)
         return Duration(time_unit)
-    msg = f"Got invalid dtype: {dtype}"
+    msg = f"Got invalid dtype: {dtype}"  # pragma: no cover
     raise AssertionError(msg)
 
 
@@ -193,7 +193,7 @@ def _map_standard_to_polars_dtypes(dtype: Any) -> pl.DataType:
     if isinstance(dtype, Duration):  # pragma: no cover
         # pending fix in polars itself
         return pl.Duration(dtype.time_unit)
-    msg = f"Unknown dtype: {dtype}"
+    msg = f"Unknown dtype: {dtype}"  # pragma: no cover
     raise AssertionError(msg)
 
 

@@ -41,8 +41,8 @@ def test_groupby_boolean(
 
 
 def test_group_by_invalid_any_all(library: str) -> None:
-    df = integer_dataframe_4(library)
-    with pytest.raises((ValueError, SchemaError)):
+    df = integer_dataframe_4(library).collect()
+    with pytest.raises((TypeError, SchemaError)):
         df.group_by("key").any()
-    with pytest.raises((ValueError, SchemaError)):
+    with pytest.raises((TypeError, SchemaError)):
         df.group_by("key").all()

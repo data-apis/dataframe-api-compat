@@ -529,7 +529,7 @@ class PandasGroupBy(GroupBy):
             | (self.df.drop(columns=self.keys).dtypes == "boolean")
         ).all():
             msg = "'function' can only be called on DataFrame where all dtypes are 'bool'"
-            raise ValueError(
+            raise TypeError(
                 msg,
             )
 
@@ -613,8 +613,9 @@ class PandasDataFrame(DataFrame):
         self._is_collected = is_collected
         self._validate_columns(dataframe.columns)
         self._dataframe = dataframe.reset_index(drop=True)
-        if api_version not in SUPPORTED_VERSIONS:
-            msg = f"Unsupported API version, expected one of: {SUPPORTED_VERSIONS}. Got: {api_version}Try updating dataframe-api-compat?"
+        if api_version not in SUPPORTED_VERSIONS:  # pragma: no cover
+            msg = f"Unsupported API version, expected one of: {SUPPORTED_VERSIONS}. "
+            f"Got: {api_version}Try updating dataframe-api-compat?"
             raise AssertionError(
                 msg,
             )
@@ -645,7 +646,7 @@ class PandasDataFrame(DataFrame):
             (self.dataframe.dtypes == "bool") | (self.dataframe.dtypes == "boolean")
         ).all():
             msg = "'any' can only be called on DataFrame where all dtypes are 'bool'"
-            raise NotImplementedError(
+            raise TypeError(
                 msg,
             )
 
