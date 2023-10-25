@@ -60,18 +60,18 @@ class Scalar:
     def __init__(self, value: Any, api_version: str, df: PandasDataFrame):
         self.value = value
         self._api_version = api_version
-        self._df = df
+        self.df = df
 
     def __bool__(self) -> bool:
-        self._df.validate_is_collected("Scalar.__bool__")
+        self.df.validate_is_collected("Scalar.__bool__")
         return self.value.__bool__()  # type: ignore[no-any-return]
 
     def __int__(self) -> int:
-        self._df.validate_is_collected("Scalar.__int__")
+        self.df.validate_is_collected("Scalar.__int__")
         return self.value.__int__()  # type: ignore[no-any-return]
 
     def __float__(self) -> float:
-        self._df.validate_is_collected("Scalar.__float__")
+        self.df.validate_is_collected("Scalar.__float__")
         return self.value.__float__()  # type: ignore[no-any-return]
 
 
@@ -107,7 +107,7 @@ class PandasColumn(Column):
 
     def _validate_comparand(self, other: Column | Any) -> Column | Any:
         if isinstance(other, Scalar):
-            if id(self.df) != id(other.value):
+            if id(self.df) != id(other.df):
                 raise ValueError(
                     "cannot compare columns/scalars from different dataframes"
                 )
