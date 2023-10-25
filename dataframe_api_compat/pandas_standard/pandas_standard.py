@@ -230,7 +230,7 @@ class PandasColumn(Column):
         return self._from_series(ser / other).rename(ser.name)
 
     def __rtruediv__(self, other: Column | Any) -> PandasColumn:
-        return 1 / self.__truediv__(other)
+        raise NotImplementedError()
 
     def __floordiv__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
@@ -246,17 +246,16 @@ class PandasColumn(Column):
         other = self._validate_comparand(other)
         return self._from_series(ser**other).rename(ser.name)
 
-    def __rpow__(self, other: Column | Any) -> PandasColumn:
-        return self.__pow__(other) ** -1
+    def __rpow__(self, other: Column | Any) -> PandasColumn:  # pragma: no cover
+        raise NotImplementedError()
 
     def __mod__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser % other).rename(ser.name)
 
-    def __rmod__(self, other: Column | Any) -> PandasColumn:
-        # todo not correct
-        return self.__mod__(other) ** -1
+    def __rmod__(self, other: Column | Any) -> PandasColumn:  # pragma: no cover
+        raise NotImplementedError()
 
     def __divmod__(self, other: Column | Any) -> tuple[PandasColumn, PandasColumn]:
         quotient = self // other
@@ -341,7 +340,9 @@ class PandasColumn(Column):
         ser = self.column
         return self._from_series(ser.isin(values.column))
 
-    def unique_indices(self, *, skip_nulls: bool = True) -> PandasColumn:
+    def unique_indices(
+        self, *, skip_nulls: bool = True
+    ) -> PandasColumn:  # pragma: no cover
         raise NotImplementedError("not yet supported")
 
     def fill_nan(self, value: float | pd.NAType) -> PandasColumn:
@@ -927,10 +928,12 @@ class PandasDataFrame(DataFrame):
         *keys: str,
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
-    ) -> PandasColumn:
+    ) -> PandasColumn:  # pragma: no cover
         raise NotImplementedError()
 
-    def unique_indices(self, *keys: str, skip_nulls: bool = True) -> PandasColumn:
+    def unique_indices(
+        self, *keys: str, skip_nulls: bool = True
+    ) -> PandasColumn:  # pragma: no cover
         raise NotImplementedError()
 
     # Transformations

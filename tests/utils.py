@@ -20,28 +20,8 @@ DType = TypeVar("DType")
 if TYPE_CHECKING:
     import pytest
     from dataframe_api import (
-        Bool,
-        PermissiveColumn,
-        Column,
         DataFrame,
-        GroupBy,
     )
-else:
-
-    class DataFrame:
-        ...
-
-    class PermissiveColumn:
-        ...
-
-    class Column:
-        ...
-
-    class GroupBy:
-        ...
-
-    class Bool:
-        ...
 
 
 def convert_to_standard_compliant_dataframe(
@@ -181,7 +161,7 @@ def integer_dataframe_6(library: str, api_version: str | None = None) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def integer_dataframe_7(library) -> Any:
+def integer_dataframe_7(library: str) -> DataFrame:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1, 2, 3], "b": [1, 2, 4]}, dtype="int64")
