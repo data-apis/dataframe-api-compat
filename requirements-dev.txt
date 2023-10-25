@@ -1,5 +1,4 @@
 covdefaults
-git+https://github.com/MarcoGorelli/dataframe-api.git@col#egg=dataframe_api&subdirectory=spec/API_specification
 mypy
 pandas
 polars

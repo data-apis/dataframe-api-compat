@@ -8,11 +8,17 @@ from typing import NoReturn
 from typing import TYPE_CHECKING
 
 import polars as pl
-from dataframe_api import Column
-from dataframe_api import DataFrame
-from dataframe_api import GroupBy
 
-import dataframe_api_compat.polars_standard
+import dataframe_api_compat
+
+if TYPE_CHECKING:
+    from dataframe_api import Column
+    from dataframe_api import DataFrame
+    from dataframe_api import GroupBy
+else:
+    Column = object
+    DataFrame = object
+    GroupBy = object
 
 _ARRAY_API_DTYPES = frozenset(
     (

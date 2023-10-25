@@ -30,5 +30,7 @@ jobs:
         run: python -m pip install --upgrade tox virtualenv setuptools pip -r requirements-dev.txt
       - name: run pytest
         run: pytest tests --cov=dataframe_api_compat --cov=tests --cov-fail-under=100
+      - name: install type-checking reqs
+        run: python -m pip install git+https://github.com/MarcoGorelli/dataframe-api.git@col#egg=dataframe_api&subdirectory=spec/API_specification
       - name: run mypy
         run: mypy dataframe_api_compat
