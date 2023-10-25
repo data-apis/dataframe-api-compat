@@ -1,5 +1,4 @@
 covdefaults
-mypy
 pandas
 polars
 pre-commit
