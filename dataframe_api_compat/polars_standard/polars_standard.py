@@ -198,6 +198,18 @@ class PolarsColumn(Column):
     def name(self) -> str:
         return self._name
 
+    @property
+    def column(self) -> pl.Expr:
+        return self.expr
+
+    @property
+    def dtype(self) -> DType:
+        self.df.validate_is_collected("Column.dtype")
+        ser = self.df.materialise(self.expr)
+        return dataframe_api_compat.polars_standard.map_polars_dtype_to_standard_dtype(
+            ser.dtype
+        )
+
     def get_rows(self, indices: PolarsColumn) -> PolarsColumn:
         return self._from_expr(self.expr.take(indices.expr))
 
@@ -279,9 +291,15 @@ class PolarsColumn(Column):
         other = self._validate_comparand(other)
         return self._from_expr(self.expr + other)
 
+    def __radd__(self, other: PolarsColumn | Any) -> PolarsColumn:
+        return self.__add__(other)
+
     def __sub__(self, other: PolarsColumn | Any) -> PolarsColumn:
         other = self._validate_comparand(other)
         return self._from_expr(self.expr - other)
+
+    def __rsub__(self, other: PolarsColumn | Any) -> PolarsColumn:
+        return -1 * self.__sub__(other)
 
     def __eq__(self, other: PolarsColumn | Any) -> PolarsColumn:  # type: ignore[override]
         other = self._validate_comparand(other)
@@ -312,23 +330,38 @@ class PolarsColumn(Column):
         res = self.expr * other
         return self._from_expr(res)
 
+    def __rmul__(self, other: PolarsColumn | Any) -> PolarsColumn:
+        return self.__mul__(other)
+
     def __floordiv__(self, other: PolarsColumn | Any) -> PolarsColumn:
         other = self._validate_comparand(other)
         return self._from_expr(self.expr // other)
+
+    def __rfloordiv__(self, other: PolarsColumn | Any) -> PolarsColumn:
+        raise NotImplementedError()
 
     def __truediv__(self, other: PolarsColumn | Any) -> PolarsColumn:
         other = self._validate_comparand(other)
         res = self.expr / other
         return self._from_expr(res)
 
+    def __rtruediv__(self, other: PolarsColumn | Any) -> PolarsColumn:
+        raise NotImplementedError()
+
     def __pow__(self, other: PolarsColumn | Any) -> PolarsColumn:
         other = self._validate_comparand(other)
         ret = self.expr.pow(other)  # type: ignore[arg-type]
         return self._from_expr(ret)
 
+    def __rpow__(self, other: PolarsColumn | Any) -> PolarsColumn:
+        return self.__pow__(other) ** -1
+
     def __mod__(self, other: PolarsColumn | Any) -> PolarsColumn:
         other = self._validate_comparand(other)
         return self._from_expr(self.expr % other)
+
+    def __rmod__(self, other: PolarsColumn | Any) -> PolarsColumn:
+        raise NotImplementedError()
 
     def __divmod__(
         self,
@@ -341,11 +374,17 @@ class PolarsColumn(Column):
 
     def __and__(self, other: Self | bool) -> Self:
         other = self._validate_comparand(other)
-        return self._from_expr(self.expr & other)  # type: ignore[operator]
+        return self._from_expr(self.expr & other)  # type: ignore[arg-type]
+
+    def __rand__(self, other: PolarsColumn | Any) -> PolarsColumn:
+        return self.__and__(other)
 
     def __or__(self, other: Self | bool) -> Self:
         other = self._validate_comparand(other)
-        return self._from_expr(self.expr | other)  # type: ignore[operator]
+        return self._from_expr(self.expr | other)  # type: ignore[arg-type]
+
+    def __ror__(self, other: PolarsColumn | Any) -> PolarsColumn:
+        return self.__or__(other)
 
     def __invert__(self) -> PolarsColumn:
         return self._from_expr(~self.expr)
