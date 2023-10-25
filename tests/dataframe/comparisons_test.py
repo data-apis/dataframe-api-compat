@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-from typing import Callable
-
 import pandas as pd
 import pytest
 
@@ -29,14 +26,34 @@ from tests.utils import interchange_to_pandas
         ("__mod__", {"a": [1, 0, 1], "b": [0, 1, 0]}),
     ],
 )
-@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
 def test_comparisons_with_scalar(
     library: str,
     comparison: str,
     expected_data: dict[str, object],
-    relax: Callable[[Any], Any],
 ) -> None:
-    df = relax(integer_dataframe_1(library))
+    df = integer_dataframe_1(library)
+    other = 2
+    result = getattr(df, comparison)(other)
+    result_pd = interchange_to_pandas(result, library)
+    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
+    expected = pd.DataFrame(expected_data)
+    pd.testing.assert_frame_equal(result_pd, expected)
+
+
+@pytest.mark.parametrize(
+    ("comparison", "expected_data"),
+    [
+        ("__radd__", {"a": [3, 4, 5], "b": [6, 7, 8]}),
+        ("__rsub__", {"a": [1, 0, -1], "b": [-2, -3, -4]}),
+        ("__rmul__", {"a": [2, 4, 6], "b": [8, 10, 12]}),
+    ],
+)
+def test_rcomparisons_with_scalar(
+    library: str,
+    comparison: str,
+    expected_data: dict[str, object],
+) -> None:
+    df = integer_dataframe_1(library)
     other = 2
     result = getattr(df, comparison)(other)
     result_pd = interchange_to_pandas(result, library)

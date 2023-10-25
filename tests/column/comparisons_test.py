@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from typing import Any
+from typing import cast
+from typing import TYPE_CHECKING
 
 import pandas as pd
 import pytest
@@ -8,6 +10,9 @@ import pytest
 from tests.utils import integer_dataframe_1
 from tests.utils import integer_dataframe_7
 from tests.utils import interchange_to_pandas
+
+if TYPE_CHECKING:
+    from dataframe_api import DataFrame
 
 
 @pytest.mark.parametrize(
@@ -34,7 +39,7 @@ def test_column_comparisons(
     expected_data: list[object],
 ) -> None:
     ser: Any
-    df = integer_dataframe_7(library).collect()
+    df = cast("DataFrame", integer_dataframe_7(library).collect())  # type: ignore
     ser = df.col("a")
     other = df.col("b")
     result = df.assign(getattr(ser, comparison)(other).rename("result"))
@@ -70,7 +75,7 @@ def test_column_comparisons_scalar(
     expected_data: list[object],
 ) -> None:
     ser: Any
-    df = integer_dataframe_1(library).collect()
+    df = cast("DataFrame", integer_dataframe_1(library).collect())  # type: ignore
     ser = df.col("a")
     other = 3
     result = df.assign(getattr(ser, comparison)(other).rename("result"))
@@ -84,34 +89,22 @@ def test_column_comparisons_scalar(
 @pytest.mark.parametrize(
     ("comparison", "expected_data"),
     [
-        ("__eq__", [False, False, True]),
-        ("__ne__", [True, True, False]),
-        ("__ge__", [False, False, True]),
-        ("__gt__", [False, False, False]),
-        ("__le__", [True, True, True]),
-        ("__lt__", [True, True, False]),
-        ("__add__", [4, 5, 6]),
-        ("__sub__", [-2, -1, 0]),
-        ("__mul__", [3, 6, 9]),
-        ("__truediv__", [1 / 3, 2 / 3, 1]),
-        ("__floordiv__", [0, 0, 1]),
-        ("__pow__", [1, 8, 27]),
-        ("__mod__", [1, 2, 0]),
+        ("__radd__", [3, 4, 5]),
+        ("__rsub__", [1, 0, -1]),
+        ("__rmul__", [2, 4, 6]),
     ],
 )
-def test_expression_comparisons_scalar(
+def test_right_column_comparisons(
     library: str,
     comparison: str,
     expected_data: list[object],
 ) -> None:
+    # 1,2,3
     ser: Any
-    df = integer_dataframe_1(library)
-    df.__dataframe_namespace__()
+    df = cast("DataFrame", integer_dataframe_7(library).collect())  # type: ignore
     ser = df.col("a")
-    other = 3
+    other = 2
     result = df.assign(getattr(ser, comparison)(other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series(expected_data, name="result")
-    if comparison == "__pow__" and library in ("polars", "polars-lazy"):
-        result_pd = result_pd.astype("int64")
     pd.testing.assert_series_equal(result_pd, expected)

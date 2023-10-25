@@ -20,28 +20,8 @@ DType = TypeVar("DType")
 if TYPE_CHECKING:
     import pytest
     from dataframe_api import (
-        Bool,
-        PermissiveColumn,
-        Column,
         DataFrame,
-        GroupBy,
     )
-else:
-
-    class DataFrame:
-        ...
-
-    class PermissiveColumn:
-        ...
-
-    class Column:
-        ...
-
-    class GroupBy:
-        ...
-
-    class Bool:
-        ...
 
 
 def convert_to_standard_compliant_dataframe(
@@ -181,7 +161,7 @@ def integer_dataframe_6(library: str, api_version: str | None = None) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def integer_dataframe_7(library) -> Any:
+def integer_dataframe_7(library: str) -> DataFrame:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame({"a": [1, 2, 3], "b": [1, 2, 4]}, dtype="int64")
@@ -258,7 +238,7 @@ def null_dataframe_2(library) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def bool_dataframe_1(library: str, api_version="2023.09-beta") -> Any:
+def bool_dataframe_1(library: str, api_version: str = "2023.09-beta") -> DataFrame:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame(
@@ -477,7 +457,7 @@ def maybe_collect(result: Any) -> Any:
     return df
 
 
-def mixed_dataframe_1(library) -> Any:
+def mixed_dataframe_1(library: str) -> DataFrame:
     df: Any
     data = {
         "a": [1, 2, 3],
