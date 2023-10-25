@@ -742,9 +742,16 @@ class PolarsDataFrame(DataFrame):
 
     # Horizontal reductions
 
-    def all_rowwise(self, *columns: str, skip_nulls: bool = True):
+    def all_rowwise(self, *, skip_nulls: bool = True):
         return PolarsColumn(
-            pl.all_horizontal(list(columns) or "*").alias("all"),
+            pl.all_horizontal(self.column_names).alias("all"),
+            api_version=self.api_version,
+            df=self,
+        )
+
+    def any_rowwise(self, *, skip_nulls: bool = True):
+        return PolarsColumn(
+            pl.any_horizontal(self.column_names).alias("all"),
             api_version=self.api_version,
             df=self,
         )

@@ -895,10 +895,18 @@ class PandasDataFrame(DataFrame):
 
     # Horizontal reductions
 
-    def all_rowwise(self, *columns: str, skip_nulls: bool = True) -> PandasColumn:
+    def all_rowwise(self, *, skip_nulls: bool = True) -> PandasColumn:
         df = self.dataframe
         return PandasColumn(
-            df.loc[:, list(columns) or df.columns.tolist()].all(axis=1),
+            df.all(axis=1),
+            api_version=self.api_version,
+            df=self,
+        )
+
+    def any_rowwise(self, *, skip_nulls: bool = True) -> PandasColumn:
+        df = self.dataframe
+        return PandasColumn(
+            df.any(axis=1),
             api_version=self.api_version,
             df=self,
         )
