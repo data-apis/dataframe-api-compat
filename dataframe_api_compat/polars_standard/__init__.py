@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
-from typing import cast
-from typing import Literal
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import polars as pl
 
@@ -14,15 +11,15 @@ if TYPE_CHECKING:
     from dataframe_api.dtypes import Duration as DurationT
     from dataframe_api.dtypes import Float32 as Float32T
     from dataframe_api.dtypes import Float64 as Float64T
+    from dataframe_api.dtypes import Int8 as Int8T
     from dataframe_api.dtypes import Int16 as Int16T
     from dataframe_api.dtypes import Int32 as Int32T
     from dataframe_api.dtypes import Int64 as Int64T
-    from dataframe_api.dtypes import Int8 as Int8T
     from dataframe_api.dtypes import String as StringT
+    from dataframe_api.dtypes import UInt8 as UInt8T
     from dataframe_api.dtypes import UInt16 as UInt16T
     from dataframe_api.dtypes import UInt32 as UInt32T
     from dataframe_api.dtypes import UInt64 as UInt64T
-    from dataframe_api.dtypes import UInt8 as UInt8T
 else:
     BoolT = object
     DateT = object
@@ -40,14 +37,17 @@ else:
     UInt64T = object
     UInt8T = object
 
-from dataframe_api_compat.polars_standard.polars_standard import LATEST_API_VERSION
-from dataframe_api_compat.polars_standard.polars_standard import null
-from dataframe_api_compat.polars_standard.polars_standard import PolarsColumn
-from dataframe_api_compat.polars_standard.polars_standard import PolarsDataFrame
-from dataframe_api_compat.polars_standard.polars_standard import PolarsGroupBy
+from dataframe_api_compat.polars_standard.polars_standard import (
+    LATEST_API_VERSION,
+    PolarsColumn,
+    PolarsDataFrame,
+    PolarsGroupBy,
+    null,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
     from dataframe_api.typing import DType
 
 Column = PolarsColumn
@@ -108,13 +108,17 @@ class Date(DateT):
 
 
 class Datetime(DatetimeT):
-    def __init__(self, time_unit: Literal["ms", "us"], time_zone: str | None = None):
+    def __init__(
+        self,
+        time_unit: Literal["ms", "us"],
+        time_zone: str | None = None,
+    ) -> None:
         self.time_unit = time_unit
         self.time_zone = time_zone
 
 
 class Duration(DurationT):
-    def __init__(self, time_unit: Literal["ms", "us"]):
+    def __init__(self, time_unit: Literal["ms", "us"]) -> None:
         self.time_unit = time_unit
 
 
@@ -151,7 +155,8 @@ def map_polars_dtype_to_standard_dtype(dtype: Any) -> DType:
     if isinstance(dtype, pl.Duration):
         time_unit = cast(Literal["ms", "us"], dtype.time_unit)
         return Duration(time_unit)
-    raise AssertionError(f"Got invalid dtype: {dtype}")
+    msg = f"Got invalid dtype: {dtype}"
+    raise AssertionError(msg)
 
 
 def is_null(value: Any) -> bool:
@@ -188,7 +193,8 @@ def _map_standard_to_polars_dtypes(dtype: Any) -> pl.DataType:
     if isinstance(dtype, Duration):  # pragma: no cover
         # pending fix in polars itself
         return pl.Duration(dtype.time_unit)
-    raise AssertionError(f"Unknown dtype: {dtype}")
+    msg = f"Unknown dtype: {dtype}"
+    raise AssertionError(msg)
 
 
 def concat(dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
@@ -198,9 +204,10 @@ def concat(dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
         dfs.append(df.dataframe)
         api_versions.add(df.api_version)
     if len(api_versions) > 1:  # pragma: no cover
-        raise ValueError(f"Multiple api versions found: {api_versions}")
+        msg = f"Multiple api versions found: {api_versions}"
+        raise ValueError(msg)
     return PolarsDataFrame(
-        pl.concat(dfs),  # type: ignore
+        pl.concat(dfs),
         api_version=api_versions.pop(),
     )
 
@@ -214,12 +221,17 @@ def dataframe_from_columns(*columns: PolarsColumn) -> PolarsDataFrame:
         data[col.name] = df.select(col.expr).get_column(col.name)
         api_version.add(col.api_version)
     if len(api_version) > 1:  # pragma: no cover
-        raise ValueError(f"found multiple api versions: {api_version}")
+        msg = f"found multiple api versions: {api_version}"
+        raise ValueError(msg)
     return PolarsDataFrame(pl.DataFrame(data).lazy(), api_version=list(api_version)[0])
 
 
 def column_from_1d_array(
-    data: Any, *, dtype: Any, name: str, api_version: str | None = None
+    data: Any,
+    *,
+    dtype: Any,
+    name: str,
+    api_version: str | None = None,
 ) -> PolarsColumn:  # pragma: no cover
     ser = pl.Series(values=data, dtype=_map_standard_to_polars_dtypes(dtype), name=name)
     # TODO propagate api version
@@ -227,7 +239,7 @@ def column_from_1d_array(
         PolarsDataFrame,
         (
             ser.to_frame()
-            .__dataframe_consortium_standard__(api_version=LATEST_API_VERSION)
+            .__dataframe_consortium_standard__(api_version=api_version)
             .collect()
         ),
     )
@@ -241,7 +253,9 @@ def column_from_sequence(
     name: str,
 ) -> PolarsColumn:
     ser = pl.Series(
-        values=sequence, dtype=_map_standard_to_polars_dtypes(dtype), name=name
+        values=sequence,
+        dtype=_map_standard_to_polars_dtypes(dtype),
+        name=name,
     )
     # TODO propagate api version
     df = cast(
@@ -259,21 +273,15 @@ def column_from_sequence(
 #     sequence: Sequence[Any],
 #     *,
 #     dtype: Any,
-#     name: str | None = None,
-#     api_version: str | None = None,
 # ) -> PolarsPermissiveColumn[Any]:
 #     return PolarsPermissiveColumn(
 #         pl.Series(
-#             values=sequence, dtype=_map_standard_to_polars_dtypes(dtype), name=name
 #         ),
-#         api_version=api_version or LATEST_API_VERSION,
-#     )
 
 
 def dataframe_from_2d_array(
     data: Any,
     *,
-    names: Sequence[str],
     dtypes: dict[str, Any],
     api_version: str | None = None,
 ) -> PolarsDataFrame:  # pragma: no cover
@@ -287,13 +295,14 @@ def dataframe_from_2d_array(
 
 
 def convert_to_standard_compliant_column(
-    ser: pl.Series, api_version: str | None = None
+    ser: pl.Series,
+    api_version: str | None = None,
 ) -> PolarsColumn:
     df = cast(
         PolarsDataFrame,
         (
             ser.to_frame()
-            .__dataframe_consortium_standard__(api_version=LATEST_API_VERSION)
+            .__dataframe_consortium_standard__(api_version=api_version)
             .collect()
         ),
     )
@@ -301,7 +310,8 @@ def convert_to_standard_compliant_column(
 
 
 def convert_to_standard_compliant_dataframe(
-    df: pl.LazyFrame, api_version: str | None = None
+    df: pl.LazyFrame,
+    api_version: str | None = None,
 ) -> PolarsDataFrame:
     df_lazy = df.lazy() if isinstance(df, pl.DataFrame) else df
     return PolarsDataFrame(df_lazy, api_version=api_version or LATEST_API_VERSION)

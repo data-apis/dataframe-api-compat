@@ -1,15 +1,11 @@
 from __future__ import annotations
 
-from typing import Any
-from typing import cast
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 import pandas as pd
 import pytest
 
-from tests.utils import integer_dataframe_1
-from tests.utils import integer_dataframe_7
-from tests.utils import interchange_to_pandas
+from tests.utils import integer_dataframe_1, integer_dataframe_7, interchange_to_pandas
 
 if TYPE_CHECKING:
     from dataframe_api import DataFrame
@@ -39,11 +35,11 @@ def test_column_comparisons(
     expected_data: list[object],
 ) -> None:
     ser: Any
-    df = cast("DataFrame", integer_dataframe_7(library).collect())  # type: ignore
+    df = cast("DataFrame", integer_dataframe_7(library).collect())
     ser = df.col("a")
     other = df.col("b")
     result = df.assign(getattr(ser, comparison)(other).rename("result"))
-    result_pd = interchange_to_pandas(result, library)["result"]
+    result_pd = interchange_to_pandas(result)["result"]
     expected = pd.Series(expected_data, name="result")
     if library in ("polars", "polars-lazy") and comparison == "__pow__":
         # TODO
@@ -75,11 +71,11 @@ def test_column_comparisons_scalar(
     expected_data: list[object],
 ) -> None:
     ser: Any
-    df = cast("DataFrame", integer_dataframe_1(library).collect())  # type: ignore
+    df = cast("DataFrame", integer_dataframe_1(library).collect())
     ser = df.col("a")
     other = 3
     result = df.assign(getattr(ser, comparison)(other).rename("result"))
-    result_pd = interchange_to_pandas(result, library)["result"]
+    result_pd = interchange_to_pandas(result)["result"]
     expected = pd.Series(expected_data, name="result")
     if comparison == "__pow__" and library in ("polars", "polars-lazy"):
         result_pd = result_pd.astype("int64")
@@ -101,10 +97,10 @@ def test_right_column_comparisons(
 ) -> None:
     # 1,2,3
     ser: Any
-    df = cast("DataFrame", integer_dataframe_7(library).collect())  # type: ignore
+    df = cast("DataFrame", integer_dataframe_7(library).collect())
     ser = df.col("a")
     other = 2
     result = df.assign(getattr(ser, comparison)(other).rename("result"))
-    result_pd = interchange_to_pandas(result, library)["result"]
+    result_pd = interchange_to_pandas(result)["result"]
     expected = pd.Series(expected_data, name="result")
     pd.testing.assert_series_equal(result_pd, expected)

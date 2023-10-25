@@ -3,8 +3,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from tests.utils import integer_dataframe_1
-from tests.utils import interchange_to_pandas
+from tests.utils import integer_dataframe_1, interchange_to_pandas
 
 
 @pytest.mark.parametrize(
@@ -17,11 +16,13 @@ from tests.utils import interchange_to_pandas
     ],
 )
 def test_cumulative_functions_column(
-    library: str, func: str, expected_data: list[float], request: pytest.FixtureRequest
+    library: str,
+    func: str,
+    expected_data: list[float],
 ) -> None:
     df = integer_dataframe_1(library).collect()
     ser = df.col("a")
     expected = pd.Series(expected_data, name="result")
     result = df.assign(getattr(ser, func)().rename("result"))
-    result_pd = interchange_to_pandas(result, library)["result"]
+    result_pd = interchange_to_pandas(result)["result"]
     pd.testing.assert_series_equal(result_pd, expected)

@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from typing import Any
-from typing import Callable
+from typing import Any, Callable
 
 import pandas as pd
 import pytest
 
-from tests.utils import integer_dataframe_1
-from tests.utils import interchange_to_pandas
+from tests.utils import integer_dataframe_1, interchange_to_pandas
 
 
 @pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
@@ -16,7 +14,7 @@ def test_update_columns(library: str, relax: Callable[[Any], Any]) -> None:
     df.__dataframe_namespace__()
     col = df.col
     result = df.assign(col("a") + 1)
-    result_pd = interchange_to_pandas(result, library)
+    result_pd = interchange_to_pandas(result)
     expected = pd.DataFrame({"a": [2, 3, 4], "b": [4, 5, 6]})
     pd.testing.assert_frame_equal(result_pd, expected)
 
@@ -27,6 +25,6 @@ def test_update_multiple_columns(library: str, relax: Callable[[Any], Any]) -> N
     df.__dataframe_namespace__()
     col = df.col
     result = df.assign(col("a") + 1, col("b") + 2)
-    result_pd = interchange_to_pandas(result, library)
+    result_pd = interchange_to_pandas(result)
     expected = pd.DataFrame({"a": [2, 3, 4], "b": [6, 7, 8]})
     pd.testing.assert_frame_equal(result_pd, expected)

@@ -3,8 +3,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from tests.utils import interchange_to_pandas
-from tests.utils import temporal_dataframe_1
+from tests.utils import interchange_to_pandas, temporal_dataframe_1
 
 
 @pytest.mark.parametrize(
@@ -24,9 +23,9 @@ def test_col_components(library: str, attr: str, expected: list[int]) -> None:
     df = temporal_dataframe_1(library).collect()
     for col_name in ("a", "c", "e"):
         result = df.assign(getattr(df.col(col_name).dt, attr)().rename("result")).select(
-            "result"
+            "result",
         )
-        result = interchange_to_pandas(result, library)["result"].astype("int64")
+        result = interchange_to_pandas(result)["result"].astype("int64")
         expected = pd.Series(expected, name="result")
         pd.testing.assert_series_equal(result, expected)
 
@@ -42,8 +41,8 @@ def test_col_components(library: str, attr: str, expected: list[int]) -> None:
 def test_col_microsecond(library: str, col_name: str, expected: list[int]) -> None:
     df = temporal_dataframe_1(library).collect()
     result = df.assign(df.col(col_name).dt.microsecond().rename("result")).select(
-        "result"
+        "result",
     )
-    result = interchange_to_pandas(result, library)["result"].astype("int64")
+    result = interchange_to_pandas(result)["result"].astype("int64")
     expected = pd.Series(expected, name="result")
     pd.testing.assert_series_equal(result, expected)

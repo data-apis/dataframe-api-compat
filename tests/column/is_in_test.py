@@ -1,15 +1,16 @@
 from __future__ import annotations
 
-from typing import Any
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
 import pytest
 
-from tests.utils import float_dataframe_1
-from tests.utils import float_dataframe_2
-from tests.utils import float_dataframe_3
-from tests.utils import interchange_to_pandas
+from tests.utils import (
+    float_dataframe_1,
+    float_dataframe_2,
+    float_dataframe_3,
+    interchange_to_pandas,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -27,13 +28,12 @@ def test_is_in(
     library: str,
     df_factory: Callable[[str, pytest.FixtureRequest], Any],
     expected_values: list[bool],
-    request: pytest.FixtureRequest,
 ) -> None:
-    df = df_factory(library, request).collect()
+    df = df_factory(library).collect()
     ser = df.col("a")
     other = ser + 1
     result = df.assign(ser.is_in(other).rename("result"))
-    result_pd = interchange_to_pandas(result, library)["result"]
+    result_pd = interchange_to_pandas(result)["result"]
     expected = pd.Series(expected_values, name="result")
     pd.testing.assert_series_equal(result_pd, expected)
 
@@ -50,13 +50,12 @@ def test_expr_is_in(
     library: str,
     df_factory: Callable[[str, pytest.FixtureRequest], Any],
     expected_values: list[bool],
-    request: pytest.FixtureRequest,
 ) -> None:
-    df = df_factory(library, request)
+    df = df_factory(library)
     col = df.col
     ser = col("a")
     other = ser + 1
     result = df.assign(ser.is_in(other).rename("result"))
-    result_pd = interchange_to_pandas(result, library)["result"]
+    result_pd = interchange_to_pandas(result)["result"]
     expected = pd.Series(expected_values, name="result")
     pd.testing.assert_series_equal(result_pd, expected)

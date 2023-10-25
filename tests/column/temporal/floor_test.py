@@ -5,8 +5,7 @@ from datetime import datetime
 import pandas as pd
 import pytest
 
-from tests.utils import interchange_to_pandas
-from tests.utils import temporal_dataframe_1
+from tests.utils import interchange_to_pandas, temporal_dataframe_1
 
 
 @pytest.mark.parametrize(
@@ -21,7 +20,7 @@ def test_floor(library: str, freq: str, expected: list[datetime]) -> None:
     result = (
         df.assign(col("a").dt.floor(freq).rename("result")).select("result").collect()
     )
-    # todo check the resolution
-    result = interchange_to_pandas(result, library)["result"].astype("datetime64[ns]")
+    # TODO check the resolution
+    result = interchange_to_pandas(result)["result"].astype("datetime64[ns]")
     expected = pd.Series(expected, name="result")
     pd.testing.assert_series_equal(result, expected)

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
-from typing import Callable
+from typing import Any, Callable
 
 import pytest
 
@@ -45,15 +44,13 @@ def test_schema(library: str, maybe_collect: Callable[[Any], Any]) -> None:
     assert isinstance(result["k"], namespace.Bool)
     assert isinstance(result["l"], namespace.String)
     assert isinstance(result["m"], namespace.Date)
-    assert (
-        isinstance(result["n"], namespace.Datetime)
-        and result["n"].time_unit == "ms"
-        and result["n"].time_zone is None
-    )
-    assert (
-        isinstance(result["o"], namespace.Datetime)
-        and result["o"].time_unit == "us"
-        and result["o"].time_zone is None
-    )
-    assert isinstance(result["p"], namespace.Duration) and result["p"].time_unit == "ms"
-    assert isinstance(result["q"], namespace.Duration) and result["q"].time_unit == "us"
+    assert isinstance(result["n"], namespace.Datetime)
+    assert result["n"].time_unit == "ms"
+    assert result["n"].time_zone is None
+    assert isinstance(result["o"], namespace.Datetime)
+    assert result["o"].time_unit == "us"
+    assert result["o"].time_zone is None
+    assert isinstance(result["p"], namespace.Duration)
+    assert result["p"].time_unit == "ms"
+    assert isinstance(result["q"], namespace.Duration)
+    assert result["q"].time_unit == "us"
