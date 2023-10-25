@@ -17,5 +17,5 @@ def test_scale_column_polars() -> None:
     s = pl.Series("a", [1, 2, 3])
     ser = s.__column_consortium_standard__()
     ser = ser - ser.mean()
-    result = ser.df.select(ser.column).dataframe["a"]
+    result = ser.column
     assert_series_equal(result, pl.Series("a", [-1, 0, 1.0]))

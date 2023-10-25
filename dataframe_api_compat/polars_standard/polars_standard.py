@@ -199,7 +199,9 @@ class PolarsColumn(Column):
         return self._name
 
     @property
-    def column(self) -> pl.Expr:
+    def column(self) -> pl.Expr | pl.Series:
+        if isinstance(self.df.dataframe, pl.DataFrame):
+            return self.df.materialise(self.expr)
         return self.expr
 
     @property
