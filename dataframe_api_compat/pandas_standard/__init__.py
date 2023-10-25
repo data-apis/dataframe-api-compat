@@ -151,10 +151,14 @@ def map_pandas_dtype_to_standard_dtype(dtype: Any) -> DType:
     if dtype == "datetime64[s]":
         return Date()
     if dtype.startswith("datetime64["):
-        time_unit = re.search(r"datetime64\[(\w{1,2})", dtype).group(1)
+        match = re.search(r"datetime64\[(\w{1,2})", dtype)
+        assert match is not None
+        time_unit = match.group(1)
         return Datetime(time_unit)
     if dtype.startswith("timedelta64["):
-        time_unit = re.search(r"timedelta64\[(\w{1,2})", dtype).group(1)
+        match = re.search(r"timedelta64\[(\w{1,2})", dtype)
+        assert match is not None
+        time_unit = match.group(1)
         return Duration(time_unit)
     raise AssertionError(f"Unsupported dtype! {dtype}")
 
