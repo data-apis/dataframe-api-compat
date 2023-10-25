@@ -5,6 +5,21 @@ from typing import Any
 from typing import TYPE_CHECKING
 
 import pandas as pd
+from dataframe_api.dtypes import Bool as BoolT
+from dataframe_api.dtypes import Date as DateT
+from dataframe_api.dtypes import Datetime as DatetimeT
+from dataframe_api.dtypes import Duration as DurationT
+from dataframe_api.dtypes import Float32 as Float32T
+from dataframe_api.dtypes import Float64 as Float64T
+from dataframe_api.dtypes import Int16 as Int16T
+from dataframe_api.dtypes import Int32 as Int32T
+from dataframe_api.dtypes import Int64 as Int64T
+from dataframe_api.dtypes import Int8 as Int8T
+from dataframe_api.dtypes import String as StringT
+from dataframe_api.dtypes import UInt16 as UInt16T
+from dataframe_api.dtypes import UInt32 as UInt32T
+from dataframe_api.dtypes import UInt64 as UInt64T
+from dataframe_api.dtypes import UInt8 as UInt8T
 
 from dataframe_api_compat.pandas_standard.pandas_standard import LATEST_API_VERSION
 from dataframe_api_compat.pandas_standard.pandas_standard import null
@@ -14,74 +29,73 @@ from dataframe_api_compat.pandas_standard.pandas_standard import PandasGroupBy
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
-    from dataframe_api._types import DType
-
+    from dataframe_api.typing import DType
 
 Column = PandasColumn
 DataFrame = PandasDataFrame
 GroupBy = PandasGroupBy
 
 
-class Int64:
+class Int64(Int64T):
     ...
 
 
-class Int32:
+class Int32(Int32T):
     ...
 
 
-class Int16:
+class Int16(Int16T):
     ...
 
 
-class Int8:
+class Int8(Int8T):
     ...
 
 
-class UInt64:
+class UInt64(UInt64T):
     ...
 
 
-class UInt32:
+class UInt32(UInt32T):
     ...
 
 
-class UInt16:
+class UInt16(UInt16T):
     ...
 
 
-class UInt8:
+class UInt8(UInt8T):
     ...
 
 
-class Float64:
+class Float64(Float64T):
     ...
 
 
-class Float32:
+class Float32(Float32T):
     ...
 
 
-class Bool:
+class Bool(BoolT):
     ...
 
 
-class String:
+class String(StringT):
     ...
 
 
-class Date:
+class Date(DateT):
     ...
 
 
-class Datetime:
+class Datetime(DatetimeT):
     def __init__(self, time_unit, time_zone=None):
         self.time_unit = time_unit
         # todo validate time zone
         self.time_zone = time_zone
 
 
-class Duration:
+class Duration(DurationT):
     def __init__(self, time_unit):
         self.time_unit = time_unit
 

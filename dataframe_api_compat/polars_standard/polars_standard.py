@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import collections
 from typing import Any
-from typing import Generic
 from typing import Literal
 from typing import NoReturn
 from typing import TYPE_CHECKING
 from typing import TypeVar
 
 import polars as pl
+from dataframe_api import DataFrame
+from dataframe_api import GroupBy
 
 import dataframe_api_compat.polars_standard
 
@@ -41,31 +42,7 @@ if TYPE_CHECKING:
 
     from dataframe_api import (
         Column,
-        Bool,
-        DataFrame,
-        PermissiveFrame,
-        PermissiveColumn,
-        GroupBy,
     )
-else:
-
-    class DataFrame:
-        ...
-
-    class PermissiveFrame:
-        ...
-
-    class PermissiveColumn(Generic[DType]):
-        ...
-
-    class Column:
-        ...
-
-    class GroupBy:
-        ...
-
-    class Bool:
-        ...
 
 
 class Null:
@@ -98,7 +75,7 @@ SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.08-beta"))
 
 
 class PolarsScalar:
-    def __init__(self, value, api_version, df: PolarsDataFrame):
+    def __init__(self, value: pl.Expr, api_version: str, df: PolarsDataFrame):
         self._value = value
         self._api_version = api_version
         self._df = df
@@ -118,7 +95,6 @@ class PolarsScalar:
 
 class PolarsGroupBy(GroupBy):
     def __init__(self, df: pl.LazyFrame, keys: Sequence[str], api_version: str) -> None:
-        assert isinstance(df, pl.LazyFrame)
         for key in keys:
             if key not in df.columns:
                 raise KeyError(f"key {key} not present in DataFrame's columns")
@@ -536,7 +512,7 @@ class PolarsDataFrame(DataFrame):
             self.dataframe.lazy(), list(keys), api_version=self._api_version
         )
 
-    def select(self, *columns: str | Column | PermissiveColumn[Any]) -> PolarsDataFrame:
+    def select(self, *columns: str | Column) -> PolarsDataFrame:
         resolved_names = []
         for name in columns:
             resolved_names.append(name)
@@ -564,7 +540,7 @@ class PolarsDataFrame(DataFrame):
         self._validate_column(mask)
         return PolarsDataFrame(self.df.filter(mask._expr), api_version=self._api_version)
 
-    def assign(self, *columns: Column | PermissiveColumn[Any]) -> PolarsDataFrame:
+    def assign(self, *columns: Column) -> PolarsDataFrame:
         new_columns = []
         for col in columns:
             self._validate_column(col)
@@ -776,7 +752,7 @@ class PolarsDataFrame(DataFrame):
 
     def sort(
         self,
-        *keys: str | Column | PermissiveColumn[Any],
+        *keys: str | Column,
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
     ) -> PolarsDataFrame:

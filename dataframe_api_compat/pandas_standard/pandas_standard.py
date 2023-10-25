@@ -3,9 +3,7 @@ from __future__ import annotations
 import collections
 from datetime import datetime
 from typing import Any
-from typing import Callable
 from typing import cast
-from typing import Generic
 from typing import Literal
 from typing import NoReturn
 from typing import TYPE_CHECKING
@@ -13,6 +11,9 @@ from typing import TypeVar
 
 import numpy as np
 import pandas as pd
+from dataframe_api import Column
+from dataframe_api import DataFrame
+from dataframe_api import GroupBy
 from pandas.api.types import is_extension_array_dtype
 
 import dataframe_api_compat.pandas_standard
@@ -57,41 +58,8 @@ _ARRAY_API_DTYPES = frozenset(
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
-    from dataframe_api import (
-        Bool,
-        PermissiveColumn,
-        Column,
-        DataFrame,
-        PermissiveFrame,
-        GroupBy,
-    )
 
-    ExtraCall = tuple[
-        Callable[[pd.Series, pd.Series | None], pd.Series], pd.Series, pd.Series
-    ]
-
-else:
-
-    class DataFrame:
-        ...
-
-    class PermissiveFrame:
-        ...
-
-    class PermissiveColumn(Generic[DType]):
-        ...
-
-    class Column:
-        ...
-
-    class GroupBy:
-        ...
-
-    class Bool:
-        ...
-
-
-class PandasScalar:
+class Scalar:
     def __init__(self, value, api_version, df: PandasDataFrame):
         self._value = value
         self._api_version = api_version
@@ -126,16 +94,8 @@ class PandasColumn(Column):
         """
         Parameters
         ----------
-        root_names
-            Columns from DataFrame to consider as inputs to expression.
-            If `None`, all input columns are considered.
-        output_name
-            Name of resulting column.
-        base_call
-            Call to be applied to DataFrame. Should return a Series.
-        extra_calls
-            Extra calls to chain to output of `base_call`. Must take Series
-            and output Series.
+        df
+            DataFrame this column originates from.
         """
         self._name = series.name or ""
         self._column = series
@@ -151,7 +111,7 @@ class PandasColumn(Column):
         )
 
     def _validate_comparand(self, other: Column | Any) -> Column | Any:
-        if isinstance(other, PandasScalar):
+        if isinstance(other, Scalar):
             if id(self._df) != id(other._df):
                 raise ValueError(
                     "cannot compare columns/scalars from different dataframes"
@@ -175,7 +135,7 @@ class PandasColumn(Column):
     def column(self):
         return self._column
 
-    def get_rows(self, indices: Column | PermissiveColumn[Any]) -> PandasColumn:
+    def get_rows(self, indices: Column) -> PandasColumn:
         return self._from_series(self.column.iloc[indices.column])
 
     def filter(self, mask: Column) -> PandasColumn:
@@ -198,7 +158,7 @@ class PandasColumn(Column):
         ser = self.column
         return self._from_series(ser == other).rename(ser.name)
 
-    def __ne__(self, other: Column | PermissiveColumn[Any]) -> PandasColumn:  # type: ignore[override]
+    def __ne__(self, other: Column | Any) -> PandasColumn:  # type: ignore[override]
         other = self._validate_comparand(other)
         ser = self.column
         return self._from_series(ser != other).rename(ser.name)
@@ -281,45 +241,45 @@ class PandasColumn(Column):
 
     def any(self, *, skip_nulls: bool = True) -> PandasColumn:
         ser = self.column
-        return PandasScalar(ser.any(), api_version=self._api_version, df=self._df)
+        return Scalar(ser.any(), api_version=self._api_version, df=self._df)
 
     def all(self, *, skip_nulls: bool = True) -> PandasColumn:
         ser = self.column
-        return PandasScalar(ser.all(), api_version=self._api_version, df=self._df)
+        return Scalar(ser.all(), api_version=self._api_version, df=self._df)
 
     def min(self, *, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return PandasScalar(ser.min(), api_version=self._api_version, df=self._df)
+        return Scalar(ser.min(), api_version=self._api_version, df=self._df)
 
     def max(self, *, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return PandasScalar(ser.max(), api_version=self._api_version, df=self._df)
+        return Scalar(ser.max(), api_version=self._api_version, df=self._df)
 
     def sum(self, *, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return PandasScalar(ser.sum(), api_version=self._api_version, df=self._df)
+        return Scalar(ser.sum(), api_version=self._api_version, df=self._df)
 
     def prod(self, *, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return PandasScalar(ser.prod(), api_version=self._api_version, df=self._df)
+        return Scalar(ser.prod(), api_version=self._api_version, df=self._df)
 
     def median(self, *, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return PandasScalar(ser.median(), api_version=self._api_version, df=self._df)
+        return Scalar(ser.median(), api_version=self._api_version, df=self._df)
 
     def mean(self, *, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return PandasScalar(ser.mean(), api_version=self._api_version, df=self._df)
+        return Scalar(ser.mean(), api_version=self._api_version, df=self._df)
 
     def std(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return PandasScalar(
+        return Scalar(
             ser.std(ddof=correction), api_version=self._api_version, df=self._df
         )
 
     def var(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
         ser = self.column
-        return PandasScalar(
+        return Scalar(
             ser.var(ddof=correction), api_version=self._api_version, df=self._df
         )
 
@@ -732,7 +692,7 @@ class PandasDataFrame(DataFrame):
 
     def sort(
         self,
-        *keys: str | Column | PermissiveColumn[Any],
+        *keys: str,
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
     ) -> PandasDataFrame:
