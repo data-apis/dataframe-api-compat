@@ -238,8 +238,7 @@ class PandasColumn(Column):
         return self._from_series(ser // other).rename(ser.name)
 
     def __rfloordiv__(self, other: Column | Any) -> PandasColumn:
-        # todo not correct
-        return 1 / self.__floordiv__(other)
+        raise NotImplementedError()
 
     def __pow__(self, other: Column | Any) -> PandasColumn:
         ser = self.column
