@@ -3,11 +3,9 @@ from __future__ import annotations
 import collections
 from datetime import datetime
 from typing import Any
-from typing import cast
 from typing import Literal
 from typing import NoReturn
 from typing import TYPE_CHECKING
-from typing import TypeVar
 
 import numpy as np
 import pandas as pd
@@ -17,8 +15,6 @@ from dataframe_api import GroupBy
 from pandas.api.types import is_extension_array_dtype
 
 import dataframe_api_compat.pandas_standard
-
-DType = TypeVar("DType")
 
 NUMPY_MAPPING = {
     "Int64": "int64",
@@ -57,30 +53,26 @@ _ARRAY_API_DTYPES = frozenset(
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
+    from dataframe_api import DType
 
 
 class Scalar:
-    def __init__(self, value, api_version, df: PandasDataFrame):
-        self._value = value
+    def __init__(self, value: Any, api_version: str, df: PandasDataFrame):
+        self.value = value
         self._api_version = api_version
         self._df = df
 
-    def __getattr__(self, _value):
-        raise NotImplementedError(
-            "Standalone scalars are intentionally not supported for now"
-        )
-
     def __bool__(self):
         self._df.validate_is_collected("Scalar.__bool__")
-        return self._value.__bool__()
+        return self.value.__bool__()
 
     def __int__(self):
         self._df.validate_is_collected("Scalar.__int__")
-        return self._value.__int__()
+        return self.value.__int__()
 
     def __float__(self):
         self._df.validate_is_collected("Scalar.__float__")
-        return self._value.__float__()
+        return self.value.__float__()
 
 
 class PandasColumn(Column):
@@ -105,18 +97,18 @@ class PandasColumn(Column):
     def __repr__(self):  # pragma: no cover
         return self.column.__repr__()
 
-    def _from_series(self, series):
+    def _from_series(self, series: pd.Series) -> PandasColumn:
         return PandasColumn(
             series.reset_index(drop=True), api_version=self.api_version, df=self.df
         )
 
     def _validate_comparand(self, other: Column | Any) -> Column | Any:
         if isinstance(other, Scalar):
-            if id(self.df) != id(other._df):
+            if id(self.df) != id(other.value):
                 raise ValueError(
                     "cannot compare columns/scalars from different dataframes"
                 )
-            return other._value
+            return other.value
         if isinstance(other, PandasColumn):
             if id(self.df) != id(other.df):
                 raise ValueError("cannot compare columns from different dataframes")
@@ -142,9 +134,9 @@ class PandasColumn(Column):
         ser = self.column
         return self._from_series(ser.loc[mask.column])
 
-    def get_value(self, row: int) -> Any:
+    def get_value(self, row_number: int) -> Any:
         self.df.validate_is_collected("Column.get_value")
-        return self.column.iloc[row]
+        return self.column.iloc[row_number]
 
     def slice_rows(
         self, start: int | None, stop: int | None, step: int | None
@@ -239,11 +231,11 @@ class PandasColumn(Column):
 
     # Reductions
 
-    def any(self, *, skip_nulls: bool = True) -> PandasColumn:
+    def any(self, *, skip_nulls: bool = True) -> Scalar:
         ser = self.column
         return Scalar(ser.any(), api_version=self.api_version, df=self.df)
 
-    def all(self, *, skip_nulls: bool = True) -> PandasColumn:
+    def all(self, *, skip_nulls: bool = True) -> Scalar:
         ser = self.column
         return Scalar(ser.all(), api_version=self.api_version, df=self.df)
 
@@ -314,11 +306,9 @@ class PandasColumn(Column):
     def unique_indices(self, *, skip_nulls: bool = True) -> PandasColumn:
         raise NotImplementedError("not yet supported")
 
-    def fill_nan(
-        self, value: float | pd.NAType  # type: ignore[name-defined]
-    ) -> PandasColumn:
+    def fill_nan(self, value: float | pd.NAType) -> PandasColumn:
         ser = self.column.copy()
-        ser[cast("pd.Series[bool]", np.isnan(ser)).fillna(False).to_numpy(bool)] = value
+        ser[np.isnan(ser).fillna(False).to_numpy(bool)] = value
         return self._from_series(ser)
 
     def fill_null(
@@ -384,7 +374,7 @@ class ColumnDatetimeAccessor:
         self.column = column
         self._api_version = column.api_version
 
-    def _from_series(self, series):
+    def _from_series(self, series: pd.Series):
         return PandasColumn(
             series.reset_index(drop=True),
             api_version=self._api_version,
@@ -560,7 +550,7 @@ class PandasDataFrame(DataFrame):
     # Not technically part of the standard
 
     def __init__(
-        self, dataframe: pd.DataFrame, api_version: str, is_collected=False
+        self, dataframe: pd.DataFrame, api_version: str, is_collected: bool = False
     ) -> None:
         self._is_collected = is_collected
         self._validate_columns(dataframe.columns)  # type: ignore[arg-type]
@@ -587,7 +577,9 @@ class PandasDataFrame(DataFrame):
         return self.dataframe.__repr__()
 
     def col(self, name: str) -> PandasColumn:
-        return PandasColumn(self.dataframe.loc[:, name], df=self)
+        return PandasColumn(
+            self.dataframe.loc[:, name], df=self, api_version=self.api_version
+        )
 
     @property
     def schema(self) -> dict[str, Any]:
@@ -615,7 +607,7 @@ class PandasDataFrame(DataFrame):
             )
 
     def _validate_column(self, column: Column) -> None:
-        if id(self) != id(column._df):
+        if id(self) != id(column.df):  # type: ignore[attr-defined]
             raise ValueError("cannot compare columns from different dataframes")
 
     # In the standard
@@ -650,6 +642,7 @@ class PandasDataFrame(DataFrame):
         )
 
     def get_rows(self, indices: Column) -> PandasDataFrame:
+        self._validate_column(indices)
         return PandasDataFrame(
             self.dataframe.iloc[indices.column, :],
             api_version=self.api_version,
@@ -674,7 +667,7 @@ class PandasDataFrame(DataFrame):
         )
 
     def rename_columns(self, mapping: Mapping[str, str]) -> PandasDataFrame:
-        if not isinstance(mapping, collections.abc.Mapping):
+        if not isinstance(mapping, collections.abc.Mapping):  # type: ignore
             raise TypeError(f"Expected Mapping, got: {type(mapping)}")
         return PandasDataFrame(
             self.dataframe.rename(columns=mapping), api_version=self.api_version
@@ -833,13 +826,13 @@ class PandasDataFrame(DataFrame):
         )
 
     def is_null(self, *, skip_nulls: bool = True) -> PandasDataFrame:
-        result = []
+        result: list[pd.Series] = []
         for column in self.dataframe.columns:
             result.append(self.dataframe[column].isna())
         return PandasDataFrame(pd.concat(result, axis=1), api_version=self.api_version)
 
     def is_nan(self) -> PandasDataFrame:
-        result = []
+        result: list[pd.Series] = []
         for column in self.dataframe.columns:
             if is_extension_array_dtype(self.dataframe[column].dtype):
                 result.append(
@@ -858,30 +851,14 @@ class PandasDataFrame(DataFrame):
             ser = df[col].copy()
             if is_extension_array_dtype(ser.dtype):
                 if value is null:
-                    ser[
-                        cast("pd.Series[bool]", np.isnan(ser))
-                        .fillna(False)
-                        .to_numpy(bool)
-                    ] = pd.NA
+                    ser[np.isnan(ser).fillna(False).to_numpy(bool)] = pd.NA
                 else:
-                    ser[
-                        cast("pd.Series[bool]", np.isnan(ser))
-                        .fillna(False)
-                        .to_numpy(bool)
-                    ] = value
+                    ser[np.isnan(ser).fillna(False).to_numpy(bool)] = value
             else:
                 if value is null:
-                    ser[
-                        cast("pd.Series[bool]", np.isnan(ser))
-                        .fillna(False)
-                        .to_numpy(bool)
-                    ] = np.nan
+                    ser[np.isnan(ser).fillna(False).to_numpy(bool)] = np.nan
                 else:
-                    ser[
-                        cast("pd.Series[bool]", np.isnan(ser))
-                        .fillna(False)
-                        .to_numpy(bool)
-                    ] = value
+                    ser[np.isnan(ser).fillna(False).to_numpy(bool)] = value
             new_cols[col] = ser
         df = pd.DataFrame(new_cols)
         return PandasDataFrame(df, api_version=self.api_version)
@@ -891,9 +868,10 @@ class PandasDataFrame(DataFrame):
         value: Any,
         *,
         column_names: list[str] | None = None,
-    ) -> PandasColumn:
+    ) -> PandasDataFrame:
         if column_names is None:
             column_names = self.dataframe.columns.tolist()
+        assert isinstance(column_names, list)  # help type checkers
         df = self.dataframe.copy()
         for column in column_names:
             col = df[column]
@@ -937,6 +915,6 @@ class PandasDataFrame(DataFrame):
             self.dataframe, api_version=self.api_version, is_collected=True
         )
 
-    def to_array(self, dtype):
+    def to_array(self, dtype: DType) -> Any:
         self.validate_is_collected("Column.to_array")
         return self.dataframe.to_numpy(dtype)
