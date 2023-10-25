@@ -715,8 +715,8 @@ class PolarsDataFrame(DataFrame):
                 ret = ret.with_columns(pl.col(column).cast(original_type[column]))
         return PolarsDataFrame(ret, api_version=self.api_version)
 
-    def __rpow__(self, other: Any) -> PolarsDataFrame:
-        return self.__pow__(other) ** -1
+    def __rpow__(self, other: Any) -> PolarsDataFrame:  # pragma: no cover
+        raise NotImplementedError()
 
     def __mod__(self, other: Any) -> PolarsDataFrame:
         return PolarsDataFrame(

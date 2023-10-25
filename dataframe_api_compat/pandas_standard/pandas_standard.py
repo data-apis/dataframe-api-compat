@@ -815,9 +815,8 @@ class PandasDataFrame(DataFrame):
             self.dataframe.__pow__(other), api_version=self.api_version
         )
 
-    def __rpow__(self, other: Column | Any) -> PandasDataFrame:
-        # todo not right
-        return self.__pow__(other) ** -1
+    def __rpow__(self, other: Column | Any) -> PandasDataFrame:  # pragma: no cover
+        raise NotImplementedError()
 
     def __mod__(self, other: Any) -> PandasDataFrame:
         return PandasDataFrame(
