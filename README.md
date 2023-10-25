@@ -44,10 +44,9 @@ from typing import Any
 
 def my_dataframe_agnostic_function(df_non_standard: Any) -> Any:
     df = df_non_standard.__dataframe_consortium_standard__()
-    xp = df.__dataframe_namespace__()
 
     for column_name in df.column_names:
-        new_column = xp.col(column_name)
+        new_column = df.col(column_name)
         new_column = (new_column - new_column.mean()) / new_column.std()
         df = df.assign(new_column.rename(f'{column_name}_scaled'))
 
