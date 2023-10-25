@@ -8,6 +8,7 @@ from typing import NoReturn
 from typing import TYPE_CHECKING
 
 import polars as pl
+from dataframe_api import Column
 from dataframe_api import DataFrame
 from dataframe_api import GroupBy
 
@@ -158,7 +159,7 @@ class PolarsGroupBy(GroupBy):
         return PolarsDataFrame(result, api_version=self._api_version)
 
 
-class PolarsColumn:
+class PolarsColumn(Column):
     def __init__(
         self,
         expr: pl.Expr,
