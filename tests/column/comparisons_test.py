@@ -107,7 +107,4 @@ def test_right_column_comparisons(
     result = df.assign(getattr(ser, comparison)(other).rename("result"))
     result_pd = interchange_to_pandas(result, library)["result"]
     expected = pd.Series(expected_data, name="result")
-    if library in ("polars", "polars-lazy") and comparison == "__pow__":
-        # TODO
-        result_pd = result_pd.astype("int64")
     pd.testing.assert_series_equal(result_pd, expected)

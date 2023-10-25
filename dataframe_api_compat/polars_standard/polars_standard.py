@@ -202,7 +202,7 @@ class PolarsColumn(Column):
     def column(self) -> pl.Expr | pl.Series:
         if isinstance(self.df.dataframe, pl.DataFrame):
             return self.df.materialise(self.expr)
-        return self.expr
+        return self.expr  # pragma: no cover (probably unneeded?)
 
     @property
     def dtype(self) -> DType:
@@ -351,8 +351,8 @@ class PolarsColumn(Column):
         ret = self.expr.pow(other)  # type: ignore[arg-type]
         return self._from_expr(ret)
 
-    def __rpow__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        return self.__pow__(other) ** -1
+    def __rpow__(self, other: PolarsColumn | Any) -> PolarsColumn:  # pragma: no cover
+        raise NotImplementedError()
 
     def __mod__(self, other: PolarsColumn | Any) -> PolarsColumn:
         other = self._validate_comparand(other)
