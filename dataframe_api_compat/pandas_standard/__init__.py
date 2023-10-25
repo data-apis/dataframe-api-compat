@@ -166,7 +166,7 @@ def map_pandas_dtype_to_standard_dtype(dtype: Any) -> DType:
         assert match is not None
         time_unit = cast(Literal["ms", "us"], match.group(1))
         return Duration(time_unit)
-    msg = f"Unsupported dtype! {dtype}"
+    msg = f"Unsupported dtype! {dtype}"  # pragma: no cover
     raise AssertionError(msg)
 
 
@@ -201,7 +201,7 @@ def map_standard_dtype_to_pandas_dtype(dtype: DType) -> Any:
         return f"datetime64[{dtype.time_unit}]"
     if isinstance(dtype, Duration):
         return f"timedelta64[{dtype.time_unit}]"
-    msg = f"Unknown dtype: {dtype}"
+    msg = f"Unknown dtype: {dtype}"  # pragma: no cover
     raise AssertionError(msg)
 
 
@@ -267,7 +267,7 @@ def dataframe_from_columns(*columns: PandasColumn) -> PandasDataFrame:
         col.df.validate_is_collected("dataframe_from_columns")
         data[col.name] = col.column
         api_versions.add(col.api_version)
-    return PandasDataFrame(pd.DataFrame(data), list(api_versions)[0])
+    return PandasDataFrame(pd.DataFrame(data), api_version=list(api_versions)[0])
 
 
 def column_from_1d_array(
@@ -287,21 +287,19 @@ def column_from_sequence(
     *,
     dtype: Any,
     name: str,
-    api_version: str,
 ) -> PandasColumn:
     ser = pd.Series(sequence, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
     df = ser.to_frame().__dataframe_consortium_standard__().collect()
-    return PandasColumn(df.col(name).column, api_version=api_version, df=df)
+    return PandasColumn(df.col(name).column, api_version=LATEST_API_VERSION, df=df)
 
 
 def dataframe_from_2d_array(
     data: Any,
     *,
-    names: Sequence[str],
     dtypes: dict[str, Any],
     api_version: str | None = None,
 ) -> PandasDataFrame:  # pragma: no cover
-    df = pd.DataFrame(data, columns=names).astype(
+    df = pd.DataFrame(data, columns=list(dtypes)).astype(
         {key: map_standard_dtype_to_pandas_dtype(value) for key, value in dtypes.items()},
     )
     return PandasDataFrame(df, api_version=api_version or LATEST_API_VERSION)

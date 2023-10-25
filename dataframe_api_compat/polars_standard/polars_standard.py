@@ -530,7 +530,7 @@ class PolarsDataFrame(DataFrame):
             raise ValueError(
                 msg,
             )
-        return self.dataframe
+        return self.dataframe  # type: ignore[return-value]
 
     def col(self, value: str) -> PolarsColumn:
         return PolarsColumn(pl.col(value), df=self, api_version=self.api_version)
@@ -952,7 +952,7 @@ class PolarsDataFrame(DataFrame):
             [pl.col(i).alias(f"{i}_tmp") for i in extra_right_keys],
         )
         result = self.dataframe.join(
-            other_df,
+            other_df,  # type: ignore[arg-type]
             left_on=left_on,
             right_on=right_on,
             how=how,

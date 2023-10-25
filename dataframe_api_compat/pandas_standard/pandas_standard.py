@@ -513,9 +513,9 @@ class PandasGroupBy(GroupBy):
 
     def _validate_result(self, result: pd.DataFrame) -> None:
         failed_columns = self.df.columns.difference(result.columns)
-        if len(failed_columns) > 0:
-            # defensive check
-            msg = f"Groupby operation could not be performed on columns {failed_columns}. Please drop them before calling group_by."
+        if len(failed_columns) > 0:  # pragma: no cover
+            msg = "Groupby operation could not be performed on columns "
+            f"{failed_columns}. Please drop them before calling group_by."
             raise AssertionError(
                 msg,
             )

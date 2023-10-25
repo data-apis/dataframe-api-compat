@@ -207,7 +207,7 @@ def concat(dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
         msg = f"Multiple api versions found: {api_versions}"
         raise ValueError(msg)
     return PolarsDataFrame(
-        pl.concat(dfs),
+        pl.concat(dfs),  # type: ignore[type-var]
         api_version=api_versions.pop(),
     )
 
@@ -267,16 +267,6 @@ def column_from_sequence(
         ),
     )
     return df.col(name)
-
-
-# def column_from_sequence(
-#     sequence: Sequence[Any],
-#     *,
-#     dtype: Any,
-# ) -> PolarsPermissiveColumn[Any]:
-#     return PolarsPermissiveColumn(
-#         pl.Series(
-#         ),
 
 
 def dataframe_from_2d_array(
