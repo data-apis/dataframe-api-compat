@@ -73,15 +73,15 @@ class PolarsScalar:
 
     def __bool__(self) -> bool:
         self.df.validate_is_collected("Scalar.__bool__")
-        return self.df.materialise(self.value).item().__bool__()
+        return self.df.materialise(self.value).item().__bool__()  # type: ignore[no-any-return]
 
     def __int__(self) -> int:
         self.df.validate_is_collected("Scalar.__int__")
-        return self.df.materialise(self.value).item().__int__()
+        return self.df.materialise(self.value).item().__int__()  # type: ignore[no-any-return]
 
     def __float__(self) -> float:
         self.df.validate_is_collected("Scalar.__float__")
-        return self.df.materialise(self.value).item().__float__()
+        return self.df.materialise(self.value).item().__float__()  # type: ignore[no-any-return]
 
 
 class PolarsGroupBy(GroupBy):
@@ -270,6 +270,14 @@ class PolarsColumn(Column):
 
     # Binary
 
+    def __add__(self, other: PolarsColumn | Any) -> PolarsColumn:
+        other = self._validate_comparand(other)
+        return self._from_expr(self.expr + other)
+
+    def __sub__(self, other: PolarsColumn | Any) -> PolarsColumn:
+        other = self._validate_comparand(other)
+        return self._from_expr(self.expr - other)
+
     def __eq__(self, other: PolarsColumn | Any) -> PolarsColumn:  # type: ignore[override]
         other = self._validate_comparand(other)
         return self._from_expr(self.expr == other)
@@ -336,14 +344,6 @@ class PolarsColumn(Column):
 
     def __invert__(self) -> PolarsColumn:
         return self._from_expr(~self.expr)
-
-    def __add__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        other = self._validate_comparand(other)
-        return self._from_expr(self.expr + other)
-
-    def __sub__(self, other: PolarsColumn | Any) -> PolarsColumn:
-        other = self._validate_comparand(other)
-        return self._from_expr(self.expr - other)
 
     def sorted_indices(
         self, *, ascending: bool = True, nulls_position: Literal["first", "last"] = "last"
@@ -482,6 +482,10 @@ class PolarsDataFrame(DataFrame):
             for column_name, dtype in self.dataframe.schema.items()
         }
 
+    def shape(self) -> tuple[int, int]:
+        df = self.validate_is_collected("shape")
+        return df.shape
+
     def __repr__(self) -> str:  # pragma: no cover
         return self.dataframe.__repr__()
 
@@ -552,6 +556,8 @@ class PolarsDataFrame(DataFrame):
         # just leave it in for backwards compatibility
         return self.dataframe.columns
 
+    # Binary
+
     def __eq__(  # type: ignore[override]
         self,
         other: Any,
@@ -600,6 +606,9 @@ class PolarsDataFrame(DataFrame):
             api_version=self.api_version,
         )
 
+    def __rand__(self, other: Any) -> PolarsDataFrame:
+        return self.__and__(other)
+
     def __or__(self, other: Any) -> PolarsDataFrame:
         return PolarsDataFrame(
             self.dataframe.with_columns(
@@ -608,11 +617,17 @@ class PolarsDataFrame(DataFrame):
             api_version=self.api_version,
         )
 
+    def __ror__(self, other: Any) -> PolarsDataFrame:
+        return self.__or__(other)
+
     def __add__(self, other: Any) -> PolarsDataFrame:
         return PolarsDataFrame(
             self.dataframe.with_columns(pl.col("*").__add__(other)),
             api_version=self.api_version,
         )
+
+    def __radd__(self, other: Any) -> PolarsDataFrame:
+        return self.__add__(other)
 
     def __sub__(self, other: Any) -> PolarsDataFrame:
         return PolarsDataFrame(
@@ -620,11 +635,17 @@ class PolarsDataFrame(DataFrame):
             api_version=self.api_version,
         )
 
+    def __rsub__(self, other: Any) -> PolarsDataFrame:
+        return -1 * self.__sub__(other)
+
     def __mul__(self, other: Any) -> PolarsDataFrame:
         return PolarsDataFrame(
             self.dataframe.with_columns(pl.col("*").__mul__(other)),
             api_version=self.api_version,
         )
+
+    def __rmul__(self, other: Any) -> PolarsDataFrame:
+        return self.__mul__(other)
 
     def __truediv__(self, other: Any) -> PolarsDataFrame:
         return PolarsDataFrame(
@@ -632,11 +653,17 @@ class PolarsDataFrame(DataFrame):
             api_version=self.api_version,
         )
 
+    def __rtruediv__(self, other: Any) -> PolarsDataFrame:
+        return 1 / self.__truediv__(other)
+
     def __floordiv__(self, other: Any) -> PolarsDataFrame:
         return PolarsDataFrame(
             self.dataframe.with_columns(pl.col("*").__floordiv__(other)),
             api_version=self.api_version,
         )
+
+    def __rfloordiv__(self, other: Any) -> PolarsDataFrame:
+        raise NotImplementedError()
 
     def __pow__(self, other: Any) -> PolarsDataFrame:
         original_type = self.dataframe.schema
@@ -648,11 +675,17 @@ class PolarsDataFrame(DataFrame):
                 ret = ret.with_columns(pl.col(column).cast(original_type[column]))
         return PolarsDataFrame(ret, api_version=self.api_version)
 
+    def __rpow__(self, other: Any) -> PolarsDataFrame:
+        return self.__pow__(other) ** -1
+
     def __mod__(self, other: Any) -> PolarsDataFrame:
         return PolarsDataFrame(
             self.dataframe.with_columns(pl.col("*") % other),
             api_version=self.api_version,
         )
+
+    def __rmod__(self, other: Any) -> PolarsDataFrame:
+        raise NotImplementedError()
 
     def __divmod__(
         self,
@@ -755,6 +788,17 @@ class PolarsDataFrame(DataFrame):
             api_version=self.api_version,
             df=self,
         )
+
+    def sorted_indices(
+        self,
+        *keys: str,
+        ascending: Sequence[bool] | bool = True,
+        nulls_position: Literal["first", "last"] = "last",
+    ) -> PolarsColumn:
+        raise NotImplementedError()
+
+    def unique_indices(self, *keys: str, skip_nulls: bool = True) -> PolarsColumn:
+        raise NotImplementedError()
 
     def sort(
         self,
