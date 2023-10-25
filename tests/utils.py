@@ -258,7 +258,7 @@ def null_dataframe_2(library) -> Any:
     raise AssertionError(f"Got unexpected library: {library}")
 
 
-def bool_dataframe_1(library: str, api_version="2023.09-beta") -> Any:
+def bool_dataframe_1(library: str, api_version: str = "2023.09-beta") -> DataFrame:
     df: Any
     if library == "pandas-numpy":
         df = pd.DataFrame(
