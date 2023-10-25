@@ -204,11 +204,7 @@ class PolarsColumn(Column):
 
     @property
     def dtype(self) -> DType:
-        self.df.validate_is_collected("Column.dtype")
-        ser = self.df.materialise(self.expr)
-        return dataframe_api_compat.polars_standard.map_polars_dtype_to_standard_dtype(
-            ser.dtype
-        )
+        return self.df.schema[self.name]
 
     def get_rows(self, indices: PolarsColumn) -> PolarsColumn:
         return self._from_expr(self.expr.take(indices.expr))

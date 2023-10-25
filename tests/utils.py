@@ -477,7 +477,7 @@ def maybe_collect(result: Any) -> Any:
     return df
 
 
-def mixed_dataframe_1(library) -> Any:
+def mixed_dataframe_1(library: str) -> DataFrame:
     df: Any
     data = {
         "a": [1, 2, 3],
