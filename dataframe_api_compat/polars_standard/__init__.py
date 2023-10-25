@@ -1,10 +1,26 @@
 from __future__ import annotations
 
 from typing import Any
+from typing import cast
+from typing import Literal
 from typing import TYPE_CHECKING
-from typing import TypeVar
 
 import polars as pl
+from dataframe_api.dtypes import Bool as BoolT
+from dataframe_api.dtypes import Date as DateT
+from dataframe_api.dtypes import Datetime as DatetimeT
+from dataframe_api.dtypes import Duration as DurationT
+from dataframe_api.dtypes import Float32 as Float32T
+from dataframe_api.dtypes import Float64 as Float64T
+from dataframe_api.dtypes import Int16 as Int16T
+from dataframe_api.dtypes import Int32 as Int32T
+from dataframe_api.dtypes import Int64 as Int64T
+from dataframe_api.dtypes import Int8 as Int8T
+from dataframe_api.dtypes import String as StringT
+from dataframe_api.dtypes import UInt16 as UInt16T
+from dataframe_api.dtypes import UInt32 as UInt32T
+from dataframe_api.dtypes import UInt64 as UInt64T
+from dataframe_api.dtypes import UInt8 as UInt8T
 
 from dataframe_api_compat.polars_standard.polars_standard import LATEST_API_VERSION
 from dataframe_api_compat.polars_standard.polars_standard import null
@@ -14,76 +30,73 @@ from dataframe_api_compat.polars_standard.polars_standard import PolarsGroupBy
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
-    from dataframe_api._types import DType
+    from dataframe_api.typing import DType
 
-col = PolarsColumn
-Column = col
+Column = PolarsColumn
 DataFrame = PolarsDataFrame
 GroupBy = PolarsGroupBy
 
-PolarsType = TypeVar("PolarsType", pl.DataFrame, pl.LazyFrame)
 
-
-class Int64:
+class Int64(Int64T):
     ...
 
 
-class Int32:
+class Int32(Int32T):
     ...
 
 
-class Int16:
+class Int16(Int16T):
     ...
 
 
-class Int8:
+class Int8(Int8T):
     ...
 
 
-class UInt64:
+class UInt64(UInt64T):
     ...
 
 
-class UInt32:
+class UInt32(UInt32T):
     ...
 
 
-class UInt16:
+class UInt16(UInt16T):
     ...
 
 
-class UInt8:
+class UInt8(UInt8T):
     ...
 
 
-class Float64:
+class Float64(Float64T):
     ...
 
 
-class Float32:
+class Float32(Float32T):
     ...
 
 
-class Bool:
+class Bool(BoolT):
     ...
 
 
-class String:
+class String(StringT):
     ...
 
 
-class Date:
+class Date(DateT):
     ...
 
 
-class Datetime:
-    def __init__(self, time_unit, time_zone=None):
+class Datetime(DatetimeT):
+    def __init__(self, time_unit: Literal["ms", "us"], time_zone: str | None = None):
         self.time_unit = time_unit
         self.time_zone = time_zone
 
 
-class Duration:
-    def __init__(self, time_unit):
+class Duration(DurationT):
+    def __init__(self, time_unit: Literal["ms", "us"]):
         self.time_unit = time_unit
 
 
@@ -115,9 +128,11 @@ def map_polars_dtype_to_standard_dtype(dtype: Any) -> DType:
     if dtype == pl.Date:
         return Date()
     if isinstance(dtype, pl.Datetime):
-        return Datetime(dtype.time_unit, dtype.time_zone)
+        time_unit = cast(Literal["ms", "us"], dtype.time_unit)
+        return Datetime(time_unit, dtype.time_zone)
     if isinstance(dtype, pl.Duration):
-        return Duration(dtype.time_unit)
+        time_unit = cast(Literal["ms", "us"], dtype.time_unit)
+        return Duration(time_unit)
     raise AssertionError(f"Got invalid dtype: {dtype}")
 
 
@@ -159,23 +174,27 @@ def _map_standard_to_polars_dtypes(dtype: Any) -> pl.DataType:
 
 
 def concat(dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
-    dfs = []
-    api_versions = set()
-    for _df in dataframes:
-        dfs.append(_df.dataframe)
-        api_versions.add(_df._api_version)
+    dfs: list[pl.DataFrame | pl.LazyFrame] = []
+    api_versions: set[str] = set()
+    for df in dataframes:
+        dfs.append(df.dataframe)
+        api_versions.add(df.api_version)
     if len(api_versions) > 1:  # pragma: no cover
         raise ValueError(f"Multiple api versions found: {api_versions}")
-    return PolarsDataFrame(pl.concat(dfs), api_version=api_versions.pop())
+    return PolarsDataFrame(
+        pl.concat(dfs),  # type: ignore
+        api_version=api_versions.pop(),
+    )
 
 
 def dataframe_from_columns(*columns: PolarsColumn) -> PolarsDataFrame:
     data = {}
-    api_version = set()
+    api_version: set[str] = set()
     for col in columns:
-        col._df._validate_is_collected("dataframe_from_columns")
-        data[col.name] = col._df.dataframe.select(col._expr)[col.name]
-        api_version.add(col._api_version)
+        col.df.validate_is_collected("dataframe_from_columns")
+        df = cast(pl.DataFrame, col.df.dataframe)
+        data[col.name] = df.select(col.expr).get_column(col.name)
+        api_version.add(col.api_version)
     if len(api_version) > 1:  # pragma: no cover
         raise ValueError(f"found multiple api versions: {api_version}")
     return PolarsDataFrame(pl.DataFrame(data).lazy(), api_version=list(api_version)[0])
@@ -183,7 +202,7 @@ def dataframe_from_columns(*columns: PolarsColumn) -> PolarsDataFrame:
 
 def column_from_1d_array(
     data: Any, *, dtype: Any, name: str, api_version: str | None = None
-) -> PolarsColumn[Any]:  # pragma: no cover
+) -> PolarsColumn:  # pragma: no cover
     ser = pl.Series(values=data, dtype=_map_standard_to_polars_dtypes(dtype), name=name)
     # TODO propagate api version
     df = (
@@ -199,7 +218,7 @@ def column_from_sequence(
     *,
     dtype: Any,
     name: str | None = None,
-) -> PolarsColumn[Any]:
+) -> PolarsColumn:
     ser = pl.Series(
         values=sequence, dtype=_map_standard_to_polars_dtypes(dtype), name=name
     )
