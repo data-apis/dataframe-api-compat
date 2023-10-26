@@ -49,7 +49,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
     from dataframe_api import Column, DataFrame, GroupBy
-    from dataframe_api.typing import DType, Namespace
+    from dataframe_api.typing import DType
 else:
     Column = object
     DataFrame = object

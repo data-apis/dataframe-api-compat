@@ -13,7 +13,7 @@ from dataframe_api_compat.pandas_standard.pandas_standard import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Mapping, Sequence
 
     from dataframe_api.dtypes import Bool as BoolT
     from dataframe_api.dtypes import Date as DateT
@@ -53,14 +53,6 @@ else:
 Column = PandasColumn
 DataFrame = PandasDataFrame
 GroupBy = PandasGroupBy
-
-
-# class Int64(Int64T):
-#     ...
-
-
-class Int32(Int32T):
-    ...
 
 
 def map_pandas_dtype_to_standard_dtype(dtype: Any) -> DType:
@@ -250,7 +242,10 @@ class PandasNamespace(Namespace):
 
     null = Null
 
-    def dataframe_from_columns(self, *columns: PandasColumn) -> PandasDataFrame:
+    def dataframe_from_columns(
+        self,
+        *columns: PandasColumn,  # type: ignore[override]
+    ) -> PandasDataFrame:
         data = {}
         api_versions: set[str] = set()
         for col in columns:
@@ -265,7 +260,7 @@ class PandasNamespace(Namespace):
         *,
         dtype: Any,
         name: str | None = None,
-    ) -> PandasColumn:  # pragma: no cover
+    ) -> PandasColumn:
         ser = pd.Series(data, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
         df = ser.to_frame().__dataframe_consortium_standard__().collect()
         return PandasColumn(df.col(name).column, api_version=self.api_version, df=df)
@@ -275,7 +270,7 @@ class PandasNamespace(Namespace):
         sequence: Sequence[Any],
         *,
         dtype: Any,
-        name: str,
+        name: str = "",
     ) -> PandasColumn:
         ser = pd.Series(
             sequence,
@@ -285,7 +280,7 @@ class PandasNamespace(Namespace):
         df = ser.to_frame().__dataframe_consortium_standard__().collect()
         return PandasColumn(df.col(name).column, api_version=LATEST_API_VERSION, df=df)
 
-    def concat(self, dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:
+    def concat(self, dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:  # type: ignore[override]
         dtypes = dataframes[0].dataframe.dtypes
         dfs: list[pd.DataFrame] = []
         api_versions: set[str] = set()
@@ -317,8 +312,8 @@ class PandasNamespace(Namespace):
         self,
         data: Any,
         *,
-        dtypes: dict[str, Any],
-        api_version: str | None = None,
+        names: Sequence[str],
+        dtypes: Mapping[str, Any],
     ) -> PandasDataFrame:  # pragma: no cover
         df = pd.DataFrame(data, columns=list(dtypes)).astype(
             {
@@ -326,7 +321,7 @@ class PandasNamespace(Namespace):
                 for key, value in dtypes.items()
             },
         )
-        return PandasDataFrame(df, api_version=api_version or LATEST_API_VERSION)
+        return PandasDataFrame(df, api_version=self.api_version)
 
     def is_null(self, value: Any) -> bool:
         return value is self.null
@@ -357,3 +352,8 @@ class PandasNamespace(Namespace):
             if _kind == "string":
                 dtypes.add(PandasNamespace.String)
         return isinstance(dtype, tuple(dtypes))
+
+    def date(self, year: int, month: int, day: int) -> Any:
+        import datetime as dt  # temporary: make own class
+
+        return dt.date(year, month, day)
