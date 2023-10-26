@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import Literal
+from typing import cast
 
 import polars as pl
 
@@ -37,13 +40,11 @@ else:
     UInt64T = object
     UInt8T = object
 
-from dataframe_api_compat.polars_standard.polars_standard import (
-    LATEST_API_VERSION,
-    PolarsColumn,
-    PolarsDataFrame,
-    PolarsGroupBy,
-    null,
-)
+from dataframe_api_compat.polars_standard.polars_standard import LATEST_API_VERSION
+from dataframe_api_compat.polars_standard.polars_standard import PolarsColumn
+from dataframe_api_compat.polars_standard.polars_standard import PolarsDataFrame
+from dataframe_api_compat.polars_standard.polars_standard import PolarsGroupBy
+from dataframe_api_compat.polars_standard.polars_standard import null
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -272,16 +273,25 @@ def column_from_sequence(
 def dataframe_from_2d_array(
     data: Any,
     *,
+    names: Sequence[str],
     dtypes: dict[str, Any],
-    api_version: str | None = None,
 ) -> PolarsDataFrame:  # pragma: no cover
-    df = pl.DataFrame(
-        data,
-        schema={
-            key: _map_standard_to_polars_dtypes(value) for key, value in dtypes.items()
-        },
-    ).lazy()
-    return PolarsDataFrame(df, api_version=api_version or LATEST_API_VERSION)
+    df = (
+        pl.DataFrame(
+            data,
+            schema={
+                key: _map_standard_to_polars_dtypes(value)
+                for key, value in dtypes.items()
+            },
+        )
+        .lazy()
+        .select(names)
+    )
+    return PolarsDataFrame(df, api_version=LATEST_API_VERSION)
+
+
+def date(year: int, month: int, day: int) -> Any:
+    return pl.date(year, month, day)
 
 
 def convert_to_standard_compliant_column(

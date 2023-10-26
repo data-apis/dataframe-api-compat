@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import pandas as pd
 
-from tests.utils import interchange_to_pandas, nan_dataframe_1
+from tests.utils import interchange_to_pandas
+from tests.utils import nan_dataframe_1
 
 
 def test_column_fill_nan(library: str) -> None:

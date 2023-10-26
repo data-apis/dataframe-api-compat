@@ -3,11 +3,9 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from tests.utils import (
-    convert_dataframe_to_pandas_numpy,
-    integer_dataframe_4,
-    interchange_to_pandas,
-)
+from tests.utils import convert_dataframe_to_pandas_numpy
+from tests.utils import integer_dataframe_4
+from tests.utils import interchange_to_pandas
 
 
 @pytest.mark.parametrize(

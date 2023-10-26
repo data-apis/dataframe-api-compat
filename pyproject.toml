@@ -68,7 +68,7 @@ ignore = [
 ]
 
 [tool.ruff.isort]
-split-on-trailing-comma = true
+force-single-line = true
 
 [tool.pytest.ini_options]
 filterwarnings = [

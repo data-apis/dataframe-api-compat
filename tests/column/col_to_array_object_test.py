@@ -3,7 +3,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from tests.utils import bool_dataframe_1, integer_dataframe_1
+from tests.utils import bool_dataframe_1
+from tests.utils import integer_dataframe_1
 
 
 @pytest.mark.parametrize(

@@ -1,16 +1,15 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
+from typing import Any
 
 import pandas as pd
 import pytest
 
-from tests.utils import (
-    float_dataframe_1,
-    float_dataframe_2,
-    float_dataframe_3,
-    interchange_to_pandas,
-)
+from tests.utils import float_dataframe_1
+from tests.utils import float_dataframe_2
+from tests.utils import float_dataframe_3
+from tests.utils import interchange_to_pandas
 
 if TYPE_CHECKING:
     from collections.abc import Callable

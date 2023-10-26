@@ -4,13 +4,11 @@ import pandas as pd
 import polars as pl
 import pytest
 
-from tests.utils import (
-    convert_dataframe_to_pandas_numpy,
-    integer_dataframe_1,
-    integer_dataframe_2,
-    integer_dataframe_4,
-    interchange_to_pandas,
-)
+from tests.utils import convert_dataframe_to_pandas_numpy
+from tests.utils import integer_dataframe_1
+from tests.utils import integer_dataframe_2
+from tests.utils import integer_dataframe_4
+from tests.utils import interchange_to_pandas
 
 
 def test_concat(library: str) -> None:

@@ -4,12 +4,10 @@ import pandas as pd
 import polars as pl
 import pytest
 
-from tests.utils import (
-    bool_dataframe_1,
-    convert_dataframe_to_pandas_numpy,
-    integer_dataframe_1,
-    interchange_to_pandas,
-)
+from tests.utils import bool_dataframe_1
+from tests.utils import convert_dataframe_to_pandas_numpy
+from tests.utils import integer_dataframe_1
+from tests.utils import interchange_to_pandas
 
 
 def test_invert(library: str) -> None:

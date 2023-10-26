@@ -3,11 +3,9 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from tests.utils import (
-    convert_dataframe_to_pandas_numpy,
-    integer_dataframe_1,
-    interchange_to_pandas,
-)
+from tests.utils import convert_dataframe_to_pandas_numpy
+from tests.utils import integer_dataframe_1
+from tests.utils import interchange_to_pandas
 
 
 def test_dataframe_from_2d_array(library: str) -> None:
@@ -16,6 +14,7 @@ def test_dataframe_from_2d_array(library: str) -> None:
     arr = np.array([[1, 4], [2, 5], [3, 6]])
     result = namespace.dataframe_from_2d_array(
         arr,
+        names=["a", "b"],
         dtypes={"a": namespace.Int64(), "b": namespace.Int64()},
     )
     result_pd = interchange_to_pandas(result)

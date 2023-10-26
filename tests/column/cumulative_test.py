@@ -3,7 +3,8 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from tests.utils import integer_dataframe_1, interchange_to_pandas
+from tests.utils import integer_dataframe_1
+from tests.utils import interchange_to_pandas
 
 
 @pytest.mark.parametrize(

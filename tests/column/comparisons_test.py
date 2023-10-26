@@ -1,11 +1,15 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import cast
 
 import pandas as pd
 import pytest
 
-from tests.utils import integer_dataframe_1, integer_dataframe_7, interchange_to_pandas
+from tests.utils import integer_dataframe_1
+from tests.utils import integer_dataframe_7
+from tests.utils import interchange_to_pandas
 
 if TYPE_CHECKING:
     from dataframe_api import DataFrame

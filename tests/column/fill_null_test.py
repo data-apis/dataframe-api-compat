@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from tests.utils import maybe_collect, nan_dataframe_1, null_dataframe_2
+from tests.utils import maybe_collect
+from tests.utils import nan_dataframe_1
+from tests.utils import null_dataframe_2
 
 
 def test_fill_null_column(library: str) -> None:
