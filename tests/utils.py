@@ -1,7 +1,12 @@
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta
-from typing import TYPE_CHECKING, Any, TypeVar, cast
+from datetime import date
+from datetime import datetime
+from datetime import timedelta
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import TypeVar
+from typing import cast
 
 import pandas as pd
 import polars as pl
@@ -12,9 +17,7 @@ import dataframe_api_compat.polars_standard
 DType = TypeVar("DType")
 
 if TYPE_CHECKING:
-    from dataframe_api import (
-        DataFrame,
-    )
+    from dataframe_api import DataFrame
 
 
 def convert_to_standard_compliant_dataframe(

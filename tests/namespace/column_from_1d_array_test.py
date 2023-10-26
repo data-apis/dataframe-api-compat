@@ -1,12 +1,15 @@
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta
+from datetime import date
+from datetime import datetime
+from datetime import timedelta
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from tests.utils import integer_dataframe_1, interchange_to_pandas
+from tests.utils import integer_dataframe_1
+from tests.utils import interchange_to_pandas
 
 
 @pytest.mark.parametrize(

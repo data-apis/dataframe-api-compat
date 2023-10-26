@@ -1,19 +1,21 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import Literal
+from typing import cast
 
 import pandas as pd
 
-from dataframe_api_compat.pandas_standard.pandas_standard import (
-    LATEST_API_VERSION,
-    PandasColumn,
-    PandasDataFrame,
-    PandasGroupBy,
-)
+from dataframe_api_compat.pandas_standard.pandas_standard import LATEST_API_VERSION
+from dataframe_api_compat.pandas_standard.pandas_standard import PandasColumn
+from dataframe_api_compat.pandas_standard.pandas_standard import PandasDataFrame
+from dataframe_api_compat.pandas_standard.pandas_standard import PandasGroupBy
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Mapping
+    from collections.abc import Sequence
 
     from dataframe_api.dtypes import Bool as BoolT
     from dataframe_api.dtypes import Date as DateT
@@ -30,7 +32,8 @@ if TYPE_CHECKING:
     from dataframe_api.dtypes import UInt16 as UInt16T
     from dataframe_api.dtypes import UInt32 as UInt32T
     from dataframe_api.dtypes import UInt64 as UInt64T
-    from dataframe_api.typing import DType, Namespace
+    from dataframe_api.typing import DType
+    from dataframe_api.typing import Namespace
 else:
     Namespace = object
     BoolT = object

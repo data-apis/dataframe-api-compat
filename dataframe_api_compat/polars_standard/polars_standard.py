@@ -1,16 +1,23 @@
 from __future__ import annotations
 
 import collections
-from typing import TYPE_CHECKING, Any, Literal, NoReturn, cast
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import Literal
+from typing import NoReturn
+from typing import cast
 
 import polars as pl
 
 import dataframe_api_compat
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Mapping
+    from collections.abc import Sequence
 
-    from dataframe_api import Column, DataFrame, GroupBy
+    from dataframe_api import Column
+    from dataframe_api import DataFrame
+    from dataframe_api import GroupBy
     from dataframe_api.typing import DType
     from typing_extensions import Self
 else:

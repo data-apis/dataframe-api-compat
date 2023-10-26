@@ -1,15 +1,14 @@
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any
+from typing import Callable
 
 import pytest
 
-from tests.utils import (
-    interchange_to_pandas,
-    maybe_collect,
-    nan_dataframe_1,
-    null_dataframe_2,
-)
+from tests.utils import interchange_to_pandas
+from tests.utils import maybe_collect
+from tests.utils import nan_dataframe_1
+from tests.utils import null_dataframe_2
 
 
 @pytest.mark.parametrize(

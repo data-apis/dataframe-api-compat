@@ -1,16 +1,15 @@
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any
+from typing import Callable
 
 import pandas as pd
 import pytest
 
-from tests.utils import (
-    bool_dataframe_1,
-    bool_dataframe_3,
-    convert_dataframe_to_pandas_numpy,
-    interchange_to_pandas,
-)
+from tests.utils import bool_dataframe_1
+from tests.utils import bool_dataframe_3
+from tests.utils import convert_dataframe_to_pandas_numpy
+from tests.utils import interchange_to_pandas
 
 
 @pytest.mark.parametrize(

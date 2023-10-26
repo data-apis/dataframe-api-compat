@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any
+from typing import Callable
 
 import pandas as pd
 import pytest
 
-from tests.utils import interchange_to_pandas, nan_dataframe_2, null_dataframe_1
+from tests.utils import interchange_to_pandas
+from tests.utils import nan_dataframe_2
+from tests.utils import null_dataframe_1
 
 
 @pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])

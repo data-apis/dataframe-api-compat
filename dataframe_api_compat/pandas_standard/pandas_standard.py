@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import collections
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Literal, NoReturn
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import Literal
+from typing import NoReturn
 
 import numpy as np
 import pandas as pd
@@ -46,9 +49,12 @@ _ARRAY_API_DTYPES = frozenset(
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Mapping
+    from collections.abc import Sequence
 
-    from dataframe_api import Column, DataFrame, GroupBy
+    from dataframe_api import Column
+    from dataframe_api import DataFrame
+    from dataframe_api import GroupBy
     from dataframe_api.typing import DType
 else:
     Column = object

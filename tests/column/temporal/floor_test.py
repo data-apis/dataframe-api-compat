@@ -5,7 +5,8 @@ from datetime import datetime
 import pandas as pd
 import pytest
 
-from tests.utils import interchange_to_pandas, temporal_dataframe_1
+from tests.utils import interchange_to_pandas
+from tests.utils import temporal_dataframe_1
 
 
 @pytest.mark.parametrize(
