@@ -124,8 +124,12 @@ class PandasColumn(Column):
         return other
 
     # In the standard
-    def __column_namespace__(self) -> Any:
-        return dataframe_api_compat.pandas_standard
+    def __column_namespace__(
+        self,
+    ) -> dataframe_api_compat.pandas_standard.PandasNamespace:
+        return dataframe_api_compat.pandas_standard.PandasNamespace(
+            api_version=self.api_version,
+        )
 
     @property
     def name(self) -> str:
@@ -1025,12 +1029,12 @@ class PandasDataFrame(DataFrame):
         for col in df.columns:
             ser = df[col].copy()
             if is_extension_array_dtype(ser.dtype):
-                if value is null:
+                if value is dataframe_api_compat.pandas_standard.PandasNamespace.null:
                     ser[np.isnan(ser).fillna(False).to_numpy(bool)] = pd.NA
                 else:
                     ser[np.isnan(ser).fillna(False).to_numpy(bool)] = value
             else:
-                if value is null:
+                if value is dataframe_api_compat.pandas_standard.PandasNamespace.null:
                     ser[np.isnan(ser).fillna(False).to_numpy(bool)] = np.nan
                 else:
                     ser[np.isnan(ser).fillna(False).to_numpy(bool)] = value

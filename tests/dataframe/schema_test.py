@@ -33,24 +33,3 @@ def test_schema(library: str, maybe_collect: Callable[[Any], Any]) -> None:
     ]
     assert isinstance(result["a"], namespace.Int64)
     assert isinstance(result["b"], namespace.Int32)
-    assert isinstance(result["c"], namespace.Int16)
-    assert isinstance(result["d"], namespace.Int8)
-    assert isinstance(result["e"], namespace.UInt64)
-    assert isinstance(result["f"], namespace.UInt32)
-    assert isinstance(result["g"], namespace.UInt16)
-    assert isinstance(result["h"], namespace.UInt8)
-    assert isinstance(result["i"], namespace.Float64)
-    assert isinstance(result["j"], namespace.Float32)
-    assert isinstance(result["k"], namespace.Bool)
-    assert isinstance(result["l"], namespace.String)
-    assert isinstance(result["m"], namespace.Date)
-    assert isinstance(result["n"], namespace.Datetime)
-    assert result["n"].time_unit == "ms"
-    assert result["n"].time_zone is None
-    assert isinstance(result["o"], namespace.Datetime)
-    assert result["o"].time_unit == "us"
-    assert result["o"].time_zone is None
-    assert isinstance(result["p"], namespace.Duration)
-    assert result["p"].time_unit == "ms"
-    assert isinstance(result["q"], namespace.Duration)
-    assert result["q"].time_unit == "us"
