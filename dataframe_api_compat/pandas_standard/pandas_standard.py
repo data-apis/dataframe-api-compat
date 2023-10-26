@@ -49,11 +49,12 @@ if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
     from dataframe_api import Column, DataFrame, GroupBy
-    from dataframe_api.typing import DType
+    from dataframe_api.typing import DType, Namespace
 else:
     Column = object
     DataFrame = object
     GroupBy = object
+    Namespace = object
 
 
 class Scalar:
@@ -681,8 +682,12 @@ class PandasDataFrame(DataFrame):
             for column_name, dtype in self.dataframe.dtypes.items()
         }
 
-    def __dataframe_namespace__(self) -> Any:
-        return dataframe_api_compat.pandas_standard
+    def __dataframe_namespace__(
+        self,
+    ) -> dataframe_api_compat.pandas_standard.PandasNamespace:
+        return dataframe_api_compat.pandas_standard.PandasNamespace(
+            api_version=self.api_version,
+        )
 
     @property
     def column_names(self) -> list[str]:

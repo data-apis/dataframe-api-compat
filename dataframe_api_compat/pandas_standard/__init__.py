@@ -31,8 +31,9 @@ if TYPE_CHECKING:
     from dataframe_api.dtypes import UInt16 as UInt16T
     from dataframe_api.dtypes import UInt32 as UInt32T
     from dataframe_api.dtypes import UInt64 as UInt64T
-    from dataframe_api.typing import DType
+    from dataframe_api.typing import DType, Namespace
 else:
+    Namespace = object
     BoolT = object
     DateT = object
     DatetimeT = object
@@ -55,8 +56,8 @@ DataFrame = PandasDataFrame
 GroupBy = PandasGroupBy
 
 
-class Int64(Int64T):
-    ...
+# class Int64(Int64T):
+#     ...
 
 
 class Int32(Int32T):
@@ -125,13 +126,13 @@ class Duration(DurationT):
 
 def map_pandas_dtype_to_standard_dtype(dtype: Any) -> DType:
     if dtype == "int64":
-        return Int64()
+        return PandasNamespace.Int64()
     if dtype == "Int64":
-        return Int64()
+        return PandasNamespace.Int64()
     if dtype == "int32":
-        return Int32()
+        return PandasNamespace.Int32()
     if dtype == "Int32":
-        return Int32()
+        return PandasNamespace.Int32()
     if dtype == "int16":
         return Int16()
     if dtype == "Int16":
@@ -342,3 +343,21 @@ def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:
         if _kind == "string":
             dtypes.add(String)
     return isinstance(dtype, tuple(dtypes))
+
+
+class PandasNamespace(Namespace):
+    def __init__(self, *, api_version: str) -> None:
+        self.__dataframe_api_version__ = api_version
+
+    class Int64(Int64T):
+        ...
+
+    class Int32(Int32T):
+        ...
+
+    class Null:
+        ...
+
+    @property
+    def null(self):
+        return
