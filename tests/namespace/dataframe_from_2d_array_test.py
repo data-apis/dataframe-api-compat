@@ -14,6 +14,7 @@ def test_dataframe_from_2d_array(library: str) -> None:
     arr = np.array([[1, 4], [2, 5], [3, 6]])
     result = namespace.dataframe_from_2d_array(
         arr,
+        names=["a", "b"],
         dtypes={"a": namespace.Int64(), "b": namespace.Int64()},
     )
     result_pd = interchange_to_pandas(result)

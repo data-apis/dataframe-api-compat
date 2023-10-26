@@ -321,7 +321,7 @@ class PandasNamespace(Namespace):
         names: Sequence[str],
         dtypes: Mapping[str, Any],
     ) -> PandasDataFrame:  # pragma: no cover
-        df = pd.DataFrame(data, columns=list(dtypes)).astype(
+        df = pd.DataFrame(data, columns=names).astype(
             {
                 key: map_standard_dtype_to_pandas_dtype(value)
                 for key, value in dtypes.items()
