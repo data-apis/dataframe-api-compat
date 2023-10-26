@@ -280,7 +280,10 @@ class PandasNamespace(Namespace):
         df = ser.to_frame().__dataframe_consortium_standard__().collect()
         return PandasColumn(df.col(name).column, api_version=LATEST_API_VERSION, df=df)
 
-    def concat(self, dataframes: Sequence[PandasDataFrame]) -> PandasDataFrame:  # type: ignore[override]
+    def concat(
+        self,
+        dataframes: Sequence[PandasDataFrame],  # type: ignore[override]
+    ) -> PandasDataFrame:
         dtypes = dataframes[0].dataframe.dtypes
         dfs: list[pd.DataFrame] = []
         api_versions: set[str] = set()
