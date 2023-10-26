@@ -290,6 +290,10 @@ def dataframe_from_2d_array(
     return PolarsDataFrame(df, api_version=LATEST_API_VERSION)
 
 
+def date(year: int, month: int, day: int) -> Any:
+    return pl.date(year, month, day)
+
+
 def convert_to_standard_compliant_column(
     ser: pl.Series,
     api_version: str | None = None,

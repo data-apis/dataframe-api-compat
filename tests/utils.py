@@ -406,6 +406,7 @@ def temporal_dataframe_1(library: str) -> DataFrame:
                     timedelta(2, milliseconds=3),
                     timedelta(3, milliseconds=5),
                 ],
+                "index": [0, 1, 2],
             },
         ).astype(
             {
@@ -451,6 +452,7 @@ def temporal_dataframe_1(library: str) -> DataFrame:
                     timedelta(2, milliseconds=3),
                     timedelta(3, milliseconds=5),
                 ],
+                "index": [0, 1, 2],
             },
             schema={
                 "a": pl.Datetime("ms"),
@@ -459,6 +461,7 @@ def temporal_dataframe_1(library: str) -> DataFrame:
                 "d": pl.Duration("us"),
                 "e": pl.Datetime("ns"),
                 "f": pl.Duration("ns"),
+                "index": pl.Int64,
             },
         )
         return convert_to_standard_compliant_dataframe(df)

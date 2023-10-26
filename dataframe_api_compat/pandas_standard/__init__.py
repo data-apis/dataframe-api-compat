@@ -362,4 +362,4 @@ class PandasNamespace(Namespace):
     def date(self, year: int, month: int, day: int) -> Any:
         import datetime as dt  # temporary: make own class
 
-        return dt.date(year, month, day)
+        return pd.Timestamp(dt.date(year, month, day))
