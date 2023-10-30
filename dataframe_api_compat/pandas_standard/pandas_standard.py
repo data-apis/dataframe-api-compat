@@ -456,6 +456,10 @@ class PandasColumn(Column):
         ser = self.column
         return self._from_series(ser.dt.microsecond)
 
+    def nanosecond(self) -> PandasColumn:
+        ser = self.column
+        return self._from_series(ser.dt.microsecond * 1000 + ser.dt.nanosecond)
+
     def iso_weekday(self) -> PandasColumn:
         ser = self.column
         return self._from_series(ser.dt.weekday + 1)

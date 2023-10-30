@@ -479,6 +479,9 @@ class PolarsColumn(Column):
     def microsecond(self) -> PolarsColumn:
         return self._from_expr(self.expr.dt.microsecond())
 
+    def nanosecond(self) -> PolarsColumn:
+        return self._from_expr(self.expr.dt.nanosecond())
+
     def iso_weekday(self) -> PolarsColumn:
         return self._from_expr(self.expr.dt.weekday())
 

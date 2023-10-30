@@ -47,3 +47,21 @@ def test_col_microsecond(library: str, col_name: str, expected: list[int]) -> No
     result = interchange_to_pandas(result)["result"].astype("int64")
     expected = pd.Series(expected, name="result")
     pd.testing.assert_series_equal(result, expected)
+
+
+@pytest.mark.parametrize(
+    ("col_name", "expected"),
+    [
+        ("a", [123000000, 321000000, 987000000]),
+        ("c", [123543000, 321654000, 987321000]),
+        ("e", [123543000, 321654000, 987321000]),
+    ],
+)
+def test_col_nanosecond(library: str, col_name: str, expected: list[int]) -> None:
+    df = temporal_dataframe_1(library).collect()
+    result = df.assign(df.col(col_name).nanosecond().rename("result")).select(
+        "result",
+    )
+    result = interchange_to_pandas(result)["result"].astype("int64")
+    expected = pd.Series(expected, name="result")
+    pd.testing.assert_series_equal(result, expected)
