@@ -597,18 +597,52 @@ class PandasGroupBy(GroupBy):
         self,
         *aggregations: dataframe_api_compat.pandas_standard.PandasNamespace.Aggregation,
     ) -> PandasDataFrame:
-        df = self.grouped.agg(
-            {
-                aggregation.column_name: aggregation.aggregation
-                for aggregation in aggregations
-            },
-        ).rename(
-            columns={
-                aggregation.column_name: aggregation.output_name
-                for aggregation in aggregations
-            },
+        output_names = [aggregation.output_name for aggregation in aggregations]
+
+        include_size = False
+        size_output_name = None
+        column_aggregations: Sequence[
+            dataframe_api_compat.pandas_standard.PandasNamespace.Aggregation
+        ] = []
+        for aggregation in aggregations:
+            if aggregation.aggregation == "size":
+                include_size = True
+                size_output_name = aggregation.output_name
+            else:
+                column_aggregations.append(aggregation)
+
+        agg = {
+            aggregation.column_name: aggregation.aggregation
+            for aggregation in column_aggregations
+        }
+        if agg:
+            aggregated = self.grouped.agg(agg).rename(
+                {
+                    aggregation.column_name: aggregation.output_name
+                    for aggregation in column_aggregations
+                },
+                axis=1,
+            )
+
+        if include_size:
+            size = self.grouped.size().drop(self.keys, axis=1)
+            assert len(size.columns) == 1
+            size = size.rename(columns={size.columns[0]: size_output_name})
+
+        if agg and include_size:
+            df = pd.concat([aggregated, size], axis=1)
+        elif agg:
+            df = aggregated
+        elif include_size:
+            df = size
+        else:
+            msg = "No aggregations specified"
+            raise ValueError(msg)
+        return PandasDataFrame(
+            df.loc[:, output_names],
+            api_version=self._api_version,
+            is_collected=False,
         )
-        return PandasDataFrame(df, api_version=self._api_version, is_collected=False)
 
 
 LATEST_API_VERSION = "2023.09-beta"

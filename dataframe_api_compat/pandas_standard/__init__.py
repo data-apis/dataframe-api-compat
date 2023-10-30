@@ -376,6 +376,69 @@ class PandasNamespace(Namespace):
             return self.__class__(self.column_name, output_name, self.aggregation)
 
         @classmethod
+        def any(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return cls(column, column, "any")
+
+        @classmethod
+        def all(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return cls(column, column, "all")
+
+        @classmethod
+        def min(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return cls(column, column, "min")
+
+        @classmethod
+        def max(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return cls(column, column, "max")
+
+        @classmethod
+        def sum(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return cls(column, column, "sum")
+
+        @classmethod
+        def prod(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return cls(column, column, "prod")
+
+        @classmethod
+        def median(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return cls(column, column, "median")
+
+        @classmethod
         def mean(
             cls: AggregationT,
             column: str,
@@ -383,3 +446,27 @@ class PandasNamespace(Namespace):
             skip_nulls: bool = True,
         ) -> AggregationT:
             return cls(column, column, "mean")
+
+        @classmethod
+        def std(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return cls(column, column, "std")
+
+        @classmethod
+        def var(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return cls(column, column, "var")
+
+        @classmethod
+        def size(
+            cls: AggregationT,
+        ) -> AggregationT:
+            return cls("placeholder", "size", "size")
