@@ -273,20 +273,14 @@ def column_from_sequence(
 def dataframe_from_2d_array(
     data: Any,
     *,
-    names: Sequence[str],
-    dtypes: dict[str, Any],
+    schema: dict[str, Any],
 ) -> PolarsDataFrame:  # pragma: no cover
-    df = (
-        pl.DataFrame(
-            data,
-            schema={
-                key: _map_standard_to_polars_dtypes(value)
-                for key, value in dtypes.items()
-            },
-        )
-        .lazy()
-        .select(names)
-    )
+    df = pl.DataFrame(
+        data,
+        schema={
+            key: _map_standard_to_polars_dtypes(value) for key, value in schema.items()
+        },
+    ).lazy()
     return PolarsDataFrame(df, api_version=LATEST_API_VERSION)
 
 

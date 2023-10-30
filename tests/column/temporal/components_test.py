@@ -23,7 +23,7 @@ from tests.utils import temporal_dataframe_1
 def test_col_components(library: str, attr: str, expected: list[int]) -> None:
     df = temporal_dataframe_1(library).collect()
     for col_name in ("a", "c", "e"):
-        result = df.assign(getattr(df.col(col_name).dt, attr)().rename("result")).select(
+        result = df.assign(getattr(df.col(col_name), attr)().rename("result")).select(
             "result",
         )
         result = interchange_to_pandas(result)["result"].astype("int64")
@@ -41,7 +41,7 @@ def test_col_components(library: str, attr: str, expected: list[int]) -> None:
 )
 def test_col_microsecond(library: str, col_name: str, expected: list[int]) -> None:
     df = temporal_dataframe_1(library).collect()
-    result = df.assign(df.col(col_name).dt.microsecond().rename("result")).select(
+    result = df.assign(df.col(col_name).microsecond().rename("result")).select(
         "result",
     )
     result = interchange_to_pandas(result)["result"].astype("int64")

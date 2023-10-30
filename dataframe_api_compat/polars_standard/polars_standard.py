@@ -173,6 +173,9 @@ class PolarsGroupBy(GroupBy):
         result = self.group_by(self.keys).agg(pl.col("*").var())
         return PolarsDataFrame(result, api_version=self._api_version)
 
+    def aggregate(self, *args: Any) -> Any:
+        raise NotImplementedError  # todo
+
 
 class PolarsColumn(Column):
     def __init__(
@@ -451,51 +454,33 @@ class PolarsColumn(Column):
     def rename(self, name: str) -> PolarsColumn:
         return self._from_expr(self.expr.alias(name))
 
-    @property
-    def dt(self) -> ColumnDatetimeAccessor:
-        """Return accessor with functions which work on temporal dtypes."""
-        return ColumnDatetimeAccessor(self)
-
     def __len__(self) -> int:
         df = self.df.validate_is_collected("Column.__len__")
         return len(df.select(self.expr)[self.name])
 
-
-class ColumnDatetimeAccessor:
-    def __init__(self, column: PolarsColumn) -> None:
-        self.column = column
-        self._api_version = column.api_version
-
-    def from_expr(self, expr: pl.Expr) -> PolarsColumn:
-        return self.column.__class__(
-            expr,
-            df=self.column.df,
-            api_version=self._api_version,
-        )
-
     def year(self) -> PolarsColumn:
-        return self.from_expr(self.column.expr.dt.year())
+        return self._from_expr(self.expr.dt.year())
 
     def month(self) -> PolarsColumn:
-        return self.from_expr(self.column.expr.dt.month())
+        return self._from_expr(self.expr.dt.month())
 
     def day(self) -> PolarsColumn:
-        return self.from_expr(self.column.expr.dt.day())
+        return self._from_expr(self.expr.dt.day())
 
     def hour(self) -> PolarsColumn:
-        return self.from_expr(self.column.expr.dt.hour())
+        return self._from_expr(self.expr.dt.hour())
 
     def minute(self) -> PolarsColumn:
-        return self.from_expr(self.column.expr.dt.minute())
+        return self._from_expr(self.expr.dt.minute())
 
     def second(self) -> PolarsColumn:
-        return self.from_expr(self.column.expr.dt.second())
+        return self._from_expr(self.expr.dt.second())
 
     def microsecond(self) -> PolarsColumn:
-        return self.from_expr(self.column.expr.dt.microsecond())
+        return self._from_expr(self.expr.dt.microsecond())
 
     def iso_weekday(self) -> PolarsColumn:
-        return self.from_expr(self.column.expr.dt.weekday())
+        return self._from_expr(self.expr.dt.weekday())
 
     def floor(self, frequency: str) -> PolarsColumn:
         frequency = (
@@ -507,10 +492,10 @@ class ColumnDatetimeAccessor:
             .replace("microsecond", "us")
             .replace("nanosecond", "ns")
         )
-        return self.from_expr(self.column.expr.dt.truncate(frequency))
+        return self._from_expr(self.expr.dt.truncate(frequency))
 
     def unix_timestamp(self) -> PolarsColumn:
-        return self.from_expr(self.column.expr.dt.timestamp("ms") // 1000)
+        return self._from_expr(self.expr.dt.timestamp("ms") // 1000)
 
 
 class PolarsDataFrame(DataFrame):

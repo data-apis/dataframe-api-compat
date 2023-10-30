@@ -14,7 +14,6 @@ from dataframe_api_compat.pandas_standard.pandas_standard import PandasDataFrame
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasGroupBy
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
     from collections.abc import Sequence
 
     from dataframe_api.dtypes import Bool as BoolT
@@ -32,6 +31,7 @@ if TYPE_CHECKING:
     from dataframe_api.dtypes import UInt16 as UInt16T
     from dataframe_api.dtypes import UInt32 as UInt32T
     from dataframe_api.dtypes import UInt64 as UInt64T
+    from dataframe_api.groupby_object import Aggregation as AggregationT
     from dataframe_api.typing import DType
     from dataframe_api.typing import Namespace
 else:
@@ -51,6 +51,7 @@ else:
     UInt16T = object
     UInt32T = object
     UInt64T = object
+    AggregationT = object
 
 
 Column = PandasColumn
@@ -314,17 +315,17 @@ class PandasNamespace(Namespace):
             api_version=api_versions.pop(),
         )
 
-    def dataframe_from_2d_array(
+    # typing needs fixing upstream
+    def dataframe_from_2d_array(  # type: ignore[override]
         self,
         data: Any,
         *,
-        names: Sequence[str],
-        dtypes: Mapping[str, Any],
+        schema: dict[str, Any],
     ) -> PandasDataFrame:  # pragma: no cover
-        df = pd.DataFrame(data, columns=names).astype(
+        df = pd.DataFrame(data, columns=list(schema)).astype(
             {
                 key: map_standard_dtype_to_pandas_dtype(value)
-                for key, value in dtypes.items()
+                for key, value in schema.items()
             },
         )
         return PandasDataFrame(df, api_version=self.api_version)
@@ -363,3 +364,110 @@ class PandasNamespace(Namespace):
         import datetime as dt  # temporary: make own class
 
         return pd.Timestamp(dt.date(year, month, day))
+
+    class Aggregation(AggregationT):  # pragma: no cover
+        def __init__(self, column_name: str, output_name: str, aggregation: str) -> None:
+            self.column_name = column_name
+            self.output_name = output_name
+            self.aggregation = aggregation
+
+        def rename(self, name: str) -> AggregationT:
+            return self.__class__(self.column_name, name, self.aggregation)
+
+        @classmethod
+        def any(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return PandasNamespace.Aggregation(column, column, "any")
+
+        @classmethod
+        def all(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return PandasNamespace.Aggregation(column, column, "all")
+
+        @classmethod
+        def min(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return PandasNamespace.Aggregation(column, column, "min")
+
+        @classmethod
+        def max(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return PandasNamespace.Aggregation(column, column, "max")
+
+        @classmethod
+        def sum(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return PandasNamespace.Aggregation(column, column, "sum")
+
+        @classmethod
+        def prod(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return PandasNamespace.Aggregation(column, column, "prod")
+
+        @classmethod
+        def median(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return PandasNamespace.Aggregation(column, column, "median")
+
+        @classmethod
+        def mean(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return PandasNamespace.Aggregation(column, column, "mean")
+
+        @classmethod
+        def std(
+            cls: AggregationT,
+            column: str,
+            *,
+            correction: int | float = 1,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return PandasNamespace.Aggregation(column, column, "std")
+
+        @classmethod
+        def var(
+            cls: AggregationT,
+            column: str,
+            *,
+            correction: int | float = 1,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return PandasNamespace.Aggregation(column, column, "var")
+
+        @classmethod
+        def size(
+            cls: AggregationT,
+        ) -> AggregationT:
+            return PandasNamespace.Aggregation("placeholder", "size", "size")
