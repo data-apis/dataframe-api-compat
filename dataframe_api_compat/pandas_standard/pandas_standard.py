@@ -601,7 +601,7 @@ class PandasGroupBy(GroupBy):
 
         include_size = False
         size_output_name = None
-        column_aggregations: Sequence[
+        column_aggregations: list[
             dataframe_api_compat.pandas_standard.PandasNamespace.Aggregation
         ] = []
         for aggregation in aggregations:

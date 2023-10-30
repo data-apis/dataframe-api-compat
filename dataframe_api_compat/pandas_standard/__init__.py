@@ -34,7 +34,6 @@ if TYPE_CHECKING:
     from dataframe_api.groupby_object import Aggregation as AggregationT
     from dataframe_api.typing import DType
     from dataframe_api.typing import Namespace
-    from typing_extensions import Self
 else:
     Namespace = object
     BoolT = object
@@ -372,8 +371,8 @@ class PandasNamespace(Namespace):
             self.output_name = output_name
             self.aggregation = aggregation
 
-        def rename(self, output_name: str) -> Self:
-            return self.__class__(self.column_name, output_name, self.aggregation)
+        def rename(self, name: str) -> AggregationT:
+            return self.__class__(self.column_name, name, self.aggregation)
 
         @classmethod
         def any(
@@ -382,7 +381,7 @@ class PandasNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return cls(column, column, "any")
+            return PandasNamespace.Aggregation(column, column, "any")
 
         @classmethod
         def all(
@@ -391,7 +390,7 @@ class PandasNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return cls(column, column, "all")
+            return PandasNamespace.Aggregation(column, column, "all")
 
         @classmethod
         def min(
@@ -400,7 +399,7 @@ class PandasNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return cls(column, column, "min")
+            return PandasNamespace.Aggregation(column, column, "min")
 
         @classmethod
         def max(
@@ -409,7 +408,7 @@ class PandasNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return cls(column, column, "max")
+            return PandasNamespace.Aggregation(column, column, "max")
 
         @classmethod
         def sum(
@@ -418,7 +417,7 @@ class PandasNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return cls(column, column, "sum")
+            return PandasNamespace.Aggregation(column, column, "sum")
 
         @classmethod
         def prod(
@@ -427,7 +426,7 @@ class PandasNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return cls(column, column, "prod")
+            return PandasNamespace.Aggregation(column, column, "prod")
 
         @classmethod
         def median(
@@ -436,7 +435,7 @@ class PandasNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return cls(column, column, "median")
+            return PandasNamespace.Aggregation(column, column, "median")
 
         @classmethod
         def mean(
@@ -445,28 +444,30 @@ class PandasNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return cls(column, column, "mean")
+            return PandasNamespace.Aggregation(column, column, "mean")
 
         @classmethod
         def std(
             cls: AggregationT,
             column: str,
             *,
+            correction: int | float = 1,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return cls(column, column, "std")
+            return PandasNamespace.Aggregation(column, column, "std")
 
         @classmethod
         def var(
             cls: AggregationT,
             column: str,
             *,
+            correction: int | float = 1,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return cls(column, column, "var")
+            return PandasNamespace.Aggregation(column, column, "var")
 
         @classmethod
         def size(
             cls: AggregationT,
         ) -> AggregationT:
-            return cls("placeholder", "size", "size")
+            return PandasNamespace.Aggregation("placeholder", "size", "size")
