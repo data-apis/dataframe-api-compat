@@ -52,6 +52,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
     from collections.abc import Sequence
 
+    from dataframe_api import Aggregation
     from dataframe_api import Column
     from dataframe_api import DataFrame
     from dataframe_api import GroupBy
@@ -61,6 +62,7 @@ else:
     DataFrame = object
     GroupBy = object
     Namespace = object
+    Aggregation = object
 
 
 class Scalar:
@@ -416,11 +418,6 @@ class PandasColumn(Column):
         ser = self.column
         return self._from_series(ser.rename(name))
 
-    @property
-    def dt(self) -> ColumnDatetimeAccessor:
-        """Return accessor with functions which work on temporal dtypes."""
-        return ColumnDatetimeAccessor(self)
-
     def to_array(self) -> Any:
         self.df.validate_is_collected("Column.to_array")
         return self.column.to_numpy(
@@ -431,50 +428,36 @@ class PandasColumn(Column):
         self.df.validate_is_collected("Column.__len__")
         return len(self.column)
 
-
-class ColumnDatetimeAccessor:
-    def __init__(self, column: PandasColumn) -> None:
-        self.eager = True
-        self.column = column
-        self._api_version = column.api_version
-
-    def _from_series(self, series: pd.Series) -> PandasColumn:
-        return PandasColumn(
-            series.reset_index(drop=True),
-            api_version=self._api_version,
-            df=self.column.df,
-        )
-
     def year(self) -> PandasColumn:
-        ser = self.column.column
+        ser = self.column
         return self._from_series(ser.dt.year)
 
     def month(self) -> PandasColumn:
-        ser = self.column.column
+        ser = self.column
         return self._from_series(ser.dt.month)
 
     def day(self) -> PandasColumn:
-        ser = self.column.column
+        ser = self.column
         return self._from_series(ser.dt.day)
 
     def hour(self) -> PandasColumn:
-        ser = self.column.column
+        ser = self.column
         return self._from_series(ser.dt.hour)
 
     def minute(self) -> PandasColumn:
-        ser = self.column.column
+        ser = self.column
         return self._from_series(ser.dt.minute)
 
     def second(self) -> PandasColumn:
-        ser = self.column.column
+        ser = self.column
         return self._from_series(ser.dt.second)
 
     def microsecond(self) -> PandasColumn:
-        ser = self.column.column
+        ser = self.column
         return self._from_series(ser.dt.microsecond)
 
     def iso_weekday(self) -> PandasColumn:
-        ser = self.column.column
+        ser = self.column
         return self._from_series(ser.dt.weekday + 1)
 
     def floor(self, frequency: str) -> PandasColumn:
@@ -487,11 +470,11 @@ class ColumnDatetimeAccessor:
             .replace("microsecond", "us")
             .replace("nanosecond", "ns")
         )
-        ser = self.column.column
+        ser = self.column
         return self._from_series(ser.dt.floor(frequency))
 
     def unix_timestamp(self) -> PandasColumn:
-        ser = self.column.column
+        ser = self.column
         if ser.dt.tz is None:
             return self._from_series(
                 pd.Series(
@@ -609,6 +592,23 @@ class PandasGroupBy(GroupBy):
         result = self.grouped.var()
         self._validate_result(result)
         return PandasDataFrame(result, api_version=self._api_version)
+
+    def aggregate(  # type: ignore[override]
+        self,
+        *aggregations: dataframe_api_compat.pandas_standard.PandasNamespace.Aggregation,
+    ) -> PandasDataFrame:
+        df = self.grouped.agg(
+            {
+                aggregation.column_name: aggregation.aggregation
+                for aggregation in aggregations
+            },
+        ).rename(
+            columns={
+                aggregation.column_name: aggregation.output_name
+                for aggregation in aggregations
+            },
+        )
+        return PandasDataFrame(df, api_version=self._api_version, is_collected=False)
 
 
 LATEST_API_VERSION = "2023.09-beta"

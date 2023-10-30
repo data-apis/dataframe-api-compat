@@ -48,6 +48,7 @@ ignore = [
   'ANN101',
   'ANN401',
   'ARG002',  # todo: enable
+  'ARG003',  # todo: enable
   'C901',
   'D',
   'DTZ',
