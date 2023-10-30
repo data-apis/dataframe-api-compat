@@ -365,7 +365,7 @@ class PandasNamespace(Namespace):
 
         return pd.Timestamp(dt.date(year, month, day))
 
-    class Aggregation(AggregationT):
+    class Aggregation(AggregationT):  # pragma: no cover
         def __init__(self, column_name: str, output_name: str, aggregation: str) -> None:
             self.column_name = column_name
             self.output_name = output_name

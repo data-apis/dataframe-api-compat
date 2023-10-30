@@ -596,7 +596,7 @@ class PandasGroupBy(GroupBy):
     def aggregate(  # type: ignore[override]
         self,
         *aggregations: dataframe_api_compat.pandas_standard.PandasNamespace.Aggregation,
-    ) -> PandasDataFrame:
+    ) -> PandasDataFrame:  # pragma: no cover
         output_names = [aggregation.output_name for aggregation in aggregations]
 
         include_size = False

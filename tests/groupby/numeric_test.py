@@ -38,3 +38,15 @@ def test_group_by_numeric(
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"key": [1, 2], "b": expected_b, "c": expected_c})
     pd.testing.assert_frame_equal(result_pd, expected)
+
+
+# @pytest.mark.parametrize(
+#             "std",
+#         ),
+#     ],
+# def test_group_by_numeric_aggregate_api(
+#     library: str,
+#     aggregation: str,
+#     expected_b: list[float],
+#     expected_c: list[float],
+# ) -> None:
