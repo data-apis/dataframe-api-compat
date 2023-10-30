@@ -9,4 +9,4 @@ from dataframe_api_compat import polars_standard
 
 __all__ = ["pandas_standard", "polars_standard"]
 
-__version__ = "0.1.21"
+__version__ = "0.1.22"
