@@ -64,6 +64,13 @@ class Int32(Int32T):
     ...
 
 
+class Null:
+    ...
+
+
+NullType = type[Null]
+
+
 class Int16(Int16T):
     ...
 
