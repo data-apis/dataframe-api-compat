@@ -234,8 +234,8 @@ class Scalar:
         self.df.validate_is_collected("Scalar.__float__")
         return self.value.__float__()  # type: ignore[no-any-return]
 
-    def __repr__(self) -> str:
-        return self.value.__repr__()
+    def __repr__(self) -> str:  # pragma: no cover
+        return self.value.__repr__()  # type: ignore[no-any-return]
 
 
 class PandasColumn(Column):
