@@ -40,7 +40,6 @@ else:
     UInt64T = object
     UInt8T = object
 
-from dataframe_api_compat.polars_standard import null
 from dataframe_api_compat.polars_standard.column_object import PolarsColumn
 from dataframe_api_compat.polars_standard.dataframe_object import PolarsDataFrame
 from dataframe_api_compat.polars_standard.group_by_object import PolarsGroupBy
@@ -65,6 +64,9 @@ class Int32(Int32T):
 
 class Null:
     ...
+
+
+null = Null()
 
 
 NullType = type[Null]

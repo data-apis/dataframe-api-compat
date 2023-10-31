@@ -7,8 +7,6 @@ from typing import NoReturn
 
 import polars as pl
 
-from dataframe_api_compat.polars_standard.scalar_object import Scalar
-
 if TYPE_CHECKING:
     from dataframe_api import Column
     from dataframe_api import DataFrame
@@ -18,6 +16,7 @@ if TYPE_CHECKING:
 
     from dataframe_api_compat.polars_standard import NullType
     from dataframe_api_compat.polars_standard.dataframe_object import PolarsDataFrame
+    from dataframe_api_compat.polars_standard.scalar_object import Scalar
 else:
     Column = object
     DataFrame = object
@@ -47,6 +46,8 @@ class PolarsColumn(Column):
         return dataframe_api_compat.polars_standard
 
     def _validate_comparand(self, other: Self | Any) -> Self | Any:
+        from dataframe_api_compat.polars_standard.scalar_object import Scalar
+
         if isinstance(other, Scalar):
             if id(self.df) != id(other.df):
                 msg = "Columns/scalars are from different dataframes"
@@ -60,6 +61,8 @@ class PolarsColumn(Column):
         return other
 
     def _to_scalar(self, value: pl.Expr) -> Scalar:
+        from dataframe_api_compat.polars_standard.scalar_object import Scalar
+
         return Scalar(value, api_version=self.api_version, df=self.df)
 
     @property
