@@ -41,8 +41,8 @@ def test_float_binary(library: str, attr: str) -> None:
 
 
 def test_float_binary_invalid(library: str) -> None:
-    lhs = integer_dataframe_2(library).col("a").mean()
-    rhs = integer_dataframe_1(library).col("b").mean()
+    lhs = integer_dataframe_2(library).collect().col("a").mean()
+    rhs = integer_dataframe_1(library).collect().col("b").mean()
     with pytest.raises(ValueError):
         _ = lhs > rhs
 
