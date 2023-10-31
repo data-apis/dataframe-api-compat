@@ -40,11 +40,10 @@ else:
     UInt64T = object
     UInt8T = object
 
-from dataframe_api_compat.polars_standard.polars_standard import LATEST_API_VERSION
-from dataframe_api_compat.polars_standard.polars_standard import PolarsColumn
-from dataframe_api_compat.polars_standard.polars_standard import PolarsDataFrame
-from dataframe_api_compat.polars_standard.polars_standard import PolarsGroupBy
-from dataframe_api_compat.polars_standard.polars_standard import null
+from dataframe_api_compat.polars_standard import null
+from dataframe_api_compat.polars_standard.column_object import PolarsColumn
+from dataframe_api_compat.polars_standard.dataframe_object import PolarsDataFrame
+from dataframe_api_compat.polars_standard.group_by_object import PolarsGroupBy
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -270,7 +269,7 @@ def column_from_sequence(
         PolarsDataFrame,
         (
             ser.to_frame()
-            .__dataframe_consortium_standard__(api_version=LATEST_API_VERSION)
+            .__dataframe_consortium_standard__(api_version="2023.09-beta")
             .collect()
         ),
     )
@@ -288,7 +287,7 @@ def dataframe_from_2d_array(
             key: _map_standard_to_polars_dtypes(value) for key, value in schema.items()
         },
     ).lazy()
-    return PolarsDataFrame(df, api_version=LATEST_API_VERSION)
+    return PolarsDataFrame(df, api_version="2023.09-beta")
 
 
 def date(year: int, month: int, day: int) -> Any:
@@ -315,7 +314,8 @@ def convert_to_standard_compliant_dataframe(
     api_version: str | None = None,
 ) -> PolarsDataFrame:
     df_lazy = df.lazy() if isinstance(df, pl.DataFrame) else df
-    return PolarsDataFrame(df_lazy, api_version=api_version or LATEST_API_VERSION)
+    # todo latest api version
+    return PolarsDataFrame(df_lazy, api_version=api_version or "2023.09-beta")
 
 
 def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:
