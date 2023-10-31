@@ -8,9 +8,8 @@ from typing import cast
 
 import pandas as pd
 
-from dataframe_api_compat.pandas_standard.pandas_standard import LATEST_API_VERSION
+from dataframe_api_compat.pandas_standard.dataframe_object import PandasDataFrame
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasColumn
-from dataframe_api_compat.pandas_standard.pandas_standard import PandasDataFrame
 from dataframe_api_compat.pandas_standard.pandas_standard import PandasGroupBy
 
 if TYPE_CHECKING:
@@ -52,6 +51,9 @@ else:
     UInt32T = object
     UInt64T = object
     AggregationT = object
+
+LATEST_API_VERSION = "2023.09-beta"
+SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.08-beta"))
 
 
 Column = PandasColumn
