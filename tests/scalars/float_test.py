@@ -48,10 +48,11 @@ def test_float_binary_invalid(library: str) -> None:
 
 
 def test_float_binary_lazy_valid(library: str) -> None:
-    df = integer_dataframe_2(library)
+    df = integer_dataframe_2(library).collect()
     lhs = df.col("a").mean()
     rhs = df.col("b").mean()
-    _ = lhs > rhs  # should not raise
+    result = lhs > rhs
+    assert not bool(result)
 
 
 @pytest.mark.parametrize(
