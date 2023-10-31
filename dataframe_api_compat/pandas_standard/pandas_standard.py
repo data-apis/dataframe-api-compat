@@ -86,7 +86,7 @@ class Scalar:
     def _from_scalar(self, scalar: Scalar) -> Scalar:
         return Scalar(scalar, df=self.df, api_version=self._api_version)
 
-    def _force_materialise(self) -> Any:
+    def force_materialise(self) -> Any:
         # Just for testing/debugging (for compatibility with PolarsScalar)
         return self.value
 

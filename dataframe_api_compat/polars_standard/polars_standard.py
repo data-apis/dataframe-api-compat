@@ -89,7 +89,7 @@ class Scalar:
             return other.value
         return other
 
-    def _force_materialise(self) -> Any:
+    def force_materialise(self) -> Any:
         # only for testing / debugging
         return self.df.materialise(self.value).item()
 
