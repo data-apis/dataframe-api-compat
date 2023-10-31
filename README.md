@@ -69,8 +69,7 @@ my_dataframe_agnostic_function(df_pl)
 
 Compliance with the Standard
 ----------------------------
-This implementation adds some extra syntax and constructs which are not yet part of the Standard.
-Follow along with the discussion at https://github.com/data-apis/dataframe-api/pull/249.
+The classes here also have an extra `.collect` method, which is not (yet) part of the Standard.
 
 Installation
 ------------

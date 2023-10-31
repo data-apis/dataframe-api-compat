@@ -28,7 +28,7 @@ class PolarsColumn(Column):
         self,
         expr: pl.Expr,
         *,
-        df: PolarsDataFrame,
+        df: PolarsDataFrame | None,
         api_version: str,
     ) -> None:
         self.expr = expr
@@ -59,6 +59,13 @@ class PolarsColumn(Column):
                 raise ValueError(msg)
             return other.expr
         return other
+
+    def materialise(self, method: str) -> pl.Series:
+        if self.df is not None:
+            df = self.df.validate_is_collected(method).select(self.expr)
+        else:
+            df = pl.select(self.expr)
+        return df.get_column(df.columns[0])
 
     def _to_scalar(self, value: pl.Expr) -> Scalar:
         from dataframe_api_compat.polars_standard.scalar_object import Scalar
@@ -98,13 +105,13 @@ class PolarsColumn(Column):
     def filter(self, mask: PolarsColumn) -> PolarsColumn:
         return self._from_expr(self.expr.filter(mask.expr))
 
-    def get_value(self, row: int) -> Any:
-        df = self.df.validate_is_collected("Column.get_value")
-        return df.select(self.expr)[self.name][row]
+    def get_value(self, row_number: int) -> Any:
+        ser = self.materialise("Column.get_value")
+        return ser[row_number]
 
     def to_array(self) -> Any:
-        df = self.df.validate_is_collected("Column.to_array")
-        return df.select(self.expr)[self.name].to_numpy()
+        ser = self.materialise("Column.to_array")
+        return ser.to_numpy()
 
     def __iter__(self) -> NoReturn:
         raise NotImplementedError

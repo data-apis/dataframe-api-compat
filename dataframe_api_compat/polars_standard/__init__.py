@@ -225,9 +225,8 @@ def dataframe_from_columns(*columns: PolarsColumn) -> PolarsDataFrame:
     data = {}
     api_version: set[str] = set()
     for col in columns:
-        col.df.validate_is_collected("dataframe_from_columns")
-        df = cast(pl.DataFrame, col.df.dataframe)
-        data[col.name] = df.select(col.expr).get_column(col.name)
+        ser = col.materialise("dataframe_from_columns")
+        data[ser.name] = ser
         api_version.add(col.api_version)
     if len(api_version) > 1:  # pragma: no cover
         msg = f"found multiple api versions: {api_version}"
@@ -240,19 +239,9 @@ def column_from_1d_array(
     *,
     dtype: Any,
     name: str,
-    api_version: str | None = None,
 ) -> PolarsColumn:  # pragma: no cover
     ser = pl.Series(values=data, dtype=_map_standard_to_polars_dtypes(dtype), name=name)
-    # TODO propagate api version
-    df = cast(
-        PolarsDataFrame,
-        (
-            ser.to_frame()
-            .__dataframe_consortium_standard__(api_version=api_version)
-            .collect()
-        ),
-    )
-    return df.col(name)
+    return PolarsColumn(pl.lit(ser), api_version="2023.09-beta", df=None)
 
 
 def column_from_sequence(
