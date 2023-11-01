@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 from tests.utils import integer_dataframe_1
@@ -72,3 +73,15 @@ def test_float_unary(library: str, attr: str) -> None:
     scalar = df.col("a").mean()
     float_scalar = float(scalar)
     assert getattr(scalar, attr)() == getattr(float_scalar, attr)()
+
+
+def test_free_standing(library: str) -> None:
+    df = integer_dataframe_1(library)
+    namespace = df.__dataframe_namespace__()
+    ser = namespace.column_from_1d_array(
+        np.array([1, 2, 3]),
+        dtype=namespace.Int64(),
+        name="a",
+    )
+    result = float(ser.mean() + 1)
+    assert result == 3.0
