@@ -70,12 +70,7 @@ class PolarsDataFrame(DataFrame):
         return self.dataframe  # type: ignore[return-value]
 
     def col(self, value: str) -> PolarsColumn:
-        return PolarsColumn(
-            pl.col(value),
-            df=self,
-            api_version=self.api_version,
-            dtype=self.schema[value],
-        )
+        return PolarsColumn(pl.col(value), df=self, api_version=self.api_version)
 
     @property
     def schema(self) -> dict[str, DType]:
