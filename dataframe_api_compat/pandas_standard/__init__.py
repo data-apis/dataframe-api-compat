@@ -316,8 +316,7 @@ class PandasNamespace(Namespace):
             api_version=api_versions.pop(),
         )
 
-    # typing needs fixing upstream
-    def dataframe_from_2d_array(  # type: ignore[override]
+    def dataframe_from_2d_array(
         self,
         data: Any,
         *,
