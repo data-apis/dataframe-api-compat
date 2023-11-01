@@ -17,7 +17,7 @@ else:
 
 
 class Scalar:
-    def __init__(self, value: Any, api_version: str, df: PolarsDataFrame) -> None:
+    def __init__(self, value: Any, api_version: str, df: PolarsDataFrame | None) -> None:
         self.value = value
         self._api_version = api_version
         self.df = df

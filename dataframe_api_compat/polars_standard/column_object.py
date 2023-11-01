@@ -29,15 +29,31 @@ class PolarsColumn(Column):
         expr: pl.Expr,
         *,
         df: PolarsDataFrame | None,
+        dtype: DType,
         api_version: str,
     ) -> None:
         self.expr = expr
         self.df = df
         self.api_version = api_version
         self._name = expr.meta.output_name()
+        self._dtype = dtype
 
     def _from_expr(self, expr: pl.Expr) -> Self:
-        return self.__class__(expr, df=self.df, api_version=self.api_version)
+        name = expr.meta.output_name()
+        if self.df is not None:
+            dtype = self.df.dataframe.select(expr).schema[name]
+        else:
+            dtype = pl.select(expr).schema[name]
+        import dataframe_api_compat
+
+        return self.__class__(
+            expr,
+            df=self.df,
+            api_version=self.api_version,
+            dtype=dataframe_api_compat.polars_standard.map_polars_dtype_to_standard_dtype(
+                dtype,
+            ),
+        )
 
     # In the standard
     def __column_namespace__(self) -> Any:  # pragma: no cover
@@ -78,13 +94,17 @@ class PolarsColumn(Column):
 
     @property
     def column(self) -> pl.Expr | pl.Series:
-        if isinstance(self.df.dataframe, pl.DataFrame):
+        if self.df is not None and isinstance(self.df.dataframe, pl.DataFrame):
             return self.df.materialise(self.expr)
+        elif self.df is None:
+            # self-standing column
+            df = pl.select(self.expr)
+            return df.get_column(df.columns[0])
         return self.expr  # pragma: no cover (probably unneeded?)
 
     @property
     def dtype(self) -> DType:
-        return self.df.schema[self.name]
+        return self._dtype
 
     def get_rows(self, indices: PolarsColumn) -> PolarsColumn:
         return self._from_expr(self.expr.take(indices.expr))
@@ -314,8 +334,8 @@ class PolarsColumn(Column):
         return self._from_expr(self.expr.alias(name))
 
     def __len__(self) -> int:
-        df = self.df.validate_is_collected("Column.__len__")
-        return len(df.select(self.expr)[self.name])
+        ser = self.materialise("Column.__len__")
+        return len(ser)
 
     def year(self) -> PolarsColumn:
         return self._from_expr(self.expr.dt.year())
