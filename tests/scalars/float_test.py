@@ -34,7 +34,7 @@ def test_float_binary(library: str, attr: str) -> None:
     df = integer_dataframe_2(library).collect()
     scalar = df.col("a").mean()
     float_scalar = float(scalar)
-    assert getattr(scalar, attr)(other).force_materialise() == getattr(
+    assert getattr(scalar, attr)(other).materialise() == getattr(
         float_scalar,
         attr,
     )(other)

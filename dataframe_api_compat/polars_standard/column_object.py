@@ -78,13 +78,25 @@ class PolarsColumn(Column):
 
     @property
     def column(self) -> pl.Expr | pl.Series:
-        if isinstance(self.df.dataframe, pl.DataFrame):
+        if self.df is None:
+            # self-standing column
+            df = pl.select(self.expr)
+            return df.get_column(df.columns[0])
+        elif isinstance(self.df.dataframe, pl.DataFrame):
             return self.df.materialise(self.expr)
         return self.expr  # pragma: no cover (probably unneeded?)
 
     @property
     def dtype(self) -> DType:
-        return self.df.schema[self.name]
+        from dataframe_api_compat.polars_standard import (
+            map_polars_dtype_to_standard_dtype,
+        )
+
+        if self.df is not None:
+            dtype = self.df.dataframe.select(self.expr).schema[self.name]
+        else:
+            dtype = pl.select(self.expr).schema[self.name]
+        return map_polars_dtype_to_standard_dtype(dtype)
 
     def get_rows(self, indices: PolarsColumn) -> PolarsColumn:
         return self._from_expr(self.expr.take(indices.expr))
@@ -314,8 +326,8 @@ class PolarsColumn(Column):
         return self._from_expr(self.expr.alias(name))
 
     def __len__(self) -> int:
-        df = self.df.validate_is_collected("Column.__len__")
-        return len(df.select(self.expr)[self.name])
+        ser = self.materialise("Column.__len__")
+        return len(ser)
 
     def year(self) -> PolarsColumn:
         return self._from_expr(self.expr.dt.year())
