@@ -36,6 +36,10 @@ class PolarsColumn(Column):
         self.api_version = api_version
         self._name = expr.meta.output_name()
 
+    def __repr__(self) -> str:  # pragma: no cover
+        column = self.materialise("Column.__repr__")
+        return column.__repr__()
+
     def _from_expr(self, expr: pl.Expr) -> Self:
         return self.__class__(expr, df=self.df, api_version=self.api_version)
 
