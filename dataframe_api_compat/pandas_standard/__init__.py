@@ -255,8 +255,8 @@ class PandasNamespace(Namespace):
         data = {}
         api_versions: set[str] = set()
         for col in columns:
-            col.df.validate_is_collected("dataframe_from_columns")
-            data[col.name] = col.column
+            ser = col.materialise("dataframe_from_columns")
+            data[ser.name] = ser
             api_versions.add(col.api_version)
         return PandasDataFrame(pd.DataFrame(data), api_version=list(api_versions)[0])
 
@@ -268,8 +268,7 @@ class PandasNamespace(Namespace):
         name: str | None = None,
     ) -> PandasColumn:
         ser = pd.Series(data, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
-        df = ser.to_frame().__dataframe_consortium_standard__().collect()
-        return PandasColumn(df.col(name).column, api_version=self.api_version, df=df)
+        return PandasColumn(ser, api_version=self.api_version, df=None)
 
     def column_from_sequence(
         self,
@@ -317,8 +316,7 @@ class PandasNamespace(Namespace):
             api_version=api_versions.pop(),
         )
 
-    # typing needs fixing upstream
-    def dataframe_from_2d_array(  # type: ignore[override]
+    def dataframe_from_2d_array(
         self,
         data: Any,
         *,

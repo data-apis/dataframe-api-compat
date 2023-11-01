@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 from typing import Any
 from typing import Literal
 from typing import NoReturn
-from typing import cast
 
 import polars as pl
 
@@ -57,8 +56,10 @@ class PolarsDataFrame(DataFrame):
         return isinstance(self.dataframe, pl.DataFrame)
 
     def materialise(self, expr: pl.Expr) -> pl.Series:
-        df = cast(pl.DataFrame, self.dataframe)
-        df = df.select(expr)
+        if not isinstance(self.dataframe, pl.DataFrame):
+            msg = "Cannot materialise on a lazy dataframe, call `collect` first"
+            raise ValueError(msg)  # todo better err message
+        df = self.dataframe.select(expr)
         return df.get_column(df.columns[0])
 
     def validate_is_collected(self, method: str) -> pl.DataFrame:

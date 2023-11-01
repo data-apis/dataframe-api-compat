@@ -17,7 +17,7 @@ else:
 
 
 class Scalar:
-    def __init__(self, value: Any, api_version: str, df: PandasDataFrame) -> None:
+    def __init__(self, value: Any, api_version: str, df: PandasDataFrame | None) -> None:
         self.value = value
         self._api_version = api_version
         self.df = df
@@ -37,8 +37,11 @@ class Scalar:
     def _from_scalar(self, scalar: Scalar) -> Scalar:
         return Scalar(scalar, df=self.df, api_version=self._api_version)
 
-    def force_materialise(self) -> Any:
-        # Just for testing/debugging (for compatibility with PolarsScalar)
+    def materialise(self) -> Any:
+        if self.df is None:
+            # free-standing column
+            return self.value
+        self.df.validate_is_collected("scalar operation")  # todo err msg
         return self.value
 
     def __lt__(self, other: Any) -> Scalar:
@@ -161,29 +164,29 @@ class Scalar:
             return NotImplemented
         return self._from_scalar(self.value.__rtruediv__(other))
 
-    def __neg__(self) -> Scalar:
-        self.df.validate_is_collected("Scalar.__neg__")
-        return self.value.__neg__()  # type: ignore[no-any-return]
+    def __neg__(self) -> Any:
+        item = self.materialise()
+        return item.__neg__()
 
-    def __pos__(self) -> Scalar:
-        self.df.validate_is_collected("Scalar.__pos__")
-        return self.value.__pos__()  # type: ignore[no-any-return]
+    def __pos__(self) -> Any:
+        item = self.materialise()
+        return item.__pos__()
 
     def __abs__(self) -> bool:
-        self.df.validate_is_collected("Scalar.__abs__")
-        return self.value.__abs__()  # type: ignore[no-any-return]
+        item = self.materialise()
+        return item.__abs__()  # type: ignore[no-any-return]
 
     def __bool__(self) -> bool:
-        self.df.validate_is_collected("Scalar.__bool__")
-        return self.value.__bool__()  # type: ignore[no-any-return]
+        item = self.materialise()
+        return item.__bool__()  # type: ignore[no-any-return]
 
     def __int__(self) -> int:
-        self.df.validate_is_collected("Scalar.__int__")
-        return self.value.__int__()  # type: ignore[no-any-return]
+        item = self.materialise()
+        return item.__int__()  # type: ignore[no-any-return]
 
     def __float__(self) -> float:
-        self.df.validate_is_collected("Scalar.__float__")
-        return self.value.__float__()  # type: ignore[no-any-return]
+        item = self.materialise()
+        return item.__float__()  # type: ignore[no-any-return]
 
     def __repr__(self) -> str:  # pragma: no cover
         return self.value.__repr__()  # type: ignore[no-any-return]

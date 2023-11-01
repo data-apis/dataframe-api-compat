@@ -44,7 +44,7 @@ class PandasColumn(Column):
         self,
         series: pd.Series[Any],
         *,
-        df: PandasDataFrame,
+        df: PandasDataFrame | None,
         api_version: str,  # TODO: propagate
     ) -> None:
         """Parameters
@@ -91,6 +91,11 @@ class PandasColumn(Column):
             return other.column
         return other
 
+    def materialise(self, method: str) -> pd.Series:
+        if self.df is not None:
+            self.df.validate_is_collected(method)
+        return self.column
+
     # In the standard
     def __column_namespace__(
         self,
@@ -121,8 +126,8 @@ class PandasColumn(Column):
         return self._from_series(ser.loc[mask.column])
 
     def get_value(self, row_number: int) -> Any:
-        self.df.validate_is_collected("Column.get_value")
-        return self.column.iloc[row_number]
+        ser = self.materialise("Column.get_value")
+        return ser.iloc[row_number]
 
     def slice_rows(
         self,
@@ -387,14 +392,14 @@ class PandasColumn(Column):
         return self._from_series(ser.rename(name))
 
     def to_array(self) -> Any:
-        self.df.validate_is_collected("Column.to_array")
-        return self.column.to_numpy(
+        ser = self.materialise("Column.to_array")
+        return ser.to_numpy(
             dtype=NUMPY_MAPPING.get(self.column.dtype.name, self.column.dtype.name),
         )
 
     def __len__(self) -> int:
-        self.df.validate_is_collected("Column.__len__")
-        return len(self.column)
+        ser = self.materialise("Column.__len__")
+        return len(ser)
 
     def year(self) -> PandasColumn:
         ser = self.column
