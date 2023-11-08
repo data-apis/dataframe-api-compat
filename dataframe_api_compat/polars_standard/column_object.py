@@ -94,7 +94,7 @@ class PolarsColumn(Column):
             # self-standing column
             df = pl.select(self.expr)
             return df.get_column(df.columns[0])
-        elif isinstance(self.df.dataframe, pl.DataFrame):
+        elif self.df.is_persisted:
             return self.df.materialise_expression(self.expr)
         return self.expr  # pragma: no cover (probably unneeded?)
 

@@ -113,13 +113,7 @@ class PolarsDataFrame(DataFrame):
     def group_by(self, *keys: str) -> PolarsGroupBy:
         from dataframe_api_compat.polars_standard.group_by_object import PolarsGroupBy
 
-        if isinstance(self.dataframe, pl.LazyFrame):
-            return PolarsGroupBy(self.dataframe, list(keys), api_version=self.api_version)
-        return PolarsGroupBy(
-            self.dataframe.lazy(),
-            list(keys),
-            api_version=self.api_version,
-        )
+        return PolarsGroupBy(self.dataframe, list(keys), api_version=self.api_version)
 
     def select(self, *columns: str) -> PolarsDataFrame:
         return PolarsDataFrame(
