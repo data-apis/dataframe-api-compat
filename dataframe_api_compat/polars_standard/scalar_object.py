@@ -39,7 +39,7 @@ class Scalar:
     def materialise(self) -> Any:
         if self.df is None:
             return pl.select(self.value).item()
-        return self.df.materialise(self.value).item()
+        return self.df.materialise_expression(self.value).item()
 
     def _from_scalar(self, scalar: Scalar) -> Scalar:
         return Scalar(scalar, df=self.df, api_version=self._api_version)

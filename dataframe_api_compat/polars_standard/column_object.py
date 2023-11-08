@@ -73,7 +73,7 @@ class PolarsColumn(Column):
 
     def materialise(self, method: str) -> pl.Series:
         if self.df is not None:
-            ser = self.df.materialise(self.expr)
+            ser = self.df.materialise_expression(self.expr)
         else:
             df = pl.select(self.expr)
             ser = df.get_column(df.columns[0])
@@ -95,7 +95,7 @@ class PolarsColumn(Column):
             df = pl.select(self.expr)
             return df.get_column(df.columns[0])
         elif isinstance(self.df.dataframe, pl.DataFrame):
-            return self.df.materialise(self.expr)
+            return self.df.materialise_expression(self.expr)
         return self.expr  # pragma: no cover (probably unneeded?)
 
     @property
