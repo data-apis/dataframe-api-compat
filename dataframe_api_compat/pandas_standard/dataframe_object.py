@@ -44,7 +44,7 @@ class PandasDataFrame(DataFrame):
 
     def validate_is_persisted(self, method: str) -> pd.DataFrame:
         if not self.is_persisted:
-            msg = f"Method {method} requires you to call `.collect` first on the parent dataframe.\n\nNote: `.collect` forces materialisation in lazy libraries and so should be called as late as possible in your pipeline, and only once per dataframe."
+            msg = f"Method {method} requires you to call `.persist` first on the parent dataframe.\n\nNote: `.persist` forces materialisation in lazy libraries and so should be called as late as possible in your pipeline, and only once per dataframe."
             raise ValueError(
                 msg,
             )
