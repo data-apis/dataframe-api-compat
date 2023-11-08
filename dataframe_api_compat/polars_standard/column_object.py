@@ -380,5 +380,11 @@ class PolarsColumn(Column):
         )
         return self._from_expr(self.expr.dt.truncate(frequency))
 
-    def unix_timestamp(self) -> PolarsColumn:
-        return self._from_expr(self.expr.dt.timestamp("ms") // 1000)
+    def unix_timestamp(
+        self,
+        *,
+        time_unit: Literal["s", "ms", "us"] = "s",
+    ) -> PolarsColumn:
+        if time_unit != "s":
+            return self._from_expr(self.expr.dt.timestamp(time_unit=time_unit))
+        return self._from_expr(self.expr.dt.timestamp(time_unit="ms") // 1000)
