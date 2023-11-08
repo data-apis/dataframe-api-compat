@@ -497,6 +497,6 @@ class PandasColumn(Column):
                     name=ser.name,
                 ),
             )
-        else:
+        else:  # pragma: no cover
             msg = "Got invalid time_unit"
             raise AssertionError(msg)
