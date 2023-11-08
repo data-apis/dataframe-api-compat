@@ -170,10 +170,7 @@ def convert_to_standard_compliant_column(
         raise ValueError(msg)
     if ser.name is None:
         ser = ser.rename("")
-    df = cast(PandasDataFrame, ser.to_frame().__dataframe_consortium_standard__())
-    df = df.persist()
-    name = cast(str, ser.name)
-    return PandasColumn(df.col(name).column, api_version=api_version, df=df)
+    return PandasColumn(ser, api_version=api_version, df=None)
 
 
 def convert_to_standard_compliant_dataframe(
