@@ -207,7 +207,7 @@ def _map_standard_to_polars_dtypes(dtype: Any) -> pl.DataType:
 
 
 def concat(dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
-    dfs: list[pl.DataFrame | pl.LazyFrame] = []
+    dfs: list[pl.LazyFrame] = []
     api_versions: set[str] = set()
     for df in dataframes:
         dfs.append(df.dataframe)
@@ -216,7 +216,7 @@ def concat(dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
         msg = f"Multiple api versions found: {api_versions}"
         raise ValueError(msg)
     return PolarsDataFrame(
-        pl.concat(dfs),  # type: ignore[type-var]
+        pl.concat(dfs),
         api_version=api_versions.pop(),
     )
 

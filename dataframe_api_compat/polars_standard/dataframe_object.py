@@ -71,7 +71,7 @@ class PolarsDataFrame(DataFrame):
             raise ValueError(
                 msg,
             )
-        return self.dataframe.collect()  # type: ignore[return-value]
+        return self.dataframe.collect()
 
     def _validate_booleanness(self) -> None:
         if not all(v == pl.Boolean for v in self.dataframe.schema.values()):
@@ -497,7 +497,7 @@ class PolarsDataFrame(DataFrame):
             [pl.col(i).alias(f"{i}_tmp") for i in extra_right_keys],
         )
         result = self.dataframe.join(
-            other_df,  # type: ignore[arg-type]
+            other_df,
             left_on=left_on,
             right_on=right_on,
             how=how,
