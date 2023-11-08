@@ -517,6 +517,6 @@ class PolarsDataFrame(DataFrame):
         raise ValueError(msg)
 
     def to_array(self, dtype: DType) -> Any:
-        dtype = dtype  # lol
+        dtype = dtype  # todo
         df = self.validate_is_persisted("DataFrame.to_array")
         return df.to_numpy()
