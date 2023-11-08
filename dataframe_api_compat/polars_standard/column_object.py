@@ -34,7 +34,14 @@ class PolarsColumn(Column):
         self.expr = expr
         self.df = df
         self.api_version = api_version
-        self._name = expr.meta.output_name()
+        try:
+            self._name = expr.meta.output_name()
+        except pl.ComputeError:
+            if df is not None:
+                # Unexpected error. Just let it raise.
+                raise
+            # upstream bug: https://github.com/pola-rs/polars/issues/12326
+            self._name = ""
 
     def __repr__(self) -> str:  # pragma: no cover
         column = self.materialise("Column.__repr__")
@@ -66,10 +73,11 @@ class PolarsColumn(Column):
 
     def materialise(self, method: str) -> pl.Series:
         if self.df is not None:
-            df = self.df.validate_is_collected(method).select(self.expr)
+            ser = self.df.materialise_expression(self.expr)
         else:
             df = pl.select(self.expr)
-        return df.get_column(df.columns[0])
+            ser = df.get_column(df.columns[0])
+        return ser
 
     def _to_scalar(self, value: pl.Expr) -> Scalar:
         from dataframe_api_compat.polars_standard.scalar_object import Scalar
@@ -86,8 +94,8 @@ class PolarsColumn(Column):
             # self-standing column
             df = pl.select(self.expr)
             return df.get_column(df.columns[0])
-        elif isinstance(self.df.dataframe, pl.DataFrame):
-            return self.df.materialise(self.expr)
+        elif self.df.is_persisted:
+            return self.df.materialise_expression(self.expr)
         return self.expr  # pragma: no cover (probably unneeded?)
 
     @property
@@ -372,5 +380,11 @@ class PolarsColumn(Column):
         )
         return self._from_expr(self.expr.dt.truncate(frequency))
 
-    def unix_timestamp(self) -> PolarsColumn:
-        return self._from_expr(self.expr.dt.timestamp("ms") // 1000)
+    def unix_timestamp(
+        self,
+        *,
+        time_unit: Literal["s", "ms", "us"] = "s",
+    ) -> PolarsColumn:
+        if time_unit != "s":
+            return self._from_expr(self.expr.dt.timestamp(time_unit=time_unit))
+        return self._from_expr(self.expr.dt.timestamp(time_unit="ms") // 1000)

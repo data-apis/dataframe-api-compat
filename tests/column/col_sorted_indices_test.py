@@ -42,7 +42,7 @@ def test_expression_sorted_indices_descending(library: str) -> None:
 
 
 def test_column_sorted_indices_ascending(library: str) -> None:
-    df = integer_dataframe_6(library).collect()
+    df = integer_dataframe_6(library).persist()
     sorted_indices = df.col("b").sorted_indices()
     result = df.get_rows(sorted_indices)
     result_pd = interchange_to_pandas(result)
@@ -57,7 +57,7 @@ def test_column_sorted_indices_ascending(library: str) -> None:
 
 
 def test_column_sorted_indices_descending(library: str) -> None:
-    df = integer_dataframe_6(library).collect()
+    df = integer_dataframe_6(library).persist()
     sorted_indices = df.col("b").sorted_indices(ascending=False)
     result = df.get_rows(sorted_indices)
     result_pd = interchange_to_pandas(result)

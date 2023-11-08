@@ -207,7 +207,7 @@ def _map_standard_to_polars_dtypes(dtype: Any) -> pl.DataType:
 
 
 def concat(dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
-    dfs: list[pl.DataFrame | pl.LazyFrame] = []
+    dfs: list[pl.LazyFrame] = []
     api_versions: set[str] = set()
     for df in dataframes:
         dfs.append(df.dataframe)
@@ -216,7 +216,7 @@ def concat(dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
         msg = f"Multiple api versions found: {api_versions}"
         raise ValueError(msg)
     return PolarsDataFrame(
-        pl.concat(dfs),  # type: ignore[type-var]
+        pl.concat(dfs),
         api_version=api_versions.pop(),
     )
 
@@ -255,16 +255,8 @@ def column_from_sequence(
         dtype=_map_standard_to_polars_dtypes(dtype),
         name=name,
     )
-    # TODO propagate api version
-    df = cast(
-        PolarsDataFrame,
-        (
-            ser.to_frame()
-            .__dataframe_consortium_standard__(api_version="2023.09-beta")
-            .collect()
-        ),
-    )
-    return df.col(name)
+    # todo propagate api version
+    return PolarsColumn(pl.lit(ser), api_version="2023.09-beta", df=None)
 
 
 def dataframe_from_2d_array(
@@ -289,15 +281,7 @@ def convert_to_standard_compliant_column(
     ser: pl.Series,
     api_version: str | None = None,
 ) -> PolarsColumn:
-    df = cast(
-        PolarsDataFrame,
-        (
-            ser.to_frame()
-            .__dataframe_consortium_standard__(api_version=api_version)
-            .collect()
-        ),
-    )
-    return df.col(ser.name)
+    return PolarsColumn(pl.lit(ser), api_version=api_version or "2023.09-beta", df=None)
 
 
 def convert_to_standard_compliant_dataframe(

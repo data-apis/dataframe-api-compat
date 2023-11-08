@@ -93,7 +93,7 @@ class PandasColumn(Column):
 
     def materialise(self, method: str) -> pd.Series:
         if self.df is not None:
-            self.df.validate_is_collected(method)
+            self.df.validate_is_persisted(method)
         return self.column
 
     # In the standard
@@ -450,30 +450,53 @@ class PandasColumn(Column):
         ser = self.column
         return self._from_series(ser.dt.floor(frequency))
 
-    def unix_timestamp(self) -> PandasColumn:
+    def unix_timestamp(
+        self,
+        *,
+        time_unit: Literal["s", "ms", "us"] = "s",
+    ) -> PandasColumn:
         ser = self.column
         if ser.dt.tz is None:
-            return self._from_series(
-                pd.Series(
-                    np.floor(
-                        ((ser - datetime(1970, 1, 1)).dt.total_seconds()).astype(
-                            "float64",
-                        ),
-                    ),
-                    name=ser.name,
-                ),
-            )
+            result = ser - datetime(1970, 1, 1)
         else:  # pragma: no cover (todo: tz-awareness)
+            result = ser.dt.tz_convert("UTC").dt.tz_localize(None) - datetime(1970, 1, 1)
+        if time_unit == "s":
+            return self._from_series(
+                pd.Series(
+                    np.floor(result.dt.total_seconds().astype("float64")),
+                    name=ser.name,
+                ),
+            )
+        elif time_unit == "ms":
             return self._from_series(
                 pd.Series(
                     np.floor(
-                        (
-                            (
-                                ser.dt.tz_convert("UTC").dt.tz_localize(None)
-                                - datetime(1970, 1, 1)
-                            ).dt.total_seconds()
-                        ).astype("float64"),
+                        np.floor(result.dt.total_seconds()) * 1000
+                        + result.dt.microseconds // 1000,
                     ),
                     name=ser.name,
                 ),
             )
+        elif time_unit == "us":
+            return self._from_series(
+                pd.Series(
+                    np.floor(result.dt.total_seconds()) * 1_000_000
+                    + result.dt.microseconds,
+                    name=ser.name,
+                ),
+            )
+        elif time_unit == "ns":
+            return self._from_series(
+                pd.Series(
+                    (
+                        np.floor(result.dt.total_seconds()).astype("Int64") * 1_000_000
+                        + result.dt.microseconds.astype("Int64")
+                    )
+                    * 1000
+                    + result.dt.nanoseconds.astype("Int64"),
+                    name=ser.name,
+                ),
+            )
+        else:  # pragma: no cover
+            msg = "Got invalid time_unit"
+            raise AssertionError(msg)

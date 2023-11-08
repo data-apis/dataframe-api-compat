@@ -28,7 +28,7 @@ def test_is_in(
     df_factory: Callable[[str, pytest.FixtureRequest], Any],
     expected_values: list[bool],
 ) -> None:
-    df = df_factory(library).collect()
+    df = df_factory(library).persist()
     ser = df.col("a")
     other = ser + 1
     result = df.assign(ser.is_in(other).rename("result"))

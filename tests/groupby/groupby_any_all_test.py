@@ -20,7 +20,7 @@ from tests.utils import interchange_to_pandas
         ("all", [False, True], [False, False]),
     ],
 )
-@pytest.mark.parametrize("maybe_collect", [lambda x: x, lambda x: x.collect()])
+@pytest.mark.parametrize("maybe_collect", [lambda x: x, lambda x: x.persist()])
 def test_groupby_boolean(
     library: str,
     aggregation: str,
@@ -40,7 +40,7 @@ def test_groupby_boolean(
 
 
 def test_group_by_invalid_any_all(library: str) -> None:
-    df = integer_dataframe_4(library).collect()
+    df = integer_dataframe_4(library).persist()
     with pytest.raises((TypeError, SchemaError)):
         df.group_by("key").any()
     with pytest.raises((TypeError, SchemaError)):

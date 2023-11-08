@@ -37,13 +37,13 @@ class PandasDataFrame(DataFrame):
         api_version: str,
         is_collected: bool = False,
     ) -> None:
-        self._is_collected = is_collected
+        self.is_persisted = is_collected
         self._validate_columns(dataframe.columns)
         self._dataframe = dataframe.reset_index(drop=True)
         self.api_version = api_version
 
-    def validate_is_collected(self, method: str) -> pd.DataFrame:
-        if not self._is_collected:
+    def validate_is_persisted(self, method: str) -> pd.DataFrame:
+        if not self.is_persisted:
             msg = f"Method {method} requires you to call `.collect` first on the parent dataframe.\n\nNote: `.collect` forces materialisation in lazy libraries and so should be called as late as possible in your pipeline, and only once per dataframe."
             raise ValueError(
                 msg,
@@ -88,7 +88,7 @@ class PandasDataFrame(DataFrame):
         )
 
     def shape(self) -> tuple[int, int]:
-        df = self.validate_is_collected("Column.shape")
+        df = self.validate_is_persisted("Column.shape")
         return df.shape  # type: ignore[no-any-return]
 
     @property
@@ -514,8 +514,8 @@ class PandasDataFrame(DataFrame):
             api_version=self.api_version,
         )
 
-    def collect(self) -> PandasDataFrame:
-        if self._is_collected:
+    def persist(self) -> PandasDataFrame:
+        if self.is_persisted:
             msg = "Dataframe is already collected"
             raise ValueError(msg)
         return PandasDataFrame(
@@ -525,5 +525,5 @@ class PandasDataFrame(DataFrame):
         )
 
     def to_array(self, dtype: DType) -> Any:
-        self.validate_is_collected("Column.to_array")
+        self.validate_is_persisted("Column.to_array")
         return self.dataframe.to_numpy(dtype)

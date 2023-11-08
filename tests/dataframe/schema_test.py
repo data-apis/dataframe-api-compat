@@ -8,7 +8,7 @@ import pytest
 from tests.utils import mixed_dataframe_1
 
 
-@pytest.mark.parametrize("maybe_collect", [lambda x: x, lambda x: x.collect()])
+@pytest.mark.parametrize("maybe_collect", [lambda x: x, lambda x: x.persist()])
 def test_schema(library: str, maybe_collect: Callable[[Any], Any]) -> None:
     df = maybe_collect(mixed_dataframe_1(library))
     namespace = df.__dataframe_namespace__()
