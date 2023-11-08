@@ -17,7 +17,7 @@ def test_expression_invert(library: str) -> None:
 
 
 def test_column_invert(library: str) -> None:
-    df = bool_dataframe_1(library).collect()
+    df = bool_dataframe_1(library).persist()
     ser = df.col("a")
     result = df.assign((~ser).rename("result"))
     result_pd = interchange_to_pandas(result)["result"]

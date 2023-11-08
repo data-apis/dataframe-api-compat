@@ -24,7 +24,7 @@ def test_column_slice_rows(
     step: int | None,
     expected: pd.Series[Any],
 ) -> None:
-    ser = integer_dataframe_3(library).collect().col("a")
+    ser = integer_dataframe_3(library).persist().col("a")
     result = ser.slice_rows(start, stop, step)
     result_pd = pd.Series(result.to_array(), name="result")
     pd.testing.assert_series_equal(result_pd, expected)

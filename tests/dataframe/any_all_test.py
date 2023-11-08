@@ -19,7 +19,7 @@ from tests.utils import interchange_to_pandas
         ("all", {"a": [False], "b": [True]}),
     ],
 )
-@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.persist()])
 def test_reductions(
     library: str,
     reduction: str,
@@ -34,7 +34,7 @@ def test_reductions(
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.persist()])
 def test_any(library: str, relax: Callable[[Any], Any]) -> None:
     df = relax(bool_dataframe_3(library))
     result = df.any()
@@ -44,7 +44,7 @@ def test_any(library: str, relax: Callable[[Any], Any]) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.persist()])
 def test_all(library: str, relax: Callable[[Any], Any]) -> None:
     df = relax(bool_dataframe_3(library))
     result = df.all()

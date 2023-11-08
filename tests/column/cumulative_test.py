@@ -21,7 +21,7 @@ def test_cumulative_functions_column(
     func: str,
     expected_data: list[float],
 ) -> None:
-    df = integer_dataframe_1(library).collect()
+    df = integer_dataframe_1(library).persist()
     ser = df.col("a")
     expected = pd.Series(expected_data, name="result")
     result = df.assign(getattr(ser, func)().rename("result"))

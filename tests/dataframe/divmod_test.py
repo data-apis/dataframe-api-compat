@@ -11,7 +11,7 @@ from tests.utils import integer_dataframe_1
 from tests.utils import interchange_to_pandas
 
 
-@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.persist()])
 def test_divmod_with_scalar(library: str, relax: Callable[[Any], Any]) -> None:
     df = relax(integer_dataframe_1(library))
     other = 2

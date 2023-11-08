@@ -34,7 +34,14 @@ class PolarsColumn(Column):
         self.expr = expr
         self.df = df
         self.api_version = api_version
-        self._name = expr.meta.output_name()
+        try:
+            self._name = expr.meta.output_name()
+        except pl.ComputeError:
+            if df is not None:
+                # Unexpected error. Just let it raise.
+                raise
+            # upstream bug: https://github.com/pola-rs/polars/issues/12326
+            self._name = ""
 
     def __repr__(self) -> str:  # pragma: no cover
         column = self.materialise("Column.__repr__")
@@ -66,10 +73,11 @@ class PolarsColumn(Column):
 
     def materialise(self, method: str) -> pl.Series:
         if self.df is not None:
-            df = self.df.validate_is_collected(method).select(self.expr)
+            ser = self.df.materialise(self.expr)
         else:
             df = pl.select(self.expr)
-        return df.get_column(df.columns[0])
+            ser = df.get_column(df.columns[0])
+        return ser
 
     def _to_scalar(self, value: pl.Expr) -> Scalar:
         from dataframe_api_compat.polars_standard.scalar_object import Scalar

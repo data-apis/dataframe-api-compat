@@ -93,7 +93,7 @@ class PandasColumn(Column):
 
     def materialise(self, method: str) -> pd.Series:
         if self.df is not None:
-            self.df.validate_is_collected(method)
+            self.df.validate_is_persisted(method)
         return self.column
 
     # In the standard

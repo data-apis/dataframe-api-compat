@@ -10,7 +10,7 @@ from tests.utils import interchange_to_pandas
 from tests.utils import nan_dataframe_1
 
 
-@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.persist()])
 def test_fill_nan(library: str, relax: Callable[[Any], Any]) -> None:
     df = relax(nan_dataframe_1(library))
     result = df.fill_nan(-1)
@@ -20,7 +20,7 @@ def test_fill_nan(library: str, relax: Callable[[Any], Any]) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
-@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.persist()])
 def test_fill_nan_with_null(library: str, relax: Callable[[Any], Any]) -> None:
     df = relax(nan_dataframe_1(library))
     namespace = df.__dataframe_namespace__()

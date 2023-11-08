@@ -12,7 +12,7 @@ from tests.utils import interchange_to_pandas
 
 
 @pytest.mark.parametrize("keys", [["a", "b"], []])
-@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.persist()])
 def test_sort(library: str, keys: list[str], relax: Callable[[Any], Any]) -> None:
     df = relax(integer_dataframe_5(library, api_version="2023.09-beta"))
     result = df.sort(*keys)
@@ -23,7 +23,7 @@ def test_sort(library: str, keys: list[str], relax: Callable[[Any], Any]) -> Non
 
 
 @pytest.mark.parametrize("keys", [["a", "b"], []])
-@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.persist()])
 def test_sort_descending(
     library: str,
     keys: list[str],

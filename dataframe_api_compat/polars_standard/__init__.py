@@ -255,16 +255,8 @@ def column_from_sequence(
         dtype=_map_standard_to_polars_dtypes(dtype),
         name=name,
     )
-    # TODO propagate api version
-    df = cast(
-        PolarsDataFrame,
-        (
-            ser.to_frame()
-            .__dataframe_consortium_standard__(api_version="2023.09-beta")
-            .collect()
-        ),
-    )
-    return df.col(name)
+    # todo propagate api version
+    return PolarsColumn(pl.lit(ser), api_version="2023.09-beta", df=None)
 
 
 def dataframe_from_2d_array(
@@ -289,15 +281,7 @@ def convert_to_standard_compliant_column(
     ser: pl.Series,
     api_version: str | None = None,
 ) -> PolarsColumn:
-    df = cast(
-        PolarsDataFrame,
-        (
-            ser.to_frame()
-            .__dataframe_consortium_standard__(api_version=api_version)
-            .collect()
-        ),
-    )
-    return df.col(ser.name)
+    return PolarsColumn(pl.lit(ser), api_version=api_version or "2023.09-beta", df=None)
 
 
 def convert_to_standard_compliant_dataframe(

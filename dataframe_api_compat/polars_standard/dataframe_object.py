@@ -47,28 +47,38 @@ def _is_integer_dtype(dtype: Any) -> bool:
 
 
 class PolarsDataFrame(DataFrame):
-    def __init__(self, df: pl.LazyFrame | pl.DataFrame, api_version: str) -> None:
+    def __init__(
+        self,
+        df: pl.LazyFrame,
+        api_version: str,
+        *,
+        is_persisted: bool = False,
+    ) -> None:
         self.df = df
         self.api_version = api_version
-
-    @property
-    def _is_collected(self) -> bool:
-        return isinstance(self.dataframe, pl.DataFrame)
+        self.is_persisted = is_persisted
 
     def materialise(self, expr: pl.Expr) -> pl.Series:
-        if not isinstance(self.dataframe, pl.DataFrame):
+        if not self.is_persisted:
             msg = "Cannot materialise on a lazy dataframe, call `collect` first"
             raise ValueError(msg)  # todo better err message
-        df = self.dataframe.select(expr)
+        df = self.dataframe.collect().select(expr)
         return df.get_column(df.columns[0])
 
-    def validate_is_collected(self, method: str) -> pl.DataFrame:
-        if not self._is_collected:
-            msg = f"Method {method} requires you to call `.collect` first on the parent dataframe.\n\nNote: `.collect` forces materialisation in lazy libraries and so should be called as late as possible in your pipeline, and only once per dataframe."
+    def validate_is_persisted(self, method: str) -> pl.DataFrame:
+        if not self.is_persisted:
+            msg = f"Method {method} requires you to call `.persist` first on the parent dataframe.\n\nNote: `.persist` forces materialisation in lazy libraries and so should be called as late as possible in your pipeline, and only once per dataframe."
             raise ValueError(
                 msg,
             )
-        return self.dataframe  # type: ignore[return-value]
+        return self.dataframe.collect()  # type: ignore[return-value]
+
+    def _validate_booleanness(self) -> None:
+        if not all(v == pl.Boolean for v in self.dataframe.schema.values()):
+            msg = "'any' can only be called on DataFrame where all dtypes are 'bool'"
+            raise TypeError(
+                msg,
+            )
 
     def col(self, value: str) -> PolarsColumn:
         return PolarsColumn(pl.col(value), df=self, api_version=self.api_version)
@@ -83,7 +93,7 @@ class PolarsDataFrame(DataFrame):
         }
 
     def shape(self) -> tuple[int, int]:
-        df = self.validate_is_collected("shape")
+        df = self.validate_is_persisted("shape")
         return df.shape
 
     def __repr__(self) -> str:  # pragma: no cover
@@ -97,7 +107,7 @@ class PolarsDataFrame(DataFrame):
         return self.dataframe.columns
 
     @property
-    def dataframe(self) -> pl.LazyFrame | pl.DataFrame:
+    def dataframe(self) -> pl.LazyFrame:
         return self.df
 
     def group_by(self, *keys: str) -> PolarsGroupBy:
@@ -313,6 +323,7 @@ class PolarsDataFrame(DataFrame):
         ), PolarsDataFrame(remainder_df, api_version=self.api_version)
 
     def __invert__(self) -> PolarsDataFrame:
+        self._validate_booleanness()
         return PolarsDataFrame(
             self.dataframe.select(~pl.col("*")),
             api_version=self.api_version,
@@ -501,13 +512,17 @@ class PolarsDataFrame(DataFrame):
 
         return PolarsDataFrame(result, api_version=self.api_version)
 
-    def collect(self) -> PolarsDataFrame:
-        if isinstance(self.dataframe, pl.LazyFrame):
-            return PolarsDataFrame(self.dataframe.collect(), api_version=self.api_version)
-        msg = "DataFrame was already collected"
+    def persist(self) -> PolarsDataFrame:
+        if not self.is_persisted:
+            return PolarsDataFrame(
+                self.dataframe.collect().lazy(),
+                api_version=self.api_version,
+                is_persisted=True,
+            )
+        msg = "DataFrame was already persisted"  # is this really necessary?
         raise ValueError(msg)
 
     def to_array(self, dtype: DType) -> Any:
         dtype = dtype  # lol
-        df = self.validate_is_collected("DataFrame.to_array")
+        df = self.validate_is_persisted("DataFrame.to_array")
         return df.to_numpy()

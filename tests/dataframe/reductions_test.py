@@ -24,7 +24,7 @@ from tests.utils import interchange_to_pandas
         ("var", pd.DataFrame({"a": [1.0], "b": [1.0]})),
     ],
 )
-@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.collect()])
+@pytest.mark.parametrize("relax", [lambda x: x, lambda x: x.persist()])
 def test_dataframe_reductions(
     library: str,
     reduction: str,

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pandas as pd
-import polars as pl
 import pytest
 
 from tests.utils import bool_dataframe_1
@@ -20,6 +19,6 @@ def test_invert(library: str) -> None:
 
 
 def test_invert_invalid(library: str) -> None:
-    df = integer_dataframe_1(library).collect()
-    with pytest.raises((TypeError, pl.SchemaError)):
+    df = integer_dataframe_1(library)
+    with pytest.raises(TypeError):
         _ = ~df

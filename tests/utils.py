@@ -480,7 +480,7 @@ def interchange_to_pandas(result: Any) -> pd.DataFrame:
 
 
 def maybe_collect(result: Any) -> Any:
-    return result.collect().dataframe if hasattr(result, "collect") else result.dataframe
+    return result.persist().dataframe if hasattr(result, "collect") else result.dataframe
 
 
 def mixed_dataframe_1(library: str) -> DataFrame:

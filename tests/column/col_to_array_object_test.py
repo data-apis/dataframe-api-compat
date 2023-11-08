@@ -23,14 +23,14 @@ from tests.utils import integer_dataframe_1
     ],
 )
 def test_column_to_array_object(library: str, dtype: str) -> None:  # noqa: ARG001
-    ser = integer_dataframe_1(library).collect().col("a")
+    ser = integer_dataframe_1(library).persist().col("a")
     result = np.asarray(ser.to_array())
     expected = np.array([1, 2, 3], dtype=np.int64)
     np.testing.assert_array_equal(result, expected)
 
 
 def test_column_to_array_object_bool(library: str) -> None:
-    df = bool_dataframe_1(library).collect().col("a")
+    df = bool_dataframe_1(library).persist().col("a")
     result = np.asarray(df.to_array())
     expected = np.array([True, True, False], dtype="bool")
     np.testing.assert_array_equal(result, expected)

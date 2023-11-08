@@ -171,7 +171,7 @@ def convert_to_standard_compliant_column(
     if ser.name is None:
         ser = ser.rename("")
     df = cast(PandasDataFrame, ser.to_frame().__dataframe_consortium_standard__())
-    df = df.collect()
+    df = df.persist()
     name = cast(str, ser.name)
     return PandasColumn(df.col(name).column, api_version=api_version, df=df)
 
@@ -282,8 +282,7 @@ class PandasNamespace(Namespace):
             dtype=map_standard_dtype_to_pandas_dtype(dtype),
             name=name,
         )
-        df = ser.to_frame().__dataframe_consortium_standard__().collect()
-        return PandasColumn(df.col(name).column, api_version=LATEST_API_VERSION, df=df)
+        return PandasColumn(ser, api_version=LATEST_API_VERSION, df=None)
 
     def concat(
         self,

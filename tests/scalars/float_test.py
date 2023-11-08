@@ -32,7 +32,7 @@ from tests.utils import integer_dataframe_2
 )
 def test_float_binary(library: str, attr: str) -> None:
     other = 0.5
-    df = integer_dataframe_2(library).collect()
+    df = integer_dataframe_2(library).persist()
     scalar = df.col("a").mean()
     float_scalar = float(scalar)
     assert getattr(scalar, attr)(other).materialise() == getattr(
@@ -42,14 +42,14 @@ def test_float_binary(library: str, attr: str) -> None:
 
 
 def test_float_binary_invalid(library: str) -> None:
-    lhs = integer_dataframe_2(library).collect().col("a").mean()
-    rhs = integer_dataframe_1(library).collect().col("b").mean()
+    lhs = integer_dataframe_2(library).persist().col("a").mean()
+    rhs = integer_dataframe_1(library).persist().col("b").mean()
     with pytest.raises(ValueError):
         _ = lhs > rhs
 
 
 def test_float_binary_lazy_valid(library: str) -> None:
-    df = integer_dataframe_2(library).collect()
+    df = integer_dataframe_2(library).persist()
     lhs = df.col("a").mean()
     rhs = df.col("b").mean()
     result = lhs > rhs
@@ -69,7 +69,7 @@ def test_float_binary_lazy_valid(library: str) -> None:
     ],
 )
 def test_float_unary(library: str, attr: str) -> None:
-    df = integer_dataframe_2(library).collect()
+    df = integer_dataframe_2(library).persist()
     scalar = df.col("a").mean()
     float_scalar = float(scalar)
     assert getattr(scalar, attr)() == getattr(float_scalar, attr)()

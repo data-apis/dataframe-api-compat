@@ -69,7 +69,7 @@ my_dataframe_agnostic_function(df_pl)
 
 Compliance with the Standard
 ----------------------------
-The classes here also have an extra `.collect` method, which is not (yet) part of the Standard.
+The classes here also have an extra `.persist` method, which is not (yet) part of the Standard.
 
 Installation
 ------------

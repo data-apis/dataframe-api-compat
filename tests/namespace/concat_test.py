@@ -23,9 +23,9 @@ def test_concat(library: str) -> None:
 
 
 def test_concat_mismatch(library: str) -> None:
-    df1 = integer_dataframe_1(library).collect()
-    df2 = integer_dataframe_4(library).collect()
+    df1 = integer_dataframe_1(library).persist()
+    df2 = integer_dataframe_4(library).persist()
     namespace = df1.__dataframe_namespace__()
     # TODO check the error
     with pytest.raises((ValueError, pl.exceptions.ShapeError)):
-        _ = namespace.concat([df1, df2]).dataframe
+        _ = namespace.concat([df1, df2]).persist()
