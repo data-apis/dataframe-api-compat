@@ -14,14 +14,14 @@ class TestPolars:
         df_pl = pl.LazyFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
         df = df_pl.__dataframe_consortium_standard__()
         result = df.get_column_names()
-        expected = ["a", "b"]
-        assert result == expected
+        expected_1 = ["a", "b"]
+        assert result == expected_1
 
         ser = pl.Series([1, 2, 3])
         col = ser.__column_consortium_standard__()
         result = col.get_value(1)
-        expected = 2
-        assert result == expected
+        expected_2 = 2
+        assert result == expected_2
 
 
 class TestPandas:
