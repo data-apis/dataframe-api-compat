@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from dataframe_api.dtypes import UInt32 as UInt32T
     from dataframe_api.dtypes import UInt64 as UInt64T
 else:
+    Namespace = object
     BoolT = object
     DateT = object
     DatetimeT = object
@@ -40,6 +41,8 @@ else:
     UInt64T = object
     UInt8T = object
 
+from dataframe_api.typing import Namespace
+
 from dataframe_api_compat.polars_standard.column_object import PolarsColumn
 from dataframe_api_compat.polars_standard.dataframe_object import PolarsDataFrame
 from dataframe_api_compat.polars_standard.group_by_object import PolarsGroupBy
@@ -54,227 +57,236 @@ DataFrame = PolarsDataFrame
 GroupBy = PolarsGroupBy
 
 
-class Int64(Int64T):
-    ...
+class PolarsNamespace(Namespace):
+    def __init__(self, *, api_version: str) -> None:
+        self.__dataframe_api_version__ = api_version
+        self.api_version = api_version
 
+    class Int64(Int64T):
+        ...
 
-class Int32(Int32T):
-    ...
+    class Int32(Int32T):
+        ...
 
+    class Int16(Int16T):
+        ...
 
-class Null:
-    ...
+    class Int8(Int8T):
+        ...
 
+    class UInt64(UInt64T):
+        ...
 
-null = Null()
+    class UInt32(UInt32T):
+        ...
 
+    class UInt16(UInt16T):
+        ...
 
-NullType = type[Null]
+    class UInt8(UInt8T):
+        ...
 
+    class Float64(Float64T):
+        ...
 
-class Int16(Int16T):
-    ...
+    class Float32(Float32T):
+        ...
 
+    class Bool(BoolT):
+        ...
 
-class Int8(Int8T):
-    ...
+    class String(StringT):
+        ...
 
+    class Date(DateT):
+        ...
 
-class UInt64(UInt64T):
-    ...
+    class Datetime(DatetimeT):
+        def __init__(
+            self,
+            time_unit: Literal["ms", "us"],
+            time_zone: str | None = None,
+        ) -> None:
+            self.time_unit = time_unit
+            self.time_zone = time_zone
 
+    class Duration(DurationT):
+        def __init__(self, time_unit: Literal["ms", "us"]) -> None:
+            self.time_unit = time_unit
 
-class UInt32(UInt32T):
-    ...
+    class Null:
+        ...
 
+    null = Null()
 
-class UInt16(UInt16T):
-    ...
+    NullType = type[Null]
 
+    def is_null(self, value: Any) -> bool:
+        return value is self.null
 
-class UInt8(UInt8T):
-    ...
+    def dataframe_from_columns(self, *columns: PolarsColumn) -> PolarsDataFrame:
+        data = {}
+        api_version: set[str] = set()
+        for col in columns:
+            ser = col.materialise("dataframe_from_columns")
+            data[ser.name] = ser
+            api_version.add(col.api_version)
+        if len(api_version) > 1:  # pragma: no cover
+            msg = f"found multiple api versions: {api_version}"
+            raise ValueError(msg)
+        return PolarsDataFrame(
+            pl.DataFrame(data).lazy(),
+            api_version=list(api_version)[0],
+        )
 
-
-class Float64(Float64T):
-    ...
-
-
-class Float32(Float32T):
-    ...
-
-
-class Bool(BoolT):
-    ...
-
-
-class String(StringT):
-    ...
-
-
-class Date(DateT):
-    ...
-
-
-class Datetime(DatetimeT):
-    def __init__(
+    def column_from_1d_array(
         self,
-        time_unit: Literal["ms", "us"],
-        time_zone: str | None = None,
-    ) -> None:
-        self.time_unit = time_unit
-        self.time_zone = time_zone
+        data: Any,
+        *,
+        dtype: Any,
+        name: str,
+    ) -> PolarsColumn:  # pragma: no cover
+        ser = pl.Series(
+            values=data,
+            dtype=_map_standard_to_polars_dtypes(dtype),
+            name=name,
+        )
+        return PolarsColumn(pl.lit(ser), api_version="2023.09-beta", df=None)
 
+    def column_from_sequence(
+        self,
+        sequence: Sequence[Any],
+        *,
+        dtype: Any,
+        name: str,
+    ) -> PolarsColumn:
+        ser = pl.Series(
+            values=sequence,
+            dtype=_map_standard_to_polars_dtypes(dtype),
+            name=name,
+        )
+        # todo propagate api version
+        return PolarsColumn(pl.lit(ser), api_version="2023.09-beta", df=None)
 
-class Duration(DurationT):
-    def __init__(self, time_unit: Literal["ms", "us"]) -> None:
-        self.time_unit = time_unit
+    def dataframe_from_2d_array(
+        self,
+        data: Any,
+        *,
+        schema: dict[str, Any],
+    ) -> PolarsDataFrame:  # pragma: no cover
+        df = pl.DataFrame(
+            data,
+            schema={
+                key: _map_standard_to_polars_dtypes(value)
+                for key, value in schema.items()
+            },
+        ).lazy()
+        return PolarsDataFrame(df, api_version="2023.09-beta")
+
+    def date(self, year: int, month: int, day: int) -> Any:
+        return pl.date(year, month, day)
+
+    def concat(self, dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
+        dfs: list[pl.LazyFrame] = []
+        api_versions: set[str] = set()
+        for df in dataframes:
+            dfs.append(df.dataframe)
+            api_versions.add(df.api_version)
+        if len(api_versions) > 1:  # pragma: no cover
+            msg = f"Multiple api versions found: {api_versions}"
+            raise ValueError(msg)
+        return PolarsDataFrame(
+            pl.concat(dfs),
+            api_version=api_versions.pop(),
+        )
+
+    def is_dtype(self, dtype: Any, kind: str | tuple[str, ...]) -> bool:
+        if isinstance(kind, str):
+            kind = (kind,)
+        dtypes: set[Any] = set()
+        for _kind in kind:
+            if _kind == "bool":
+                dtypes.add(self.Bool)
+            if _kind == "signed integer" or _kind == "integral" or _kind == "numeric":
+                dtypes |= {self.Int64, self.Int32, self.Int16, self.Int8}
+            if _kind == "unsigned integer" or _kind == "integral" or _kind == "numeric":
+                dtypes |= {self.UInt64, self.UInt32, self.UInt16, self.UInt8}
+            if _kind == "floating" or _kind == "numeric":
+                dtypes |= {self.Float64, self.Float32}
+            if _kind == "string":
+                dtypes.add(self.String)
+        return isinstance(dtype, tuple(dtypes))
 
 
 def map_polars_dtype_to_standard_dtype(dtype: Any) -> DType:
     if dtype == pl.Int64:
-        return Int64()
+        return PolarsNamespace.Int64()
     if dtype == pl.Int32:
-        return Int32()
+        return PolarsNamespace.Int32()
     if dtype == pl.Int16:
-        return Int16()
+        return PolarsNamespace.Int16()
     if dtype == pl.Int8:
-        return Int8()
+        return PolarsNamespace.Int8()
     if dtype == pl.UInt64:
-        return UInt64()
+        return PolarsNamespace.UInt64()
     if dtype == pl.UInt32:
-        return UInt32()
+        return PolarsNamespace.UInt32()
     if dtype == pl.UInt16:
-        return UInt16()
+        return PolarsNamespace.UInt16()
     if dtype == pl.UInt8:
-        return UInt8()
+        return PolarsNamespace.UInt8()
     if dtype == pl.Float64:
-        return Float64()
+        return PolarsNamespace.Float64()
     if dtype == pl.Float32:
-        return Float32()
+        return PolarsNamespace.Float32()
     if dtype == pl.Boolean:
-        return Bool()
+        return PolarsNamespace.Bool()
     if dtype == pl.Utf8:
-        return String()
+        return PolarsNamespace.String()
     if dtype == pl.Date:
-        return Date()
+        return PolarsNamespace.Date()
     if isinstance(dtype, pl.Datetime):
         time_unit = cast(Literal["ms", "us"], dtype.time_unit)
-        return Datetime(time_unit, dtype.time_zone)
+        return PolarsNamespace.Datetime(time_unit, dtype.time_zone)
     if isinstance(dtype, pl.Duration):
         time_unit = cast(Literal["ms", "us"], dtype.time_unit)
-        return Duration(time_unit)
+        return PolarsNamespace.Duration(time_unit)
     msg = f"Got invalid dtype: {dtype}"  # pragma: no cover
     raise AssertionError(msg)
 
 
-def is_null(value: Any) -> bool:
-    return value is null
-
-
 def _map_standard_to_polars_dtypes(dtype: Any) -> pl.DataType:
-    if isinstance(dtype, Int64):
+    if isinstance(dtype, PolarsNamespace.Int64):
         return pl.Int64()
-    if isinstance(dtype, Int32):
+    if isinstance(dtype, PolarsNamespace.Int32):
         return pl.Int32()
-    if isinstance(dtype, Int16):
+    if isinstance(dtype, PolarsNamespace.Int16):
         return pl.Int16()
-    if isinstance(dtype, Int8):
+    if isinstance(dtype, PolarsNamespace.Int8):
         return pl.Int8()
-    if isinstance(dtype, UInt64):
+    if isinstance(dtype, PolarsNamespace.UInt64):
         return pl.UInt64()
-    if isinstance(dtype, UInt32):
+    if isinstance(dtype, PolarsNamespace.UInt32):
         return pl.UInt32()
-    if isinstance(dtype, UInt16):
+    if isinstance(dtype, PolarsNamespace.UInt16):
         return pl.UInt16()
-    if isinstance(dtype, UInt8):
+    if isinstance(dtype, PolarsNamespace.UInt8):
         return pl.UInt8()
-    if isinstance(dtype, Float64):
+    if isinstance(dtype, PolarsNamespace.Float64):
         return pl.Float64()
-    if isinstance(dtype, Float32):
+    if isinstance(dtype, PolarsNamespace.Float32):
         return pl.Float32()
-    if isinstance(dtype, Bool):
+    if isinstance(dtype, PolarsNamespace.Bool):
         return pl.Boolean()
-    if isinstance(dtype, String):
+    if isinstance(dtype, PolarsNamespace.String):
         return pl.Utf8()
-    if isinstance(dtype, Datetime):
+    if isinstance(dtype, PolarsNamespace.Datetime):
         return pl.Datetime(dtype.time_unit, dtype.time_zone)
-    if isinstance(dtype, Duration):  # pragma: no cover
+    if isinstance(dtype, PolarsNamespace.Duration):  # pragma: no cover
         # pending fix in polars itself
         return pl.Duration(dtype.time_unit)
     msg = f"Unknown dtype: {dtype}"  # pragma: no cover
     raise AssertionError(msg)
-
-
-def concat(dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
-    dfs: list[pl.LazyFrame] = []
-    api_versions: set[str] = set()
-    for df in dataframes:
-        dfs.append(df.dataframe)
-        api_versions.add(df.api_version)
-    if len(api_versions) > 1:  # pragma: no cover
-        msg = f"Multiple api versions found: {api_versions}"
-        raise ValueError(msg)
-    return PolarsDataFrame(
-        pl.concat(dfs),
-        api_version=api_versions.pop(),
-    )
-
-
-def dataframe_from_columns(*columns: PolarsColumn) -> PolarsDataFrame:
-    data = {}
-    api_version: set[str] = set()
-    for col in columns:
-        ser = col.materialise("dataframe_from_columns")
-        data[ser.name] = ser
-        api_version.add(col.api_version)
-    if len(api_version) > 1:  # pragma: no cover
-        msg = f"found multiple api versions: {api_version}"
-        raise ValueError(msg)
-    return PolarsDataFrame(pl.DataFrame(data).lazy(), api_version=list(api_version)[0])
-
-
-def column_from_1d_array(
-    data: Any,
-    *,
-    dtype: Any,
-    name: str,
-) -> PolarsColumn:  # pragma: no cover
-    ser = pl.Series(values=data, dtype=_map_standard_to_polars_dtypes(dtype), name=name)
-    return PolarsColumn(pl.lit(ser), api_version="2023.09-beta", df=None)
-
-
-def column_from_sequence(
-    sequence: Sequence[Any],
-    *,
-    dtype: Any,
-    name: str,
-) -> PolarsColumn:
-    ser = pl.Series(
-        values=sequence,
-        dtype=_map_standard_to_polars_dtypes(dtype),
-        name=name,
-    )
-    # todo propagate api version
-    return PolarsColumn(pl.lit(ser), api_version="2023.09-beta", df=None)
-
-
-def dataframe_from_2d_array(
-    data: Any,
-    *,
-    schema: dict[str, Any],
-) -> PolarsDataFrame:  # pragma: no cover
-    df = pl.DataFrame(
-        data,
-        schema={
-            key: _map_standard_to_polars_dtypes(value) for key, value in schema.items()
-        },
-    ).lazy()
-    return PolarsDataFrame(df, api_version="2023.09-beta")
-
-
-def date(year: int, month: int, day: int) -> Any:
-    return pl.date(year, month, day)
 
 
 def convert_to_standard_compliant_column(
@@ -291,21 +303,3 @@ def convert_to_standard_compliant_dataframe(
     df_lazy = df.lazy() if isinstance(df, pl.DataFrame) else df
     # todo latest api version
     return PolarsDataFrame(df_lazy, api_version=api_version or "2023.09-beta")
-
-
-def is_dtype(dtype: Any, kind: str | tuple[str, ...]) -> bool:
-    if isinstance(kind, str):
-        kind = (kind,)
-    dtypes: set[Any] = set()
-    for _kind in kind:
-        if _kind == "bool":
-            dtypes.add(Bool)
-        if _kind == "signed integer" or _kind == "integral" or _kind == "numeric":
-            dtypes |= {Int64, Int32, Int16, Int8}
-        if _kind == "unsigned integer" or _kind == "integral" or _kind == "numeric":
-            dtypes |= {UInt64, UInt32, UInt16, UInt8}
-        if _kind == "floating" or _kind == "numeric":
-            dtypes |= {Float64, Float32}
-        if _kind == "string":
-            dtypes.add(String)
-    return isinstance(dtype, tuple(dtypes))

@@ -54,7 +54,9 @@ class PolarsColumn(Column):
     def __column_namespace__(self) -> Any:  # pragma: no cover
         import dataframe_api_compat
 
-        return dataframe_api_compat.polars_standard
+        return dataframe_api_compat.polars_standard.PolarsNamespace(
+            api_version=self.api_version,
+        )
 
     def _validate_comparand(self, other: Self | Any) -> Self | Any:
         from dataframe_api_compat.polars_standard.scalar_object import Scalar

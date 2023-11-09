@@ -100,7 +100,9 @@ class PolarsDataFrame(DataFrame):
         return self.dataframe.__repr__()
 
     def __dataframe_namespace__(self) -> Any:
-        return dataframe_api_compat.polars_standard
+        return dataframe_api_compat.polars_standard.PolarsNamespace(
+            api_version=self.api_version,
+        )
 
     @property
     def column_names(self) -> list[str]:
@@ -453,7 +455,7 @@ class PolarsDataFrame(DataFrame):
         self,
         value: float | NullType,
     ) -> PolarsDataFrame:
-        if isinstance(value, dataframe_api_compat.polars_standard.Null):
+        if isinstance(value, dataframe_api_compat.polars_standard.PolarsNamespace.Null):
             value = None
         return PolarsDataFrame(self.dataframe.fill_nan(value), api_version=self.api_version)  # type: ignore[arg-type]
 
