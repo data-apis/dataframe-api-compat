@@ -35,6 +35,6 @@ jobs:
       - name: run mypy
         run: mypy dataframe_api_compat tests
       - name: run polars integration tests
-        run: pip uninstall pandas && pytest tests/integration/upstream_test.py::TestPolars && pip install -U pandas
+        run: pip uninstall pandas -y && pytest tests/integration/upstream_test.py::TestPolars && pip install -U pandas
       - name: run pandas integration tests
-        run: pip uninstall polars && pytest tests/integration/upstream_test.py::TestPandas
+        run: pip uninstall polars -y && pytest tests/integration/upstream_test.py::TestPandas
