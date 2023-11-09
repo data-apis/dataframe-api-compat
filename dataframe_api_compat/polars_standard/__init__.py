@@ -43,7 +43,6 @@ else:
     UInt64T = object
     UInt8T = object
 
-from dataframe_api.typing import Namespace
 
 from dataframe_api_compat.polars_standard.column_object import PolarsColumn
 from dataframe_api_compat.polars_standard.dataframe_object import PolarsDataFrame
@@ -52,6 +51,9 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from dataframe_api.typing import DType
+    from dataframe_api.typing import Namespace
+else:
+    Namespace = object
 
 
 SUPPORTED_VERSIONS = frozenset({"2023.11-beta"})
