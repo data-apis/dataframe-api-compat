@@ -18,7 +18,7 @@ from tests.utils import temporal_dataframe_1
 def test_floor(library: str, freq: str, expected: list[datetime]) -> None:
     df = temporal_dataframe_1(library)
     col = df.col
-    result = df.assign(col("a").floor(freq).rename("result")).select("result").persist()
+    result = df.assign(col("a").floor(freq).rename("result")).select("result").persist()  # type: ignore[attr-defined]
     # TODO check the resolution
     result = interchange_to_pandas(result)["result"].astype("datetime64[ns]")
     expected = pd.Series(expected, name="result")

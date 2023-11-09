@@ -24,4 +24,4 @@ def test_rename_columns_invalid(library: str) -> None:
         match="Expected Mapping, got: <class 'function'>",
     ):  # pragma: no cover
         # why is this not covered? bug in coverage?
-        df.rename_columns(lambda x: x.upper())
+        df.rename_columns(lambda x: x.upper())  # type: ignore  # noqa: PGH003

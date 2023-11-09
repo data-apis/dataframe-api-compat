@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 )
 def test_is_in(
     library: str,
-    df_factory: Callable[[str, pytest.FixtureRequest], Any],
+    df_factory: Callable[[str], Any],
     expected_values: list[bool],
 ) -> None:
     df = df_factory(library).persist()
@@ -47,7 +47,7 @@ def test_is_in(
 )
 def test_expr_is_in(
     library: str,
-    df_factory: Callable[[str, pytest.FixtureRequest], Any],
+    df_factory: Callable[[str], Any],
     expected_values: list[bool],
 ) -> None:
     df = df_factory(library)

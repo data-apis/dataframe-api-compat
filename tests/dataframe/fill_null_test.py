@@ -35,11 +35,11 @@ def test_fill_null(library: str, column_names: list[str] | None) -> None:
 
 def test_fill_null_noop(library: str) -> None:
     df = nan_dataframe_1(library)
-    result = df.fill_null(0)
-    if hasattr(result.dataframe, "collect"):
-        result = result.dataframe.collect()
+    result_raw = df.fill_null(0)
+    if hasattr(result_raw.dataframe, "collect"):
+        result = result_raw.dataframe.collect()
     else:
-        result = result.dataframe
+        result = result_raw.dataframe
     if library != "pandas-numpy":
         # nan should not have changed!
         assert result["a"][2] != result["a"][2]

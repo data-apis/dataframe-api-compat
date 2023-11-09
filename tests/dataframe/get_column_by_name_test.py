@@ -11,8 +11,9 @@ def test_get_column(library: str) -> None:
     df = integer_dataframe_1(library)
     df.__dataframe_namespace__()
     col = df.col
-    result = col("a").rename("_tmp")
-    result = df.assign(result).drop_columns("a").rename_columns({"_tmp": "a"})
+    result = (
+        df.assign(col("a").rename("_tmp")).drop_columns("a").rename_columns({"_tmp": "a"})
+    )
     df.__dataframe_namespace__()
     result_pd = interchange_to_pandas(result)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
