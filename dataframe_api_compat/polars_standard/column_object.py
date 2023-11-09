@@ -31,11 +31,11 @@ class PolarsColumn(Column):
         self.api_version = api_version
         try:
             self._name = expr.meta.output_name()
-        except pl.ComputeError:
+        except pl.ComputeError:  # pragma: no cover
+            # can remove if/when requiring polars >= 0.19.13
             if df is not None:
                 # Unexpected error. Just let it raise.
                 raise
-            # upstream bug: https://github.com/pola-rs/polars/issues/12326
             self._name = ""
 
     def __repr__(self) -> str:  # pragma: no cover
