@@ -20,7 +20,6 @@ if TYPE_CHECKING:
     from dataframe_api import GroupBy
     from dataframe_api.typing import DType
 
-    from dataframe_api_compat.polars_standard import NullType
     from dataframe_api_compat.polars_standard.group_by_object import PolarsGroupBy
 
 else:
@@ -453,11 +452,14 @@ class PolarsDataFrame(DataFrame):
 
     def fill_nan(
         self,
-        value: float | NullType,
+        value: float | None,
     ) -> PolarsDataFrame:
         if isinstance(value, dataframe_api_compat.polars_standard.PolarsNamespace.Null):
             value = None
-        return PolarsDataFrame(self.dataframe.fill_nan(value), api_version=self.api_version)  # type: ignore[arg-type]
+        return PolarsDataFrame(
+            self.dataframe.fill_nan(value),
+            api_version=self.api_version,
+        )
 
     def fill_null(
         self,

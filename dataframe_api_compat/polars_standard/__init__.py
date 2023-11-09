@@ -126,7 +126,10 @@ class PolarsNamespace(Namespace):
     def is_null(self, value: Any) -> bool:
         return value is self.null
 
-    def dataframe_from_columns(self, *columns: PolarsColumn) -> PolarsDataFrame:
+    def dataframe_from_columns(
+        self,
+        *columns: PolarsColumn,  # type: ignore[override]
+    ) -> PolarsDataFrame:
         data = {}
         api_version: set[str] = set()
         for col in columns:
@@ -143,13 +146,13 @@ class PolarsNamespace(Namespace):
 
     def column_from_1d_array(
         self,
-        data: Any,
+        array: Any,
         *,
-        dtype: Any,
-        name: str,
+        dtype: DType,
+        name: str = "",
     ) -> PolarsColumn:  # pragma: no cover
         ser = pl.Series(
-            values=data,
+            values=array,
             dtype=_map_standard_to_polars_dtypes(dtype),
             name=name,
         )
@@ -159,8 +162,8 @@ class PolarsNamespace(Namespace):
         self,
         sequence: Sequence[Any],
         *,
-        dtype: Any,
-        name: str,
+        dtype: DType,
+        name: str = "",
     ) -> PolarsColumn:
         ser = pl.Series(
             values=sequence,
@@ -295,7 +298,10 @@ class PolarsNamespace(Namespace):
         ) -> AggregationT:
             return PolarsNamespace.Aggregation("placeholder", "size", "size")
 
-    def concat(self, dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
+    def concat(
+        self,
+        dataframes: Sequence[PolarsDataFrame],  # type: ignore[override]
+    ) -> PolarsDataFrame:
         dfs: list[pl.LazyFrame] = []
         api_versions: set[str] = set()
         for df in dataframes:
