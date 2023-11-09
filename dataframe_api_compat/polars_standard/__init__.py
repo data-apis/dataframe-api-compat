@@ -47,16 +47,14 @@ from dataframe_api.typing import Namespace
 
 from dataframe_api_compat.polars_standard.column_object import PolarsColumn
 from dataframe_api_compat.polars_standard.dataframe_object import PolarsDataFrame
-from dataframe_api_compat.polars_standard.group_by_object import PolarsGroupBy
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from dataframe_api.typing import DType
 
-Column = PolarsColumn
-DataFrame = PolarsDataFrame
-GroupBy = PolarsGroupBy
+
+SUPPORTED_VERSIONS = frozenset({"2023.11-beta"})
 
 
 class PolarsNamespace(Namespace):
@@ -156,7 +154,7 @@ class PolarsNamespace(Namespace):
             dtype=_map_standard_to_polars_dtypes(dtype),
             name=name,
         )
-        return PolarsColumn(pl.lit(ser), api_version="2023.09-beta", df=None)
+        return PolarsColumn(pl.lit(ser), api_version=self.api_version, df=None)
 
     def column_from_sequence(
         self,
@@ -407,7 +405,7 @@ def convert_to_standard_compliant_column(
     ser: pl.Series,
     api_version: str | None = None,
 ) -> PolarsColumn:
-    return PolarsColumn(pl.lit(ser), api_version=api_version or "2023.09-beta", df=None)
+    return PolarsColumn(pl.lit(ser), api_version=api_version or "2023.11-beta", df=None)
 
 
 def convert_to_standard_compliant_dataframe(
@@ -416,4 +414,4 @@ def convert_to_standard_compliant_dataframe(
 ) -> PolarsDataFrame:
     df_lazy = df.lazy() if isinstance(df, pl.DataFrame) else df
     # todo latest api version
-    return PolarsDataFrame(df_lazy, api_version=api_version or "2023.09-beta")
+    return PolarsDataFrame(df_lazy, api_version=api_version or "2023.11-beta")
