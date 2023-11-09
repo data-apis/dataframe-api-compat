@@ -23,7 +23,9 @@ if TYPE_CHECKING:
     from dataframe_api.dtypes import UInt16 as UInt16T
     from dataframe_api.dtypes import UInt32 as UInt32T
     from dataframe_api.dtypes import UInt64 as UInt64T
+    from dataframe_api.groupby_object import Aggregation as AggregationT
 else:
+    AggregationT = object
     Namespace = object
     BoolT = object
     DateT = object
@@ -185,6 +187,113 @@ class PolarsNamespace(Namespace):
 
     def date(self, year: int, month: int, day: int) -> Any:
         return pl.date(year, month, day)
+
+    class Aggregation(AggregationT):  # pragma: no cover
+        def __init__(self, column_name: str, output_name: str, aggregation: str) -> None:
+            self.column_name = column_name
+            self.output_name = output_name
+            self.aggregation = aggregation
+
+        def rename(self, name: str) -> AggregationT:
+            return self.__class__(self.column_name, name, self.aggregation)
+
+        @classmethod
+        def any(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return PolarsNamespace.Aggregation(column, column, "any")
+
+        @classmethod
+        def all(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return PolarsNamespace.Aggregation(column, column, "all")
+
+        @classmethod
+        def min(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return PolarsNamespace.Aggregation(column, column, "min")
+
+        @classmethod
+        def max(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return PolarsNamespace.Aggregation(column, column, "max")
+
+        @classmethod
+        def sum(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return PolarsNamespace.Aggregation(column, column, "sum")
+
+        @classmethod
+        def prod(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return PolarsNamespace.Aggregation(column, column, "prod")
+
+        @classmethod
+        def median(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return PolarsNamespace.Aggregation(column, column, "median")
+
+        @classmethod
+        def mean(
+            cls: AggregationT,
+            column: str,
+            *,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return PolarsNamespace.Aggregation(column, column, "mean")
+
+        @classmethod
+        def std(
+            cls: AggregationT,
+            column: str,
+            *,
+            correction: int | float = 1,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return PolarsNamespace.Aggregation(column, column, "std")
+
+        @classmethod
+        def var(
+            cls: AggregationT,
+            column: str,
+            *,
+            correction: int | float = 1,
+            skip_nulls: bool = True,
+        ) -> AggregationT:
+            return PolarsNamespace.Aggregation(column, column, "var")
+
+        @classmethod
+        def size(
+            cls: AggregationT,
+        ) -> AggregationT:
+            return PolarsNamespace.Aggregation("placeholder", "size", "size")
 
     def concat(self, dataframes: Sequence[PolarsDataFrame]) -> PolarsDataFrame:
         dfs: list[pl.LazyFrame] = []

@@ -9,18 +9,13 @@ import polars as pl
 
 if TYPE_CHECKING:
     from dataframe_api import Column
-    from dataframe_api import DataFrame
-    from dataframe_api import GroupBy
     from dataframe_api.typing import DType
     from typing_extensions import Self
 
-    from dataframe_api_compat.polars_standard import NullType
     from dataframe_api_compat.polars_standard.dataframe_object import PolarsDataFrame
     from dataframe_api_compat.polars_standard.scalar_object import Scalar
 else:
     Column = object
-    DataFrame = object
-    GroupBy = object
 
 
 class PolarsColumn(Column):
@@ -318,8 +313,8 @@ class PolarsColumn(Column):
         expr = self.expr.sort(descending=not ascending)
         return self._from_expr(expr)
 
-    def fill_nan(self, value: float | NullType) -> PolarsColumn:
-        return self._from_expr(self.expr.fill_nan(value))  # type: ignore[arg-type]
+    def fill_nan(self, value: float | None) -> PolarsColumn:
+        return self._from_expr(self.expr.fill_nan(value))
 
     def fill_null(self, value: Any) -> PolarsColumn:
         return self._from_expr(self.expr.fill_null(value))
