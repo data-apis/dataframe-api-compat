@@ -170,8 +170,7 @@ class PolarsNamespace(Namespace):
             dtype=_map_standard_to_polars_dtypes(dtype),
             name=name,
         )
-        # todo propagate api version
-        return PolarsColumn(pl.lit(ser), api_version="2023.09-beta", df=None)
+        return PolarsColumn(pl.lit(ser), api_version=self.api_version, df=None)
 
     def dataframe_from_2d_array(
         self,
@@ -186,7 +185,7 @@ class PolarsNamespace(Namespace):
                 for key, value in schema.items()
             },
         ).lazy()
-        return PolarsDataFrame(df, api_version="2023.09-beta")
+        return PolarsDataFrame(df, api_version=self.api_version)
 
     def date(self, year: int, month: int, day: int) -> Any:
         return pl.date(year, month, day)
