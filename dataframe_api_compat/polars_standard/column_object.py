@@ -9,18 +9,13 @@ import polars as pl
 
 if TYPE_CHECKING:
     from dataframe_api import Column
-    from dataframe_api import DataFrame
-    from dataframe_api import GroupBy
     from dataframe_api.typing import DType
     from typing_extensions import Self
 
-    from dataframe_api_compat.polars_standard import NullType
     from dataframe_api_compat.polars_standard.dataframe_object import PolarsDataFrame
     from dataframe_api_compat.polars_standard.scalar_object import Scalar
 else:
     Column = object
-    DataFrame = object
-    GroupBy = object
 
 
 class PolarsColumn(Column):
@@ -36,11 +31,11 @@ class PolarsColumn(Column):
         self.api_version = api_version
         try:
             self._name = expr.meta.output_name()
-        except pl.ComputeError:
+        except pl.ComputeError:  # pragma: no cover
+            # can remove if/when requiring polars >= 0.19.13
             if df is not None:
                 # Unexpected error. Just let it raise.
                 raise
-            # upstream bug: https://github.com/pola-rs/polars/issues/12326
             self._name = ""
 
     def __repr__(self) -> str:  # pragma: no cover
@@ -54,7 +49,9 @@ class PolarsColumn(Column):
     def __column_namespace__(self) -> Any:  # pragma: no cover
         import dataframe_api_compat
 
-        return dataframe_api_compat.polars_standard
+        return dataframe_api_compat.polars_standard.PolarsNamespace(
+            api_version=self.api_version,
+        )
 
     def _validate_comparand(self, other: Self | Any) -> Self | Any:
         from dataframe_api_compat.polars_standard.scalar_object import Scalar
@@ -316,8 +313,8 @@ class PolarsColumn(Column):
         expr = self.expr.sort(descending=not ascending)
         return self._from_expr(expr)
 
-    def fill_nan(self, value: float | NullType) -> PolarsColumn:
-        return self._from_expr(self.expr.fill_nan(value))  # type: ignore[arg-type]
+    def fill_nan(self, value: float | None) -> PolarsColumn:
+        return self._from_expr(self.expr.fill_nan(value))
 
     def fill_null(self, value: Any) -> PolarsColumn:
         return self._from_expr(self.expr.fill_null(value))

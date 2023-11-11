@@ -59,13 +59,11 @@ def test_float_binary_lazy_valid(library: str) -> None:
 @pytest.mark.parametrize(
     "attr",
     [
-        "__pos__",
         "__abs__",
         "__int__",
         "__float__",
         "__bool__",
         "__neg__",
-        "__pos__",
     ],
 )
 def test_float_unary(library: str, attr: str) -> None:

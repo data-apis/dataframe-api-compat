@@ -10,7 +10,6 @@ import pandas as pd
 
 from dataframe_api_compat.pandas_standard.column_object import PandasColumn
 from dataframe_api_compat.pandas_standard.dataframe_object import PandasDataFrame
-from dataframe_api_compat.pandas_standard.group_by_object import PandasGroupBy
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -52,13 +51,7 @@ else:
     UInt64T = object
     AggregationT = object
 
-LATEST_API_VERSION = "2023.09-beta"
-SUPPORTED_VERSIONS = frozenset((LATEST_API_VERSION, "2023.08-beta"))
-
-
-Column = PandasColumn
-DataFrame = PandasDataFrame
-GroupBy = PandasGroupBy
+SUPPORTED_VERSIONS = frozenset({"2023.11-beta"})
 
 
 def map_pandas_dtype_to_standard_dtype(dtype: Any) -> DType:
@@ -163,23 +156,19 @@ def convert_to_standard_compliant_column(
     ser: pd.Series[Any],
     api_version: str | None = None,
 ) -> PandasColumn:
-    if api_version is None:  # pragma: no cover
-        api_version = LATEST_API_VERSION
     if ser.name is not None and not isinstance(ser.name, str):
         msg = f"Expected column with string name, got: {ser.name}"
         raise ValueError(msg)
     if ser.name is None:
         ser = ser.rename("")
-    return PandasColumn(ser, api_version=api_version, df=None)
+    return PandasColumn(ser, api_version=api_version or "2023.11-beta", df=None)
 
 
 def convert_to_standard_compliant_dataframe(
     df: pd.DataFrame,
     api_version: str | None = None,
 ) -> PandasDataFrame:
-    if api_version is None:
-        api_version = LATEST_API_VERSION
-    return PandasDataFrame(df, api_version=api_version)
+    return PandasDataFrame(df, api_version=api_version or "2023.11-beta")
 
 
 class PandasNamespace(Namespace):
@@ -279,7 +268,7 @@ class PandasNamespace(Namespace):
             dtype=map_standard_dtype_to_pandas_dtype(dtype),
             name=name,
         )
-        return PandasColumn(ser, api_version=LATEST_API_VERSION, df=None)
+        return PandasColumn(ser, api_version=self.api_version, df=None)
 
     def concat(
         self,

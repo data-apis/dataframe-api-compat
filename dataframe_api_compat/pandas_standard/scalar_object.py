@@ -168,10 +168,6 @@ class Scalar:
         item = self.materialise()
         return item.__neg__()
 
-    def __pos__(self) -> Any:
-        item = self.materialise()
-        return item.__pos__()
-
     def __abs__(self) -> bool:
         item = self.materialise()
         return item.__abs__()  # type: ignore[no-any-return]

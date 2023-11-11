@@ -45,7 +45,7 @@ class PandasColumn(Column):
         series: pd.Series[Any],
         *,
         df: PandasDataFrame | None,
-        api_version: str,  # TODO: propagate
+        api_version: str,
     ) -> None:
         """Parameters
         ----------

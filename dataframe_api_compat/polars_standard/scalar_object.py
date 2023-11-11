@@ -165,16 +165,10 @@ class Scalar:
         return self._from_scalar(self.value.__rtruediv__(other))
 
     def __neg__(self) -> Scalar:
-        item = self.materialise()
-        return item.__neg__()  # type: ignore[no-any-return]
+        return self._from_scalar(self.value.__neg__())
 
-    def __pos__(self) -> Scalar:
-        item = self.materialise()
-        return item.__pos__()  # type: ignore[no-any-return]
-
-    def __abs__(self) -> bool:
-        item = self.materialise()
-        return item.__abs__()  # type: ignore[no-any-return]
+    def __abs__(self) -> Scalar:
+        return self._from_scalar(self.value.__abs__())
 
     def __bool__(self) -> bool:
         item = self.materialise()
