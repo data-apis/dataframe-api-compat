@@ -61,7 +61,7 @@ def test_col_microsecond(library: str, col_name: str, expected: list[int]) -> No
 )
 def test_col_nanosecond(library: str, col_name: str, expected: list[int]) -> None:
     df = temporal_dataframe_1(library).persist()
-    result = df.assign(df.col(col_name).nanosecond().rename("result")).select(
+    result = df.assign(df.col(col_name).nanosecond().rename("result")).select(  # type: ignore[attr-defined]
         "result",
     )
     result = interchange_to_pandas(result)["result"].astype("int64")
@@ -85,7 +85,7 @@ def test_col_unix_timestamp_time_units(
 ) -> None:
     df = temporal_dataframe_1(library)
     result = df.assign(
-        df.col("e").unix_timestamp(time_unit=time_unit).rename("result"),
+        df.col("e").unix_timestamp(time_unit=time_unit).rename("result"),  # type: ignore[arg-type]
     ).select(
         "result",
     )

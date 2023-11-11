@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 from typing import Any
-from typing import cast
 
 import pandas as pd
 import pytest
@@ -10,9 +8,6 @@ import pytest
 from tests.utils import integer_dataframe_1
 from tests.utils import integer_dataframe_7
 from tests.utils import interchange_to_pandas
-
-if TYPE_CHECKING:
-    from dataframe_api import DataFrame
 
 
 @pytest.mark.parametrize(
@@ -39,7 +34,7 @@ def test_column_comparisons(
     expected_data: list[object],
 ) -> None:
     ser: Any
-    df = cast("DataFrame", integer_dataframe_7(library).persist())
+    df = integer_dataframe_7(library).persist()
     ser = df.col("a")
     other = df.col("b")
     result = df.assign(getattr(ser, comparison)(other).rename("result"))
@@ -75,7 +70,7 @@ def test_column_comparisons_scalar(
     expected_data: list[object],
 ) -> None:
     ser: Any
-    df = cast("DataFrame", integer_dataframe_1(library).persist())
+    df = integer_dataframe_1(library).persist()
     ser = df.col("a")
     other = 3
     result = df.assign(getattr(ser, comparison)(other).rename("result"))
@@ -101,7 +96,7 @@ def test_right_column_comparisons(
 ) -> None:
     # 1,2,3
     ser: Any
-    df = cast("DataFrame", integer_dataframe_7(library).persist())
+    df = integer_dataframe_7(library).persist()
     ser = df.col("a")
     other = 2
     result = df.assign(getattr(ser, comparison)(other).rename("result"))

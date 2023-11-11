@@ -107,7 +107,7 @@ def test_datetime_from_1d_array(library: str) -> None:
         namespace.column_from_1d_array(
             arr,
             name="result",
-            dtype=namespace.Datetime("ms"),
+            dtype=namespace.Datetime("ms"),  # type: ignore[call-arg, arg-type]
         ),
     )
     result_pd = interchange_to_pandas(result)["result"]
@@ -130,7 +130,7 @@ def test_duration_from_1d_array(library: str) -> None:
         namespace.column_from_1d_array(
             arr,
             name="result",
-            dtype=namespace.Duration("ms"),
+            dtype=namespace.Duration("ms"),  # type: ignore[attr-defined]
         ),
     )
     result_pd = interchange_to_pandas(result)["result"]

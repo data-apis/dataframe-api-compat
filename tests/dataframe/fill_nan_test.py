@@ -18,11 +18,11 @@ def test_fill_nan(library: str) -> None:
 def test_fill_nan_with_null(library: str) -> None:
     df = nan_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
-    result = df.fill_nan(namespace.null)
+    result = df.fill_nan(namespace.null)  # type: ignore[attr-defined]
     n_nans = result.is_nan().sum()
     n_nans = interchange_to_pandas(n_nans)
     if library == "pandas-numpy":
         # null is nan for pandas-numpy
-        assert n_nans["a"][0] == 1
+        assert n_nans["a"][0] == 1  # type: ignore[index]
     else:
-        assert n_nans["a"][0] == 0
+        assert n_nans["a"][0] == 0  # type: ignore[index]

@@ -58,4 +58,4 @@ def test_join_invalid(library: str) -> None:
     left = integer_dataframe_1(library)
     right = integer_dataframe_2(library).rename_columns({"b": "c"})
     with pytest.raises(ValueError):
-        left.join(right, left_on=["a", "b"], right_on=["a", "c"], how="right")
+        left.join(right, left_on=["a", "b"], right_on=["a", "c"], how="right")  # type: ignore  # noqa: PGH003
