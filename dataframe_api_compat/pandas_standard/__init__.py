@@ -241,7 +241,7 @@ class PandasNamespace(Namespace):
         data = {}
         api_versions: set[str] = set()
         for col in columns:
-            ser = col.materialise("dataframe_from_columns")
+            ser = col.materialise()
             data[ser.name] = ser
             api_versions.add(col.api_version)
         return PandasDataFrame(pd.DataFrame(data), api_version=list(api_versions)[0])

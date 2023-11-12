@@ -41,7 +41,7 @@ class Scalar:
         if self.df is None:
             # free-standing column
             return self.value
-        self.df.validate_is_persisted("scalar operation")  # todo err msg
+        self.df.validate_is_persisted()
         return self.value
 
     def __lt__(self, other: Any) -> Scalar:
