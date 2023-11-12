@@ -42,9 +42,9 @@ class PandasDataFrame(DataFrame):
         self._dataframe = dataframe.reset_index(drop=True)
         self.api_version = api_version
 
-    def validate_is_persisted(self, method: str) -> pd.DataFrame:
+    def validate_is_persisted(self) -> pd.DataFrame:
         if not self.is_persisted:
-            msg = f"Method {method} requires you to call `.persist` first on the parent dataframe.\n\nNote: `.persist` forces materialisation in lazy libraries and so should be called as late as possible in your pipeline, and only once per dataframe."
+            msg = "Method requires you to call `.persist` first on the parent dataframe.\n\nNote: `.persist` forces materialisation in lazy libraries and so should be called as late as possible in your pipeline, and only once per dataframe."
             raise ValueError(
                 msg,
             )
@@ -88,7 +88,7 @@ class PandasDataFrame(DataFrame):
         )
 
     def shape(self) -> tuple[int, int]:
-        df = self.validate_is_persisted("Column.shape")
+        df = self.validate_is_persisted()
         return df.shape  # type: ignore[no-any-return]
 
     @property
@@ -525,5 +525,5 @@ class PandasDataFrame(DataFrame):
         )
 
     def to_array(self, dtype: DType) -> Any:
-        self.validate_is_persisted("Column.to_array")
+        self.validate_is_persisted()
         return self.dataframe.to_numpy(dtype)

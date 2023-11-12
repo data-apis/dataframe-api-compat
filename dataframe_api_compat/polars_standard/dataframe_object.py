@@ -64,9 +64,9 @@ class PolarsDataFrame(DataFrame):
         df = self.dataframe.collect().select(expr)
         return df.get_column(df.columns[0])
 
-    def validate_is_persisted(self, method: str) -> pl.DataFrame:
+    def validate_is_persisted(self) -> pl.DataFrame:
         if not self.is_persisted:
-            msg = f"Method {method} requires you to call `.persist` first on the parent dataframe.\n\nNote: `.persist` forces materialisation in lazy libraries and so should be called as late as possible in your pipeline, and only once per dataframe."
+            msg = "Method requires you to call `.persist` first on the parent dataframe.\n\nNote: `.persist` forces materialisation in lazy libraries and so should be called as late as possible in your pipeline, and only once per dataframe."
             raise ValueError(
                 msg,
             )
@@ -92,7 +92,7 @@ class PolarsDataFrame(DataFrame):
         }
 
     def shape(self) -> tuple[int, int]:
-        df = self.validate_is_persisted("shape")
+        df = self.validate_is_persisted()
         return df.shape
 
     def __repr__(self) -> str:  # pragma: no cover
@@ -522,5 +522,5 @@ class PolarsDataFrame(DataFrame):
 
     def to_array(self, dtype: DType) -> Any:
         dtype = dtype  # todo
-        df = self.validate_is_persisted("DataFrame.to_array")
+        df = self.validate_is_persisted()
         return df.to_numpy()

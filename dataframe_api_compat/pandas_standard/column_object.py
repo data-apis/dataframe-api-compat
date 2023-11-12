@@ -91,9 +91,9 @@ class PandasColumn(Column):
             return other.column
         return other
 
-    def materialise(self, method: str) -> pd.Series:
+    def materialise(self) -> pd.Series:
         if self.df is not None:
-            self.df.validate_is_persisted(method)
+            self.df.validate_is_persisted()
         return self.column
 
     # In the standard
@@ -126,7 +126,7 @@ class PandasColumn(Column):
         return self._from_series(ser.loc[mask.column])
 
     def get_value(self, row_number: int) -> Any:
-        ser = self.materialise("Column.get_value")
+        ser = self.materialise()
         return ser.iloc[row_number]
 
     def slice_rows(
@@ -392,19 +392,21 @@ class PandasColumn(Column):
         return self._from_series(ser.rename(name))
 
     def to_array(self) -> Any:
-        ser = self.materialise("Column.to_array")
+        ser = self.materialise()
         return ser.to_numpy(
             dtype=NUMPY_MAPPING.get(self.column.dtype.name, self.column.dtype.name),
         )
 
     def __len__(self) -> int:
-        ser = self.materialise("Column.__len__")
+        ser = self.materialise()
         return len(ser)
 
-    def shift(self, periods: int, *, fill_value: object = None) -> PandasColumn:
-        # fill_value can't be an actual standard Scalar, right? need to be materialised
+    def shift(self, periods: int, *, fill_value: Scalar | None = None) -> PandasColumn:
         ser = self.column
-        return self._from_series(ser.shift(periods, fill_value=fill_value))
+        if fill_value is not None:
+            fill_value = self._validate_comparand(fill_value)  # type: ignore[assignment]
+            return self._from_series(ser.shift(periods, fill_value=fill_value))
+        return self._from_series(ser.shift(periods))
 
     # --- temporal methods ---
 
