@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from dataframe_api.typing import DType
 
     from dataframe_api_compat.pandas_standard.column_object import Column
-    from dataframe_api_compat.pandas_standard.group_by_object import PandasGroupBy
+    from dataframe_api_compat.pandas_standard.group_by_object import GroupBy
 else:
     DataFrameT = object
 
@@ -98,8 +98,8 @@ class DataFrame(DataFrameT):
 
     def __dataframe_namespace__(
         self,
-    ) -> dataframe_api_compat.pandas_standard.PandasNamespace:
-        return dataframe_api_compat.pandas_standard.PandasNamespace(
+    ) -> dataframe_api_compat.pandas_standard.Namespace:
+        return dataframe_api_compat.pandas_standard.Namespace(
             api_version=self.api_version,
         )
 
@@ -122,14 +122,14 @@ class DataFrame(DataFrameT):
     def dataframe(self) -> pd.DataFrame:
         return self._dataframe
 
-    def group_by(self, *keys: str) -> PandasGroupBy:
-        from dataframe_api_compat.pandas_standard.group_by_object import PandasGroupBy
+    def group_by(self, *keys: str) -> GroupBy:
+        from dataframe_api_compat.pandas_standard.group_by_object import GroupBy
 
         for key in keys:
             if key not in self.column_names:
                 msg = f"key {key} not present in DataFrame's columns"
                 raise KeyError(msg)
-        return PandasGroupBy(self.dataframe, keys, api_version=self.api_version)
+        return GroupBy(self.dataframe, keys, api_version=self.api_version)
 
     def select(self, *columns: str) -> DataFrame:
         return DataFrame(
@@ -454,12 +454,12 @@ class DataFrame(DataFrameT):
         for col in df.columns:
             ser = df[col].copy()
             if is_extension_array_dtype(ser.dtype):
-                if value is dataframe_api_compat.pandas_standard.PandasNamespace.null:
+                if value is dataframe_api_compat.pandas_standard.Namespace.null:
                     ser[np.isnan(ser).fillna(False).to_numpy(bool)] = pd.NA
                 else:
                     ser[np.isnan(ser).fillna(False).to_numpy(bool)] = value
             else:
-                if value is dataframe_api_compat.pandas_standard.PandasNamespace.null:
+                if value is dataframe_api_compat.pandas_standard.Namespace.null:
                     ser[np.isnan(ser).fillna(False).to_numpy(bool)] = np.nan
                 else:
                     ser[np.isnan(ser).fillna(False).to_numpy(bool)] = value

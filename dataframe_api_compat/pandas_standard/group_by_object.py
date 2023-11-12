@@ -9,16 +9,14 @@ from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from dataframe_api import GroupBy
+    from dataframe_api import GroupBy as GroupByT
 
     import dataframe_api_compat
 else:
-    GroupBy = object
-    Namespace = object
-    Aggregation = object
+    GroupByT = object
 
 
-class PandasGroupBy(GroupBy):
+class GroupBy(GroupByT):
     def __init__(self, df: pd.DataFrame, keys: Sequence[str], api_version: str) -> None:
         self.df = df
         self.grouped = df.groupby(list(keys), sort=False, as_index=False)
@@ -111,14 +109,14 @@ class PandasGroupBy(GroupBy):
 
     def aggregate(  # type: ignore[override]
         self,
-        *aggregations: dataframe_api_compat.pandas_standard.PandasNamespace.Aggregation,
+        *aggregations: dataframe_api_compat.pandas_standard.Namespace.Aggregation,
     ) -> DataFrame:  # pragma: no cover
         output_names = [aggregation.output_name for aggregation in aggregations]
 
         include_size = False
         size_output_name = None
         column_aggregations: list[
-            dataframe_api_compat.pandas_standard.PandasNamespace.Aggregation
+            dataframe_api_compat.pandas_standard.Namespace.Aggregation
         ] = []
         for aggregation in aggregations:
             if aggregation.aggregation == "size":

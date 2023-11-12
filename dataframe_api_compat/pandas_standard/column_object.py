@@ -97,8 +97,8 @@ class Column(ColumnT):
     # In the standard
     def __column_namespace__(
         self,
-    ) -> dataframe_api_compat.pandas_standard.PandasNamespace:
-        return dataframe_api_compat.pandas_standard.PandasNamespace(
+    ) -> dataframe_api_compat.pandas_standard.Namespace:
+        return dataframe_api_compat.pandas_standard.Namespace(
             api_version=self.api_version,
         )
 

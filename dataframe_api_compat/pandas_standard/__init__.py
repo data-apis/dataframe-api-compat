@@ -31,9 +31,9 @@ if TYPE_CHECKING:
     from dataframe_api.dtypes import UInt64 as UInt64T
     from dataframe_api.groupby_object import Aggregation as AggregationT
     from dataframe_api.typing import DType
-    from dataframe_api.typing import Namespace
+    from dataframe_api.typing import Namespace as NamespaceT
 else:
-    Namespace = object
+    NamespaceT = object
     BoolT = object
     DateT = object
     DatetimeT = object
@@ -56,97 +56,97 @@ SUPPORTED_VERSIONS = frozenset({"2023.11-beta"})
 
 def map_pandas_dtype_to_standard_dtype(dtype: Any) -> DType:
     if dtype == "int64":
-        return PandasNamespace.Int64()
+        return Namespace.Int64()
     if dtype == "Int64":
-        return PandasNamespace.Int64()
+        return Namespace.Int64()
     if dtype == "int32":
-        return PandasNamespace.Int32()
+        return Namespace.Int32()
     if dtype == "Int32":
-        return PandasNamespace.Int32()
+        return Namespace.Int32()
     if dtype == "int16":
-        return PandasNamespace.Int16()
+        return Namespace.Int16()
     if dtype == "Int16":
-        return PandasNamespace.Int16()
+        return Namespace.Int16()
     if dtype == "int8":
-        return PandasNamespace.Int8()
+        return Namespace.Int8()
     if dtype == "Int8":
-        return PandasNamespace.Int8()
+        return Namespace.Int8()
     if dtype == "uint64":
-        return PandasNamespace.UInt64()
+        return Namespace.UInt64()
     if dtype == "UInt64":
-        return PandasNamespace.UInt64()
+        return Namespace.UInt64()
     if dtype == "uint32":
-        return PandasNamespace.UInt32()
+        return Namespace.UInt32()
     if dtype == "UInt32":
-        return PandasNamespace.UInt32()
+        return Namespace.UInt32()
     if dtype == "uint16":
-        return PandasNamespace.UInt16()
+        return Namespace.UInt16()
     if dtype == "UInt16":
-        return PandasNamespace.UInt16()
+        return Namespace.UInt16()
     if dtype == "uint8":
-        return PandasNamespace.UInt8()
+        return Namespace.UInt8()
     if dtype == "UInt8":
-        return PandasNamespace.UInt8()
+        return Namespace.UInt8()
     if dtype == "float64":
-        return PandasNamespace.Float64()
+        return Namespace.Float64()
     if dtype == "Float64":
-        return PandasNamespace.Float64()
+        return Namespace.Float64()
     if dtype == "float32":
-        return PandasNamespace.Float32()
+        return Namespace.Float32()
     if dtype == "Float32":
-        return PandasNamespace.Float32()
+        return Namespace.Float32()
     if dtype == "bool":
-        return PandasNamespace.Bool()
+        return Namespace.Bool()
     if dtype == "object":
-        return PandasNamespace.String()
+        return Namespace.String()
     if dtype == "string":
-        return PandasNamespace.String()
+        return Namespace.String()
     if dtype == "datetime64[s]":
-        return PandasNamespace.Date()
+        return Namespace.Date()
     if dtype.startswith("datetime64["):
         match = re.search(r"datetime64\[(\w{1,2})", dtype)
         assert match is not None
         time_unit = cast(Literal["ms", "us"], match.group(1))
-        return PandasNamespace.Datetime(time_unit)
+        return Namespace.Datetime(time_unit)
     if dtype.startswith("timedelta64["):
         match = re.search(r"timedelta64\[(\w{1,2})", dtype)
         assert match is not None
         time_unit = cast(Literal["ms", "us"], match.group(1))
-        return PandasNamespace.Duration(time_unit)
+        return Namespace.Duration(time_unit)
     msg = f"Unsupported dtype! {dtype}"  # pragma: no cover
     raise AssertionError(msg)
 
 
 def map_standard_dtype_to_pandas_dtype(dtype: DType) -> Any:
-    if isinstance(dtype, PandasNamespace.Int64):
+    if isinstance(dtype, Namespace.Int64):
         return "int64"
-    if isinstance(dtype, PandasNamespace.Int32):
+    if isinstance(dtype, Namespace.Int32):
         return "int32"
-    if isinstance(dtype, PandasNamespace.Int16):
+    if isinstance(dtype, Namespace.Int16):
         return "int16"
-    if isinstance(dtype, PandasNamespace.Int8):
+    if isinstance(dtype, Namespace.Int8):
         return "int8"
-    if isinstance(dtype, PandasNamespace.UInt64):
+    if isinstance(dtype, Namespace.UInt64):
         return "uint64"
-    if isinstance(dtype, PandasNamespace.UInt32):
+    if isinstance(dtype, Namespace.UInt32):
         return "uint32"
-    if isinstance(dtype, PandasNamespace.UInt16):
+    if isinstance(dtype, Namespace.UInt16):
         return "uint16"
-    if isinstance(dtype, PandasNamespace.UInt8):
+    if isinstance(dtype, Namespace.UInt8):
         return "uint8"
-    if isinstance(dtype, PandasNamespace.Float64):
+    if isinstance(dtype, Namespace.Float64):
         return "float64"
-    if isinstance(dtype, PandasNamespace.Float32):
+    if isinstance(dtype, Namespace.Float32):
         return "float32"
-    if isinstance(dtype, PandasNamespace.Bool):
+    if isinstance(dtype, Namespace.Bool):
         return "bool"
-    if isinstance(dtype, PandasNamespace.String):
+    if isinstance(dtype, Namespace.String):
         return "object"
-    if isinstance(dtype, PandasNamespace.Datetime):
+    if isinstance(dtype, Namespace.Datetime):
         if dtype.time_zone is not None:  # pragma: no cover (todo)
             return f"datetime64[{dtype.time_unit}, {dtype.time_zone}]"
         return f"datetime64[{dtype.time_unit}]"
-    if isinstance(dtype, PandasNamespace.Duration):
+    if isinstance(dtype, Namespace.Duration):
         return f"timedelta64[{dtype.time_unit}]"
     msg = f"Unknown dtype: {dtype}"  # pragma: no cover
     raise AssertionError(msg)
@@ -171,7 +171,7 @@ def convert_to_standard_compliant_dataframe(
     return DataFrame(df, api_version=api_version or "2023.11-beta")
 
 
-class PandasNamespace(Namespace):
+class Namespace(NamespaceT):
     def __init__(self, *, api_version: str) -> None:
         self.__dataframe_api_version__ = api_version
         self.api_version = api_version
@@ -324,25 +324,25 @@ class PandasNamespace(Namespace):
         dtypes: set[Any] = set()
         for _kind in kind:
             if _kind == "bool":
-                dtypes.add(PandasNamespace.Bool)
+                dtypes.add(Namespace.Bool)
             if _kind == "signed integer" or _kind == "integral" or _kind == "numeric":
                 dtypes |= {
-                    PandasNamespace.Int64,
-                    PandasNamespace.Int32,
-                    PandasNamespace.Int16,
-                    PandasNamespace.Int8,
+                    Namespace.Int64,
+                    Namespace.Int32,
+                    Namespace.Int16,
+                    Namespace.Int8,
                 }
             if _kind == "unsigned integer" or _kind == "integral" or _kind == "numeric":
                 dtypes |= {
-                    PandasNamespace.UInt64,
-                    PandasNamespace.UInt32,
-                    PandasNamespace.UInt16,
-                    PandasNamespace.UInt8,
+                    Namespace.UInt64,
+                    Namespace.UInt32,
+                    Namespace.UInt16,
+                    Namespace.UInt8,
                 }
             if _kind == "floating" or _kind == "numeric":
-                dtypes |= {PandasNamespace.Float64, PandasNamespace.Float32}
+                dtypes |= {Namespace.Float64, Namespace.Float32}
             if _kind == "string":
-                dtypes.add(PandasNamespace.String)
+                dtypes.add(Namespace.String)
         return isinstance(dtype, tuple(dtypes))
 
     def date(self, year: int, month: int, day: int) -> Any:
@@ -366,7 +366,7 @@ class PandasNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return PandasNamespace.Aggregation(column, column, "any")
+            return Namespace.Aggregation(column, column, "any")
 
         @classmethod
         def all(
@@ -375,7 +375,7 @@ class PandasNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return PandasNamespace.Aggregation(column, column, "all")
+            return Namespace.Aggregation(column, column, "all")
 
         @classmethod
         def min(
@@ -384,7 +384,7 @@ class PandasNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return PandasNamespace.Aggregation(column, column, "min")
+            return Namespace.Aggregation(column, column, "min")
 
         @classmethod
         def max(
@@ -393,7 +393,7 @@ class PandasNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return PandasNamespace.Aggregation(column, column, "max")
+            return Namespace.Aggregation(column, column, "max")
 
         @classmethod
         def sum(
@@ -402,7 +402,7 @@ class PandasNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return PandasNamespace.Aggregation(column, column, "sum")
+            return Namespace.Aggregation(column, column, "sum")
 
         @classmethod
         def prod(
@@ -411,7 +411,7 @@ class PandasNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return PandasNamespace.Aggregation(column, column, "prod")
+            return Namespace.Aggregation(column, column, "prod")
 
         @classmethod
         def median(
@@ -420,7 +420,7 @@ class PandasNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return PandasNamespace.Aggregation(column, column, "median")
+            return Namespace.Aggregation(column, column, "median")
 
         @classmethod
         def mean(
@@ -429,7 +429,7 @@ class PandasNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return PandasNamespace.Aggregation(column, column, "mean")
+            return Namespace.Aggregation(column, column, "mean")
 
         @classmethod
         def std(
@@ -439,7 +439,7 @@ class PandasNamespace(Namespace):
             correction: int | float = 1,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return PandasNamespace.Aggregation(column, column, "std")
+            return Namespace.Aggregation(column, column, "std")
 
         @classmethod
         def var(
@@ -449,10 +449,10 @@ class PandasNamespace(Namespace):
             correction: int | float = 1,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return PandasNamespace.Aggregation(column, column, "var")
+            return Namespace.Aggregation(column, column, "var")
 
         @classmethod
         def size(
             cls: AggregationT,
         ) -> AggregationT:
-            return PandasNamespace.Aggregation("placeholder", "size", "size")
+            return Namespace.Aggregation("placeholder", "size", "size")
