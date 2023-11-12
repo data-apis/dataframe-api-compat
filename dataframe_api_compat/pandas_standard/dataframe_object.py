@@ -16,14 +16,12 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
     from collections.abc import Sequence
 
-    from dataframe_api import Column
     from dataframe_api import DataFrame as DataFrameT
     from dataframe_api.typing import DType
 
-    from dataframe_api_compat.pandas_standard.column_object import PandasColumn
+    from dataframe_api_compat.pandas_standard.column_object import Column
     from dataframe_api_compat.pandas_standard.group_by_object import PandasGroupBy
 else:
-    Column = object
     DataFrameT = object
     Namespace = object
     Aggregation = object
@@ -72,16 +70,16 @@ class DataFrame(DataFrameT):
             )
 
     def _validate_column(self, column: Column) -> None:
-        if id(self) != id(column.df):  # type: ignore[attr-defined]
+        if id(self) != id(column.df):
             msg = "cannot compare columns from different dataframes"
             raise ValueError(msg)
 
     # In the Standard
 
-    def col(self, name: str) -> PandasColumn:
-        from dataframe_api_compat.pandas_standard.column_object import PandasColumn
+    def col(self, name: str) -> Column:
+        from dataframe_api_compat.pandas_standard.column_object import Column
 
-        return PandasColumn(
+        return Column(
             self.dataframe.loc[:, name],
             df=self,
             api_version=self.api_version,
@@ -141,20 +139,29 @@ class DataFrame(DataFrameT):
             api_version=self.api_version,
         )
 
-    def get_rows(self, indices: Column) -> DataFrame:
+    def get_rows(
+        self,
+        indices: Column,  # type: ignore[override]
+    ) -> DataFrame:
         self._validate_column(indices)
         return DataFrame(
             self.dataframe.iloc[indices.column, :],
             api_version=self.api_version,
         )
 
-    def filter(self, mask: Column) -> DataFrame:
+    def filter(
+        self,
+        mask: Column,  # type: ignore[override]
+    ) -> DataFrame:
         self._validate_column(mask)
         df = self.dataframe
         df = df.loc[mask.column]
         return DataFrame(df, api_version=self.api_version)
 
-    def assign(self, *columns: Column) -> DataFrame:
+    def assign(
+        self,
+        *columns: Column,  # type: ignore[override]
+    ) -> DataFrame:
         df = self.dataframe.copy()  # TODO: remove defensive copy with CoW?
         for column in columns:
             self._validate_column(column)
@@ -389,21 +396,21 @@ class DataFrame(DataFrameT):
 
     # Horizontal reductions
 
-    def all_rowwise(self, *, skip_nulls: bool = True) -> PandasColumn:
-        from dataframe_api_compat.pandas_standard.column_object import PandasColumn
+    def all_rowwise(self, *, skip_nulls: bool = True) -> Column:
+        from dataframe_api_compat.pandas_standard.column_object import Column
 
         df = self.dataframe
-        return PandasColumn(
+        return Column(
             df.all(axis=1),
             api_version=self.api_version,
             df=self,
         )
 
-    def any_rowwise(self, *, skip_nulls: bool = True) -> PandasColumn:
-        from dataframe_api_compat.pandas_standard.column_object import PandasColumn
+    def any_rowwise(self, *, skip_nulls: bool = True) -> Column:
+        from dataframe_api_compat.pandas_standard.column_object import Column
 
         df = self.dataframe
-        return PandasColumn(
+        return Column(
             df.any(axis=1),
             api_version=self.api_version,
             df=self,
@@ -414,14 +421,14 @@ class DataFrame(DataFrameT):
         *keys: str,
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
-    ) -> PandasColumn:  # pragma: no cover
+    ) -> Column:  # pragma: no cover
         raise NotImplementedError
 
     def unique_indices(
         self,
         *keys: str,
         skip_nulls: bool = True,
-    ) -> PandasColumn:  # pragma: no cover
+    ) -> Column:  # pragma: no cover
         raise NotImplementedError
 
     # Transformations

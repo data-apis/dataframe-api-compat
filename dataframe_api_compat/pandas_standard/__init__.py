@@ -8,7 +8,7 @@ from typing import cast
 
 import pandas as pd
 
-from dataframe_api_compat.pandas_standard.column_object import PandasColumn
+from dataframe_api_compat.pandas_standard.column_object import Column
 from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
 
 if TYPE_CHECKING:
@@ -155,13 +155,13 @@ def map_standard_dtype_to_pandas_dtype(dtype: DType) -> Any:
 def convert_to_standard_compliant_column(
     ser: pd.Series[Any],
     api_version: str | None = None,
-) -> PandasColumn:
+) -> Column:
     if ser.name is not None and not isinstance(ser.name, str):
         msg = f"Expected column with string name, got: {ser.name}"
         raise ValueError(msg)
     if ser.name is None:
         ser = ser.rename("")
-    return PandasColumn(ser, api_version=api_version or "2023.11-beta", df=None)
+    return Column(ser, api_version=api_version or "2023.11-beta", df=None)
 
 
 def convert_to_standard_compliant_dataframe(
@@ -236,7 +236,7 @@ class PandasNamespace(Namespace):
 
     def dataframe_from_columns(
         self,
-        *columns: PandasColumn,  # type: ignore[override]
+        *columns: Column,  # type: ignore[override]
     ) -> DataFrame:
         data = {}
         api_versions: set[str] = set()
@@ -252,9 +252,9 @@ class PandasNamespace(Namespace):
         *,
         dtype: Any,
         name: str | None = None,
-    ) -> PandasColumn:
+    ) -> Column:
         ser = pd.Series(data, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
-        return PandasColumn(ser, api_version=self.api_version, df=None)
+        return Column(ser, api_version=self.api_version, df=None)
 
     def column_from_sequence(
         self,
@@ -262,13 +262,13 @@ class PandasNamespace(Namespace):
         *,
         dtype: Any,
         name: str = "",
-    ) -> PandasColumn:
+    ) -> Column:
         ser = pd.Series(
             sequence,
             dtype=map_standard_dtype_to_pandas_dtype(dtype),
             name=name,
         )
-        return PandasColumn(ser, api_version=self.api_version, df=None)
+        return Column(ser, api_version=self.api_version, df=None)
 
     def concat(
         self,

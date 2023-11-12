@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from dataframe_api_compat.pandas_standard.column_object import PandasColumn
+from dataframe_api_compat.pandas_standard.column_object import Column
 from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
 
 
@@ -13,7 +13,7 @@ class Scalar:
         self.df = df
 
     def _validate_other(self, other: Any) -> Any:
-        if isinstance(other, (PandasColumn, DataFrame)):
+        if isinstance(other, (Column, DataFrame)):
             return NotImplemented
         if isinstance(other, Scalar):
             if id(self.df) != id(other.df):
