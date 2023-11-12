@@ -35,3 +35,16 @@ def test_shift_without_fill_value(library: str) -> None:
     else:  # pragma: no cover
         msg = "unexpected library"
         raise AssertionError(msg)
+
+
+def test_shift_with_fill_value_complicated(library: str) -> None:
+    df = integer_dataframe_1(library)
+    result = df.assign(df.col("a").shift(1, fill_value=df.col("a").min()))  # type: ignore[attr-defined]
+    expected = pd.DataFrame(
+        {
+            "a": [1, 1, 2],
+            "b": [4, 5, 6],
+        },
+    )
+    result_pd = interchange_to_pandas(result)
+    pd.testing.assert_frame_equal(result_pd, expected)

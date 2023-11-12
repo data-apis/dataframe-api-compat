@@ -338,9 +338,9 @@ class PolarsColumn(Column):
         ser = self.materialise("Column.__len__")
         return len(ser)
 
-    def shift(self, periods: int, *, fill_value: object = None) -> PolarsColumn:
-        # fill_value can't be an actual standard Scalar, right? need to be materialised
+    def shift(self, periods: int, *, fill_value: Scalar | None = None) -> PolarsColumn:
         if fill_value is not None:
+            fill_value = self._validate_comparand(fill_value)  # type: ignore[assignment]
             return self._from_expr(self.expr.shift(periods).fill_null(value=fill_value))
         return self._from_expr(self.expr.shift(periods))
 
