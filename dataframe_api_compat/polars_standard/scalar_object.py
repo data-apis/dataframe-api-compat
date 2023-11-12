@@ -1,31 +1,21 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 from typing import Any
 
 import polars as pl
 
 from dataframe_api_compat.polars_standard.column_object import PolarsColumn
-from dataframe_api_compat.polars_standard.dataframe_object import PolarsDataFrame
-
-if TYPE_CHECKING:
-    from dataframe_api import Column
-    from dataframe_api import DataFrame
-    from dataframe_api import GroupBy
-else:
-    Column = object
-    DataFrame = object
-    GroupBy = object
+from dataframe_api_compat.polars_standard.dataframe_object import DataFrame
 
 
 class Scalar:
-    def __init__(self, value: Any, api_version: str, df: PolarsDataFrame | None) -> None:
+    def __init__(self, value: Any, api_version: str, df: DataFrame | None) -> None:
         self.value = value
         self._api_version = api_version
         self.df = df
 
     def _validate_other(self, other: Any) -> Any:
-        if isinstance(other, (PolarsColumn, PolarsDataFrame)):
+        if isinstance(other, (PolarsColumn, DataFrame)):
             return NotImplemented
         if isinstance(other, Scalar):
             if id(self.df) != id(other.df):

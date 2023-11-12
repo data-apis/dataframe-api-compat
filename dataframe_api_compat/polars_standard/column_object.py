@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from dataframe_api.typing import DType
     from typing_extensions import Self
 
-    from dataframe_api_compat.polars_standard.dataframe_object import PolarsDataFrame
+    from dataframe_api_compat.polars_standard.dataframe_object import DataFrame
     from dataframe_api_compat.polars_standard.scalar_object import Scalar
 else:
     Column = object
@@ -23,7 +23,7 @@ class PolarsColumn(Column):
         self,
         expr: pl.Expr,
         *,
-        df: PolarsDataFrame | None,
+        df: DataFrame | None,
         api_version: str,
     ) -> None:
         self.expr = expr

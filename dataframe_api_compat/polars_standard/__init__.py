@@ -45,7 +45,7 @@ else:
 
 
 from dataframe_api_compat.polars_standard.column_object import PolarsColumn
-from dataframe_api_compat.polars_standard.dataframe_object import PolarsDataFrame
+from dataframe_api_compat.polars_standard.dataframe_object import DataFrame
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -129,7 +129,7 @@ class PolarsNamespace(Namespace):
     def dataframe_from_columns(
         self,
         *columns: PolarsColumn,  # type: ignore[override]
-    ) -> PolarsDataFrame:
+    ) -> DataFrame:
         data = {}
         api_version: set[str] = set()
         for col in columns:
@@ -139,7 +139,7 @@ class PolarsNamespace(Namespace):
         if len(api_version) > 1:  # pragma: no cover
             msg = f"found multiple api versions: {api_version}"
             raise ValueError(msg)
-        return PolarsDataFrame(
+        return DataFrame(
             pl.DataFrame(data).lazy(),
             api_version=list(api_version)[0],
         )
@@ -177,7 +177,7 @@ class PolarsNamespace(Namespace):
         data: Any,
         *,
         schema: dict[str, Any],
-    ) -> PolarsDataFrame:  # pragma: no cover
+    ) -> DataFrame:  # pragma: no cover
         df = pl.DataFrame(
             data,
             schema={
@@ -185,7 +185,7 @@ class PolarsNamespace(Namespace):
                 for key, value in schema.items()
             },
         ).lazy()
-        return PolarsDataFrame(df, api_version=self.api_version)
+        return DataFrame(df, api_version=self.api_version)
 
     def date(self, year: int, month: int, day: int) -> Any:
         return pl.date(year, month, day)
@@ -299,8 +299,8 @@ class PolarsNamespace(Namespace):
 
     def concat(
         self,
-        dataframes: Sequence[PolarsDataFrame],  # type: ignore[override]
-    ) -> PolarsDataFrame:
+        dataframes: Sequence[DataFrame],  # type: ignore[override]
+    ) -> DataFrame:
         dfs: list[pl.LazyFrame] = []
         api_versions: set[str] = set()
         for df in dataframes:
@@ -309,7 +309,7 @@ class PolarsNamespace(Namespace):
         if len(api_versions) > 1:  # pragma: no cover
             msg = f"Multiple api versions found: {api_versions}"
             raise ValueError(msg)
-        return PolarsDataFrame(
+        return DataFrame(
             pl.concat(dfs),
             api_version=api_versions.pop(),
         )
@@ -413,7 +413,7 @@ def convert_to_standard_compliant_column(
 def convert_to_standard_compliant_dataframe(
     df: pl.LazyFrame,
     api_version: str | None = None,
-) -> PolarsDataFrame:
+) -> DataFrame:
     df_lazy = df.lazy() if isinstance(df, pl.DataFrame) else df
     # todo latest api version
-    return PolarsDataFrame(df_lazy, api_version=api_version or "2023.11-beta")
+    return DataFrame(df_lazy, api_version=api_version or "2023.11-beta")

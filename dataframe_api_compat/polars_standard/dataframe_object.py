@@ -15,17 +15,13 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
     from collections.abc import Sequence
 
-    from dataframe_api import Column
-    from dataframe_api import DataFrame
-    from dataframe_api import GroupBy
+    from dataframe_api import DataFrame as DataFrameT
     from dataframe_api.typing import DType
 
     from dataframe_api_compat.polars_standard.group_by_object import PolarsGroupBy
 
 else:
-    Column = object
-    DataFrame = object
-    GroupBy = object
+    DataFrameT = object
 
 
 def _is_integer_dtype(dtype: Any) -> bool:
@@ -45,7 +41,7 @@ def _is_integer_dtype(dtype: Any) -> bool:
     )
 
 
-class PolarsDataFrame(DataFrame):
+class DataFrame(DataFrameT):
     def __init__(
         self,
         df: pl.LazyFrame,
@@ -116,15 +112,15 @@ class PolarsDataFrame(DataFrame):
 
         return PolarsGroupBy(self.dataframe, list(keys), api_version=self.api_version)
 
-    def select(self, *columns: str) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    def select(self, *columns: str) -> DataFrame:
+        return DataFrame(
             self.df.select(list(columns)),
             api_version=self.api_version,
         )
 
-    def get_rows(self, indices: PolarsColumn) -> PolarsDataFrame:  # type: ignore[override]
+    def get_rows(self, indices: PolarsColumn) -> DataFrame:  # type: ignore[override]
         self._validate_column(indices)
-        return PolarsDataFrame(
+        return DataFrame(
             self.dataframe.select(pl.all().take(indices.expr)),
             api_version=self.api_version,
         )
@@ -134,34 +130,34 @@ class PolarsDataFrame(DataFrame):
         start: int | None,
         stop: int | None,
         step: int | None,
-    ) -> PolarsDataFrame:
-        return PolarsDataFrame(self.df[start:stop:step], api_version=self.api_version)
+    ) -> DataFrame:
+        return DataFrame(self.df[start:stop:step], api_version=self.api_version)
 
     def _validate_column(self, column: PolarsColumn) -> None:
         if id(self) != id(column.df):
             msg = "Column is from a different dataframe"
             raise ValueError(msg)
 
-    def filter(self, mask: PolarsColumn) -> PolarsDataFrame:  # type: ignore[override]
+    def filter(self, mask: PolarsColumn) -> DataFrame:  # type: ignore[override]
         self._validate_column(mask)
-        return PolarsDataFrame(self.df.filter(mask.expr), api_version=self.api_version)
+        return DataFrame(self.df.filter(mask.expr), api_version=self.api_version)
 
-    def assign(self, *columns: PolarsColumn) -> PolarsDataFrame:  # type: ignore[override]
+    def assign(self, *columns: PolarsColumn) -> DataFrame:  # type: ignore[override]
         new_columns: list[pl.Expr] = []
         for col in columns:
             self._validate_column(col)
             new_columns.append(col.expr)
         df = self.dataframe.with_columns(new_columns)
-        return PolarsDataFrame(df, api_version=self.api_version)
+        return DataFrame(df, api_version=self.api_version)
 
-    def drop_columns(self, *labels: str) -> PolarsDataFrame:
-        return PolarsDataFrame(self.dataframe.drop(labels), api_version=self.api_version)
+    def drop_columns(self, *labels: str) -> DataFrame:
+        return DataFrame(self.dataframe.drop(labels), api_version=self.api_version)
 
-    def rename_columns(self, mapping: Mapping[str, str]) -> PolarsDataFrame:
+    def rename_columns(self, mapping: Mapping[str, str]) -> DataFrame:
         if not isinstance(mapping, collections.abc.Mapping):
             msg = f"Expected Mapping, got: {type(mapping)}"
             raise TypeError(msg)
-        return PolarsDataFrame(
+        return DataFrame(
             self.dataframe.rename(dict(mapping)),
             api_version=self.api_version,
         )
@@ -177,8 +173,8 @@ class PolarsDataFrame(DataFrame):
     def __eq__(  # type: ignore[override]
         self,
         other: Any,
-    ) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    ) -> DataFrame:
+        return DataFrame(
             self.dataframe.with_columns(pl.col("*").__eq__(other)),
             api_version=self.api_version,
         )
@@ -186,102 +182,102 @@ class PolarsDataFrame(DataFrame):
     def __ne__(  # type: ignore[override]
         self,
         other: Any,
-    ) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    ) -> DataFrame:
+        return DataFrame(
             self.dataframe.with_columns(pl.col("*").__ne__(other)),
             api_version=self.api_version,
         )
 
-    def __ge__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    def __ge__(self, other: Any) -> DataFrame:
+        return DataFrame(
             self.dataframe.with_columns(pl.col("*").__ge__(other)),
             api_version=self.api_version,
         )
 
-    def __gt__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    def __gt__(self, other: Any) -> DataFrame:
+        return DataFrame(
             self.dataframe.with_columns(pl.col("*").__gt__(other)),
             api_version=self.api_version,
         )
 
-    def __le__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    def __le__(self, other: Any) -> DataFrame:
+        return DataFrame(
             self.dataframe.with_columns(pl.col("*").__le__(other)),
             api_version=self.api_version,
         )
 
-    def __lt__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    def __lt__(self, other: Any) -> DataFrame:
+        return DataFrame(
             self.dataframe.with_columns(pl.col("*").__lt__(other)),
             api_version=self.api_version,
         )
 
-    def __and__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    def __and__(self, other: Any) -> DataFrame:
+        return DataFrame(
             self.dataframe.with_columns(pl.col("*") & other),
             api_version=self.api_version,
         )
 
-    def __rand__(self, other: Any) -> PolarsDataFrame:
+    def __rand__(self, other: Any) -> DataFrame:
         return self.__and__(other)
 
-    def __or__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    def __or__(self, other: Any) -> DataFrame:
+        return DataFrame(
             self.dataframe.with_columns(
                 (pl.col(col) | other).alias(col) for col in self.dataframe.columns
             ),
             api_version=self.api_version,
         )
 
-    def __ror__(self, other: Any) -> PolarsDataFrame:
+    def __ror__(self, other: Any) -> DataFrame:
         return self.__or__(other)
 
-    def __add__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    def __add__(self, other: Any) -> DataFrame:
+        return DataFrame(
             self.dataframe.with_columns(pl.col("*").__add__(other)),
             api_version=self.api_version,
         )
 
-    def __radd__(self, other: Any) -> PolarsDataFrame:
+    def __radd__(self, other: Any) -> DataFrame:
         return self.__add__(other)
 
-    def __sub__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    def __sub__(self, other: Any) -> DataFrame:
+        return DataFrame(
             self.dataframe.with_columns(pl.col("*").__sub__(other)),
             api_version=self.api_version,
         )
 
-    def __rsub__(self, other: Any) -> PolarsDataFrame:
+    def __rsub__(self, other: Any) -> DataFrame:
         return -1 * self.__sub__(other)
 
-    def __mul__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    def __mul__(self, other: Any) -> DataFrame:
+        return DataFrame(
             self.dataframe.with_columns(pl.col("*").__mul__(other)),
             api_version=self.api_version,
         )
 
-    def __rmul__(self, other: Any) -> PolarsDataFrame:
+    def __rmul__(self, other: Any) -> DataFrame:
         return self.__mul__(other)
 
-    def __truediv__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    def __truediv__(self, other: Any) -> DataFrame:
+        return DataFrame(
             self.dataframe.with_columns(pl.col("*").__truediv__(other)),
             api_version=self.api_version,
         )
 
-    def __rtruediv__(self, other: Any) -> PolarsDataFrame:  # pragma: no cover
+    def __rtruediv__(self, other: Any) -> DataFrame:  # pragma: no cover
         raise NotImplementedError
 
-    def __floordiv__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    def __floordiv__(self, other: Any) -> DataFrame:
+        return DataFrame(
             self.dataframe.with_columns(pl.col("*").__floordiv__(other)),
             api_version=self.api_version,
         )
 
-    def __rfloordiv__(self, other: Any) -> PolarsDataFrame:
+    def __rfloordiv__(self, other: Any) -> DataFrame:
         raise NotImplementedError
 
-    def __pow__(self, other: Any) -> PolarsDataFrame:
+    def __pow__(self, other: Any) -> DataFrame:
         original_type = self.dataframe.schema
         ret = self.dataframe.select([pl.col(col).pow(other) for col in self.column_names])
         for column in self.dataframe.columns:
@@ -290,36 +286,36 @@ class PolarsDataFrame(DataFrame):
                     msg = "Cannot raise integer to negative power"
                     raise ValueError(msg)
                 ret = ret.with_columns(pl.col(column).cast(original_type[column]))
-        return PolarsDataFrame(ret, api_version=self.api_version)
+        return DataFrame(ret, api_version=self.api_version)
 
-    def __rpow__(self, other: Any) -> PolarsDataFrame:  # pragma: no cover
+    def __rpow__(self, other: Any) -> DataFrame:  # pragma: no cover
         raise NotImplementedError
 
-    def __mod__(self, other: Any) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    def __mod__(self, other: Any) -> DataFrame:
+        return DataFrame(
             self.dataframe.with_columns(pl.col("*") % other),
             api_version=self.api_version,
         )
 
-    def __rmod__(self, other: Any) -> PolarsDataFrame:
+    def __rmod__(self, other: Any) -> DataFrame:
         raise NotImplementedError
 
     def __divmod__(
         self,
         other: DataFrame | Any,
-    ) -> tuple[PolarsDataFrame, PolarsDataFrame]:
+    ) -> tuple[DataFrame, DataFrame]:
         quotient_df = self.dataframe.with_columns(pl.col("*") // other)
         remainder_df = self.dataframe.with_columns(
             pl.col("*") - (pl.col("*") // other) * other,
         )
-        return PolarsDataFrame(
+        return DataFrame(
             quotient_df,
             api_version=self.api_version,
-        ), PolarsDataFrame(remainder_df, api_version=self.api_version)
+        ), DataFrame(remainder_df, api_version=self.api_version)
 
-    def __invert__(self) -> PolarsDataFrame:
+    def __invert__(self) -> DataFrame:
         self._validate_booleanness()
-        return PolarsDataFrame(
+        return DataFrame(
             self.dataframe.select(~pl.col("*")),
             api_version=self.api_version,
         )
@@ -327,62 +323,62 @@ class PolarsDataFrame(DataFrame):
     def __iter__(self) -> NoReturn:
         raise NotImplementedError
 
-    def is_null(self) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    def is_null(self) -> DataFrame:
+        return DataFrame(
             self.dataframe.with_columns(pl.col("*").is_null()),
             api_version=self.api_version,
         )
 
-    def is_nan(self) -> PolarsDataFrame:
+    def is_nan(self) -> DataFrame:
         df = self.dataframe.with_columns(pl.col("*").is_nan())
-        return PolarsDataFrame(df, api_version=self.api_version)
+        return DataFrame(df, api_version=self.api_version)
 
     # Reductions
 
-    def any(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    def any(self, *, skip_nulls: bool = True) -> DataFrame:
+        return DataFrame(
             self.dataframe.select(pl.col("*").any()),
             api_version=self.api_version,
         )
 
-    def all(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    def all(self, *, skip_nulls: bool = True) -> DataFrame:
+        return DataFrame(
             self.dataframe.select(pl.col("*").all()),
             api_version=self.api_version,
         )
 
-    def min(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    def min(self, *, skip_nulls: bool = True) -> DataFrame:
+        return DataFrame(
             self.dataframe.select(pl.col("*").min()),
             api_version=self.api_version,
         )
 
-    def max(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    def max(self, *, skip_nulls: bool = True) -> DataFrame:
+        return DataFrame(
             self.dataframe.select(pl.col("*").max()),
             api_version=self.api_version,
         )
 
-    def sum(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    def sum(self, *, skip_nulls: bool = True) -> DataFrame:
+        return DataFrame(
             self.dataframe.select(pl.col("*").sum()),
             api_version=self.api_version,
         )
 
-    def prod(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    def prod(self, *, skip_nulls: bool = True) -> DataFrame:
+        return DataFrame(
             self.dataframe.select(pl.col("*").product()),
             api_version=self.api_version,
         )
 
-    def mean(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    def mean(self, *, skip_nulls: bool = True) -> DataFrame:
+        return DataFrame(
             self.dataframe.select(pl.col("*").mean()),
             api_version=self.api_version,
         )
 
-    def median(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    def median(self, *, skip_nulls: bool = True) -> DataFrame:
+        return DataFrame(
             self.dataframe.select(pl.col("*").median()),
             api_version=self.api_version,
         )
@@ -392,8 +388,8 @@ class PolarsDataFrame(DataFrame):
         *,
         correction: int | float = 1.0,
         skip_nulls: bool = True,
-    ) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    ) -> DataFrame:
+        return DataFrame(
             self.dataframe.select(pl.col("*").std()),
             api_version=self.api_version,
         )
@@ -403,8 +399,8 @@ class PolarsDataFrame(DataFrame):
         *,
         correction: int | float = 1.0,
         skip_nulls: bool = True,
-    ) -> PolarsDataFrame:
-        return PolarsDataFrame(
+    ) -> DataFrame:
+        return DataFrame(
             self.dataframe.select(pl.col("*").var()),
             api_version=self.api_version,
         )
@@ -441,11 +437,11 @@ class PolarsDataFrame(DataFrame):
         *keys: str,
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
-    ) -> PolarsDataFrame:
+    ) -> DataFrame:
         if not keys:
             keys = tuple(self.dataframe.columns)
         # TODO: what if there's multiple `ascending`?
-        return PolarsDataFrame(
+        return DataFrame(
             self.dataframe.sort(list(keys), descending=not ascending),
             api_version=self.api_version,
         )
@@ -453,10 +449,10 @@ class PolarsDataFrame(DataFrame):
     def fill_nan(
         self,
         value: float | None,
-    ) -> PolarsDataFrame:
+    ) -> DataFrame:
         if isinstance(value, dataframe_api_compat.polars_standard.PolarsNamespace.Null):
             value = None
-        return PolarsDataFrame(
+        return DataFrame(
             self.dataframe.fill_nan(value),
             api_version=self.api_version,
         )
@@ -466,13 +462,13 @@ class PolarsDataFrame(DataFrame):
         value: Any,
         *,
         column_names: list[str] | None = None,
-    ) -> PolarsDataFrame:
+    ) -> DataFrame:
         if column_names is None:
             column_names = self.dataframe.columns
         df = self.dataframe.with_columns(
             pl.col(col).fill_null(value) for col in column_names
         )
-        return PolarsDataFrame(df, api_version=self.api_version)
+        return DataFrame(df, api_version=self.api_version)
 
     def join(
         self,
@@ -481,7 +477,7 @@ class PolarsDataFrame(DataFrame):
         how: Literal["left", "inner", "outer"],
         left_on: str | list[str],
         right_on: str | list[str],
-    ) -> PolarsDataFrame:
+    ) -> DataFrame:
         if how not in ["left", "inner", "outer"]:
             msg = f"Expected 'left', 'inner', 'outer', got: {how}"
             raise ValueError(msg)
@@ -494,7 +490,7 @@ class PolarsDataFrame(DataFrame):
         # need to do some extra work to preserve all names
         # https://github.com/pola-rs/polars/issues/9335
         extra_right_keys = set(right_on).difference(left_on)
-        assert isinstance(other, PolarsDataFrame)
+        assert isinstance(other, DataFrame)
         other_df = other.dataframe
         # TODO: make more robust
         other_df = other_df.with_columns(
@@ -508,11 +504,11 @@ class PolarsDataFrame(DataFrame):
         )
         result = result.rename({f"{i}_tmp": i for i in extra_right_keys})
 
-        return PolarsDataFrame(result, api_version=self.api_version)
+        return DataFrame(result, api_version=self.api_version)
 
-    def persist(self) -> PolarsDataFrame:
+    def persist(self) -> DataFrame:
         if not self.is_persisted:
-            return PolarsDataFrame(
+            return DataFrame(
                 self.dataframe.collect().lazy(),
                 api_version=self.api_version,
                 is_persisted=True,
