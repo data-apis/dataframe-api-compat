@@ -20,8 +20,6 @@ if TYPE_CHECKING:
     from dataframe_api_compat.pandas_standard.scalar_object import Scalar
 else:
     ColumnT = object
-    Namespace = object
-    Aggregation = object
 
 
 NUMPY_MAPPING = {
