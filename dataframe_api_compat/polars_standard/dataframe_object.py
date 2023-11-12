@@ -9,7 +9,7 @@ from typing import NoReturn
 import polars as pl
 
 import dataframe_api_compat
-from dataframe_api_compat.polars_standard.column_object import PolarsColumn
+from dataframe_api_compat.polars_standard.column_object import Column
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from dataframe_api import DataFrame as DataFrameT
     from dataframe_api.typing import DType
 
-    from dataframe_api_compat.polars_standard.group_by_object import PolarsGroupBy
+    from dataframe_api_compat.polars_standard.group_by_object import GroupBy
 
 else:
     DataFrameT = object
@@ -75,8 +75,8 @@ class DataFrame(DataFrameT):
                 msg,
             )
 
-    def col(self, value: str) -> PolarsColumn:
-        return PolarsColumn(pl.col(value), df=self, api_version=self.api_version)
+    def col(self, value: str) -> Column:
+        return Column(pl.col(value), df=self, api_version=self.api_version)
 
     @property
     def schema(self) -> dict[str, DType]:
@@ -95,7 +95,7 @@ class DataFrame(DataFrameT):
         return self.dataframe.__repr__()
 
     def __dataframe_namespace__(self) -> Any:
-        return dataframe_api_compat.polars_standard.PolarsNamespace(
+        return dataframe_api_compat.polars_standard.Namespace(
             api_version=self.api_version,
         )
 
@@ -107,10 +107,10 @@ class DataFrame(DataFrameT):
     def dataframe(self) -> pl.LazyFrame:
         return self.df
 
-    def group_by(self, *keys: str) -> PolarsGroupBy:
-        from dataframe_api_compat.polars_standard.group_by_object import PolarsGroupBy
+    def group_by(self, *keys: str) -> GroupBy:
+        from dataframe_api_compat.polars_standard.group_by_object import GroupBy
 
-        return PolarsGroupBy(self.dataframe, list(keys), api_version=self.api_version)
+        return GroupBy(self.dataframe, list(keys), api_version=self.api_version)
 
     def select(self, *columns: str) -> DataFrame:
         return DataFrame(
@@ -118,7 +118,7 @@ class DataFrame(DataFrameT):
             api_version=self.api_version,
         )
 
-    def get_rows(self, indices: PolarsColumn) -> DataFrame:  # type: ignore[override]
+    def get_rows(self, indices: Column) -> DataFrame:  # type: ignore[override]
         self._validate_column(indices)
         return DataFrame(
             self.dataframe.select(pl.all().take(indices.expr)),
@@ -133,16 +133,16 @@ class DataFrame(DataFrameT):
     ) -> DataFrame:
         return DataFrame(self.df[start:stop:step], api_version=self.api_version)
 
-    def _validate_column(self, column: PolarsColumn) -> None:
+    def _validate_column(self, column: Column) -> None:
         if id(self) != id(column.df):
             msg = "Column is from a different dataframe"
             raise ValueError(msg)
 
-    def filter(self, mask: PolarsColumn) -> DataFrame:  # type: ignore[override]
+    def filter(self, mask: Column) -> DataFrame:  # type: ignore[override]
         self._validate_column(mask)
         return DataFrame(self.df.filter(mask.expr), api_version=self.api_version)
 
-    def assign(self, *columns: PolarsColumn) -> DataFrame:  # type: ignore[override]
+    def assign(self, *columns: Column) -> DataFrame:  # type: ignore[override]
         new_columns: list[pl.Expr] = []
         for col in columns:
             self._validate_column(col)
@@ -407,15 +407,15 @@ class DataFrame(DataFrameT):
 
     # Horizontal reductions
 
-    def all_rowwise(self, *, skip_nulls: bool = True) -> PolarsColumn:
-        return PolarsColumn(
+    def all_rowwise(self, *, skip_nulls: bool = True) -> Column:
+        return Column(
             pl.all_horizontal(self.column_names).alias("all"),
             api_version=self.api_version,
             df=self,
         )
 
-    def any_rowwise(self, *, skip_nulls: bool = True) -> PolarsColumn:
-        return PolarsColumn(
+    def any_rowwise(self, *, skip_nulls: bool = True) -> Column:
+        return Column(
             pl.any_horizontal(self.column_names).alias("all"),
             api_version=self.api_version,
             df=self,
@@ -426,10 +426,10 @@ class DataFrame(DataFrameT):
         *keys: str,
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
-    ) -> PolarsColumn:
+    ) -> Column:
         raise NotImplementedError
 
-    def unique_indices(self, *keys: str, skip_nulls: bool = True) -> PolarsColumn:
+    def unique_indices(self, *keys: str, skip_nulls: bool = True) -> Column:
         raise NotImplementedError
 
     def sort(
@@ -450,7 +450,7 @@ class DataFrame(DataFrameT):
         self,
         value: float | None,
     ) -> DataFrame:
-        if isinstance(value, dataframe_api_compat.polars_standard.PolarsNamespace.Null):
+        if isinstance(value, dataframe_api_compat.polars_standard.Namespace.Null):
             value = None
         return DataFrame(
             self.dataframe.fill_nan(value),

@@ -4,7 +4,7 @@ from typing import Any
 
 import polars as pl
 
-from dataframe_api_compat.polars_standard.column_object import PolarsColumn
+from dataframe_api_compat.polars_standard.column_object import Column
 from dataframe_api_compat.polars_standard.dataframe_object import DataFrame
 
 
@@ -15,7 +15,7 @@ class Scalar:
         self.df = df
 
     def _validate_other(self, other: Any) -> Any:
-        if isinstance(other, (PolarsColumn, DataFrame)):
+        if isinstance(other, (Column, DataFrame)):
             return NotImplemented
         if isinstance(other, Scalar):
             if id(self.df) != id(other.df):

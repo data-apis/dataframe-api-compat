@@ -10,12 +10,12 @@ from dataframe_api_compat.polars_standard.dataframe_object import DataFrame
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from dataframe_api import GroupBy
+    from dataframe_api import GroupBy as GroupByT
 else:
-    GroupBy = object
+    GroupByT = object
 
 
-class PolarsGroupBy(GroupBy):
+class GroupBy(GroupByT):
     def __init__(self, df: pl.LazyFrame, keys: Sequence[str], api_version: str) -> None:
         for key in keys:
             if key not in df.columns:
