@@ -401,7 +401,7 @@ class PandasColumn(Column):
         ser = self.materialise("Column.__len__")
         return len(ser)
 
-    def shift(self, periods: int, *, fill_value: object) -> PandasColumn:
+    def shift(self, periods: int, *, fill_value: object = None) -> PandasColumn:
         # fill_value can't be an actual standard Scalar, right? need to be materialised
         ser = self.column
         return self._from_series(ser.shift(periods, fill_value=fill_value))

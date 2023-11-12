@@ -338,9 +338,11 @@ class PolarsColumn(Column):
         ser = self.materialise("Column.__len__")
         return len(ser)
 
-    def shift(self, periods: int, *, fill_value: object) -> PolarsColumn:
+    def shift(self, periods: int, *, fill_value: object = None) -> PolarsColumn:
         # fill_value can't be an actual standard Scalar, right? need to be materialised
-        return self._from_expr(self.expr.shift(periods).fill_null(fill_value))
+        if fill_value is not None:
+            return self._from_expr(self.expr.shift(periods).fill_null(value=fill_value))
+        return self._from_expr(self.expr.shift(periods))
 
     # --- temporal methods ---
 
