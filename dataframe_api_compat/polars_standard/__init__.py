@@ -24,9 +24,10 @@ if TYPE_CHECKING:
     from dataframe_api.dtypes import UInt32 as UInt32T
     from dataframe_api.dtypes import UInt64 as UInt64T
     from dataframe_api.groupby_object import Aggregation as AggregationT
+    from dataframe_api.typing import Namespace as NamespaceT
 else:
     AggregationT = object
-    Namespace = object
+    NamespaceT = object
     BoolT = object
     DateT = object
     DatetimeT = object
@@ -44,22 +45,22 @@ else:
     UInt8T = object
 
 
-from dataframe_api_compat.polars_standard.column_object import PolarsColumn
-from dataframe_api_compat.polars_standard.dataframe_object import PolarsDataFrame
+from dataframe_api_compat.polars_standard.column_object import Column
+from dataframe_api_compat.polars_standard.dataframe_object import DataFrame
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from dataframe_api.typing import DType
-    from dataframe_api.typing import Namespace
+    from dataframe_api.typing import Namespace as NamespaceT
 else:
-    Namespace = object
+    NamespaceT = object
 
 
 SUPPORTED_VERSIONS = frozenset({"2023.11-beta"})
 
 
-class PolarsNamespace(Namespace):
+class Namespace(NamespaceT):
     def __init__(self, *, api_version: str) -> None:
         self.__dataframe_api_version__ = api_version
         self.api_version = api_version
@@ -128,8 +129,8 @@ class PolarsNamespace(Namespace):
 
     def dataframe_from_columns(
         self,
-        *columns: PolarsColumn,  # type: ignore[override]
-    ) -> PolarsDataFrame:
+        *columns: Column,  # type: ignore[override]
+    ) -> DataFrame:
         data = {}
         api_version: set[str] = set()
         for col in columns:
@@ -139,7 +140,7 @@ class PolarsNamespace(Namespace):
         if len(api_version) > 1:  # pragma: no cover
             msg = f"found multiple api versions: {api_version}"
             raise ValueError(msg)
-        return PolarsDataFrame(
+        return DataFrame(
             pl.DataFrame(data).lazy(),
             api_version=list(api_version)[0],
         )
@@ -150,13 +151,13 @@ class PolarsNamespace(Namespace):
         *,
         dtype: DType,
         name: str = "",
-    ) -> PolarsColumn:  # pragma: no cover
+    ) -> Column:  # pragma: no cover
         ser = pl.Series(
             values=array,
             dtype=_map_standard_to_polars_dtypes(dtype),
             name=name,
         )
-        return PolarsColumn(pl.lit(ser), api_version=self.api_version, df=None)
+        return Column(pl.lit(ser), api_version=self.api_version, df=None)
 
     def column_from_sequence(
         self,
@@ -164,20 +165,20 @@ class PolarsNamespace(Namespace):
         *,
         dtype: DType,
         name: str = "",
-    ) -> PolarsColumn:
+    ) -> Column:
         ser = pl.Series(
             values=sequence,
             dtype=_map_standard_to_polars_dtypes(dtype),
             name=name,
         )
-        return PolarsColumn(pl.lit(ser), api_version=self.api_version, df=None)
+        return Column(pl.lit(ser), api_version=self.api_version, df=None)
 
     def dataframe_from_2d_array(
         self,
         data: Any,
         *,
         schema: dict[str, Any],
-    ) -> PolarsDataFrame:  # pragma: no cover
+    ) -> DataFrame:  # pragma: no cover
         df = pl.DataFrame(
             data,
             schema={
@@ -185,7 +186,7 @@ class PolarsNamespace(Namespace):
                 for key, value in schema.items()
             },
         ).lazy()
-        return PolarsDataFrame(df, api_version=self.api_version)
+        return DataFrame(df, api_version=self.api_version)
 
     def date(self, year: int, month: int, day: int) -> Any:
         return pl.date(year, month, day)
@@ -206,7 +207,7 @@ class PolarsNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return PolarsNamespace.Aggregation(column, column, "any")
+            return Namespace.Aggregation(column, column, "any")
 
         @classmethod
         def all(
@@ -215,7 +216,7 @@ class PolarsNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return PolarsNamespace.Aggregation(column, column, "all")
+            return Namespace.Aggregation(column, column, "all")
 
         @classmethod
         def min(
@@ -224,7 +225,7 @@ class PolarsNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return PolarsNamespace.Aggregation(column, column, "min")
+            return Namespace.Aggregation(column, column, "min")
 
         @classmethod
         def max(
@@ -233,7 +234,7 @@ class PolarsNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return PolarsNamespace.Aggregation(column, column, "max")
+            return Namespace.Aggregation(column, column, "max")
 
         @classmethod
         def sum(
@@ -242,7 +243,7 @@ class PolarsNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return PolarsNamespace.Aggregation(column, column, "sum")
+            return Namespace.Aggregation(column, column, "sum")
 
         @classmethod
         def prod(
@@ -251,7 +252,7 @@ class PolarsNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return PolarsNamespace.Aggregation(column, column, "prod")
+            return Namespace.Aggregation(column, column, "prod")
 
         @classmethod
         def median(
@@ -260,7 +261,7 @@ class PolarsNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return PolarsNamespace.Aggregation(column, column, "median")
+            return Namespace.Aggregation(column, column, "median")
 
         @classmethod
         def mean(
@@ -269,7 +270,7 @@ class PolarsNamespace(Namespace):
             *,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return PolarsNamespace.Aggregation(column, column, "mean")
+            return Namespace.Aggregation(column, column, "mean")
 
         @classmethod
         def std(
@@ -279,7 +280,7 @@ class PolarsNamespace(Namespace):
             correction: int | float = 1,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return PolarsNamespace.Aggregation(column, column, "std")
+            return Namespace.Aggregation(column, column, "std")
 
         @classmethod
         def var(
@@ -289,18 +290,18 @@ class PolarsNamespace(Namespace):
             correction: int | float = 1,
             skip_nulls: bool = True,
         ) -> AggregationT:
-            return PolarsNamespace.Aggregation(column, column, "var")
+            return Namespace.Aggregation(column, column, "var")
 
         @classmethod
         def size(
             cls: AggregationT,
         ) -> AggregationT:
-            return PolarsNamespace.Aggregation("placeholder", "size", "size")
+            return Namespace.Aggregation("placeholder", "size", "size")
 
     def concat(
         self,
-        dataframes: Sequence[PolarsDataFrame],  # type: ignore[override]
-    ) -> PolarsDataFrame:
+        dataframes: Sequence[DataFrame],  # type: ignore[override]
+    ) -> DataFrame:
         dfs: list[pl.LazyFrame] = []
         api_versions: set[str] = set()
         for df in dataframes:
@@ -309,7 +310,7 @@ class PolarsNamespace(Namespace):
         if len(api_versions) > 1:  # pragma: no cover
             msg = f"Multiple api versions found: {api_versions}"
             raise ValueError(msg)
-        return PolarsDataFrame(
+        return DataFrame(
             pl.concat(dfs),
             api_version=api_versions.pop(),
         )
@@ -334,69 +335,69 @@ class PolarsNamespace(Namespace):
 
 def map_polars_dtype_to_standard_dtype(dtype: Any) -> DType:
     if dtype == pl.Int64:
-        return PolarsNamespace.Int64()
+        return Namespace.Int64()
     if dtype == pl.Int32:
-        return PolarsNamespace.Int32()
+        return Namespace.Int32()
     if dtype == pl.Int16:
-        return PolarsNamespace.Int16()
+        return Namespace.Int16()
     if dtype == pl.Int8:
-        return PolarsNamespace.Int8()
+        return Namespace.Int8()
     if dtype == pl.UInt64:
-        return PolarsNamespace.UInt64()
+        return Namespace.UInt64()
     if dtype == pl.UInt32:
-        return PolarsNamespace.UInt32()
+        return Namespace.UInt32()
     if dtype == pl.UInt16:
-        return PolarsNamespace.UInt16()
+        return Namespace.UInt16()
     if dtype == pl.UInt8:
-        return PolarsNamespace.UInt8()
+        return Namespace.UInt8()
     if dtype == pl.Float64:
-        return PolarsNamespace.Float64()
+        return Namespace.Float64()
     if dtype == pl.Float32:
-        return PolarsNamespace.Float32()
+        return Namespace.Float32()
     if dtype == pl.Boolean:
-        return PolarsNamespace.Bool()
+        return Namespace.Bool()
     if dtype == pl.Utf8:
-        return PolarsNamespace.String()
+        return Namespace.String()
     if dtype == pl.Date:
-        return PolarsNamespace.Date()
+        return Namespace.Date()
     if isinstance(dtype, pl.Datetime):
         time_unit = cast(Literal["ms", "us"], dtype.time_unit)
-        return PolarsNamespace.Datetime(time_unit, dtype.time_zone)
+        return Namespace.Datetime(time_unit, dtype.time_zone)
     if isinstance(dtype, pl.Duration):
         time_unit = cast(Literal["ms", "us"], dtype.time_unit)
-        return PolarsNamespace.Duration(time_unit)
+        return Namespace.Duration(time_unit)
     msg = f"Got invalid dtype: {dtype}"  # pragma: no cover
     raise AssertionError(msg)
 
 
 def _map_standard_to_polars_dtypes(dtype: Any) -> pl.DataType:
-    if isinstance(dtype, PolarsNamespace.Int64):
+    if isinstance(dtype, Namespace.Int64):
         return pl.Int64()
-    if isinstance(dtype, PolarsNamespace.Int32):
+    if isinstance(dtype, Namespace.Int32):
         return pl.Int32()
-    if isinstance(dtype, PolarsNamespace.Int16):
+    if isinstance(dtype, Namespace.Int16):
         return pl.Int16()
-    if isinstance(dtype, PolarsNamespace.Int8):
+    if isinstance(dtype, Namespace.Int8):
         return pl.Int8()
-    if isinstance(dtype, PolarsNamespace.UInt64):
+    if isinstance(dtype, Namespace.UInt64):
         return pl.UInt64()
-    if isinstance(dtype, PolarsNamespace.UInt32):
+    if isinstance(dtype, Namespace.UInt32):
         return pl.UInt32()
-    if isinstance(dtype, PolarsNamespace.UInt16):
+    if isinstance(dtype, Namespace.UInt16):
         return pl.UInt16()
-    if isinstance(dtype, PolarsNamespace.UInt8):
+    if isinstance(dtype, Namespace.UInt8):
         return pl.UInt8()
-    if isinstance(dtype, PolarsNamespace.Float64):
+    if isinstance(dtype, Namespace.Float64):
         return pl.Float64()
-    if isinstance(dtype, PolarsNamespace.Float32):
+    if isinstance(dtype, Namespace.Float32):
         return pl.Float32()
-    if isinstance(dtype, PolarsNamespace.Bool):
+    if isinstance(dtype, Namespace.Bool):
         return pl.Boolean()
-    if isinstance(dtype, PolarsNamespace.String):
+    if isinstance(dtype, Namespace.String):
         return pl.Utf8()
-    if isinstance(dtype, PolarsNamespace.Datetime):
+    if isinstance(dtype, Namespace.Datetime):
         return pl.Datetime(dtype.time_unit, dtype.time_zone)
-    if isinstance(dtype, PolarsNamespace.Duration):  # pragma: no cover
+    if isinstance(dtype, Namespace.Duration):  # pragma: no cover
         # pending fix in polars itself
         return pl.Duration(dtype.time_unit)
     msg = f"Unknown dtype: {dtype}"  # pragma: no cover
@@ -406,14 +407,14 @@ def _map_standard_to_polars_dtypes(dtype: Any) -> pl.DataType:
 def convert_to_standard_compliant_column(
     ser: pl.Series,
     api_version: str | None = None,
-) -> PolarsColumn:
-    return PolarsColumn(pl.lit(ser), api_version=api_version or "2023.11-beta", df=None)
+) -> Column:
+    return Column(pl.lit(ser), api_version=api_version or "2023.11-beta", df=None)
 
 
 def convert_to_standard_compliant_dataframe(
     df: pl.LazyFrame,
     api_version: str | None = None,
-) -> PolarsDataFrame:
+) -> DataFrame:
     df_lazy = df.lazy() if isinstance(df, pl.DataFrame) else df
     # todo latest api version
-    return PolarsDataFrame(df_lazy, api_version=api_version or "2023.11-beta")
+    return DataFrame(df_lazy, api_version=api_version or "2023.11-beta")

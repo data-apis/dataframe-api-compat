@@ -5,21 +5,17 @@ from typing import Any
 
 import polars as pl
 
-from dataframe_api_compat.polars_standard.dataframe_object import PolarsDataFrame
+from dataframe_api_compat.polars_standard.dataframe_object import DataFrame
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from dataframe_api import Column
-    from dataframe_api import DataFrame
-    from dataframe_api import GroupBy
+    from dataframe_api import GroupBy as GroupByT
 else:
-    Column = object
-    DataFrame = object
-    GroupBy = object
+    GroupByT = object
 
 
-class PolarsGroupBy(GroupBy):
+class GroupBy(GroupByT):
     def __init__(self, df: pl.LazyFrame, keys: Sequence[str], api_version: str) -> None:
         for key in keys:
             if key not in df.columns:
@@ -32,11 +28,11 @@ class PolarsGroupBy(GroupBy):
             self.df.group_by if pl.__version__ < "0.19.0" else self.df.group_by
         )
 
-    def size(self) -> PolarsDataFrame:
+    def size(self) -> DataFrame:
         result = self.group_by(self.keys).count().rename({"count": "size"})
-        return PolarsDataFrame(result, api_version=self._api_version)
+        return DataFrame(result, api_version=self._api_version)
 
-    def any(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
+    def any(self, *, skip_nulls: bool = True) -> DataFrame:
         grp = self.group_by(self.keys)
         if not all(
             self.df.schema[col] is pl.Boolean
@@ -46,9 +42,9 @@ class PolarsGroupBy(GroupBy):
             msg = "Expected all boolean columns"
             raise TypeError(msg)
         result = grp.agg(pl.col("*").any())
-        return PolarsDataFrame(result, api_version=self._api_version)
+        return DataFrame(result, api_version=self._api_version)
 
-    def all(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
+    def all(self, *, skip_nulls: bool = True) -> DataFrame:
         grp = self.group_by(self.keys)
         if not all(
             self.df.schema[col] is pl.Boolean
@@ -58,49 +54,49 @@ class PolarsGroupBy(GroupBy):
             msg = "Expected all boolean columns"
             raise TypeError(msg)
         result = grp.agg(pl.col("*").all())
-        return PolarsDataFrame(result, api_version=self._api_version)
+        return DataFrame(result, api_version=self._api_version)
 
-    def min(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
+    def min(self, *, skip_nulls: bool = True) -> DataFrame:
         result = self.group_by(self.keys).agg(pl.col("*").min())
-        return PolarsDataFrame(result, api_version=self._api_version)
+        return DataFrame(result, api_version=self._api_version)
 
-    def max(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
+    def max(self, *, skip_nulls: bool = True) -> DataFrame:
         result = self.group_by(self.keys).agg(pl.col("*").max())
-        return PolarsDataFrame(result, api_version=self._api_version)
+        return DataFrame(result, api_version=self._api_version)
 
-    def sum(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
+    def sum(self, *, skip_nulls: bool = True) -> DataFrame:
         result = self.group_by(self.keys).agg(pl.col("*").sum())
-        return PolarsDataFrame(result, api_version=self._api_version)
+        return DataFrame(result, api_version=self._api_version)
 
-    def prod(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
+    def prod(self, *, skip_nulls: bool = True) -> DataFrame:
         result = self.group_by(self.keys).agg(pl.col("*").product())
-        return PolarsDataFrame(result, api_version=self._api_version)
+        return DataFrame(result, api_version=self._api_version)
 
-    def median(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
+    def median(self, *, skip_nulls: bool = True) -> DataFrame:
         result = self.group_by(self.keys).agg(pl.col("*").median())
-        return PolarsDataFrame(result, api_version=self._api_version)
+        return DataFrame(result, api_version=self._api_version)
 
-    def mean(self, *, skip_nulls: bool = True) -> PolarsDataFrame:
+    def mean(self, *, skip_nulls: bool = True) -> DataFrame:
         result = self.group_by(self.keys).agg(pl.col("*").mean())
-        return PolarsDataFrame(result, api_version=self._api_version)
+        return DataFrame(result, api_version=self._api_version)
 
     def std(
         self,
         *,
         correction: int | float = 1.0,
         skip_nulls: bool = True,
-    ) -> PolarsDataFrame:
+    ) -> DataFrame:
         result = self.group_by(self.keys).agg(pl.col("*").std())
-        return PolarsDataFrame(result, api_version=self._api_version)
+        return DataFrame(result, api_version=self._api_version)
 
     def var(
         self,
         *,
         correction: int | float = 1.0,
         skip_nulls: bool = True,
-    ) -> PolarsDataFrame:
+    ) -> DataFrame:
         result = self.group_by(self.keys).agg(pl.col("*").var())
-        return PolarsDataFrame(result, api_version=self._api_version)
+        return DataFrame(result, api_version=self._api_version)
 
     def aggregate(self, *args: Any) -> Any:
         raise NotImplementedError  # todo

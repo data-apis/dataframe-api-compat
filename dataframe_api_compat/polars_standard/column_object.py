@@ -8,22 +8,22 @@ from typing import NoReturn
 import polars as pl
 
 if TYPE_CHECKING:
-    from dataframe_api import Column
+    from dataframe_api import Column as ColumnT
     from dataframe_api.typing import DType
     from typing_extensions import Self
 
-    from dataframe_api_compat.polars_standard.dataframe_object import PolarsDataFrame
+    from dataframe_api_compat.polars_standard.dataframe_object import DataFrame
     from dataframe_api_compat.polars_standard.scalar_object import Scalar
 else:
-    Column = object
+    ColumnT = object
 
 
-class PolarsColumn(Column):
+class Column(ColumnT):
     def __init__(
         self,
         expr: pl.Expr,
         *,
-        df: PolarsDataFrame | None,
+        df: DataFrame | None,
         api_version: str,
     ) -> None:
         self.expr = expr
@@ -49,7 +49,7 @@ class PolarsColumn(Column):
     def __column_namespace__(self) -> Any:  # pragma: no cover
         import dataframe_api_compat
 
-        return dataframe_api_compat.polars_standard.PolarsNamespace(
+        return dataframe_api_compat.polars_standard.Namespace(
             api_version=self.api_version,
         )
 
@@ -61,7 +61,7 @@ class PolarsColumn(Column):
                 msg = "Columns/scalars are from different dataframes"
                 raise ValueError(msg)
             return other.value
-        if isinstance(other, PolarsColumn):
+        if isinstance(other, Column):
             if id(self.df) != id(other.df):
                 msg = "Columns are from different dataframes"
                 raise ValueError(msg)
@@ -107,7 +107,7 @@ class PolarsColumn(Column):
             dtype = pl.select(self.expr).schema[self.name]
         return map_polars_dtype_to_standard_dtype(dtype)
 
-    def get_rows(self, indices: PolarsColumn) -> PolarsColumn:
+    def get_rows(self, indices: Column) -> Column:
         return self._from_expr(self.expr.take(indices.expr))
 
     def slice_rows(
@@ -115,7 +115,7 @@ class PolarsColumn(Column):
         start: int | None,
         stop: int | None,
         step: int | None,
-    ) -> PolarsColumn:
+    ) -> Column:
         if start is None:
             start = 0
         length = None if stop is None else stop - start
@@ -123,7 +123,7 @@ class PolarsColumn(Column):
             step = 1
         return self._from_expr(self.expr.slice(start, length).take_every(step))
 
-    def filter(self, mask: PolarsColumn) -> PolarsColumn:
+    def filter(self, mask: Column) -> Column:
         return self._from_expr(self.expr.filter(mask.expr))
 
     def get_value(self, row_number: int) -> Any:
@@ -146,7 +146,7 @@ class PolarsColumn(Column):
     def is_null(self) -> Self:
         return self._from_expr(self.expr.is_null())
 
-    def is_nan(self) -> PolarsColumn:
+    def is_nan(self) -> Column:
         return self._from_expr(self.expr.is_nan())
 
     # Reductions
@@ -193,86 +193,86 @@ class PolarsColumn(Column):
 
     # Binary
 
-    def __add__(self, other: PolarsColumn | Any) -> PolarsColumn:
+    def __add__(self, other: Column | Any) -> Column:
         other = self._validate_comparand(other)
         return self._from_expr(self.expr + other)
 
-    def __radd__(self, other: PolarsColumn | Any) -> PolarsColumn:
+    def __radd__(self, other: Column | Any) -> Column:
         return self.__add__(other)
 
-    def __sub__(self, other: PolarsColumn | Any) -> PolarsColumn:
+    def __sub__(self, other: Column | Any) -> Column:
         other = self._validate_comparand(other)
         return self._from_expr(self.expr - other)
 
-    def __rsub__(self, other: PolarsColumn | Any) -> PolarsColumn:
+    def __rsub__(self, other: Column | Any) -> Column:
         return -1 * self.__sub__(other)
 
-    def __eq__(self, other: PolarsColumn | Any) -> PolarsColumn:  # type: ignore[override]
+    def __eq__(self, other: Column | Any) -> Column:  # type: ignore[override]
         other = self._validate_comparand(other)
         return self._from_expr(self.expr == other)
 
-    def __ne__(self, other: PolarsColumn | Any) -> PolarsColumn:  # type: ignore[override]
+    def __ne__(self, other: Column | Any) -> Column:  # type: ignore[override]
         other = self._validate_comparand(other)
         return self._from_expr(self.expr != other)
 
-    def __ge__(self, other: PolarsColumn | Any) -> PolarsColumn:
+    def __ge__(self, other: Column | Any) -> Column:
         other = self._validate_comparand(other)
         return self._from_expr(self.expr >= other)
 
-    def __gt__(self, other: PolarsColumn | Any) -> PolarsColumn:
+    def __gt__(self, other: Column | Any) -> Column:
         other = self._validate_comparand(other)
         return self._from_expr(self.expr > other)
 
-    def __le__(self, other: PolarsColumn | Any) -> PolarsColumn:
+    def __le__(self, other: Column | Any) -> Column:
         other = self._validate_comparand(other)
         return self._from_expr(self.expr <= other)
 
-    def __lt__(self, other: PolarsColumn | Any) -> PolarsColumn:
+    def __lt__(self, other: Column | Any) -> Column:
         other = self._validate_comparand(other)
         return self._from_expr(self.expr < other)
 
-    def __mul__(self, other: PolarsColumn | Any) -> PolarsColumn:
+    def __mul__(self, other: Column | Any) -> Column:
         other = self._validate_comparand(other)
         res = self.expr * other
         return self._from_expr(res)
 
-    def __rmul__(self, other: PolarsColumn | Any) -> PolarsColumn:
+    def __rmul__(self, other: Column | Any) -> Column:
         return self.__mul__(other)
 
-    def __floordiv__(self, other: PolarsColumn | Any) -> PolarsColumn:
+    def __floordiv__(self, other: Column | Any) -> Column:
         other = self._validate_comparand(other)
         return self._from_expr(self.expr // other)
 
-    def __rfloordiv__(self, other: PolarsColumn | Any) -> PolarsColumn:
+    def __rfloordiv__(self, other: Column | Any) -> Column:
         raise NotImplementedError
 
-    def __truediv__(self, other: PolarsColumn | Any) -> PolarsColumn:
+    def __truediv__(self, other: Column | Any) -> Column:
         other = self._validate_comparand(other)
         res = self.expr / other
         return self._from_expr(res)
 
-    def __rtruediv__(self, other: PolarsColumn | Any) -> PolarsColumn:
+    def __rtruediv__(self, other: Column | Any) -> Column:
         raise NotImplementedError
 
-    def __pow__(self, other: PolarsColumn | Any) -> PolarsColumn:
+    def __pow__(self, other: Column | Any) -> Column:
         other = self._validate_comparand(other)
         ret = self.expr.pow(other)  # type: ignore[arg-type]
         return self._from_expr(ret)
 
-    def __rpow__(self, other: PolarsColumn | Any) -> PolarsColumn:  # pragma: no cover
+    def __rpow__(self, other: Column | Any) -> Column:  # pragma: no cover
         raise NotImplementedError
 
-    def __mod__(self, other: PolarsColumn | Any) -> PolarsColumn:
+    def __mod__(self, other: Column | Any) -> Column:
         other = self._validate_comparand(other)
         return self._from_expr(self.expr % other)
 
-    def __rmod__(self, other: PolarsColumn | Any) -> PolarsColumn:
+    def __rmod__(self, other: Column | Any) -> Column:
         raise NotImplementedError
 
     def __divmod__(
         self,
-        other: PolarsColumn | Any,
-    ) -> tuple[PolarsColumn, PolarsColumn]:
+        other: Column | Any,
+    ) -> tuple[Column, Column]:
         # validation happens in the deferred calls anyway
         quotient = self // other
         remainder = self - quotient * other
@@ -282,17 +282,17 @@ class PolarsColumn(Column):
         other = self._validate_comparand(other)
         return self._from_expr(self.expr & other)  # type: ignore[arg-type]
 
-    def __rand__(self, other: PolarsColumn | Any) -> PolarsColumn:
+    def __rand__(self, other: Column | Any) -> Column:
         return self.__and__(other)
 
     def __or__(self, other: Self | bool) -> Self:
         other = self._validate_comparand(other)
         return self._from_expr(self.expr | other)  # type: ignore[arg-type]
 
-    def __ror__(self, other: PolarsColumn | Any) -> PolarsColumn:
+    def __ror__(self, other: Column | Any) -> Column:
         return self.__or__(other)
 
-    def __invert__(self) -> PolarsColumn:
+    def __invert__(self) -> Column:
         return self._from_expr(~self.expr)
 
     def sorted_indices(
@@ -300,7 +300,7 @@ class PolarsColumn(Column):
         *,
         ascending: bool = True,
         nulls_position: Literal["first", "last"] = "last",
-    ) -> PolarsColumn:
+    ) -> Column:
         expr = self.expr.arg_sort(descending=not ascending)
         return self._from_expr(expr)
 
@@ -309,36 +309,36 @@ class PolarsColumn(Column):
         *,
         ascending: bool = True,
         nulls_position: Literal["first", "last"] = "last",
-    ) -> PolarsColumn:
+    ) -> Column:
         expr = self.expr.sort(descending=not ascending)
         return self._from_expr(expr)
 
-    def fill_nan(self, value: float | None) -> PolarsColumn:
+    def fill_nan(self, value: float | None) -> Column:
         return self._from_expr(self.expr.fill_nan(value))
 
-    def fill_null(self, value: Any) -> PolarsColumn:
+    def fill_null(self, value: Any) -> Column:
         return self._from_expr(self.expr.fill_null(value))
 
-    def cumulative_sum(self, *, skip_nulls: bool = True) -> PolarsColumn:
+    def cumulative_sum(self, *, skip_nulls: bool = True) -> Column:
         return self._from_expr(self.expr.cumsum())
 
-    def cumulative_prod(self, *, skip_nulls: bool = True) -> PolarsColumn:
+    def cumulative_prod(self, *, skip_nulls: bool = True) -> Column:
         return self._from_expr(self.expr.cumprod())
 
-    def cumulative_max(self, *, skip_nulls: bool = True) -> PolarsColumn:
+    def cumulative_max(self, *, skip_nulls: bool = True) -> Column:
         return self._from_expr(self.expr.cummax())
 
-    def cumulative_min(self, *, skip_nulls: bool = True) -> PolarsColumn:
+    def cumulative_min(self, *, skip_nulls: bool = True) -> Column:
         return self._from_expr(self.expr.cummin())
 
-    def rename(self, name: str) -> PolarsColumn:
+    def rename(self, name: str) -> Column:
         return self._from_expr(self.expr.alias(name))
 
     def __len__(self) -> int:
         ser = self.materialise("Column.__len__")
         return len(ser)
 
-    def shift(self, periods: int, *, fill_value: Scalar | None = None) -> PolarsColumn:
+    def shift(self, periods: int, *, fill_value: Scalar | None = None) -> Column:
         if fill_value is not None:
             fill_value = self._validate_comparand(fill_value)  # type: ignore[assignment]
             return self._from_expr(self.expr.shift(periods).fill_null(value=fill_value))
@@ -346,34 +346,34 @@ class PolarsColumn(Column):
 
     # --- temporal methods ---
 
-    def year(self) -> PolarsColumn:
+    def year(self) -> Column:
         return self._from_expr(self.expr.dt.year())
 
-    def month(self) -> PolarsColumn:
+    def month(self) -> Column:
         return self._from_expr(self.expr.dt.month())
 
-    def day(self) -> PolarsColumn:
+    def day(self) -> Column:
         return self._from_expr(self.expr.dt.day())
 
-    def hour(self) -> PolarsColumn:
+    def hour(self) -> Column:
         return self._from_expr(self.expr.dt.hour())
 
-    def minute(self) -> PolarsColumn:
+    def minute(self) -> Column:
         return self._from_expr(self.expr.dt.minute())
 
-    def second(self) -> PolarsColumn:
+    def second(self) -> Column:
         return self._from_expr(self.expr.dt.second())
 
-    def microsecond(self) -> PolarsColumn:
+    def microsecond(self) -> Column:
         return self._from_expr(self.expr.dt.microsecond())
 
-    def nanosecond(self) -> PolarsColumn:
+    def nanosecond(self) -> Column:
         return self._from_expr(self.expr.dt.nanosecond())
 
-    def iso_weekday(self) -> PolarsColumn:
+    def iso_weekday(self) -> Column:
         return self._from_expr(self.expr.dt.weekday())
 
-    def floor(self, frequency: str) -> PolarsColumn:
+    def floor(self, frequency: str) -> Column:
         frequency = (
             frequency.replace("day", "d")
             .replace("hour", "h")
@@ -389,7 +389,7 @@ class PolarsColumn(Column):
         self,
         *,
         time_unit: Literal["s", "ms", "us"] = "s",
-    ) -> PolarsColumn:
+    ) -> Column:
         if time_unit != "s":
             return self._from_expr(self.expr.dt.timestamp(time_unit=time_unit))
         return self._from_expr(self.expr.dt.timestamp(time_unit="ms") // 1000)

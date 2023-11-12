@@ -13,17 +13,13 @@ from pandas.api.types import is_extension_array_dtype
 import dataframe_api_compat.pandas_standard
 
 if TYPE_CHECKING:
-    from dataframe_api import Column
-    from dataframe_api import DataFrame
+    from dataframe_api import Column as ColumnT
     from dataframe_api.typing import DType
 
-    from dataframe_api_compat.pandas_standard.dataframe_object import PandasDataFrame
+    from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
     from dataframe_api_compat.pandas_standard.scalar_object import Scalar
 else:
-    Column = object
-    DataFrame = object
-    Namespace = object
-    Aggregation = object
+    ColumnT = object
 
 
 NUMPY_MAPPING = {
@@ -39,12 +35,12 @@ NUMPY_MAPPING = {
 }
 
 
-class PandasColumn(Column):
+class Column(ColumnT):
     def __init__(
         self,
         series: pd.Series[Any],
         *,
-        df: PandasDataFrame | None,
+        df: DataFrame | None,
         api_version: str,
     ) -> None:
         """Parameters
@@ -67,8 +63,8 @@ class PandasColumn(Column):
         msg = ""
         raise NotImplementedError(msg)
 
-    def _from_series(self, series: pd.Series) -> PandasColumn:
-        return PandasColumn(
+    def _from_series(self, series: pd.Series) -> Column:
+        return Column(
             series.reset_index(drop=True),
             api_version=self.api_version,
             df=self.df,
@@ -84,7 +80,7 @@ class PandasColumn(Column):
                     msg,
                 )
             return other.value
-        if isinstance(other, PandasColumn):
+        if isinstance(other, Column):
             if id(self.df) != id(other.df):
                 msg = "cannot compare columns from different dataframes"
                 raise ValueError(msg)
@@ -99,8 +95,8 @@ class PandasColumn(Column):
     # In the standard
     def __column_namespace__(
         self,
-    ) -> dataframe_api_compat.pandas_standard.PandasNamespace:
-        return dataframe_api_compat.pandas_standard.PandasNamespace(
+    ) -> dataframe_api_compat.pandas_standard.Namespace:
+        return dataframe_api_compat.pandas_standard.Namespace(
             api_version=self.api_version,
         )
 
@@ -118,10 +114,10 @@ class PandasColumn(Column):
             self._column.dtype,
         )
 
-    def get_rows(self, indices: Column) -> PandasColumn:
+    def get_rows(self, indices: Column) -> Column:
         return self._from_series(self.column.iloc[indices.column])
 
-    def filter(self, mask: Column) -> PandasColumn:
+    def filter(self, mask: Column) -> Column:
         ser = self.column
         return self._from_series(ser.loc[mask.column])
 
@@ -134,119 +130,119 @@ class PandasColumn(Column):
         start: int | None,
         stop: int | None,
         step: int | None,
-    ) -> PandasColumn:
+    ) -> Column:
         return self._from_series(self.column.iloc[start:stop:step])
 
     # Binary comparisons
 
-    def __eq__(self, other: PandasColumn | Any) -> PandasColumn:  # type: ignore[override]
+    def __eq__(self, other: Column | Any) -> Column:  # type: ignore[override]
         other = self._validate_comparand(other)
         ser = self.column
         return self._from_series(ser == other).rename(ser.name)
 
-    def __ne__(self, other: Column | Any) -> PandasColumn:  # type: ignore[override]
+    def __ne__(self, other: Column | Any) -> Column:  # type: ignore[override]
         other = self._validate_comparand(other)
         ser = self.column
         return self._from_series(ser != other).rename(ser.name)
 
-    def __ge__(self, other: Column | Any) -> PandasColumn:
+    def __ge__(self, other: Column | Any) -> Column:
         other = self._validate_comparand(other)
         ser = self.column
         return self._from_series(ser >= other).rename(ser.name)
 
-    def __gt__(self, other: Column | Any) -> PandasColumn:
+    def __gt__(self, other: Column | Any) -> Column:
         other = self._validate_comparand(other)
         ser = self.column
         return self._from_series(ser > other).rename(ser.name)
 
-    def __le__(self, other: Column | Any) -> PandasColumn:
+    def __le__(self, other: Column | Any) -> Column:
         other = self._validate_comparand(other)
         ser = self.column
         return self._from_series(ser <= other).rename(ser.name)
 
-    def __lt__(self, other: Column | Any) -> PandasColumn:
+    def __lt__(self, other: Column | Any) -> Column:
         other = self._validate_comparand(other)
         ser = self.column
         return self._from_series(ser < other).rename(ser.name)
 
-    def __and__(self, other: Column | bool) -> PandasColumn:
+    def __and__(self, other: Column | bool) -> Column:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser & other).rename(ser.name)
 
-    def __rand__(self, other: Column | Any) -> PandasColumn:
+    def __rand__(self, other: Column | Any) -> Column:
         return self.__and__(other)
 
-    def __or__(self, other: Column | bool) -> PandasColumn:
+    def __or__(self, other: Column | bool) -> Column:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser | other).rename(ser.name)
 
-    def __ror__(self, other: Column | Any) -> PandasColumn:
+    def __ror__(self, other: Column | Any) -> Column:
         return self.__or__(other)
 
-    def __add__(self, other: Column | Any) -> PandasColumn:
+    def __add__(self, other: Column | Any) -> Column:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser + other).rename(ser.name)
 
-    def __radd__(self, other: Column | Any) -> PandasColumn:
+    def __radd__(self, other: Column | Any) -> Column:
         return self.__add__(other)
 
-    def __sub__(self, other: Column | Any) -> PandasColumn:
+    def __sub__(self, other: Column | Any) -> Column:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser - other).rename(ser.name)
 
-    def __rsub__(self, other: Column | Any) -> PandasColumn:
+    def __rsub__(self, other: Column | Any) -> Column:
         return -1 * self.__sub__(other)
 
-    def __mul__(self, other: Column | Any) -> PandasColumn:
+    def __mul__(self, other: Column | Any) -> Column:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser * other).rename(ser.name)
 
-    def __rmul__(self, other: Column | Any) -> PandasColumn:
+    def __rmul__(self, other: Column | Any) -> Column:
         return self.__mul__(other)
 
-    def __truediv__(self, other: Column | Any) -> PandasColumn:
+    def __truediv__(self, other: Column | Any) -> Column:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser / other).rename(ser.name)
 
-    def __rtruediv__(self, other: Column | Any) -> PandasColumn:
+    def __rtruediv__(self, other: Column | Any) -> Column:
         raise NotImplementedError
 
-    def __floordiv__(self, other: Column | Any) -> PandasColumn:
+    def __floordiv__(self, other: Column | Any) -> Column:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser // other).rename(ser.name)
 
-    def __rfloordiv__(self, other: Column | Any) -> PandasColumn:
+    def __rfloordiv__(self, other: Column | Any) -> Column:
         raise NotImplementedError
 
-    def __pow__(self, other: Column | Any) -> PandasColumn:
+    def __pow__(self, other: Column | Any) -> Column:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser**other).rename(ser.name)
 
-    def __rpow__(self, other: Column | Any) -> PandasColumn:  # pragma: no cover
+    def __rpow__(self, other: Column | Any) -> Column:  # pragma: no cover
         raise NotImplementedError
 
-    def __mod__(self, other: Column | Any) -> PandasColumn:
+    def __mod__(self, other: Column | Any) -> Column:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser % other).rename(ser.name)
 
-    def __rmod__(self, other: Column | Any) -> PandasColumn:  # pragma: no cover
+    def __rmod__(self, other: Column | Any) -> Column:  # pragma: no cover
         raise NotImplementedError
 
-    def __divmod__(self, other: Column | Any) -> tuple[PandasColumn, PandasColumn]:
+    def __divmod__(self, other: Column | Any) -> tuple[Column, Column]:
         quotient = self // other
         remainder = self - quotient * other
         return quotient, remainder
 
-    def __invert__(self: PandasColumn) -> PandasColumn:
+    def __invert__(self: Column) -> Column:
         ser = self.column
         return self._from_series(~ser)
 
@@ -302,11 +298,11 @@ class PandasColumn(Column):
 
     # Transformations
 
-    def is_null(self) -> PandasColumn:
+    def is_null(self) -> Column:
         ser = self.column
         return self._from_series(ser.isna())
 
-    def is_nan(self) -> PandasColumn:
+    def is_nan(self) -> Column:
         ser = self.column
         if is_extension_array_dtype(ser.dtype):
             return self._from_series(np.isnan(ser).replace(pd.NA, False).astype(bool))
@@ -317,7 +313,7 @@ class PandasColumn(Column):
         *,
         ascending: bool = True,
         nulls_position: Literal["first", "last"] = "last",
-    ) -> PandasColumn:
+    ) -> Column:
         ser = self.column
         if ascending:
             return self._from_series(ser.sort_values().rename(self.name))
@@ -328,13 +324,13 @@ class PandasColumn(Column):
         *,
         ascending: bool = True,
         nulls_position: Literal["first", "last"] = "last",
-    ) -> PandasColumn:
+    ) -> Column:
         ser = self.column
         if ascending:
             return self._from_series(ser.sort_values().index.to_series(name=self.name))
         return self._from_series(ser.sort_values().index.to_series(name=self.name)[::-1])
 
-    def is_in(self, values: Column) -> PandasColumn:
+    def is_in(self, values: Column) -> Column:
         ser = self.column
         return self._from_series(ser.isin(values.column))
 
@@ -342,11 +338,11 @@ class PandasColumn(Column):
         self,
         *,
         skip_nulls: bool = True,
-    ) -> PandasColumn:  # pragma: no cover
+    ) -> Column:  # pragma: no cover
         msg = "not yet supported"
         raise NotImplementedError(msg)
 
-    def fill_nan(self, value: float | pd.NAType) -> PandasColumn:
+    def fill_nan(self, value: float | pd.NAType) -> Column:
         ser = self.column.copy()
         ser[np.isnan(ser).fillna(False).to_numpy(bool)] = value
         return self._from_series(ser)
@@ -354,7 +350,7 @@ class PandasColumn(Column):
     def fill_null(
         self,
         value: Any,
-    ) -> PandasColumn:
+    ) -> Column:
         ser = self.column.copy()
         if is_extension_array_dtype(ser.dtype):
             # crazy hack to preserve nan...
@@ -371,23 +367,23 @@ class PandasColumn(Column):
             ser = ser.fillna(value)
         return self._from_series(ser.rename(self.name))
 
-    def cumulative_sum(self, *, skip_nulls: bool = True) -> PandasColumn:
+    def cumulative_sum(self, *, skip_nulls: bool = True) -> Column:
         ser = self.column
         return self._from_series(ser.cumsum())
 
-    def cumulative_prod(self, *, skip_nulls: bool = True) -> PandasColumn:
+    def cumulative_prod(self, *, skip_nulls: bool = True) -> Column:
         ser = self.column
         return self._from_series(ser.cumprod())
 
-    def cumulative_max(self, *, skip_nulls: bool = True) -> PandasColumn:
+    def cumulative_max(self, *, skip_nulls: bool = True) -> Column:
         ser = self.column
         return self._from_series(ser.cummax())
 
-    def cumulative_min(self, *, skip_nulls: bool = True) -> PandasColumn:
+    def cumulative_min(self, *, skip_nulls: bool = True) -> Column:
         ser = self.column
         return self._from_series(ser.cummin())
 
-    def rename(self, name: str) -> PandasColumn:
+    def rename(self, name: str) -> Column:
         ser = self.column
         return self._from_series(ser.rename(name))
 
@@ -401,7 +397,7 @@ class PandasColumn(Column):
         ser = self.materialise()
         return len(ser)
 
-    def shift(self, periods: int, *, fill_value: Scalar | None = None) -> PandasColumn:
+    def shift(self, periods: int, *, fill_value: Scalar | None = None) -> Column:
         ser = self.column
         if fill_value is not None:
             fill_value = self._validate_comparand(fill_value)  # type: ignore[assignment]
@@ -410,43 +406,43 @@ class PandasColumn(Column):
 
     # --- temporal methods ---
 
-    def year(self) -> PandasColumn:
+    def year(self) -> Column:
         ser = self.column
         return self._from_series(ser.dt.year)
 
-    def month(self) -> PandasColumn:
+    def month(self) -> Column:
         ser = self.column
         return self._from_series(ser.dt.month)
 
-    def day(self) -> PandasColumn:
+    def day(self) -> Column:
         ser = self.column
         return self._from_series(ser.dt.day)
 
-    def hour(self) -> PandasColumn:
+    def hour(self) -> Column:
         ser = self.column
         return self._from_series(ser.dt.hour)
 
-    def minute(self) -> PandasColumn:
+    def minute(self) -> Column:
         ser = self.column
         return self._from_series(ser.dt.minute)
 
-    def second(self) -> PandasColumn:
+    def second(self) -> Column:
         ser = self.column
         return self._from_series(ser.dt.second)
 
-    def microsecond(self) -> PandasColumn:
+    def microsecond(self) -> Column:
         ser = self.column
         return self._from_series(ser.dt.microsecond)
 
-    def nanosecond(self) -> PandasColumn:
+    def nanosecond(self) -> Column:
         ser = self.column
         return self._from_series(ser.dt.microsecond * 1000 + ser.dt.nanosecond)
 
-    def iso_weekday(self) -> PandasColumn:
+    def iso_weekday(self) -> Column:
         ser = self.column
         return self._from_series(ser.dt.weekday + 1)
 
-    def floor(self, frequency: str) -> PandasColumn:
+    def floor(self, frequency: str) -> Column:
         frequency = (
             frequency.replace("day", "D")
             .replace("hour", "H")
@@ -463,7 +459,7 @@ class PandasColumn(Column):
         self,
         *,
         time_unit: Literal["s", "ms", "us"] = "s",
-    ) -> PandasColumn:
+    ) -> Column:
         ser = self.column
         if ser.dt.tz is None:
             result = ser - datetime(1970, 1, 1)
