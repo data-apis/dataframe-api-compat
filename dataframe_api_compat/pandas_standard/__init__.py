@@ -350,6 +350,40 @@ class Namespace(NamespaceT):
 
         return pd.Timestamp(dt.date(year, month, day))
 
+    # --- horizontal reductions
+
+    def all_rowwise(self, *columns: Column) -> Column:
+        series = []
+        df: DataFrame | None = None
+        for column in columns:
+            series.append(column.column)
+            if df is None:
+                df = column.df
+            elif id(column.df) != id(df):
+                msg = "Expected columns from same dataframe"
+                raise ValueError(msg)
+        return Column(
+            pd.concat(series, axis=1).all(axis=1),
+            api_version=self.api_version,
+            df=df,
+        )
+
+    def any_rowwise(self, *columns: Column) -> Column:
+        series = []
+        df: DataFrame | None = None
+        for column in columns:
+            series.append(column.column)
+            if df is None:
+                df = column.df
+            elif id(column.df) != id(df):
+                msg = "Expected columns from same dataframe"
+                raise ValueError(msg)
+        return Column(
+            pd.concat(series, axis=1).any(axis=1),
+            api_version=self.api_version,
+            df=df,
+        )
+
     class Aggregation(AggregationT):  # pragma: no cover
         def __init__(self, column_name: str, output_name: str, aggregation: str) -> None:
             self.column_name = column_name
