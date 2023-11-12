@@ -14,14 +14,12 @@ import dataframe_api_compat.pandas_standard
 
 if TYPE_CHECKING:
     from dataframe_api import Column
-    from dataframe_api import DataFrame
     from dataframe_api.typing import DType
 
-    from dataframe_api_compat.pandas_standard.dataframe_object import PandasDataFrame
+    from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
     from dataframe_api_compat.pandas_standard.scalar_object import Scalar
 else:
     Column = object
-    DataFrame = object
     Namespace = object
     Aggregation = object
 
@@ -44,7 +42,7 @@ class PandasColumn(Column):
         self,
         series: pd.Series[Any],
         *,
-        df: PandasDataFrame | None,
+        df: DataFrame | None,
         api_version: str,
     ) -> None:
         """Parameters

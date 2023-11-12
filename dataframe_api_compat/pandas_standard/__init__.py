@@ -9,7 +9,7 @@ from typing import cast
 import pandas as pd
 
 from dataframe_api_compat.pandas_standard.column_object import PandasColumn
-from dataframe_api_compat.pandas_standard.dataframe_object import PandasDataFrame
+from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -167,8 +167,8 @@ def convert_to_standard_compliant_column(
 def convert_to_standard_compliant_dataframe(
     df: pd.DataFrame,
     api_version: str | None = None,
-) -> PandasDataFrame:
-    return PandasDataFrame(df, api_version=api_version or "2023.11-beta")
+) -> DataFrame:
+    return DataFrame(df, api_version=api_version or "2023.11-beta")
 
 
 class PandasNamespace(Namespace):
@@ -237,14 +237,14 @@ class PandasNamespace(Namespace):
     def dataframe_from_columns(
         self,
         *columns: PandasColumn,  # type: ignore[override]
-    ) -> PandasDataFrame:
+    ) -> DataFrame:
         data = {}
         api_versions: set[str] = set()
         for col in columns:
             ser = col.materialise()
             data[ser.name] = ser
             api_versions.add(col.api_version)
-        return PandasDataFrame(pd.DataFrame(data), api_version=list(api_versions)[0])
+        return DataFrame(pd.DataFrame(data), api_version=list(api_versions)[0])
 
     def column_from_1d_array(
         self,
@@ -272,8 +272,8 @@ class PandasNamespace(Namespace):
 
     def concat(
         self,
-        dataframes: Sequence[PandasDataFrame],  # type: ignore[override]
-    ) -> PandasDataFrame:
+        dataframes: Sequence[DataFrame],  # type: ignore[override]
+    ) -> DataFrame:
         dtypes = dataframes[0].dataframe.dtypes
         dfs: list[pd.DataFrame] = []
         api_versions: set[str] = set()
@@ -292,7 +292,7 @@ class PandasNamespace(Namespace):
         if len(api_versions) > 1:  # pragma: no cover
             msg = f"Multiple api versions found: {api_versions}"
             raise ValueError(msg)
-        return PandasDataFrame(
+        return DataFrame(
             pd.concat(
                 dfs,
                 axis=0,
@@ -306,14 +306,14 @@ class PandasNamespace(Namespace):
         data: Any,
         *,
         schema: dict[str, Any],
-    ) -> PandasDataFrame:  # pragma: no cover
+    ) -> DataFrame:  # pragma: no cover
         df = pd.DataFrame(data, columns=list(schema)).astype(
             {
                 key: map_standard_dtype_to_pandas_dtype(value)
                 for key, value in schema.items()
             },
         )
-        return PandasDataFrame(df, api_version=self.api_version)
+        return DataFrame(df, api_version=self.api_version)
 
     def is_null(self, value: Any) -> bool:
         return value is self.null

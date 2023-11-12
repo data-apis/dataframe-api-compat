@@ -17,19 +17,19 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from dataframe_api import Column
-    from dataframe_api import DataFrame
+    from dataframe_api import DataFrame as DataFrameT
     from dataframe_api.typing import DType
 
     from dataframe_api_compat.pandas_standard.column_object import PandasColumn
     from dataframe_api_compat.pandas_standard.group_by_object import PandasGroupBy
 else:
     Column = object
-    DataFrame = object
+    DataFrameT = object
     Namespace = object
     Aggregation = object
 
 
-class PandasDataFrame(DataFrame):
+class DataFrame(DataFrameT):
     def __init__(
         self,
         dataframe: pd.DataFrame,
@@ -116,8 +116,8 @@ class PandasDataFrame(DataFrame):
         start: int | None,
         stop: int | None,
         step: int | None,
-    ) -> PandasDataFrame:
-        return PandasDataFrame(
+    ) -> DataFrame:
+        return DataFrame(
             self.dataframe.iloc[start:stop:step],
             api_version=self.api_version,
         )
@@ -135,43 +135,43 @@ class PandasDataFrame(DataFrame):
                 raise KeyError(msg)
         return PandasGroupBy(self.dataframe, keys, api_version=self.api_version)
 
-    def select(self, *columns: str) -> PandasDataFrame:
-        return PandasDataFrame(
+    def select(self, *columns: str) -> DataFrame:
+        return DataFrame(
             self.dataframe.loc[:, list(columns)],
             api_version=self.api_version,
         )
 
-    def get_rows(self, indices: Column) -> PandasDataFrame:
+    def get_rows(self, indices: Column) -> DataFrame:
         self._validate_column(indices)
-        return PandasDataFrame(
+        return DataFrame(
             self.dataframe.iloc[indices.column, :],
             api_version=self.api_version,
         )
 
-    def filter(self, mask: Column) -> PandasDataFrame:
+    def filter(self, mask: Column) -> DataFrame:
         self._validate_column(mask)
         df = self.dataframe
         df = df.loc[mask.column]
-        return PandasDataFrame(df, api_version=self.api_version)
+        return DataFrame(df, api_version=self.api_version)
 
-    def assign(self, *columns: Column) -> PandasDataFrame:
+    def assign(self, *columns: Column) -> DataFrame:
         df = self.dataframe.copy()  # TODO: remove defensive copy with CoW?
         for column in columns:
             self._validate_column(column)
             df[column.name] = column.column
-        return PandasDataFrame(df, api_version=self.api_version)
+        return DataFrame(df, api_version=self.api_version)
 
-    def drop_columns(self, *labels: str) -> PandasDataFrame:
-        return PandasDataFrame(
+    def drop_columns(self, *labels: str) -> DataFrame:
+        return DataFrame(
             self.dataframe.drop(list(labels), axis=1),
             api_version=self.api_version,
         )
 
-    def rename_columns(self, mapping: Mapping[str, str]) -> PandasDataFrame:
+    def rename_columns(self, mapping: Mapping[str, str]) -> DataFrame:
         if not isinstance(mapping, collections.abc.Mapping):
             msg = f"Expected Mapping, got: {type(mapping)}"
             raise TypeError(msg)
-        return PandasDataFrame(
+        return DataFrame(
             self.dataframe.rename(columns=mapping),
             api_version=self.api_version,
         )
@@ -187,180 +187,180 @@ class PandasDataFrame(DataFrame):
         *keys: str,
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
-    ) -> PandasDataFrame:
+    ) -> DataFrame:
         if not keys:
             keys = self.dataframe.columns.tolist()
         df = self.dataframe
-        return PandasDataFrame(
+        return DataFrame(
             df.sort_values(list(keys), ascending=ascending),
             api_version=self.api_version,
         )
 
     # Binary operations
 
-    def __eq__(self, other: Any) -> PandasDataFrame:  # type: ignore[override]
-        return PandasDataFrame(self.dataframe.__eq__(other), api_version=self.api_version)
+    def __eq__(self, other: Any) -> DataFrame:  # type: ignore[override]
+        return DataFrame(self.dataframe.__eq__(other), api_version=self.api_version)
 
-    def __ne__(self, other: Any) -> PandasDataFrame:  # type: ignore[override]
-        return PandasDataFrame(self.dataframe.__ne__(other), api_version=self.api_version)
+    def __ne__(self, other: Any) -> DataFrame:  # type: ignore[override]
+        return DataFrame(self.dataframe.__ne__(other), api_version=self.api_version)
 
-    def __ge__(self, other: Any) -> PandasDataFrame:
-        return PandasDataFrame(self.dataframe.__ge__(other), api_version=self.api_version)
+    def __ge__(self, other: Any) -> DataFrame:
+        return DataFrame(self.dataframe.__ge__(other), api_version=self.api_version)
 
-    def __gt__(self, other: Any) -> PandasDataFrame:
-        return PandasDataFrame(self.dataframe.__gt__(other), api_version=self.api_version)
+    def __gt__(self, other: Any) -> DataFrame:
+        return DataFrame(self.dataframe.__gt__(other), api_version=self.api_version)
 
-    def __le__(self, other: Any) -> PandasDataFrame:
-        return PandasDataFrame(self.dataframe.__le__(other), api_version=self.api_version)
+    def __le__(self, other: Any) -> DataFrame:
+        return DataFrame(self.dataframe.__le__(other), api_version=self.api_version)
 
-    def __lt__(self, other: Any) -> PandasDataFrame:
-        return PandasDataFrame(self.dataframe.__lt__(other), api_version=self.api_version)
+    def __lt__(self, other: Any) -> DataFrame:
+        return DataFrame(self.dataframe.__lt__(other), api_version=self.api_version)
 
-    def __and__(self, other: Any) -> PandasDataFrame:
-        return PandasDataFrame(
+    def __and__(self, other: Any) -> DataFrame:
+        return DataFrame(
             self.dataframe.__and__(other),
             api_version=self.api_version,
         )
 
-    def __rand__(self, other: Column | Any) -> PandasDataFrame:
+    def __rand__(self, other: Column | Any) -> DataFrame:
         return self.__and__(other)
 
-    def __or__(self, other: Any) -> PandasDataFrame:
-        return PandasDataFrame(self.dataframe.__or__(other), api_version=self.api_version)
+    def __or__(self, other: Any) -> DataFrame:
+        return DataFrame(self.dataframe.__or__(other), api_version=self.api_version)
 
-    def __ror__(self, other: Column | Any) -> PandasDataFrame:
+    def __ror__(self, other: Column | Any) -> DataFrame:
         return self.__or__(other)
 
-    def __add__(self, other: Any) -> PandasDataFrame:
-        return PandasDataFrame(
+    def __add__(self, other: Any) -> DataFrame:
+        return DataFrame(
             self.dataframe.__add__(other),
             api_version=self.api_version,
         )
 
-    def __radd__(self, other: Column | Any) -> PandasDataFrame:
+    def __radd__(self, other: Column | Any) -> DataFrame:
         return self.__add__(other)
 
-    def __sub__(self, other: Any) -> PandasDataFrame:
-        return PandasDataFrame(
+    def __sub__(self, other: Any) -> DataFrame:
+        return DataFrame(
             self.dataframe.__sub__(other),
             api_version=self.api_version,
         )
 
-    def __rsub__(self, other: Column | Any) -> PandasDataFrame:
+    def __rsub__(self, other: Column | Any) -> DataFrame:
         return -1 * self.__sub__(other)
 
-    def __mul__(self, other: Any) -> PandasDataFrame:
-        return PandasDataFrame(
+    def __mul__(self, other: Any) -> DataFrame:
+        return DataFrame(
             self.dataframe.__mul__(other),
             api_version=self.api_version,
         )
 
-    def __rmul__(self, other: Column | Any) -> PandasDataFrame:
+    def __rmul__(self, other: Column | Any) -> DataFrame:
         return self.__mul__(other)
 
-    def __truediv__(self, other: Any) -> PandasDataFrame:
-        return PandasDataFrame(
+    def __truediv__(self, other: Any) -> DataFrame:
+        return DataFrame(
             self.dataframe.__truediv__(other),
             api_version=self.api_version,
         )
 
-    def __rtruediv__(self, other: Column | Any) -> PandasDataFrame:  # pragma: no cover
+    def __rtruediv__(self, other: Column | Any) -> DataFrame:  # pragma: no cover
         raise NotImplementedError
 
-    def __floordiv__(self, other: Any) -> PandasDataFrame:
-        return PandasDataFrame(
+    def __floordiv__(self, other: Any) -> DataFrame:
+        return DataFrame(
             self.dataframe.__floordiv__(other),
             api_version=self.api_version,
         )
 
-    def __rfloordiv__(self, other: Column | Any) -> PandasDataFrame:  # pragma: no cover
+    def __rfloordiv__(self, other: Column | Any) -> DataFrame:  # pragma: no cover
         raise NotImplementedError
 
-    def __pow__(self, other: Any) -> PandasDataFrame:
-        return PandasDataFrame(
+    def __pow__(self, other: Any) -> DataFrame:
+        return DataFrame(
             self.dataframe.__pow__(other),
             api_version=self.api_version,
         )
 
-    def __rpow__(self, other: Column | Any) -> PandasDataFrame:  # pragma: no cover
+    def __rpow__(self, other: Column | Any) -> DataFrame:  # pragma: no cover
         raise NotImplementedError
 
-    def __mod__(self, other: Any) -> PandasDataFrame:
-        return PandasDataFrame(
+    def __mod__(self, other: Any) -> DataFrame:
+        return DataFrame(
             self.dataframe.__mod__(other),
             api_version=self.api_version,
         )
 
-    def __rmod__(self, other: Column | Any) -> PandasDataFrame:  # pragma: no cover
+    def __rmod__(self, other: Column | Any) -> DataFrame:  # pragma: no cover
         raise NotImplementedError
 
     def __divmod__(
         self,
         other: DataFrame | Any,
-    ) -> tuple[PandasDataFrame, PandasDataFrame]:
+    ) -> tuple[DataFrame, DataFrame]:
         quotient, remainder = self.dataframe.__divmod__(other)
-        return PandasDataFrame(quotient, api_version=self.api_version), PandasDataFrame(
+        return DataFrame(quotient, api_version=self.api_version), DataFrame(
             remainder,
             api_version=self.api_version,
         )
 
     # Unary
 
-    def __invert__(self) -> PandasDataFrame:
+    def __invert__(self) -> DataFrame:
         self._validate_booleanness()
-        return PandasDataFrame(self.dataframe.__invert__(), api_version=self.api_version)
+        return DataFrame(self.dataframe.__invert__(), api_version=self.api_version)
 
     def __iter__(self) -> NoReturn:
         raise NotImplementedError
 
     # Reductions
 
-    def any(self, *, skip_nulls: bool = True) -> PandasDataFrame:
+    def any(self, *, skip_nulls: bool = True) -> DataFrame:
         self._validate_booleanness()
-        return PandasDataFrame(
+        return DataFrame(
             self.dataframe.any().to_frame().T,
             api_version=self.api_version,
         )
 
-    def all(self, *, skip_nulls: bool = True) -> PandasDataFrame:
+    def all(self, *, skip_nulls: bool = True) -> DataFrame:
         self._validate_booleanness()
-        return PandasDataFrame(
+        return DataFrame(
             self.dataframe.all().to_frame().T,
             api_version=self.api_version,
         )
 
-    def min(self, *, skip_nulls: bool = True) -> PandasDataFrame:
-        return PandasDataFrame(
+    def min(self, *, skip_nulls: bool = True) -> DataFrame:
+        return DataFrame(
             self.dataframe.min().to_frame().T,
             api_version=self.api_version,
         )
 
-    def max(self, *, skip_nulls: bool = True) -> PandasDataFrame:
-        return PandasDataFrame(
+    def max(self, *, skip_nulls: bool = True) -> DataFrame:
+        return DataFrame(
             self.dataframe.max().to_frame().T,
             api_version=self.api_version,
         )
 
-    def sum(self, *, skip_nulls: bool = True) -> PandasDataFrame:
-        return PandasDataFrame(
+    def sum(self, *, skip_nulls: bool = True) -> DataFrame:
+        return DataFrame(
             self.dataframe.sum().to_frame().T,
             api_version=self.api_version,
         )
 
-    def prod(self, *, skip_nulls: bool = True) -> PandasDataFrame:
-        return PandasDataFrame(
+    def prod(self, *, skip_nulls: bool = True) -> DataFrame:
+        return DataFrame(
             self.dataframe.prod().to_frame().T,
             api_version=self.api_version,
         )
 
-    def median(self, *, skip_nulls: bool = True) -> PandasDataFrame:
-        return PandasDataFrame(
+    def median(self, *, skip_nulls: bool = True) -> DataFrame:
+        return DataFrame(
             self.dataframe.median().to_frame().T,
             api_version=self.api_version,
         )
 
-    def mean(self, *, skip_nulls: bool = True) -> PandasDataFrame:
-        return PandasDataFrame(
+    def mean(self, *, skip_nulls: bool = True) -> DataFrame:
+        return DataFrame(
             self.dataframe.mean().to_frame().T,
             api_version=self.api_version,
         )
@@ -370,8 +370,8 @@ class PandasDataFrame(DataFrame):
         *,
         correction: int | float = 1.0,
         skip_nulls: bool = True,
-    ) -> PandasDataFrame:
-        return PandasDataFrame(
+    ) -> DataFrame:
+        return DataFrame(
             self.dataframe.std().to_frame().T,
             api_version=self.api_version,
         )
@@ -381,8 +381,8 @@ class PandasDataFrame(DataFrame):
         *,
         correction: int | float = 1.0,
         skip_nulls: bool = True,
-    ) -> PandasDataFrame:
-        return PandasDataFrame(
+    ) -> DataFrame:
+        return DataFrame(
             self.dataframe.var().to_frame().T,
             api_version=self.api_version,
         )
@@ -426,13 +426,13 @@ class PandasDataFrame(DataFrame):
 
     # Transformations
 
-    def is_null(self, *, skip_nulls: bool = True) -> PandasDataFrame:
+    def is_null(self, *, skip_nulls: bool = True) -> DataFrame:
         result: list[pd.Series] = []
         for column in self.dataframe.columns:
             result.append(self.dataframe[column].isna())
-        return PandasDataFrame(pd.concat(result, axis=1), api_version=self.api_version)
+        return DataFrame(pd.concat(result, axis=1), api_version=self.api_version)
 
-    def is_nan(self) -> PandasDataFrame:
+    def is_nan(self) -> DataFrame:
         result: list[pd.Series] = []
         for column in self.dataframe.columns:
             if is_extension_array_dtype(self.dataframe[column].dtype):
@@ -441,9 +441,9 @@ class PandasDataFrame(DataFrame):
                 )
             else:
                 result.append(self.dataframe[column].isna())
-        return PandasDataFrame(pd.concat(result, axis=1), api_version=self.api_version)
+        return DataFrame(pd.concat(result, axis=1), api_version=self.api_version)
 
-    def fill_nan(self, value: float | pd.NAType) -> PandasDataFrame:
+    def fill_nan(self, value: float | pd.NAType) -> DataFrame:
         new_cols = {}
         df = self.dataframe
         for col in df.columns:
@@ -460,14 +460,14 @@ class PandasDataFrame(DataFrame):
                     ser[np.isnan(ser).fillna(False).to_numpy(bool)] = value
             new_cols[col] = ser
         df = pd.DataFrame(new_cols)
-        return PandasDataFrame(df, api_version=self.api_version)
+        return DataFrame(df, api_version=self.api_version)
 
     def fill_null(
         self,
         value: Any,
         *,
         column_names: list[str] | None = None,
-    ) -> PandasDataFrame:
+    ) -> DataFrame:
         if column_names is None:
             column_names = self.dataframe.columns.tolist()
         assert isinstance(column_names, list)  # help type checkers
@@ -488,7 +488,7 @@ class PandasDataFrame(DataFrame):
             else:
                 col = col.fillna(value)
             df[column] = col
-        return PandasDataFrame(df, api_version=self.api_version)
+        return DataFrame(df, api_version=self.api_version)
 
     # Other
 
@@ -499,12 +499,12 @@ class PandasDataFrame(DataFrame):
         how: Literal["left", "inner", "outer"],
         left_on: str | list[str],
         right_on: str | list[str],
-    ) -> PandasDataFrame:
+    ) -> DataFrame:
         if how not in ["left", "inner", "outer"]:
             msg = f"Expected 'left', 'inner', 'outer', got: {how}"
             raise ValueError(msg)
-        assert isinstance(other, PandasDataFrame)
-        return PandasDataFrame(
+        assert isinstance(other, DataFrame)
+        return DataFrame(
             self.dataframe.merge(
                 other.dataframe,
                 left_on=left_on,
@@ -514,11 +514,11 @@ class PandasDataFrame(DataFrame):
             api_version=self.api_version,
         )
 
-    def persist(self) -> PandasDataFrame:
+    def persist(self) -> DataFrame:
         if self.is_persisted:
             msg = "Dataframe is already collected"
             raise ValueError(msg)
-        return PandasDataFrame(
+        return DataFrame(
             self.dataframe,
             api_version=self.api_version,
             is_collected=True,

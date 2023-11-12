@@ -4,20 +4,16 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 
-from dataframe_api_compat.pandas_standard.dataframe_object import PandasDataFrame
+from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from dataframe_api import Column
-    from dataframe_api import DataFrame
     from dataframe_api import GroupBy
 
     import dataframe_api_compat
 else:
-    Column = object
     GroupBy = object
-    DataFrame = object
     Namespace = object
     Aggregation = object
 
@@ -38,8 +34,8 @@ class PandasGroupBy(GroupBy):
                 msg,
             )
 
-    def size(self) -> PandasDataFrame:
-        return PandasDataFrame(self.grouped.size(), api_version=self._api_version)
+    def size(self) -> DataFrame:
+        return DataFrame(self.grouped.size(), api_version=self._api_version)
 
     def _validate_booleanness(self) -> None:
         if not (
@@ -51,72 +47,72 @@ class PandasGroupBy(GroupBy):
                 msg,
             )
 
-    def any(self, *, skip_nulls: bool = True) -> PandasDataFrame:
+    def any(self, *, skip_nulls: bool = True) -> DataFrame:
         self._validate_booleanness()
         result = self.grouped.any()
         self._validate_result(result)
-        return PandasDataFrame(result, api_version=self._api_version)
+        return DataFrame(result, api_version=self._api_version)
 
-    def all(self, *, skip_nulls: bool = True) -> PandasDataFrame:
+    def all(self, *, skip_nulls: bool = True) -> DataFrame:
         self._validate_booleanness()
         result = self.grouped.all()
         self._validate_result(result)
-        return PandasDataFrame(result, api_version=self._api_version)
+        return DataFrame(result, api_version=self._api_version)
 
-    def min(self, *, skip_nulls: bool = True) -> PandasDataFrame:
+    def min(self, *, skip_nulls: bool = True) -> DataFrame:
         result = self.grouped.min()
         self._validate_result(result)
-        return PandasDataFrame(result, api_version=self._api_version)
+        return DataFrame(result, api_version=self._api_version)
 
-    def max(self, *, skip_nulls: bool = True) -> PandasDataFrame:
+    def max(self, *, skip_nulls: bool = True) -> DataFrame:
         result = self.grouped.max()
         self._validate_result(result)
-        return PandasDataFrame(result, api_version=self._api_version)
+        return DataFrame(result, api_version=self._api_version)
 
-    def sum(self, *, skip_nulls: bool = True) -> PandasDataFrame:
+    def sum(self, *, skip_nulls: bool = True) -> DataFrame:
         result = self.grouped.sum()
         self._validate_result(result)
-        return PandasDataFrame(result, api_version=self._api_version)
+        return DataFrame(result, api_version=self._api_version)
 
-    def prod(self, *, skip_nulls: bool = True) -> PandasDataFrame:
+    def prod(self, *, skip_nulls: bool = True) -> DataFrame:
         result = self.grouped.prod()
         self._validate_result(result)
-        return PandasDataFrame(result, api_version=self._api_version)
+        return DataFrame(result, api_version=self._api_version)
 
-    def median(self, *, skip_nulls: bool = True) -> PandasDataFrame:
+    def median(self, *, skip_nulls: bool = True) -> DataFrame:
         result = self.grouped.median()
         self._validate_result(result)
-        return PandasDataFrame(result, api_version=self._api_version)
+        return DataFrame(result, api_version=self._api_version)
 
-    def mean(self, *, skip_nulls: bool = True) -> PandasDataFrame:
+    def mean(self, *, skip_nulls: bool = True) -> DataFrame:
         result = self.grouped.mean()
         self._validate_result(result)
-        return PandasDataFrame(result, api_version=self._api_version)
+        return DataFrame(result, api_version=self._api_version)
 
     def std(
         self,
         *,
         correction: int | float = 1.0,
         skip_nulls: bool = True,
-    ) -> PandasDataFrame:
+    ) -> DataFrame:
         result = self.grouped.std()
         self._validate_result(result)
-        return PandasDataFrame(result, api_version=self._api_version)
+        return DataFrame(result, api_version=self._api_version)
 
     def var(
         self,
         *,
         correction: int | float = 1.0,
         skip_nulls: bool = True,
-    ) -> PandasDataFrame:
+    ) -> DataFrame:
         result = self.grouped.var()
         self._validate_result(result)
-        return PandasDataFrame(result, api_version=self._api_version)
+        return DataFrame(result, api_version=self._api_version)
 
     def aggregate(  # type: ignore[override]
         self,
         *aggregations: dataframe_api_compat.pandas_standard.PandasNamespace.Aggregation,
-    ) -> PandasDataFrame:  # pragma: no cover
+    ) -> DataFrame:  # pragma: no cover
         output_names = [aggregation.output_name for aggregation in aggregations]
 
         include_size = False
@@ -158,7 +154,7 @@ class PandasGroupBy(GroupBy):
         else:
             msg = "No aggregations specified"
             raise ValueError(msg)
-        return PandasDataFrame(
+        return DataFrame(
             df.loc[:, output_names],
             api_version=self._api_version,
             is_collected=False,

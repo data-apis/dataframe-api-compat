@@ -1,29 +1,19 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 from typing import Any
 
 from dataframe_api_compat.pandas_standard.column_object import PandasColumn
-from dataframe_api_compat.pandas_standard.dataframe_object import PandasDataFrame
-
-if TYPE_CHECKING:
-    from dataframe_api import Column
-    from dataframe_api import DataFrame
-else:
-    Column = object
-    DataFrame = object
-    Namespace = object
-    Aggregation = object
+from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
 
 
 class Scalar:
-    def __init__(self, value: Any, api_version: str, df: PandasDataFrame | None) -> None:
+    def __init__(self, value: Any, api_version: str, df: DataFrame | None) -> None:
         self.value = value
         self._api_version = api_version
         self.df = df
 
     def _validate_other(self, other: Any) -> Any:
-        if isinstance(other, (PandasColumn, PandasDataFrame)):
+        if isinstance(other, (PandasColumn, DataFrame)):
             return NotImplemented
         if isinstance(other, Scalar):
             if id(self.df) != id(other.df):
