@@ -394,11 +394,11 @@ class DataFrame(DataFrameT):
 
     # Horizontal reductions
 
-    def all_rowwise(self, *, skip_nulls: bool = True) -> Column:
+    def all_rowwise(self, *, skip_nulls: bool = True) -> Column:  # pragma: no cover
         msg = "Please use `__dataframe_namespace__().all_rowwise` instead"
         raise NotImplementedError(msg)
 
-    def any_rowwise(self, *, skip_nulls: bool = True) -> Column:
+    def any_rowwise(self, *, skip_nulls: bool = True) -> Column:  # pragma: no cover
         msg = "Please use `__dataframe_namespace__().any` instead"
         raise NotImplementedError(msg)
 

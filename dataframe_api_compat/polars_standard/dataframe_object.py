@@ -407,11 +407,11 @@ class DataFrame(DataFrameT):
 
     # Horizontal reductions
 
-    def all_rowwise(self, *, skip_nulls: bool = True) -> Column:
+    def all_rowwise(self, *, skip_nulls: bool = True) -> Column:  # pragma: no cover
         msg = "Please use `__dataframe_namespace__().all` instead"
         raise NotImplementedError(msg)
 
-    def any_rowwise(self, *, skip_nulls: bool = True) -> Column:
+    def any_rowwise(self, *, skip_nulls: bool = True) -> Column:  # pragma: no cover
         msg = "Please use `__dataframe_namespace__().any` instead"
         raise NotImplementedError(msg)
 
@@ -420,11 +420,15 @@ class DataFrame(DataFrameT):
         *keys: str,
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
-    ) -> Column:
+    ) -> Column:  # pragma: no cover
         msg = "Please use `__dataframe_namespace__().sorted_indices` instead"
         raise NotImplementedError(msg)
 
-    def unique_indices(self, *keys: str, skip_nulls: bool = True) -> Column:
+    def unique_indices(
+        self,
+        *keys: str,
+        skip_nulls: bool = True,
+    ) -> Column:  # pragma: no cover
         msg = "Please use `__dataframe_namespace__().unique_indices` instead"
         raise NotImplementedError(msg)
 
