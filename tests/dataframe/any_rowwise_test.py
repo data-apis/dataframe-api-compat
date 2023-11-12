@@ -23,4 +23,4 @@ def test_any_rowwise_invalid(library: str) -> None:
     df = bool_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
     with pytest.raises(ValueError):
-        _ = namespace.any_rowwise(df.col("a"), (df + 1).col("b"))
+        _ = namespace.any_rowwise(df.col("a"), (df + 1).col("b"))  # type: ignore[attr-defined]
