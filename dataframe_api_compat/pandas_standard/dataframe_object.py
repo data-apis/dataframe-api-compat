@@ -394,25 +394,13 @@ class DataFrame(DataFrameT):
 
     # Horizontal reductions
 
-    def all_rowwise(self, *, skip_nulls: bool = True) -> Column:
-        from dataframe_api_compat.pandas_standard.column_object import Column
+    def all_rowwise(self, *, skip_nulls: bool = True) -> Column:  # pragma: no cover
+        msg = "Please use `__dataframe_namespace__().all_rowwise` instead"
+        raise NotImplementedError(msg)
 
-        df = self.dataframe
-        return Column(
-            df.all(axis=1),
-            api_version=self.api_version,
-            df=self,
-        )
-
-    def any_rowwise(self, *, skip_nulls: bool = True) -> Column:
-        from dataframe_api_compat.pandas_standard.column_object import Column
-
-        df = self.dataframe
-        return Column(
-            df.any(axis=1),
-            api_version=self.api_version,
-            df=self,
-        )
+    def any_rowwise(self, *, skip_nulls: bool = True) -> Column:  # pragma: no cover
+        msg = "Please use `__dataframe_namespace__().any` instead"
+        raise NotImplementedError(msg)
 
     def sorted_indices(
         self,
@@ -420,14 +408,16 @@ class DataFrame(DataFrameT):
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
     ) -> Column:  # pragma: no cover
-        raise NotImplementedError
+        msg = "Please use `__dataframe_namespace__().sorted_indices` instead"
+        raise NotImplementedError(msg)
 
     def unique_indices(
         self,
         *keys: str,
         skip_nulls: bool = True,
     ) -> Column:  # pragma: no cover
-        raise NotImplementedError
+        msg = "Please use `__dataframe_namespace__().unique_indices` instead"
+        raise NotImplementedError(msg)
 
     # Transformations
 

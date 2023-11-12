@@ -332,6 +332,51 @@ class Namespace(NamespaceT):
                 dtypes.add(self.String)
         return isinstance(dtype, tuple(dtypes))
 
+    # Horizontal reductions
+
+    def all_rowwise(self, *columns: Column, skip_nulls: bool = True) -> Column:
+        expressions = []
+        df: DataFrame | None = None
+        for column in columns:
+            expressions.append(column.column)
+            if df is None:
+                df = column.df
+            elif id(column.df) != id(df):
+                msg = "Expected columns from same dataframe"
+                raise ValueError(msg)
+        return Column(
+            pl.all_horizontal(expressions).alias("all"),
+            api_version=self.api_version,
+            df=df,
+        )
+
+    def any_rowwise(self, *columns: Column, skip_nulls: bool = True) -> Column:
+        expressions = []
+        df: DataFrame | None = None
+        for column in columns:
+            expressions.append(column.column)
+            if df is None:
+                df = column.df
+            elif id(column.df) != id(df):
+                msg = "Expected columns from same dataframe"
+                raise ValueError(msg)
+        return Column(
+            pl.any_horizontal(expressions).alias("any"),
+            api_version=self.api_version,
+            df=df,
+        )
+
+    def sorted_indices(
+        self,
+        *keys: str,
+        ascending: Sequence[bool] | bool = True,
+        nulls_position: Literal["first", "last"] = "last",
+    ) -> Column:
+        raise NotImplementedError
+
+    def unique_indices(self, *keys: str, skip_nulls: bool = True) -> Column:
+        raise NotImplementedError
+
 
 def map_polars_dtype_to_standard_dtype(dtype: Any) -> DType:
     if dtype == pl.Int64:
