@@ -23,8 +23,6 @@ if TYPE_CHECKING:
     from dataframe_api_compat.pandas_standard.group_by_object import PandasGroupBy
 else:
     DataFrameT = object
-    Namespace = object
-    Aggregation = object
 
 
 class DataFrame(DataFrameT):
