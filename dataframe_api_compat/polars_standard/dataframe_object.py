@@ -470,6 +470,20 @@ class DataFrame(DataFrameT):
         )
         return DataFrame(df, api_version=self.api_version)
 
+    def drop_nulls(
+        self,
+        *,
+        column_names: list[str] | None = None,
+    ) -> DataFrame:
+        namespace = self.__dataframe_namespace__()
+        mask = ~namespace.any_rowwise(
+            *[
+                self.col(col_name).is_null()
+                for col_name in column_names or self.column_names
+            ],
+        )
+        return self.filter(mask)
+
     def join(
         self,
         other: DataFrame,
