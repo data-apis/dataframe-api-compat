@@ -423,12 +423,12 @@ class DataFrame(DataFrameT):
         for col in df.columns:
             ser = df[col].copy()
             if is_extension_array_dtype(ser.dtype):
-                if value is dataframe_api_compat.pandas_standard.Namespace.null:
+                if self.__dataframe_namespace__().is_null(value):
                     ser[np.isnan(ser).fillna(False).to_numpy(bool)] = pd.NA
                 else:
                     ser[np.isnan(ser).fillna(False).to_numpy(bool)] = value
             else:
-                if value is dataframe_api_compat.pandas_standard.Namespace.null:
+                if self.__dataframe_namespace__().is_null(value):
                     ser[np.isnan(ser).fillna(False).to_numpy(bool)] = np.nan
                 else:
                     ser[np.isnan(ser).fillna(False).to_numpy(bool)] = value
@@ -500,9 +500,7 @@ class DataFrame(DataFrameT):
         if overlap := (set(self.column_names) - set(left_on)).intersection(
             set(other.column_names) - set(right_on),
         ):
-            msg = (
-                f"Found overlapping columns in join: {overlap}. Please rename columns to avoid this.",
-            )
+            msg = f"Found overlapping columns in join: {overlap}. Please rename columns to avoid this."
             raise ValueError(msg)
 
         return self._from_dataframe(

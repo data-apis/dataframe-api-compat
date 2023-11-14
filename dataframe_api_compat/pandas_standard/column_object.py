@@ -248,11 +248,11 @@ class Column(ColumnT):
 
     # Reductions
 
-    def any(self, *, skip_nulls: bool = True) -> Scalar:
+    def any(self, *, skip_nulls: bool = True) -> Scalar:  # type: ignore[override]  # todo
         ser = self.column
         return self._scalar(ser.any(), api_version=self.api_version, df=self.df)
 
-    def all(self, *, skip_nulls: bool = True) -> Scalar:
+    def all(self, *, skip_nulls: bool = True) -> Scalar:  # type: ignore[override]  # todo
         ser = self.column
         return self._scalar(ser.all(), api_version=self.api_version, df=self.df)
 

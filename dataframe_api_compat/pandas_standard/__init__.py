@@ -177,46 +177,46 @@ class Namespace(NamespaceT):
         self.__dataframe_api_version__ = api_version
         self.api_version = api_version
 
-    class Int64(Int64T):
+    class Int64(NamespaceT.Int64):
         ...
 
-    class Int32(Int32T):
+    class Int32(NamespaceT.Int32):
         ...
 
-    class Int16(Int16T):
+    class Int16(NamespaceT.Int16):
         ...
 
-    class Int8(Int8T):
+    class Int8(NamespaceT.Int8):
         ...
 
-    class UInt64(UInt64T):
+    class UInt64(NamespaceT.UInt64):
         ...
 
-    class UInt32(UInt32T):
+    class UInt32(NamespaceT.UInt32):
         ...
 
-    class UInt16(UInt16T):
+    class UInt16(NamespaceT.UInt16):
         ...
 
-    class UInt8(UInt8T):
+    class UInt8(NamespaceT.UInt8):
         ...
 
-    class Float64(Float64T):
+    class Float64(NamespaceT.Float64):
         ...
 
-    class Float32(Float32T):
+    class Float32(NamespaceT.Float32):
         ...
 
-    class Bool(BoolT):
+    class Bool(NamespaceT.Bool):
         ...
 
-    class String(StringT):
+    class String(NamespaceT.String):
         ...
 
-    class Date(DateT):
+    class Date(NamespaceT.Date):
         ...
 
-    class Datetime(DatetimeT):
+    class Datetime(NamespaceT.Datetime):
         def __init__(
             self,
             time_unit: Literal["ms", "us"],
@@ -226,14 +226,14 @@ class Namespace(NamespaceT):
             # TODO validate time zone
             self.time_zone = time_zone
 
-    class Duration(DurationT):
+    class Duration(NamespaceT.Duration):
         def __init__(self, time_unit: Literal["ms", "us"]) -> None:
             self.time_unit = time_unit
 
-    class Null:
+    class NullType(NamespaceT.NullType):
         ...
 
-    null = Null()
+    null = NullType()
 
     def dataframe_from_columns(
         self,

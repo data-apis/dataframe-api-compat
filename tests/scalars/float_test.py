@@ -34,7 +34,7 @@ def test_float_binary(library: str, attr: str) -> None:
     other = 0.5
     df = integer_dataframe_2(library).persist()
     scalar = df.col("a").mean()
-    float_scalar = float(scalar)
+    float_scalar = float(scalar)  # type: ignore[arg-type]
     assert getattr(scalar, attr)(other).materialise() == getattr(
         float_scalar,
         attr,
@@ -45,14 +45,14 @@ def test_float_binary_invalid(library: str) -> None:
     lhs = integer_dataframe_2(library).persist().col("a").mean()
     rhs = integer_dataframe_1(library).persist().col("b").mean()
     with pytest.raises(ValueError):
-        _ = lhs > rhs
+        _ = lhs > rhs  # type: ignore[operator]
 
 
 def test_float_binary_lazy_valid(library: str) -> None:
     df = integer_dataframe_2(library).persist()
     lhs = df.col("a").mean()
     rhs = df.col("b").mean()
-    result = lhs > rhs
+    result = lhs > rhs  # type: ignore[operator]
     assert not bool(result)
 
 
@@ -69,7 +69,7 @@ def test_float_binary_lazy_valid(library: str) -> None:
 def test_float_unary(library: str, attr: str) -> None:
     df = integer_dataframe_2(library).persist()
     scalar = df.col("a").mean()
-    float_scalar = float(scalar)
+    float_scalar = float(scalar)  # type: ignore[arg-type]
     assert getattr(scalar, attr)() == getattr(float_scalar, attr)()
 
 
@@ -78,8 +78,8 @@ def test_free_standing(library: str) -> None:
     namespace = df.__dataframe_namespace__()
     ser = namespace.column_from_1d_array(
         np.array([1, 2, 3]),
-        dtype=namespace.Int64(),  # type: ignore[arg-type]
+        dtype=namespace.Int64(),
         name="a",
     )
-    result = float(ser.mean() + 1)
+    result = float(ser.mean() + 1)  # type: ignore[operator]
     assert result == 3.0
