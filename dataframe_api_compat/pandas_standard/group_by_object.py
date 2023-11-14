@@ -155,5 +155,5 @@ class GroupBy(GroupByT):
         return DataFrame(
             df.loc[:, output_names],
             api_version=self._api_version,
-            is_collected=False,
+            is_persisted=False,
         )
