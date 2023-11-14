@@ -31,9 +31,9 @@ class DataFrame(DataFrameT):
         dataframe: pd.DataFrame,
         *,
         api_version: str,
-        is_collected: bool = False,
+        is_persisted: bool = False,
     ) -> None:
-        self.is_persisted = is_collected
+        self.is_persisted = is_persisted
         self._validate_columns(dataframe.columns)
         self._dataframe = dataframe.reset_index(drop=True)
         self.api_version = api_version
@@ -71,6 +71,12 @@ class DataFrame(DataFrameT):
         if id(self) != id(column.df):
             msg = "cannot compare columns from different dataframes"
             raise ValueError(msg)
+
+    def _from_dataframe(self, df: pd.DataFrame) -> DataFrame:
+        return DataFrame(
+            df,
+            api_version=self.api_version,
+        )
 
     # In the Standard
 
@@ -113,10 +119,7 @@ class DataFrame(DataFrameT):
         stop: int | None,
         step: int | None,
     ) -> DataFrame:
-        return DataFrame(
-            self.dataframe.iloc[start:stop:step],
-            api_version=self.api_version,
-        )
+        return self._from_dataframe(self.dataframe.iloc[start:stop:step])
 
     @property
     def dataframe(self) -> pd.DataFrame:
@@ -132,9 +135,8 @@ class DataFrame(DataFrameT):
         return GroupBy(self.dataframe, keys, api_version=self.api_version)
 
     def select(self, *columns: str) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.loc[:, list(columns)],
-            api_version=self.api_version,
         )
 
     def get_rows(
@@ -142,9 +144,8 @@ class DataFrame(DataFrameT):
         indices: Column,  # type: ignore[override]
     ) -> DataFrame:
         self._validate_column(indices)
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.iloc[indices.column, :],
-            api_version=self.api_version,
         )
 
     def filter(
@@ -154,7 +155,7 @@ class DataFrame(DataFrameT):
         self._validate_column(mask)
         df = self.dataframe
         df = df.loc[mask.column]
-        return DataFrame(df, api_version=self.api_version)
+        return self._from_dataframe(df)
 
     def assign(
         self,
@@ -164,21 +165,19 @@ class DataFrame(DataFrameT):
         for column in columns:
             self._validate_column(column)
             df[column.name] = column.column
-        return DataFrame(df, api_version=self.api_version)
+        return self._from_dataframe(df)
 
     def drop_columns(self, *labels: str) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.drop(list(labels), axis=1),
-            api_version=self.api_version,
         )
 
     def rename_columns(self, mapping: Mapping[str, str]) -> DataFrame:
         if not isinstance(mapping, collections.abc.Mapping):
             msg = f"Expected Mapping, got: {type(mapping)}"
             raise TypeError(msg)
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.rename(columns=mapping),
-            api_version=self.api_version,
         )
 
     def get_column_names(self) -> list[str]:  # pragma: no cover
@@ -196,104 +195,95 @@ class DataFrame(DataFrameT):
         if not keys:
             keys = self.dataframe.columns.tolist()
         df = self.dataframe
-        return DataFrame(
+        return self._from_dataframe(
             df.sort_values(list(keys), ascending=ascending),
-            api_version=self.api_version,
         )
 
     # Binary operations
 
     def __eq__(self, other: Any) -> DataFrame:  # type: ignore[override]
-        return DataFrame(self.dataframe.__eq__(other), api_version=self.api_version)
+        return self._from_dataframe(self.dataframe.__eq__(other))
 
     def __ne__(self, other: Any) -> DataFrame:  # type: ignore[override]
-        return DataFrame(self.dataframe.__ne__(other), api_version=self.api_version)
+        return self._from_dataframe(self.dataframe.__ne__(other))
 
     def __ge__(self, other: Any) -> DataFrame:
-        return DataFrame(self.dataframe.__ge__(other), api_version=self.api_version)
+        return self._from_dataframe(self.dataframe.__ge__(other))
 
     def __gt__(self, other: Any) -> DataFrame:
-        return DataFrame(self.dataframe.__gt__(other), api_version=self.api_version)
+        return self._from_dataframe(self.dataframe.__gt__(other))
 
     def __le__(self, other: Any) -> DataFrame:
-        return DataFrame(self.dataframe.__le__(other), api_version=self.api_version)
+        return self._from_dataframe(self.dataframe.__le__(other))
 
     def __lt__(self, other: Any) -> DataFrame:
-        return DataFrame(self.dataframe.__lt__(other), api_version=self.api_version)
+        return self._from_dataframe(self.dataframe.__lt__(other))
 
     def __and__(self, other: Any) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.__and__(other),
-            api_version=self.api_version,
         )
 
     def __rand__(self, other: Column | Any) -> DataFrame:
         return self.__and__(other)
 
     def __or__(self, other: Any) -> DataFrame:
-        return DataFrame(self.dataframe.__or__(other), api_version=self.api_version)
+        return self._from_dataframe(self.dataframe.__or__(other))
 
     def __ror__(self, other: Column | Any) -> DataFrame:
         return self.__or__(other)
 
     def __add__(self, other: Any) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.__add__(other),
-            api_version=self.api_version,
         )
 
     def __radd__(self, other: Column | Any) -> DataFrame:
         return self.__add__(other)
 
     def __sub__(self, other: Any) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.__sub__(other),
-            api_version=self.api_version,
         )
 
     def __rsub__(self, other: Column | Any) -> DataFrame:
         return -1 * self.__sub__(other)
 
     def __mul__(self, other: Any) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.__mul__(other),
-            api_version=self.api_version,
         )
 
     def __rmul__(self, other: Column | Any) -> DataFrame:
         return self.__mul__(other)
 
     def __truediv__(self, other: Any) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.__truediv__(other),
-            api_version=self.api_version,
         )
 
     def __rtruediv__(self, other: Column | Any) -> DataFrame:  # pragma: no cover
         raise NotImplementedError
 
     def __floordiv__(self, other: Any) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.__floordiv__(other),
-            api_version=self.api_version,
         )
 
     def __rfloordiv__(self, other: Column | Any) -> DataFrame:  # pragma: no cover
         raise NotImplementedError
 
     def __pow__(self, other: Any) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.__pow__(other),
-            api_version=self.api_version,
         )
 
     def __rpow__(self, other: Column | Any) -> DataFrame:  # pragma: no cover
         raise NotImplementedError
 
     def __mod__(self, other: Any) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.__mod__(other),
-            api_version=self.api_version,
         )
 
     def __rmod__(self, other: Column | Any) -> DataFrame:  # pragma: no cover
@@ -304,16 +294,15 @@ class DataFrame(DataFrameT):
         other: DataFrame | Any,
     ) -> tuple[DataFrame, DataFrame]:
         quotient, remainder = self.dataframe.__divmod__(other)
-        return DataFrame(quotient, api_version=self.api_version), DataFrame(
+        return self._from_dataframe(quotient), self._from_dataframe(
             remainder,
-            api_version=self.api_version,
         )
 
     # Unary
 
     def __invert__(self) -> DataFrame:
         self._validate_booleanness()
-        return DataFrame(self.dataframe.__invert__(), api_version=self.api_version)
+        return self._from_dataframe(self.dataframe.__invert__())
 
     def __iter__(self) -> NoReturn:
         raise NotImplementedError
@@ -322,52 +311,44 @@ class DataFrame(DataFrameT):
 
     def any(self, *, skip_nulls: bool = True) -> DataFrame:
         self._validate_booleanness()
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.any().to_frame().T,
-            api_version=self.api_version,
         )
 
     def all(self, *, skip_nulls: bool = True) -> DataFrame:
         self._validate_booleanness()
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.all().to_frame().T,
-            api_version=self.api_version,
         )
 
     def min(self, *, skip_nulls: bool = True) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.min().to_frame().T,
-            api_version=self.api_version,
         )
 
     def max(self, *, skip_nulls: bool = True) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.max().to_frame().T,
-            api_version=self.api_version,
         )
 
     def sum(self, *, skip_nulls: bool = True) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.sum().to_frame().T,
-            api_version=self.api_version,
         )
 
     def prod(self, *, skip_nulls: bool = True) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.prod().to_frame().T,
-            api_version=self.api_version,
         )
 
     def median(self, *, skip_nulls: bool = True) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.median().to_frame().T,
-            api_version=self.api_version,
         )
 
     def mean(self, *, skip_nulls: bool = True) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.mean().to_frame().T,
-            api_version=self.api_version,
         )
 
     def std(
@@ -376,9 +357,8 @@ class DataFrame(DataFrameT):
         correction: int | float = 1.0,
         skip_nulls: bool = True,
     ) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.std().to_frame().T,
-            api_version=self.api_version,
         )
 
     def var(
@@ -387,9 +367,8 @@ class DataFrame(DataFrameT):
         correction: int | float = 1.0,
         skip_nulls: bool = True,
     ) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.var().to_frame().T,
-            api_version=self.api_version,
         )
 
     # Horizontal reductions
@@ -425,7 +404,7 @@ class DataFrame(DataFrameT):
         result: list[pd.Series] = []
         for column in self.dataframe.columns:
             result.append(self.dataframe[column].isna())
-        return DataFrame(pd.concat(result, axis=1), api_version=self.api_version)
+        return self._from_dataframe(pd.concat(result, axis=1))
 
     def is_nan(self) -> DataFrame:
         result: list[pd.Series] = []
@@ -436,7 +415,7 @@ class DataFrame(DataFrameT):
                 )
             else:
                 result.append(self.dataframe[column].isna())
-        return DataFrame(pd.concat(result, axis=1), api_version=self.api_version)
+        return self._from_dataframe(pd.concat(result, axis=1))
 
     def fill_nan(self, value: float | pd.NAType) -> DataFrame:
         new_cols = {}
@@ -455,7 +434,7 @@ class DataFrame(DataFrameT):
                     ser[np.isnan(ser).fillna(False).to_numpy(bool)] = value
             new_cols[col] = ser
         df = pd.DataFrame(new_cols)
-        return DataFrame(df, api_version=self.api_version)
+        return self._from_dataframe(df)
 
     def fill_null(
         self,
@@ -483,7 +462,7 @@ class DataFrame(DataFrameT):
             else:
                 col = col.fillna(value)
             df[column] = col
-        return DataFrame(df, api_version=self.api_version)
+        return self._from_dataframe(df)
 
     def drop_nulls(
         self,
@@ -512,25 +491,21 @@ class DataFrame(DataFrameT):
         if how not in ["left", "inner", "outer"]:
             msg = f"Expected 'left', 'inner', 'outer', got: {how}"
             raise ValueError(msg)
-        assert isinstance(other, DataFrame)
-        return DataFrame(
+
+        return self._from_dataframe(
             self.dataframe.merge(
                 other.dataframe,
                 left_on=left_on,
                 right_on=right_on,
                 how=how,
             ),
-            api_version=self.api_version,
         )
 
     def persist(self) -> DataFrame:
-        if self.is_persisted:
-            msg = "Dataframe is already collected"
-            raise ValueError(msg)
         return DataFrame(
             self.dataframe,
             api_version=self.api_version,
-            is_collected=True,
+            is_persisted=True,
         )
 
     def to_array(self, dtype: DType) -> Any:

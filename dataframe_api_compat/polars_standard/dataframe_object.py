@@ -62,7 +62,7 @@ class DataFrame(DataFrameT):
 
     def validate_is_persisted(self) -> pl.DataFrame:
         if not self.is_persisted:
-            msg = "Method requires you to call `.persist` first on the parent dataframe.\n\nNote: `.persist` forces materialisation in lazy libraries and so should be called as late as possible in your pipeline, and only once per dataframe."
+            msg = "Method  requires you to call `.persist` first on the parent dataframe.\n\nNote: `.persist` forces materialisation in lazy libraries and so should be called as late as possible in your pipeline, and only once per dataframe."
             raise ValueError(
                 msg,
             )
@@ -74,6 +74,12 @@ class DataFrame(DataFrameT):
             raise TypeError(
                 msg,
             )
+
+    def _from_dataframe(self, df: pl.LazyFrame) -> DataFrame:
+        return DataFrame(
+            df,
+            api_version=self.api_version,
+        )
 
     def col(self, value: str) -> Column:
         return Column(pl.col(value), df=self, api_version=self.api_version)
@@ -113,16 +119,14 @@ class DataFrame(DataFrameT):
         return GroupBy(self.dataframe, list(keys), api_version=self.api_version)
 
     def select(self, *columns: str) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.df.select(list(columns)),
-            api_version=self.api_version,
         )
 
     def get_rows(self, indices: Column) -> DataFrame:  # type: ignore[override]
         self._validate_column(indices)
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.select(pl.all().take(indices.expr)),
-            api_version=self.api_version,
         )
 
     def slice_rows(
@@ -131,7 +135,7 @@ class DataFrame(DataFrameT):
         stop: int | None,
         step: int | None,
     ) -> DataFrame:
-        return DataFrame(self.df[start:stop:step], api_version=self.api_version)
+        return self._from_dataframe(self.df[start:stop:step])
 
     def _validate_column(self, column: Column) -> None:
         if id(self) != id(column.df):
@@ -140,7 +144,7 @@ class DataFrame(DataFrameT):
 
     def filter(self, mask: Column) -> DataFrame:  # type: ignore[override]
         self._validate_column(mask)
-        return DataFrame(self.df.filter(mask.expr), api_version=self.api_version)
+        return self._from_dataframe(self.df.filter(mask.expr))
 
     def assign(self, *columns: Column) -> DataFrame:  # type: ignore[override]
         new_columns: list[pl.Expr] = []
@@ -148,18 +152,17 @@ class DataFrame(DataFrameT):
             self._validate_column(col)
             new_columns.append(col.expr)
         df = self.dataframe.with_columns(new_columns)
-        return DataFrame(df, api_version=self.api_version)
+        return self._from_dataframe(df)
 
     def drop_columns(self, *labels: str) -> DataFrame:
-        return DataFrame(self.dataframe.drop(labels), api_version=self.api_version)
+        return self._from_dataframe(self.dataframe.drop(labels))
 
     def rename_columns(self, mapping: Mapping[str, str]) -> DataFrame:
         if not isinstance(mapping, collections.abc.Mapping):
             msg = f"Expected Mapping, got: {type(mapping)}"
             raise TypeError(msg)
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.rename(dict(mapping)),
-            api_version=self.api_version,
         )
 
     def get_column_names(self) -> list[str]:  # pragma: no cover
@@ -174,104 +177,91 @@ class DataFrame(DataFrameT):
         self,
         other: Any,
     ) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*").__eq__(other)),
-            api_version=self.api_version,
         )
 
     def __ne__(  # type: ignore[override]
         self,
         other: Any,
     ) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*").__ne__(other)),
-            api_version=self.api_version,
         )
 
     def __ge__(self, other: Any) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*").__ge__(other)),
-            api_version=self.api_version,
         )
 
     def __gt__(self, other: Any) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*").__gt__(other)),
-            api_version=self.api_version,
         )
 
     def __le__(self, other: Any) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*").__le__(other)),
-            api_version=self.api_version,
         )
 
     def __lt__(self, other: Any) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*").__lt__(other)),
-            api_version=self.api_version,
         )
 
     def __and__(self, other: Any) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*") & other),
-            api_version=self.api_version,
         )
 
     def __rand__(self, other: Any) -> DataFrame:
         return self.__and__(other)
 
     def __or__(self, other: Any) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.with_columns(
                 (pl.col(col) | other).alias(col) for col in self.dataframe.columns
             ),
-            api_version=self.api_version,
         )
 
     def __ror__(self, other: Any) -> DataFrame:
         return self.__or__(other)
 
     def __add__(self, other: Any) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*").__add__(other)),
-            api_version=self.api_version,
         )
 
     def __radd__(self, other: Any) -> DataFrame:
         return self.__add__(other)
 
     def __sub__(self, other: Any) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*").__sub__(other)),
-            api_version=self.api_version,
         )
 
     def __rsub__(self, other: Any) -> DataFrame:
         return -1 * self.__sub__(other)
 
     def __mul__(self, other: Any) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*").__mul__(other)),
-            api_version=self.api_version,
         )
 
     def __rmul__(self, other: Any) -> DataFrame:
         return self.__mul__(other)
 
     def __truediv__(self, other: Any) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*").__truediv__(other)),
-            api_version=self.api_version,
         )
 
     def __rtruediv__(self, other: Any) -> DataFrame:  # pragma: no cover
         raise NotImplementedError
 
     def __floordiv__(self, other: Any) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*").__floordiv__(other)),
-            api_version=self.api_version,
         )
 
     def __rfloordiv__(self, other: Any) -> DataFrame:
@@ -286,15 +276,14 @@ class DataFrame(DataFrameT):
                     msg = "Cannot raise integer to negative power"
                     raise ValueError(msg)
                 ret = ret.with_columns(pl.col(column).cast(original_type[column]))
-        return DataFrame(ret, api_version=self.api_version)
+        return self._from_dataframe(ret)
 
     def __rpow__(self, other: Any) -> DataFrame:  # pragma: no cover
         raise NotImplementedError
 
     def __mod__(self, other: Any) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*") % other),
-            api_version=self.api_version,
         )
 
     def __rmod__(self, other: Any) -> DataFrame:
@@ -308,79 +297,68 @@ class DataFrame(DataFrameT):
         remainder_df = self.dataframe.with_columns(
             pl.col("*") - (pl.col("*") // other) * other,
         )
-        return DataFrame(
+        return self._from_dataframe(
             quotient_df,
-            api_version=self.api_version,
-        ), DataFrame(remainder_df, api_version=self.api_version)
+        ), self._from_dataframe(remainder_df)
 
     def __invert__(self) -> DataFrame:
         self._validate_booleanness()
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.select(~pl.col("*")),
-            api_version=self.api_version,
         )
 
     def __iter__(self) -> NoReturn:
         raise NotImplementedError
 
     def is_null(self) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*").is_null()),
-            api_version=self.api_version,
         )
 
     def is_nan(self) -> DataFrame:
         df = self.dataframe.with_columns(pl.col("*").is_nan())
-        return DataFrame(df, api_version=self.api_version)
+        return self._from_dataframe(df)
 
     # Reductions
 
     def any(self, *, skip_nulls: bool = True) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.select(pl.col("*").any()),
-            api_version=self.api_version,
         )
 
     def all(self, *, skip_nulls: bool = True) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.select(pl.col("*").all()),
-            api_version=self.api_version,
         )
 
     def min(self, *, skip_nulls: bool = True) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.select(pl.col("*").min()),
-            api_version=self.api_version,
         )
 
     def max(self, *, skip_nulls: bool = True) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.select(pl.col("*").max()),
-            api_version=self.api_version,
         )
 
     def sum(self, *, skip_nulls: bool = True) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.select(pl.col("*").sum()),
-            api_version=self.api_version,
         )
 
     def prod(self, *, skip_nulls: bool = True) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.select(pl.col("*").product()),
-            api_version=self.api_version,
         )
 
     def mean(self, *, skip_nulls: bool = True) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.select(pl.col("*").mean()),
-            api_version=self.api_version,
         )
 
     def median(self, *, skip_nulls: bool = True) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.select(pl.col("*").median()),
-            api_version=self.api_version,
         )
 
     def std(
@@ -389,9 +367,8 @@ class DataFrame(DataFrameT):
         correction: int | float = 1.0,
         skip_nulls: bool = True,
     ) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.select(pl.col("*").std()),
-            api_version=self.api_version,
         )
 
     def var(
@@ -400,9 +377,8 @@ class DataFrame(DataFrameT):
         correction: int | float = 1.0,
         skip_nulls: bool = True,
     ) -> DataFrame:
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.select(pl.col("*").var()),
-            api_version=self.api_version,
         )
 
     # Horizontal reductions
@@ -441,9 +417,8 @@ class DataFrame(DataFrameT):
         if not keys:
             keys = tuple(self.dataframe.columns)
         # TODO: what if there's multiple `ascending`?
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.sort(list(keys), descending=not ascending),
-            api_version=self.api_version,
         )
 
     def fill_nan(
@@ -452,9 +427,8 @@ class DataFrame(DataFrameT):
     ) -> DataFrame:
         if isinstance(value, dataframe_api_compat.polars_standard.Namespace.Null):
             value = None
-        return DataFrame(
+        return self._from_dataframe(
             self.dataframe.fill_nan(value),
-            api_version=self.api_version,
         )
 
     def fill_null(
@@ -468,7 +442,7 @@ class DataFrame(DataFrameT):
         df = self.dataframe.with_columns(
             pl.col(col).fill_null(value) for col in column_names
         )
-        return DataFrame(df, api_version=self.api_version)
+        return self._from_dataframe(df)
 
     def drop_nulls(
         self,
@@ -501,15 +475,14 @@ class DataFrame(DataFrameT):
         if isinstance(right_on, str):
             right_on = [right_on]
 
-        # need to do some extra work to preserve all names
-        # https://github.com/pola-rs/polars/issues/9335
+        # workaround for https://github.com/pola-rs/polars/issues/9335
         extra_right_keys = set(right_on).difference(left_on)
-        assert isinstance(other, DataFrame)
         other_df = other.dataframe
-        # TODO: make more robust
+        # TODO: make more robust (use random token instead of tmp)
         other_df = other_df.with_columns(
             [pl.col(i).alias(f"{i}_tmp") for i in extra_right_keys],
         )
+
         result = self.dataframe.join(
             other_df,
             left_on=left_on,
@@ -518,17 +491,14 @@ class DataFrame(DataFrameT):
         )
         result = result.rename({f"{i}_tmp": i for i in extra_right_keys})
 
-        return DataFrame(result, api_version=self.api_version)
+        return self._from_dataframe(result)
 
     def persist(self) -> DataFrame:
-        if not self.is_persisted:
-            return DataFrame(
-                self.dataframe.collect().lazy(),
-                api_version=self.api_version,
-                is_persisted=True,
-            )
-        msg = "DataFrame was already persisted"  # is this really necessary?
-        raise ValueError(msg)
+        return DataFrame(
+            self.dataframe.collect().lazy(),
+            api_version=self.api_version,
+            is_persisted=True,
+        )
 
     def to_array(self, dtype: DType) -> Any:
         dtype = dtype  # todo
