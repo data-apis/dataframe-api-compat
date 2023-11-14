@@ -9,25 +9,26 @@ from typing import cast
 import polars as pl
 
 if TYPE_CHECKING:
-    from dataframe_api.dtypes import Bool as BoolT
-    from dataframe_api.dtypes import Date as DateT
-    from dataframe_api.dtypes import Datetime as DatetimeT
-    from dataframe_api.dtypes import Duration as DurationT
-    from dataframe_api.dtypes import Float32 as Float32T
-    from dataframe_api.dtypes import Float64 as Float64T
-    from dataframe_api.dtypes import Int8 as Int8T
-    from dataframe_api.dtypes import Int16 as Int16T
-    from dataframe_api.dtypes import Int32 as Int32T
-    from dataframe_api.dtypes import Int64 as Int64T
-    from dataframe_api.dtypes import String as StringT
-    from dataframe_api.dtypes import UInt8 as UInt8T
-    from dataframe_api.dtypes import UInt16 as UInt16T
-    from dataframe_api.dtypes import UInt32 as UInt32T
-    from dataframe_api.dtypes import UInt64 as UInt64T
-    from dataframe_api.groupby_object import Aggregation as AggregationT
     from dataframe_api.typing import Namespace as NamespaceT
+
+    BoolT = NamespaceT.Bool
+    DateT = NamespaceT.Date
+    DatetimeT = NamespaceT.Datetime
+    DurationT = NamespaceT.Duration
+    Float32T = NamespaceT.Float32
+    Float64T = NamespaceT.Float64
+    Int8T = NamespaceT.Int8
+    Int16T = NamespaceT.Int16
+    Int32T = NamespaceT.Int32
+    Int64T = NamespaceT.Int64
+    StringT = NamespaceT.String
+    UInt8T = NamespaceT.UInt8
+    UInt16T = NamespaceT.UInt16
+    UInt32T = NamespaceT.UInt32
+    UInt64T = NamespaceT.UInt64
+    NullTypeT = NamespaceT.NullType
+    from dataframe_api.groupby_object import Aggregation as AggregationT
 else:
-    AggregationT = object
     NamespaceT = object
     BoolT = object
     DateT = object
@@ -35,15 +36,17 @@ else:
     DurationT = object
     Float32T = object
     Float64T = object
+    Int8T = object
     Int16T = object
     Int32T = object
     Int64T = object
-    Int8T = object
     StringT = object
+    UInt8T = object
     UInt16T = object
     UInt32T = object
     UInt64T = object
-    UInt8T = object
+    AggregationT = object
+    NullTypeT = object
 
 
 from dataframe_api_compat.polars_standard.column_object import Column
@@ -118,12 +121,10 @@ class Namespace(NamespaceT):
         def __init__(self, time_unit: Literal["ms", "us"]) -> None:
             self.time_unit = time_unit
 
-    class Null:
+    class NullType(NullTypeT):
         ...
 
-    null = Null()
-
-    NullType = type[Null]
+    null = NullType()
 
     def is_null(self, value: Any) -> bool:
         return value is self.null

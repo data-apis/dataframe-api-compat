@@ -17,6 +17,8 @@ if TYPE_CHECKING:
 
     from dataframe_api import DataFrame as DataFrameT
     from dataframe_api.typing import DType
+    from dataframe_api.typing import Namespace
+    from dataframe_api.typing import NullType
 
     from dataframe_api_compat.polars_standard.group_by_object import GroupBy
 
@@ -100,7 +102,7 @@ class DataFrame(DataFrameT):
     def __repr__(self) -> str:  # pragma: no cover
         return self.dataframe.__repr__()
 
-    def __dataframe_namespace__(self) -> Any:
+    def __dataframe_namespace__(self) -> Namespace:
         return dataframe_api_compat.polars_standard.Namespace(
             api_version=self.api_version,
         )
@@ -423,10 +425,12 @@ class DataFrame(DataFrameT):
 
     def fill_nan(
         self,
-        value: float | None,
+        value: float | NullType,
     ) -> DataFrame:
-        if isinstance(value, dataframe_api_compat.polars_standard.Namespace.Null):
-            value = None
+        if isinstance(value, self.__dataframe_namespace__().NullType):
+            return self._from_dataframe(
+                self.dataframe.fill_nan(pl.lit(None)),
+            )
         return self._from_dataframe(
             self.dataframe.fill_nan(value),
         )
@@ -450,7 +454,7 @@ class DataFrame(DataFrameT):
         column_names: list[str] | None = None,
     ) -> DataFrame:
         namespace = self.__dataframe_namespace__()
-        mask = ~namespace.any_rowwise(
+        mask = ~namespace.any_rowwise(  # type: ignore[attr-defined]
             *[
                 self.col(col_name).is_null()
                 for col_name in column_names or self.column_names
@@ -474,6 +478,12 @@ class DataFrame(DataFrameT):
             left_on = [left_on]
         if isinstance(right_on, str):
             right_on = [right_on]
+
+        if overlap := (set(self.column_names) - set(left_on)).intersection(
+            set(other.column_names) - set(right_on),
+        ):
+            msg = f"Found overlapping columns in join: {overlap}. Please rename columns to avoid this."
+            raise ValueError(msg)
 
         # workaround for https://github.com/pola-rs/polars/issues/9335
         extra_right_keys = set(right_on).difference(left_on)

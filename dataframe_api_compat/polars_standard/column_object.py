@@ -10,6 +10,8 @@ import polars as pl
 if TYPE_CHECKING:
     from dataframe_api import Column as ColumnT
     from dataframe_api.typing import DType
+    from dataframe_api.typing import Namespace
+    from dataframe_api.typing import NullType
     from typing_extensions import Self
 
     from dataframe_api_compat.polars_standard.dataframe_object import DataFrame
@@ -46,7 +48,7 @@ class Column(ColumnT):
         return self.__class__(expr, df=self.df, api_version=self.api_version)
 
     # In the standard
-    def __column_namespace__(self) -> Any:  # pragma: no cover
+    def __column_namespace__(self) -> Namespace:  # pragma: no cover
         import dataframe_api_compat
 
         return dataframe_api_compat.polars_standard.Namespace(
@@ -151,10 +153,10 @@ class Column(ColumnT):
 
     # Reductions
 
-    def any(self, *, skip_nulls: bool = True) -> Scalar:
+    def any(self, *, skip_nulls: bool = True) -> Scalar:  # type: ignore[override]  # todo, fix
         return self._to_scalar(self.expr.any())
 
-    def all(self, *, skip_nulls: bool = True) -> Scalar:
+    def all(self, *, skip_nulls: bool = True) -> Scalar:  # type: ignore[override]  # todo fix
         return self._to_scalar(self.expr.all())
 
     def min(self, *, skip_nulls: bool = True) -> Scalar:
@@ -313,7 +315,9 @@ class Column(ColumnT):
         expr = self.expr.sort(descending=not ascending)
         return self._from_expr(expr)
 
-    def fill_nan(self, value: float | None) -> Column:
+    def fill_nan(self, value: float | NullType) -> Column:
+        if isinstance(value, self.__column_namespace__().NullType):
+            return self._from_expr(self.expr.fill_nan(pl.lit(None)))
         return self._from_expr(self.expr.fill_nan(value))
 
     def fill_null(self, value: Any) -> Column:

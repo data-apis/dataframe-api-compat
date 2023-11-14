@@ -15,6 +15,7 @@ import dataframe_api_compat.pandas_standard
 if TYPE_CHECKING:
     from dataframe_api import Column as ColumnT
     from dataframe_api.typing import DType
+    from dataframe_api.typing import NullType
 
     from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
     from dataframe_api_compat.pandas_standard.scalar_object import Scalar
@@ -248,11 +249,11 @@ class Column(ColumnT):
 
     # Reductions
 
-    def any(self, *, skip_nulls: bool = True) -> Scalar:
+    def any(self, *, skip_nulls: bool = True) -> Scalar:  # type: ignore[override]  # todo
         ser = self.column
         return self._scalar(ser.any(), api_version=self.api_version, df=self.df)
 
-    def all(self, *, skip_nulls: bool = True) -> Scalar:
+    def all(self, *, skip_nulls: bool = True) -> Scalar:  # type: ignore[override]  # todo
         ser = self.column
         return self._scalar(ser.all(), api_version=self.api_version, df=self.df)
 
@@ -342,9 +343,18 @@ class Column(ColumnT):
         msg = "not yet supported"
         raise NotImplementedError(msg)
 
-    def fill_nan(self, value: float | pd.NAType) -> Column:
+    def fill_nan(self, value: float | NullType) -> Column:
         ser = self.column.copy()
-        ser[np.isnan(ser).fillna(False).to_numpy(bool)] = value
+        if is_extension_array_dtype(ser.dtype):
+            if self.__column_namespace__().is_null(value):
+                ser[np.isnan(ser).fillna(False).to_numpy(bool)] = pd.NA
+            else:
+                ser[np.isnan(ser).fillna(False).to_numpy(bool)] = value
+        else:
+            if self.__column_namespace__().is_null(value):
+                ser[np.isnan(ser).fillna(False).to_numpy(bool)] = np.nan
+            else:
+                ser[np.isnan(ser).fillna(False).to_numpy(bool)] = value
         return self._from_series(ser)
 
     def fill_null(

@@ -22,7 +22,7 @@ def test_shift_with_fill_value(library: str) -> None:
 
 def test_shift_without_fill_value(library: str) -> None:
     df = float_dataframe_1(library)
-    result = df.assign(df.col("a").shift(-1))
+    result = df.assign(df.col("a").shift(-1))  # type: ignore[attr-defined]
     if library == "pandas-numpy":
         expected = pd.DataFrame({"a": [3.0, float("nan")]})
         pd.testing.assert_frame_equal(result.dataframe, expected)
@@ -31,7 +31,7 @@ def test_shift_without_fill_value(library: str) -> None:
         pd.testing.assert_frame_equal(result.dataframe, expected)
     elif library == "polars-lazy":
         expected = pl.DataFrame({"a": [3.0, None]})
-        assert_frame_equal(result.dataframe.collect(), expected)
+        assert_frame_equal(result.dataframe.collect(), expected)  # type: ignore[attr-defined]
     else:  # pragma: no cover
         msg = "unexpected library"
         raise AssertionError(msg)
