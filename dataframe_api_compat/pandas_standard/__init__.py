@@ -233,7 +233,7 @@ class Namespace(NamespaceT):
     class Null:
         ...
 
-    null = Null
+    null = Null()
 
     def dataframe_from_columns(
         self,

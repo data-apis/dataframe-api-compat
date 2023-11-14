@@ -475,6 +475,14 @@ class DataFrame(DataFrameT):
         if isinstance(right_on, str):
             right_on = [right_on]
 
+        if overlap := (set(self.column_names) - set(left_on)).intersection(
+            set(other.column_names) - set(right_on),
+        ):
+            msg = (
+                f"Found overlapping columns in join: {overlap}. Please rename columns to avoid this.",
+            )
+            raise ValueError(msg)
+
         # workaround for https://github.com/pola-rs/polars/issues/9335
         extra_right_keys = set(right_on).difference(left_on)
         other_df = other.dataframe

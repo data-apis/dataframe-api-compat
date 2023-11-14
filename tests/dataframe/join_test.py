@@ -19,6 +19,13 @@ def test_join_left(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
+def test_join_overlapping_names(library: str) -> None:
+    left = integer_dataframe_1(library)
+    right = integer_dataframe_2(library)
+    with pytest.raises(ValueError):
+        _ = left.join(right, left_on="a", right_on="a", how="left")
+
+
 def test_join_inner(library: str) -> None:
     left = integer_dataframe_1(library)
     right = integer_dataframe_2(library).rename_columns({"b": "c"})

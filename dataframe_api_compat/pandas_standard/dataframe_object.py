@@ -492,6 +492,19 @@ class DataFrame(DataFrameT):
             msg = f"Expected 'left', 'inner', 'outer', got: {how}"
             raise ValueError(msg)
 
+        if isinstance(left_on, str):
+            left_on = [left_on]
+        if isinstance(right_on, str):
+            right_on = [right_on]
+
+        if overlap := (set(self.column_names) - set(left_on)).intersection(
+            set(other.column_names) - set(right_on),
+        ):
+            msg = (
+                f"Found overlapping columns in join: {overlap}. Please rename columns to avoid this.",
+            )
+            raise ValueError(msg)
+
         return self._from_dataframe(
             self.dataframe.merge(
                 other.dataframe,
