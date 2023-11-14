@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from functools import reduce
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Literal
@@ -335,36 +336,10 @@ class Namespace(NamespaceT):
     # Horizontal reductions
 
     def all_rowwise(self, *columns: Column, skip_nulls: bool = True) -> Column:
-        expressions = []
-        df: DataFrame | None = None
-        for column in columns:
-            expressions.append(column.column)
-            if df is None:
-                df = column.df
-            elif id(column.df) != id(df):
-                msg = "Expected columns from same dataframe"
-                raise ValueError(msg)
-        return Column(
-            pl.all_horizontal(expressions).alias("all"),
-            api_version=self.api_version,
-            df=df,
-        )
+        return reduce(lambda x, y: x & y, columns)
 
     def any_rowwise(self, *columns: Column, skip_nulls: bool = True) -> Column:
-        expressions = []
-        df: DataFrame | None = None
-        for column in columns:
-            expressions.append(column.column)
-            if df is None:
-                df = column.df
-            elif id(column.df) != id(df):
-                msg = "Expected columns from same dataframe"
-                raise ValueError(msg)
-        return Column(
-            pl.any_horizontal(expressions).alias("any"),
-            api_version=self.api_version,
-            df=df,
-        )
+        return reduce(lambda x, y: x | y, columns)
 
     def sorted_indices(
         self,
