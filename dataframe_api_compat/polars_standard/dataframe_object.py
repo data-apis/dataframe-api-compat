@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import collections
+import secrets
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Literal
@@ -41,6 +42,18 @@ def _is_integer_dtype(dtype: Any) -> bool:
             pl.UInt8,
         )
     )
+
+
+def generate_random_token(column_names: list[str]) -> str:
+    token = secrets.token_hex(8)
+    attempts = 0
+    while token in column_names and attempts < 100:
+        token = secrets.token_hex(8)
+        attempts += 1
+        if attempts >= 100:
+            msg = "Could not generate unique token, please report an issue"
+            raise RuntimeError(msg)
+    return token
 
 
 class DataFrame(DataFrameT):
@@ -488,9 +501,9 @@ class DataFrame(DataFrameT):
         # workaround for https://github.com/pola-rs/polars/issues/9335
         extra_right_keys = set(right_on).difference(left_on)
         other_df = other.dataframe
-        # TODO: make more robust (use random token instead of tmp)
+        token = generate_random_token(self.column_names + other.column_names)
         other_df = other_df.with_columns(
-            [pl.col(i).alias(f"{i}_tmp") for i in extra_right_keys],
+            [pl.col(i).alias(f"{i}_{token}") for i in extra_right_keys],
         )
 
         result = self.dataframe.join(
@@ -499,7 +512,7 @@ class DataFrame(DataFrameT):
             right_on=right_on,
             how=how,
         )
-        result = result.rename({f"{i}_tmp": i for i in extra_right_keys})
+        result = result.rename({f"{i}_{token}": i for i in extra_right_keys})
 
         return self._from_dataframe(result)
 
