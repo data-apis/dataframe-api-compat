@@ -47,7 +47,7 @@ def _is_integer_dtype(dtype: Any) -> bool:
 def generate_random_token(column_names: list[str]) -> str:
     token = secrets.token_hex(8)
     attempts = 0
-    while token in column_names and attempts < 100:
+    while token in column_names and attempts < 100:  # pragma: no cover
         token = secrets.token_hex(8)
         attempts += 1
         if attempts >= 100:

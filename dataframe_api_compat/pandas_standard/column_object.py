@@ -408,12 +408,9 @@ class Column(ColumnT):
         ser = self.materialise()
         return len(ser)
 
-    def shift(self, periods: int, *, fill_value: Scalar | None = None) -> Column:
+    def shift(self, offset: int) -> Column:
         ser = self.column
-        if fill_value is not None:
-            fill_value = self._validate_comparand(fill_value)  # type: ignore[assignment]
-            return self._from_series(ser.shift(periods, fill_value=fill_value))
-        return self._from_series(ser.shift(periods))
+        return self._from_series(ser.shift(offset))
 
     # --- temporal methods ---
 
