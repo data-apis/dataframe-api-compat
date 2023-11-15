@@ -321,6 +321,7 @@ class Column(ColumnT):
         return self._from_expr(self.expr.fill_nan(value))
 
     def fill_null(self, value: Any) -> Column:
+        value = self._validate_comparand(value)
         return self._from_expr(self.expr.fill_null(value))
 
     def cumulative_sum(self, *, skip_nulls: bool = True) -> Column:

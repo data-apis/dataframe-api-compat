@@ -361,6 +361,7 @@ class Column(ColumnT):
         self,
         value: Any,
     ) -> Column:
+        value = self._validate_comparand(value)
         ser = self.column.copy()
         if is_extension_array_dtype(ser.dtype):
             # crazy hack to preserve nan...
