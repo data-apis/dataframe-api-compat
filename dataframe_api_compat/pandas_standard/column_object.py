@@ -115,6 +115,10 @@ class Column(ColumnT):
             self._column.dtype,
         )
 
+    @property
+    def parent_dataframe(self) -> DataFrame | None:
+        return self.df
+
     def get_rows(self, indices: Column) -> Column:
         return self._from_series(self.column.iloc[indices.column])
 

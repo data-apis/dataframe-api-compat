@@ -109,6 +109,10 @@ class Column(ColumnT):
             dtype = pl.select(self.expr).schema[self.name]
         return map_polars_dtype_to_standard_dtype(dtype)
 
+    @property
+    def parent_dataframe(self) -> DataFrame | None:
+        return self.df
+
     def get_rows(self, indices: Column) -> Column:
         return self._from_expr(self.expr.take(indices.expr))
 
