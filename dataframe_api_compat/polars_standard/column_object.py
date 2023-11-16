@@ -133,8 +133,7 @@ class Column(ColumnT):
         return self._from_expr(self.expr.filter(mask.expr))
 
     def get_value(self, row_number: int) -> Any:
-        ser = self.materialise("Column.get_value")
-        return ser[row_number]
+        return self._to_scalar(self.expr.take(row_number))
 
     def to_array(self) -> Any:
         ser = self.materialise("Column.to_array")

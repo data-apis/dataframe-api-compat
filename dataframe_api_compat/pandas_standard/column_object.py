@@ -128,7 +128,11 @@ class Column(ColumnT):
 
     def get_value(self, row_number: int) -> Any:
         ser = self.materialise()
-        return ser.iloc[row_number]
+        return self._scalar(
+            ser.iloc[row_number],
+            api_version=self.api_version,
+            df=self.df,
+        )
 
     def slice_rows(
         self,

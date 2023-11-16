@@ -8,9 +8,9 @@ def test_fill_null_column(library: str) -> None:
     df = null_dataframe_2(library)
     ser = df.col("a")
     result = df.assign(ser.fill_null(0).rename("result")).persist().col("result")
-    assert float(result.get_value(2)) == 0.0
-    assert float(result.get_value(1)) != 0.0
-    assert float(result.get_value(0)) != 0.0
+    assert float(result.get_value(2).persist()) == 0.0
+    assert float(result.get_value(1).persist()) != 0.0
+    assert float(result.get_value(0).persist()) != 0.0
 
 
 def test_fill_null_noop_column(library: str) -> None:
@@ -19,9 +19,11 @@ def test_fill_null_noop_column(library: str) -> None:
     result = df.assign(ser.fill_null(0).rename("result")).persist().col("result")
     if library != "pandas-numpy":
         # nan should not have changed!
-        assert float(result.get_value(2)) != float(result.get_value(2))
+        assert float(result.get_value(2).persist()) != float(
+            result.get_value(2).persist(),
+        )
     else:
         # nan was filled with 0
-        assert float(result.get_value(2)) == 0
-    assert float(result.get_value(1)) != 0.0
-    assert float(result.get_value(0)) != 0.0
+        assert float(result.get_value(2).persist()) == 0
+    assert float(result.get_value(1).persist()) != 0.0
+    assert float(result.get_value(0).persist()) != 0.0

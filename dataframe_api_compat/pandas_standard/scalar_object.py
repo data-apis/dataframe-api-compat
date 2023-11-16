@@ -27,11 +27,10 @@ class Scalar:
     def _from_scalar(self, scalar: Scalar) -> Scalar:
         return Scalar(scalar, df=self.df, api_version=self._api_version)
 
-    def materialise(self) -> Any:
+    def persist(self) -> Any:
         if self.df is None:
             # free-standing column
             return self.value
-        self.df.validate_is_persisted()
         return self.value
 
     def __lt__(self, other: Any) -> Scalar:
@@ -154,25 +153,23 @@ class Scalar:
             return NotImplemented
         return self._from_scalar(self.value.__rtruediv__(other))
 
-    def __neg__(self) -> Any:
-        item = self.materialise()
-        return item.__neg__()
+    def __neg__(self) -> Scalar:
+        return self._from_scalar(self.value.__neg__())
 
-    def __abs__(self) -> bool:
-        item = self.materialise()
-        return item.__abs__()  # type: ignore[no-any-return]
+    def __abs__(self) -> Scalar:
+        return self._from_scalar(self.value.__abs__())
 
     def __bool__(self) -> bool:
-        item = self.materialise()
-        return item.__bool__()  # type: ignore[no-any-return]
+        msg = "Can't call __bool__ on Scalar. Please use .persist() first."
+        raise RuntimeError(msg)
 
     def __int__(self) -> int:
-        item = self.materialise()
-        return item.__int__()  # type: ignore[no-any-return]
+        msg = "Can't call __int__ on Scalar. Please use .persist() first."
+        raise RuntimeError(msg)
 
     def __float__(self) -> float:
-        item = self.materialise()
-        return item.__float__()  # type: ignore[no-any-return]
+        msg = "Can't call __int__ on Scalar. Please use .persist() first."
+        raise RuntimeError(msg)
 
     def __repr__(self) -> str:  # pragma: no cover
         return self.value.__repr__()  # type: ignore[no-any-return]

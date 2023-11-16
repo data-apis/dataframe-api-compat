@@ -26,7 +26,7 @@ class Scalar:
             return other.value
         return other
 
-    def materialise(self) -> Any:
+    def persist(self) -> Any:
         if self.df is None:
             return pl.select(self.value).item()
         return self.df.materialise_expression(self.value).item()
@@ -161,13 +161,13 @@ class Scalar:
         return self._from_scalar(self.value.__abs__())
 
     def __bool__(self) -> bool:
-        item = self.materialise()
-        return item.__bool__()  # type: ignore[no-any-return]
+        msg = "Can't call __bool__ on Scalar. Please use .persist() first."
+        raise RuntimeError(msg)
 
     def __int__(self) -> int:
-        item = self.materialise()
-        return item.__int__()  # type: ignore[no-any-return]
+        msg = "Can't call __int__ on Scalar. Please use .persist() first."
+        raise RuntimeError(msg)
 
     def __float__(self) -> float:
-        item = self.materialise()
-        return item.__float__()  # type: ignore[no-any-return]
+        msg = "Can't call __float__ on Scalar. Please use .persist() first."
+        raise RuntimeError(msg)
