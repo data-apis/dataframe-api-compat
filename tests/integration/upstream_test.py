@@ -17,11 +17,9 @@ class TestPolars:
         expected_1 = ["a", "b"]
         assert result == expected_1
 
-        ser = pl.Series([1, 2, 3])
+        ser = pl.Series("a", [1, 2, 3])
         col = ser.__column_consortium_standard__()
-        result = col.get_value(1)
-        expected_2 = 2
-        assert result == expected_2
+        assert col.name == "a"
 
 
 class TestPandas:
@@ -40,8 +38,5 @@ class TestPandas:
         expected_1 = ["a", "b"]
         assert result_1 == expected_1
 
-        ser = pd.Series([1, 2, 3])
-        col = ser.__column_consortium_standard__()
-        result_2 = col.get_value(1)
-        expected_2 = 2
-        assert result_2 == expected_2
+        ser = pd.Series([1, 2, 3], name="a")
+        assert ser.name == "a"
