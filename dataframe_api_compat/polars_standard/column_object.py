@@ -109,6 +109,10 @@ class Column(ColumnT):
             dtype = pl.select(self.expr).schema[self.name]
         return map_polars_dtype_to_standard_dtype(dtype)
 
+    @property
+    def parent_dataframe(self) -> DataFrame | None:
+        return self.df
+
     def get_rows(self, indices: Column) -> Column:
         return self._from_expr(self.expr.take(indices.expr))
 
@@ -321,6 +325,7 @@ class Column(ColumnT):
         return self._from_expr(self.expr.fill_nan(value))
 
     def fill_null(self, value: Any) -> Column:
+        value = self._validate_comparand(value)
         return self._from_expr(self.expr.fill_null(value))
 
     def cumulative_sum(self, *, skip_nulls: bool = True) -> Column:
@@ -342,11 +347,8 @@ class Column(ColumnT):
         ser = self.materialise("Column.__len__")
         return len(ser)
 
-    def shift(self, periods: int, *, fill_value: Scalar | None = None) -> Column:
-        if fill_value is not None:
-            fill_value = self._validate_comparand(fill_value)  # type: ignore[assignment]
-            return self._from_expr(self.expr.shift(periods).fill_null(value=fill_value))
-        return self._from_expr(self.expr.shift(periods))
+    def shift(self, offset: int) -> Column:
+        return self._from_expr(self.expr.shift(offset))
 
     # --- temporal methods ---
 

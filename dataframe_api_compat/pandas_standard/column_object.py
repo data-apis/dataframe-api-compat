@@ -115,6 +115,10 @@ class Column(ColumnT):
             self._column.dtype,
         )
 
+    @property
+    def parent_dataframe(self) -> DataFrame | None:
+        return self.df
+
     def get_rows(self, indices: Column) -> Column:
         return self._from_series(self.column.iloc[indices.column])
 
@@ -361,6 +365,7 @@ class Column(ColumnT):
         self,
         value: Any,
     ) -> Column:
+        value = self._validate_comparand(value)
         ser = self.column.copy()
         if is_extension_array_dtype(ser.dtype):
             # crazy hack to preserve nan...
@@ -407,12 +412,9 @@ class Column(ColumnT):
         ser = self.materialise()
         return len(ser)
 
-    def shift(self, periods: int, *, fill_value: Scalar | None = None) -> Column:
+    def shift(self, offset: int) -> Column:
         ser = self.column
-        if fill_value is not None:
-            fill_value = self._validate_comparand(fill_value)  # type: ignore[assignment]
-            return self._from_series(ser.shift(periods, fill_value=fill_value))
-        return self._from_series(ser.shift(periods))
+        return self._from_series(ser.shift(offset))
 
     # --- temporal methods ---
 
