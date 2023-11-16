@@ -69,9 +69,6 @@ class DataFrame(DataFrameT):
         self.is_persisted = is_persisted
 
     def materialise_expression(self, expr: pl.Expr) -> pl.Series:
-        if not self.is_persisted:
-            msg = "Cannot materialise a lazy dataframe, please call `persist` first"
-            raise ValueError(msg)  # todo better err message
         df = self.dataframe.collect().select(expr)
         return df.get_column(df.columns[0])
 

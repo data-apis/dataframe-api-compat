@@ -60,9 +60,6 @@ def test_float_binary_lazy_valid(library: str) -> None:
     "attr",
     [
         "__abs__",
-        "__int__",
-        "__float__",
-        "__bool__",
         "__neg__",
     ],
 )
@@ -70,7 +67,23 @@ def test_float_unary(library: str, attr: str) -> None:
     df = integer_dataframe_2(library).persist()
     scalar = df.col("a").mean()
     float_scalar = float(scalar.persist())  # type: ignore[arg-type]
-    assert getattr(scalar.persist(), attr)() == getattr(float_scalar, attr)()
+    assert getattr(scalar, attr)().persist() == getattr(float_scalar, attr)()
+
+
+@pytest.mark.parametrize(
+    "attr",
+    [
+        "__int__",
+        "__float__",
+        "__bool__",
+    ],
+)
+def test_float_unary_invalid(library: str, attr: str) -> None:
+    df = integer_dataframe_2(library).persist()
+    scalar = df.col("a").mean()
+    float_scalar = float(scalar.persist())  # type: ignore[arg-type]
+    with pytest.raises(RuntimeError):
+        assert getattr(scalar, attr)() == getattr(float_scalar, attr)()
 
 
 def test_free_standing(library: str) -> None:
