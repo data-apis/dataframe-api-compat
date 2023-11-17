@@ -84,10 +84,15 @@ class Column(ColumnT):
             ser = df.get_column(df.columns[0])
         return ser
 
-    def _to_scalar(self, value: pl.Expr) -> Scalar:
+    def _to_scalar(self, value: pl.Expr, *, is_persisted: bool = False) -> Scalar:
         from dataframe_api_compat.polars_standard.scalar_object import Scalar
 
-        return Scalar(value, api_version=self.api_version, df=self.df)
+        return Scalar(
+            value,
+            api_version=self.api_version,
+            df=self.df,
+            is_persisted=is_persisted,
+        )
 
     def persist(self) -> Column:
         if self.df is not None:
@@ -146,7 +151,10 @@ class Column(ColumnT):
         return self._from_expr(self.expr.filter(mask.expr))
 
     def get_value(self, row_number: int) -> Any:
-        return self._to_scalar(self.expr.take(row_number))
+        return self._to_scalar(
+            self.expr.take(row_number),
+            is_persisted=self._is_persisted,
+        )
 
     def to_array(self) -> Any:
         ser = self.materialise()

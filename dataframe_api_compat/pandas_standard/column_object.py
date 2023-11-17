@@ -145,6 +145,7 @@ class Column(ColumnT):
             ser.iloc[row_number],
             api_version=self.api_version,
             df=self.df,
+            is_persisted=self._is_persisted,
         )
 
     def slice_rows(

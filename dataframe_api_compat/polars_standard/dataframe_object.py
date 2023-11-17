@@ -96,7 +96,12 @@ class DataFrame(DataFrameT):
         )
 
     def col(self, value: str) -> Column:
-        return Column(pl.col(value), df=self, api_version=self.api_version)
+        return Column(
+            pl.col(value),
+            df=self,
+            api_version=self.api_version,
+            is_persisted=self.is_persisted,
+        )
 
     @property
     def schema(self) -> dict[str, DType]:

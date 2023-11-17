@@ -25,7 +25,7 @@ def test_within_df_propagation(library: str) -> None:
     df1 = integer_dataframe_1(library)
     df1 = df1 + 1
     df1 = df1.persist()
-    assert int(df1.col("a").mean().persist()) == 3  # type: ignore[call-overload]
+    assert int(df1.col("a").get_value(0)) == 2  # type: ignore[call-overload]
 
 
 def test_within_df_within_col_propagation(library: str) -> None:

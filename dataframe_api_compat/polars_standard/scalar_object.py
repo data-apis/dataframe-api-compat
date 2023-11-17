@@ -16,10 +16,18 @@ else:
 
 
 class Scalar(ScalarT):
-    def __init__(self, value: Any, api_version: str, df: DataFrame | None) -> None:
+    def __init__(
+        self,
+        value: Any,
+        api_version: str,
+        df: DataFrame | None,
+        *,
+        is_persisted: bool = False,
+    ) -> None:
         self.value = value
         self._api_version = api_version
         self.df = df
+        self.is_persisted = is_persisted
 
     @property
     def dtype(self) -> DType:  # pragma: no cover  # todo
@@ -37,10 +45,20 @@ class Scalar(ScalarT):
             return other.value
         return other
 
-    def persist(self) -> Any:
+    def materialise(self) -> Any:
         if self.df is None:
-            return pl.select(self.value).item()
-        return self.df.materialise_expression(self.value).item()
+            value = pl.select(self.value).item()
+        else:
+            value = self.df.materialise_expression(self.value).item()
+        return value
+
+    def persist(self) -> Scalar:
+        return Scalar(
+            self.value,
+            df=self.df,
+            api_version=self._api_version,
+            is_persisted=True,
+        )
 
     def _from_scalar(self, scalar: Scalar) -> Scalar:
         return Scalar(scalar, df=self.df, api_version=self._api_version)
@@ -172,13 +190,19 @@ class Scalar(ScalarT):
         return self._from_scalar(self.value.__abs__())
 
     def __bool__(self) -> bool:
-        msg = "Can't call __bool__ on Scalar. Please use .persist() first."
-        raise RuntimeError(msg)
+        if not self.is_persisted:
+            msg = "Can't call __bool__ on Scalar. Please use .persist() first."
+            raise RuntimeError(msg)
+        return self.materialise().__bool__()
 
     def __int__(self) -> int:
-        msg = "Can't call __int__ on Scalar. Please use .persist() first."
-        raise RuntimeError(msg)
+        if not self.is_persisted:
+            msg = "Can't call __int__ on Scalar. Please use .persist() first."
+            raise RuntimeError(msg)
+        return self.materialise().__int__()
 
     def __float__(self) -> float:
-        msg = "Can't call __float__ on Scalar. Please use .persist() first."
-        raise RuntimeError(msg)
+        if not self.is_persisted:
+            msg = "Can't call __float__ on Scalar. Please use .persist() first."
+            raise RuntimeError(msg)
+        return self.materialise().__float__()

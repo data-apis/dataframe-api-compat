@@ -102,6 +102,7 @@ class DataFrame(DataFrameT):
             self.dataframe.loc[:, name],
             df=self,
             api_version=self.api_version,
+            is_persisted=self.is_persisted,
         )
 
     def shape(self) -> tuple[int, int]:

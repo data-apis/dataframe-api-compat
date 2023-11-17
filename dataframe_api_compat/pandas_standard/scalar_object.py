@@ -14,10 +14,18 @@ else:
 
 
 class Scalar(ScalarT):
-    def __init__(self, value: Any, api_version: str, df: DataFrame | None) -> None:
+    def __init__(
+        self,
+        value: Any,
+        api_version: str,
+        df: DataFrame | None,
+        *,
+        is_persisted: bool = False,
+    ) -> None:
         self.value = value
         self._api_version = api_version
         self.df = df
+        self.is_persisted = is_persisted
 
     def _validate_other(self, other: Any) -> Any:
         if isinstance(other, (Column, DataFrame)):
@@ -39,11 +47,13 @@ class Scalar(ScalarT):
         msg = "dtype not yet implemented for Scalar"
         raise NotImplementedError(msg)
 
-    def persist(self) -> Any:
-        if self.df is None:
-            # free-standing column
-            return self.value
-        return self.value
+    def persist(self) -> Scalar:
+        return Scalar(
+            self.value,
+            df=self.df,
+            api_version=self._api_version,
+            is_persisted=True,
+        )
 
     def __lt__(self, other: Any) -> Scalar:
         other = self._validate_other(other)
@@ -172,16 +182,22 @@ class Scalar(ScalarT):
         return self._from_scalar(self.value.__abs__())
 
     def __bool__(self) -> bool:
-        msg = "Can't call __bool__ on Scalar. Please use .persist() first."
-        raise RuntimeError(msg)
+        if not self.is_persisted:
+            msg = "Can't call __bool__ on Scalar. Please use .persist() first."
+            raise RuntimeError(msg)
+        return self.value.__bool__()
 
     def __int__(self) -> int:
-        msg = "Can't call __int__ on Scalar. Please use .persist() first."
-        raise RuntimeError(msg)
+        if not self.is_persisted:
+            msg = "Can't call __int__ on Scalar. Please use .persist() first."
+            raise RuntimeError(msg)
+        return self.value.__int__()
 
     def __float__(self) -> float:
-        msg = "Can't call __int__ on Scalar. Please use .persist() first."
-        raise RuntimeError(msg)
+        if not self.is_persisted:
+            msg = "Can't call __float__ on Scalar. Please use .persist() first."
+            raise RuntimeError(msg)
+        return self.value.__float__()
 
     def __repr__(self) -> str:  # pragma: no cover
         return self.value.__repr__()  # type: ignore[no-any-return]
