@@ -45,14 +45,14 @@ def test_float_binary_invalid(library: str) -> None:
     lhs = integer_dataframe_2(library).persist().col("a").mean()
     rhs = integer_dataframe_1(library).persist().col("b").mean()
     with pytest.raises(ValueError):
-        _ = lhs > rhs  # type: ignore[operator]
+        _ = lhs > rhs
 
 
 def test_float_binary_lazy_valid(library: str) -> None:
     df = integer_dataframe_2(library).persist()
     lhs = df.col("a").mean()
     rhs = df.col("b").mean()
-    result = lhs > rhs  # type: ignore[operator]
+    result = lhs > rhs
     assert not bool(result.persist())
 
 
@@ -94,5 +94,5 @@ def test_free_standing(library: str) -> None:
         dtype=namespace.Int64(),
         name="a",
     )
-    result = float((ser.mean() + 1).persist())  # type: ignore[operator]
+    result = float((ser.mean() + 1).persist())  # type: ignore[arg-type]
     assert result == 3.0

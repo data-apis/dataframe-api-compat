@@ -369,8 +369,8 @@ class Namespace(NamespaceT):
             self.output_name = output_name
             self.aggregation = aggregation
 
-        def rename(self, name: str) -> AggregationT:
-            return self.__class__(self.column_name, name, self.aggregation)
+        def rename(self, name: str | Scalar) -> AggregationT:
+            return self.__class__(self.column_name, name, self.aggregation)  # type: ignore[arg-type]
 
         @classmethod
         def any(
@@ -449,7 +449,7 @@ class Namespace(NamespaceT):
             cls: AggregationT,
             column: str,
             *,
-            correction: int | float = 1,
+            correction: float | Scalar | NullTypeT = 1,
             skip_nulls: bool | Scalar = True,
         ) -> AggregationT:
             return Namespace.Aggregation(column, column, "std")
@@ -459,7 +459,7 @@ class Namespace(NamespaceT):
             cls: AggregationT,
             column: str,
             *,
-            correction: int | float = 1,
+            correction: float | Scalar | NullTypeT = 1,
             skip_nulls: bool | Scalar = True,
         ) -> AggregationT:
             return Namespace.Aggregation(column, column, "var")

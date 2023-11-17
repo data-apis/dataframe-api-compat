@@ -85,7 +85,7 @@ def test_col_unix_timestamp_time_units(
 ) -> None:
     df = temporal_dataframe_1(library)
     result = df.assign(
-        df.col("e").unix_timestamp(time_unit=time_unit).rename("result"),  # type: ignore[arg-type]
+        df.col("e").unix_timestamp(time_unit=time_unit).rename("result"),
     ).select(
         "result",
     )

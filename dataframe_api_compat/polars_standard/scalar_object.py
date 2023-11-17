@@ -23,7 +23,7 @@ class Scalar(ScalarT):
 
     @property
     def dtype(self) -> DType:
-        return self.value.dtype
+        return self.value.dtype  # type: ignore[no-any-return]
 
     def _validate_other(self, other: Any) -> Any:
         if isinstance(other, (Column, DataFrame)):

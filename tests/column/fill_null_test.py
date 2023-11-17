@@ -7,10 +7,10 @@ from tests.utils import null_dataframe_2
 def test_fill_null_column(library: str) -> None:
     df = null_dataframe_2(library)
     ser = df.col("a")
-    result = df.assign(ser.fill_null(0).rename("result")).persist().col("result")
-    assert float(result.get_value(2).persist()) == 0.0
-    assert float(result.get_value(1).persist()) != 0.0
-    assert float(result.get_value(0).persist()) != 0.0
+    result = df.assign(ser.fill_null(0).rename("result")).col("result")
+    assert float(result.get_value(2).persist()) == 0.0  # type:ignore[arg-type]
+    assert float(result.get_value(1).persist()) != 0.0  # type:ignore[arg-type]
+    assert float(result.get_value(0).persist()) != 0.0  # type:ignore[arg-type]
 
 
 def test_fill_null_noop_column(library: str) -> None:
@@ -19,11 +19,11 @@ def test_fill_null_noop_column(library: str) -> None:
     result = df.assign(ser.fill_null(0).rename("result")).persist().col("result")
     if library != "pandas-numpy":
         # nan should not have changed!
-        assert float(result.get_value(2).persist()) != float(
-            result.get_value(2).persist(),
+        assert float(result.get_value(2).persist()) != float(  # type: ignore[arg-type]
+            result.get_value(2).persist(),  # type: ignore[arg-type]
         )
     else:
         # nan was filled with 0
-        assert float(result.get_value(2).persist()) == 0
-    assert float(result.get_value(1).persist()) != 0.0
-    assert float(result.get_value(0).persist()) != 0.0
+        assert float(result.get_value(2).persist()) == 0  # type: ignore[arg-type]
+    assert float(result.get_value(1).persist()) != 0.0  # type: ignore[arg-type]
+    assert float(result.get_value(0).persist()) != 0.0  # type: ignore[arg-type]

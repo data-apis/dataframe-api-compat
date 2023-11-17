@@ -187,7 +187,7 @@ class Column(ColumnT):
         ser = self.column
         return self._from_series(ser < other).rename(ser.name)
 
-    def __and__(self, other: Column | bool) -> Column:
+    def __and__(self, other: Column | bool | Scalar) -> Column:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser & other).rename(ser.name)
@@ -195,7 +195,7 @@ class Column(ColumnT):
     def __rand__(self, other: Column | Any) -> Column:
         return self.__and__(other)
 
-    def __or__(self, other: Column | bool) -> Column:
+    def __or__(self, other: Column | bool | Scalar) -> Column:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser | other).rename(ser.name)
@@ -270,11 +270,12 @@ class Column(ColumnT):
 
     # Reductions
 
-    def any(self, *, skip_nulls: bool | Scalar = True) -> Scalar:  # type: ignore[override]  # todo
+    def any(self, *, skip_nulls: bool | Scalar = True) -> Scalar:
+        _skip_nulls = self._validate_comparand(skip_nulls)
         ser = self.column
         return self._scalar(ser.any(), api_version=self.api_version, df=self.df)
 
-    def all(self, *, skip_nulls: bool | Scalar = True) -> Scalar:  # type: ignore[override]  # todo
+    def all(self, *, skip_nulls: bool | Scalar = True) -> Scalar:
         ser = self.column
         return self._scalar(ser.all(), api_version=self.api_version, df=self.df)
 
@@ -374,7 +375,7 @@ class Column(ColumnT):
         msg = "not yet supported"
         raise NotImplementedError(msg)
 
-    def fill_nan(self, value: float | NullType) -> Column:
+    def fill_nan(self, value: float | NullType | Scalar) -> Column:
         ser = self.column.copy()
         if is_extension_array_dtype(ser.dtype):
             if self.__column_namespace__().is_null(value):
@@ -425,7 +426,7 @@ class Column(ColumnT):
         ser = self.column
         return self._from_series(ser.cummin())
 
-    def rename(self, name: str) -> Column:
+    def rename(self, name: str | Scalar) -> Column:
         ser = self.column
         return self._from_series(ser.rename(name))
 
@@ -439,7 +440,7 @@ class Column(ColumnT):
         ser = self.materialise()
         return len(ser)
 
-    def shift(self, offset: int) -> Column:
+    def shift(self, offset: int | Scalar) -> Column:
         ser = self.column
         return self._from_series(ser.shift(offset))
 
@@ -497,7 +498,7 @@ class Column(ColumnT):
     def unix_timestamp(
         self,
         *,
-        time_unit: Literal["s", "ms", "us"] = "s",
+        time_unit: str | Scalar = "s",
     ) -> Column:
         ser = self.column
         if ser.dt.tz is None:

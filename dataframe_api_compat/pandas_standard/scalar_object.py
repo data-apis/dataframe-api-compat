@@ -1,12 +1,19 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from typing import Any
 
 from dataframe_api_compat.pandas_standard.column_object import Column
 from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
 
+if TYPE_CHECKING:
+    from dataframe_api.typing import DType
+    from dataframe_api.typing import Scalar as ScalarT
+else:
+    ScalarT = object
 
-class Scalar:
+
+class Scalar(ScalarT):
     def __init__(self, value: Any, api_version: str, df: DataFrame | None) -> None:
         self.value = value
         self._api_version = api_version
@@ -26,6 +33,11 @@ class Scalar:
 
     def _from_scalar(self, scalar: Scalar) -> Scalar:
         return Scalar(scalar, df=self.df, api_version=self._api_version)
+
+    @property
+    def dtype(self) -> DType:
+        msg = "dtype not yet implemented for Scalar"
+        raise NotImplementedError(msg)
 
     def persist(self) -> Any:
         if self.df is None:

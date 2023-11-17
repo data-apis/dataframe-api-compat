@@ -5,9 +5,9 @@ from tests.utils import integer_dataframe_1
 
 def test_get_value(library: str) -> None:
     result = integer_dataframe_1(library).persist().col("a").get_value(0)
-    assert int(result.persist()) == 1
+    assert int(result.persist()) == 1  # type: ignore[call-overload]
 
 
 def test_mean_scalar(library: str) -> None:
     result = integer_dataframe_1(library).persist().col("a").max()
-    assert int(result.persist()) == 3
+    assert int(result.persist()) == 3  # type: ignore[call-overload]

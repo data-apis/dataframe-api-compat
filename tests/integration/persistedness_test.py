@@ -12,27 +12,27 @@ def test_within_df_propagation(library: str) -> None:
     df1 = df1
     df1 = df1 + 1
     with pytest.raises(RuntimeError):
-        _ = int(df1.col("a").mean())  # type: ignore[arg-type]
+        _ = int(df1.col("a").mean())  # type: ignore[call-overload]
 
     df1 = integer_dataframe_1(library)
     df1 = df1.persist()
     df1 = df1 + 1
     # the call below would recompute `df1 + 1` multiple times
     with pytest.raises(RuntimeError):
-        _ = int(df1.col("a").mean())  # type: ignore[arg-type]
+        _ = int(df1.col("a").mean())  # type: ignore[call-overload]
 
     # this is the correct way
     df1 = integer_dataframe_1(library)
     df1 = df1 + 1
     df1 = df1.persist()
-    assert int(df1.col("a").mean().persist()) == 3  # type: ignore[arg-type]
+    assert int(df1.col("a").mean().persist()) == 3  # type: ignore[call-overload]
 
 
 def test_within_df_within_col_propagation(library: str) -> None:
     df1 = integer_dataframe_1(library)
     df1 = df1 + 1
     df1 = df1.persist()
-    assert int((df1.col("a") + 1).mean().persist()) == 4  # type: ignore[arg-type]
+    assert int((df1.col("a") + 1).mean().persist()) == 4  # type: ignore[call-overload]
 
 
 def test_cross_df_propagation(library: str) -> None:
@@ -59,8 +59,8 @@ def test_multiple_propagations(library: str) -> None:
     df = df.persist()
     df1 = df.filter(df.col("a") > 1).persist()
     df2 = df.filter(df.col("a") <= 1).persist()
-    assert int(df1.col("a").mean().persist()) == 2  # type: ignore[arg-type]
-    assert int(df2.col("a").mean().persist()) == 1  # type: ignore[arg-type]
+    assert int(df1.col("a").mean().persist()) == 2  # type: ignore[call-overload]
+    assert int(df2.col("a").mean().persist()) == 1  # type: ignore[call-overload]
 
     # But what if I want to do this
     df = integer_dataframe_1(library)
@@ -71,8 +71,8 @@ def test_multiple_propagations(library: str) -> None:
     df1 = df1 + 1
     # without this persist, `df1 + 1` will be computed twice
     df1 = df1.persist()
-    int(df1.col("a").mean().persist())  # type: ignore[arg-type]
-    int(df1.col("b").mean().persist())  # type: ignore[arg-type]
+    int(df1.col("a").mean().persist())  # type: ignore[call-overload]
+    int(df1.col("a").mean().persist())  # type: ignore[call-overload]
 
 
 def test_parent_propagations(library: str) -> None:
@@ -91,4 +91,4 @@ def test_parent_propagations(library: str) -> None:
 
     df1 = df1.persist()
     with pytest.raises(RuntimeError):
-        int(df2.col("a").mean())  # type: ignore[arg-type]
+        int(df2.col("a").mean())  # type: ignore[call-overload]
