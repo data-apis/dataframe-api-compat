@@ -69,10 +69,23 @@ class DataFrame(DataFrameT):
                 msg,
             )
 
-    def _validate_column(self, column: Column) -> None:
-        if id(self) != id(column.df):
-            msg = "cannot compare columns from different dataframes"
-            raise ValueError(msg)
+    def _validate_other(self, other: Any) -> Any:
+        from dataframe_api_compat.pandas_standard.column_object import Column
+        from dataframe_api_compat.pandas_standard.scalar_object import Scalar
+
+        if isinstance(other, Scalar):
+            if id(self) != id(other.df):
+                msg = "cannot compare columns/scalars from different dataframes"
+                raise ValueError(
+                    msg,
+                )
+            return other.value
+        if isinstance(other, Column):
+            if id(self) != id(other.df):
+                msg = "cannot compare columns from different dataframes"
+                raise ValueError(msg)
+            return other.column
+        return other
 
     def _from_dataframe(self, df: pd.DataFrame) -> DataFrame:
         return DataFrame(
@@ -145,7 +158,7 @@ class DataFrame(DataFrameT):
         self,
         indices: Column,  # type: ignore[override]
     ) -> DataFrame:
-        self._validate_column(indices)
+        self._validate_other(indices)
         return self._from_dataframe(
             self.dataframe.iloc[indices.column, :],
         )
@@ -154,7 +167,7 @@ class DataFrame(DataFrameT):
         self,
         mask: Column,  # type: ignore[override]
     ) -> DataFrame:
-        self._validate_column(mask)
+        self._validate_other(mask)
         df = self.dataframe
         df = df.loc[mask.column]
         return self._from_dataframe(df)
@@ -165,7 +178,7 @@ class DataFrame(DataFrameT):
     ) -> DataFrame:
         df = self.dataframe.copy()  # TODO: remove defensive copy with CoW?
         for column in columns:
-            self._validate_column(column)
+            self._validate_other(column)
             df[column.name] = column.column
         return self._from_dataframe(df)
 
@@ -427,21 +440,22 @@ class DataFrame(DataFrameT):
                 result.append(self.dataframe[column].isna())
         return self._from_dataframe(pd.concat(result, axis=1))
 
-    def fill_nan(self, value: float | pd.NAType) -> DataFrame:
+    def fill_nan(self, value: float | Scalar | NullType) -> DataFrame:
+        _value = self._validate_other(value)
         new_cols = {}
         df = self.dataframe
         for col in df.columns:
             ser = df[col].copy()
             if is_extension_array_dtype(ser.dtype):
-                if self.__dataframe_namespace__().is_null(value):
+                if self.__dataframe_namespace__().is_null(_value):
                     ser[np.isnan(ser).fillna(False).to_numpy(bool)] = pd.NA
                 else:
-                    ser[np.isnan(ser).fillna(False).to_numpy(bool)] = value
+                    ser[np.isnan(ser).fillna(False).to_numpy(bool)] = _value
             else:
-                if self.__dataframe_namespace__().is_null(value):
+                if self.__dataframe_namespace__().is_null(_value):
                     ser[np.isnan(ser).fillna(False).to_numpy(bool)] = np.nan
                 else:
-                    ser[np.isnan(ser).fillna(False).to_numpy(bool)] = value
+                    ser[np.isnan(ser).fillna(False).to_numpy(bool)] = _value
             new_cols[col] = ser
         df = pd.DataFrame(new_cols)
         return self._from_dataframe(df)

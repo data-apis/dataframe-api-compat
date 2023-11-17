@@ -15,6 +15,15 @@ def test_fill_nan(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
+def test_fill_nan_with_scalar(library: str) -> None:
+    df = nan_dataframe_1(library)
+    result = df.fill_nan(df.col("a").get_value(0))
+    result_pd = interchange_to_pandas(result)
+    result_pd = result_pd.astype("float64")
+    expected = pd.DataFrame({"a": [1.0, 2.0, 1.0]})
+    pd.testing.assert_frame_equal(result_pd, expected)
+
+
 def test_fill_nan_with_null(library: str) -> None:
     df = nan_dataframe_1(library)
     namespace = df.__dataframe_namespace__()

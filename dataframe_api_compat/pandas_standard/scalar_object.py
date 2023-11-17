@@ -35,7 +35,7 @@ class Scalar(ScalarT):
         return Scalar(scalar, df=self.df, api_version=self._api_version)
 
     @property
-    def dtype(self) -> DType:
+    def dtype(self) -> DType:  # pragma: no cover  # todo
         msg = "dtype not yet implemented for Scalar"
         raise NotImplementedError(msg)
 

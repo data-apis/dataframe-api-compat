@@ -108,10 +108,7 @@ class Column(ColumnT):
 
     @property
     def column(self) -> pl.Expr:
-        # what should this even do???
-        # if self.df is None:
-        #     # self-standing column
-        return self.expr  # pragma: no cover (probably unneeded?)
+        return self.expr
 
     @property
     def dtype(self) -> DType:
