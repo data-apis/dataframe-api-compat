@@ -16,9 +16,9 @@ if TYPE_CHECKING:
     from dataframe_api import Column as ColumnT
     from dataframe_api.typing import DType
     from dataframe_api.typing import NullType
+    from dataframe_api.typing import Scalar
 
     from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
-    from dataframe_api_compat.pandas_standard.scalar_object import Scalar
 else:
     ColumnT = object
 

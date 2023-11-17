@@ -12,10 +12,10 @@ if TYPE_CHECKING:
     from dataframe_api.typing import DType
     from dataframe_api.typing import Namespace
     from dataframe_api.typing import NullType
+    from dataframe_api.typing import Scalar
     from typing_extensions import Self
 
     from dataframe_api_compat.polars_standard.dataframe_object import DataFrame
-    from dataframe_api_compat.polars_standard.scalar_object import Scalar
 else:
     ColumnT = object
 
@@ -57,7 +57,7 @@ class Column(ColumnT):
             api_version=self.api_version,
         )
 
-    def _validate_comparand(self, other: Self | Any) -> Self | Any:
+    def _validate_comparand(self, other: Any) -> Any:
         from dataframe_api_compat.polars_standard.scalar_object import Scalar
 
         if isinstance(other, Scalar):
@@ -165,7 +165,7 @@ class Column(ColumnT):
     def unique_indices(
         self,
         *,
-        skip_nulls: bool | Scalar = True,  # type: ignore[override]
+        skip_nulls: bool | Scalar = True,
     ) -> Self:
         raise NotImplementedError
 
@@ -186,42 +186,42 @@ class Column(ColumnT):
     def min(
         self,
         *,
-        skip_nulls: bool | Scalar = True,  # type: ignore[override]
+        skip_nulls: bool | Scalar = True,
     ) -> Scalar:
         return self._to_scalar(self.expr.min())
 
     def max(
         self,
         *,
-        skip_nulls: bool | Scalar = True,  # type: ignore[override]
+        skip_nulls: bool | Scalar = True,
     ) -> Scalar:
         return self._to_scalar(self.expr.max())
 
     def sum(
         self,
         *,
-        skip_nulls: bool | Scalar = True,  # type: ignore[override]
+        skip_nulls: bool | Scalar = True,
     ) -> Scalar:
         return self._to_scalar(self.expr.sum())
 
     def prod(
         self,
         *,
-        skip_nulls: bool | Scalar = True,  # type: ignore[override]
+        skip_nulls: bool | Scalar = True,
     ) -> Scalar:
         return self._to_scalar(self.expr.product())
 
     def mean(
         self,
         *,
-        skip_nulls: bool | Scalar = True,  # type: ignore[override]
+        skip_nulls: bool | Scalar = True,
     ) -> Scalar:
         return self._to_scalar(self.expr.mean())
 
     def median(
         self,
         *,
-        skip_nulls: bool | Scalar = True,  # type: ignore[override]
+        skip_nulls: bool | Scalar = True,
     ) -> Scalar:
         return self._to_scalar(self.expr.median())
 
@@ -229,15 +229,15 @@ class Column(ColumnT):
         self,
         *,
         correction: float | Scalar = 1.0,
-        skip_nulls: bool | Scalar = True,  # type: ignore[override]
+        skip_nulls: bool | Scalar = True,
     ) -> Scalar:
         return self._to_scalar(self.expr.std())
 
     def var(
         self,
         *,
-        correction: float | Scalar = 1.0,  # type: ignore[override]
-        skip_nulls: bool | Scalar = True,  # type: ignore[override]
+        correction: float | Scalar | NullType = 1.0,
+        skip_nulls: bool | Scalar = True,
     ) -> Scalar:
         return self._to_scalar(self.expr.var())
 
@@ -306,7 +306,7 @@ class Column(ColumnT):
 
     def __pow__(self, other: Column | Any) -> Column:
         other = self._validate_comparand(other)
-        ret = self.expr.pow(other)  # type: ignore[arg-type]
+        ret = self.expr.pow(other)
         return self._from_expr(ret)
 
     def __rpow__(self, other: Column | Any) -> Column:  # pragma: no cover
@@ -330,10 +330,10 @@ class Column(ColumnT):
 
     def __and__(
         self,
-        other: Self | bool | Scalar,  # type: ignore[override]
+        other: Self | bool | Scalar,
     ) -> Self:
-        other = self._validate_comparand(other)
-        return self._from_expr(self.expr & other)  # type: ignore[arg-type]
+        _other = self._validate_comparand(other)
+        return self._from_expr(self.expr & _other)
 
     def __rand__(
         self,
@@ -343,10 +343,10 @@ class Column(ColumnT):
 
     def __or__(
         self,
-        other: Self | bool | Scalar,  # type: ignore[override]
+        other: Self | bool | Scalar,
     ) -> Self:
         other = self._validate_comparand(other)
-        return self._from_expr(self.expr | other)  # type: ignore[arg-type]
+        return self._from_expr(self.expr | other)  # type: ignore[operator, arg-type]
 
     def __ror__(self, other: Column | Any | Scalar) -> Column:
         return self.__or__(other)
@@ -374,12 +374,12 @@ class Column(ColumnT):
 
     def fill_nan(
         self,
-        value: float | NullType | Scalar,  # type: ignore[override]
+        value: float | NullType | Scalar,
     ) -> Column:
-        value = self._validate_comparand(value)
-        if isinstance(value, self.__column_namespace__().NullType):
+        _value = self._validate_comparand(value)
+        if isinstance(_value, self.__column_namespace__().NullType):
             return self._from_expr(self.expr.fill_nan(pl.lit(None)))
-        return self._from_expr(self.expr.fill_nan(value))
+        return self._from_expr(self.expr.fill_nan(_value))
 
     def fill_null(self, value: Any) -> Column:
         value = self._validate_comparand(value)
@@ -397,15 +397,17 @@ class Column(ColumnT):
     def cumulative_min(self, *, skip_nulls: bool = True) -> Column:
         return self._from_expr(self.expr.cummin())
 
-    def rename(self, name: str) -> Column:
-        return self._from_expr(self.expr.alias(name))
+    def rename(self, name: str | Scalar) -> Column:
+        _name = self._validate_comparand(name)
+        return self._from_expr(self.expr.alias(_name))
 
     def __len__(self) -> int:
         ser = self.materialise()
         return len(ser)
 
-    def shift(self, offset: int) -> Column:
-        return self._from_expr(self.expr.shift(offset))
+    def shift(self, offset: int | Scalar) -> Column:
+        _offset = self._validate_comparand(offset)
+        return self._from_expr(self.expr.shift(_offset))
 
     # --- temporal methods ---
 
