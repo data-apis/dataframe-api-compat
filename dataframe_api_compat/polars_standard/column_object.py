@@ -27,6 +27,7 @@ class Column(ColumnT):
         *,
         df: DataFrame | None,
         api_version: str,
+        is_persisted: bool = False,
     ) -> None:
         self.expr = expr
         self.df = df
@@ -39,6 +40,7 @@ class Column(ColumnT):
                 # Unexpected error. Just let it raise.
                 raise
             self._name = ""
+        self._is_persisted = is_persisted
 
     def __repr__(self) -> str:  # pragma: no cover
         column = self.materialise("Column.__repr__")
@@ -70,7 +72,12 @@ class Column(ColumnT):
             return other.expr
         return other
 
-    def materialise(self, method: str) -> pl.Series:
+    def materialise(self) -> pl.Series:
+        if not self._is_persisted:
+            msg = "Column is not persisted, please call `.persist()` first.\nNote: `persist` forces computation, use it with care, only when you need to,\nand as late and little as possible."
+            raise RuntimeError(
+                msg,
+            )
         if self.df is not None:
             ser = self.df.materialise_expression(self.expr)
         else:
@@ -83,18 +90,28 @@ class Column(ColumnT):
 
         return Scalar(value, api_version=self.api_version, df=self.df)
 
+    def persist(self) -> Column:
+        if self.df is not None:
+            column = self.df.materialise_expression(self.expr)
+        else:
+            df = pl.select(self.expr)
+            column = df.get_column(df.columns[0])
+        return Column(
+            pl.lit(column),
+            df=self.df,
+            api_version=self.api_version,
+            is_persisted=True,
+        )
+
     @property
     def name(self) -> str:
         return self._name
 
     @property
-    def column(self) -> pl.Expr | pl.Series:
-        if self.df is None:
-            # self-standing column
-            df = pl.select(self.expr)
-            return df.get_column(df.columns[0])
-        elif self.df.is_persisted:
-            return self.df.materialise_expression(self.expr)
+    def column(self) -> pl.Expr:
+        # what should this even do???
+        # if self.df is None:
+        #     # self-standing column
         return self.expr  # pragma: no cover (probably unneeded?)
 
     @property
@@ -136,7 +153,7 @@ class Column(ColumnT):
         return self._to_scalar(self.expr.take(row_number))
 
     def to_array(self) -> Any:
-        ser = self.validate_is_persisted()
+        ser = self.materialise()
         return ser.to_numpy()
 
     def __iter__(self) -> NoReturn:
@@ -343,7 +360,7 @@ class Column(ColumnT):
         return self._from_expr(self.expr.alias(name))
 
     def __len__(self) -> int:
-        ser = self.materialise("Column.__len__")
+        ser = self.materialise()
         return len(ser)
 
     def shift(self, offset: int) -> Column:

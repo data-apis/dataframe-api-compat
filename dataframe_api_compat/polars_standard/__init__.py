@@ -136,7 +136,7 @@ class Namespace(NamespaceT):
         data = {}
         api_version: set[str] = set()
         for col in columns:
-            ser = col.materialise("dataframe_from_columns")
+            ser = col.materialise()
             data[ser.name] = ser
             api_version.add(col.api_version)
         if len(api_version) > 1:  # pragma: no cover

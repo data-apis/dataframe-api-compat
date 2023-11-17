@@ -90,7 +90,7 @@ class Column(ColumnT):
             return other.column
         return other
 
-    def validate_is_persisted(self) -> pd.Series:
+    def materialise(self) -> pd.Series:
         if not self._is_persisted:
             msg = "Column is not persisted, please call `.persist()` first.\nNote: `persist` forces computation, use it with care, only when you need to,\nand as late and little as possible."
             raise RuntimeError(
@@ -140,7 +140,7 @@ class Column(ColumnT):
         return self._from_series(ser.loc[mask.column])
 
     def get_value(self, row_number: int) -> Any:
-        ser = self.materialise()
+        ser = self.column
         return self._scalar(
             ser.iloc[row_number],
             api_version=self.api_version,
@@ -420,7 +420,7 @@ class Column(ColumnT):
         return self._from_series(ser.rename(name))
 
     def to_array(self) -> Any:
-        ser = self.validate_is_persisted()
+        ser = self.materialise()
         return ser.to_numpy(
             dtype=NUMPY_MAPPING.get(self.column.dtype.name, self.column.dtype.name),
         )

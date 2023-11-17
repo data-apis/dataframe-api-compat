@@ -38,5 +38,5 @@ def test_column_to_array_object_bool(library: str) -> None:
 
 def test_column_to_array_object_invalid(library: str) -> None:
     df = bool_dataframe_1(library).col("a")
-    with pytest.raises(ValueError):
+    with pytest.raises(RuntimeError):
         _ = np.asarray(df.to_array())

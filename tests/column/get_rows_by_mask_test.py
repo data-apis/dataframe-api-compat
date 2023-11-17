@@ -7,10 +7,10 @@ from tests.utils import interchange_to_pandas
 
 
 def test_column_filter(library: str) -> None:
-    df = integer_dataframe_1(library).persist()
+    df = integer_dataframe_1(library)
     ser = df.col("a")
     mask = ser > 1
-    ser = ser.filter(mask)
+    ser = ser.filter(mask).persist()
     result_pd = pd.Series(ser.to_array(), name="result")
     expected = pd.Series([2, 3], name="result")
     pd.testing.assert_series_equal(result_pd, expected)

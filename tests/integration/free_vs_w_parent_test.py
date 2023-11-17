@@ -22,7 +22,7 @@ def test_free_vs_w_parent(library: str) -> None:
     result = free_ser1 + free_ser2
     if library == "polars-lazy":
         assert_series_equal(
-            result.column,
+            pl.select(result.column)["preds"],
             pl.Series("preds", [5, 7, 9], dtype=pl.Int64()),
         )
 
