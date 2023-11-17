@@ -43,8 +43,7 @@ class Column(ColumnT):
         self._is_persisted = is_persisted
 
     def __repr__(self) -> str:  # pragma: no cover
-        column = self.materialise()
-        return column.__repr__()
+        return self.expr.__repr__()
 
     def _from_expr(self, expr: pl.Expr) -> Self:
         return self.__class__(expr, df=self.df, api_version=self.api_version)

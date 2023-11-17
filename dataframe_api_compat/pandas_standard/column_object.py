@@ -187,7 +187,7 @@ class Column(ColumnT):
         ser = self.column
         return self._from_series(ser < other).rename(ser.name)
 
-    def __and__(self, other: Column | bool | Scalar) -> Column:
+    def __and__(self, other: Column | bool) -> Column:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser & other).rename(ser.name)
@@ -195,7 +195,7 @@ class Column(ColumnT):
     def __rand__(self, other: Column | Any) -> Column:
         return self.__and__(other)
 
-    def __or__(self, other: Column | bool | Scalar) -> Column:
+    def __or__(self, other: Column | bool) -> Column:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser | other).rename(ser.name)

@@ -152,18 +152,18 @@ class DataFrame(DataFrameT):
         return self._from_dataframe(self.df[start:stop:step])
 
     def _validate_other(self, other: Any) -> Any:
-        from dataframe_api_compat.pandas_standard.column_object import Column
-        from dataframe_api_compat.pandas_standard.scalar_object import Scalar
+        from dataframe_api_compat.polars_standard.column_object import Column
+        from dataframe_api_compat.polars_standard.scalar_object import Scalar
 
         if isinstance(other, Scalar):
-            if id(self.df) != id(other.df):
+            if id(self) != id(other.df):
                 msg = "cannot compare columns/scalars from different dataframes"
                 raise ValueError(
                     msg,
                 )
             return other.value
         if isinstance(other, Column):
-            if id(self.df) != id(other.df):
+            if id(self) != id(other.df):
                 msg = "cannot compare columns from different dataframes"
                 raise ValueError(msg)
             return other.column
