@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from dataframe_api import DataFrame as DataFrameT
+    from dataframe_api.typing import AnyScalar
     from dataframe_api.typing import DType
     from dataframe_api.typing import Namespace
     from dataframe_api.typing import NullType
@@ -137,7 +138,7 @@ class DataFrame(DataFrameT):
         )
 
     def get_rows(self, indices: Column) -> DataFrame:  # type: ignore[override]
-        self._validate_column(indices)
+        self._validate_other(indices)
         return self._from_dataframe(
             self.dataframe.select(pl.all().take(indices.expr)),
         )
@@ -150,19 +151,32 @@ class DataFrame(DataFrameT):
     ) -> DataFrame:
         return self._from_dataframe(self.df[start:stop:step])
 
-    def _validate_column(self, column: Column) -> None:
-        if id(self) != id(column.df):
-            msg = "Column is from a different dataframe"
-            raise ValueError(msg)
+    def _validate_other(self, other: Any) -> Any:
+        from dataframe_api_compat.pandas_standard.column_object import Column
+        from dataframe_api_compat.pandas_standard.scalar_object import Scalar
+
+        if isinstance(other, Scalar):
+            if id(self.df) != id(other.df):
+                msg = "cannot compare columns/scalars from different dataframes"
+                raise ValueError(
+                    msg,
+                )
+            return other.value
+        if isinstance(other, Column):
+            if id(self.df) != id(other.df):
+                msg = "cannot compare columns from different dataframes"
+                raise ValueError(msg)
+            return other.column
+        return other
 
     def filter(self, mask: Column) -> DataFrame:  # type: ignore[override]
-        self._validate_column(mask)
+        self._validate_other(mask)
         return self._from_dataframe(self.df.filter(mask.expr))
 
     def assign(self, *columns: Column) -> DataFrame:  # type: ignore[override]
         new_columns: list[pl.Expr] = []
         for col in columns:
-            self._validate_column(col)
+            self._validate_other(col)
             new_columns.append(col.expr)
         df = self.dataframe.with_columns(new_columns)
         return self._from_dataframe(df)
@@ -444,19 +458,20 @@ class DataFrame(DataFrameT):
 
     def fill_nan(
         self,
-        value: float | NullType,
+        value: float | NullType | Scalar,
     ) -> DataFrame:
-        if isinstance(value, self.__dataframe_namespace__().NullType):
+        _value = self._validate_other(value)
+        if isinstance(_value, self.__dataframe_namespace__().NullType):
             return self._from_dataframe(
                 self.dataframe.fill_nan(pl.lit(None)),
             )
         return self._from_dataframe(
-            self.dataframe.fill_nan(value),
+            self.dataframe.fill_nan(_value),
         )
 
     def fill_null(
         self,
-        value: Any,
+        value: AnyScalar,
         *,
         column_names: list[str] | None = None,
     ) -> DataFrame:
