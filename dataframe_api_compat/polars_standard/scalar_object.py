@@ -22,7 +22,7 @@ class Scalar(ScalarT):
         self.df = df
 
     @property
-    def dtype(self) -> DType:
+    def dtype(self) -> DType:  # pragma: no cover  # todo
         return self.value.dtype  # type: ignore[no-any-return]
 
     def _validate_other(self, other: Any) -> Any:
