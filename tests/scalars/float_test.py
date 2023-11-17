@@ -35,10 +35,7 @@ def test_float_binary(library: str, attr: str) -> None:
     df = integer_dataframe_2(library).persist()
     scalar = df.col("a").mean()
     float_scalar = float(scalar.persist())  # type: ignore[arg-type]
-    assert getattr(scalar, attr)(other).persist() == getattr(
-        float_scalar,
-        attr,
-    )(other)
+    assert (getattr(scalar, attr)(other) == getattr(float_scalar, attr)(other)).persist()
 
 
 def test_float_binary_invalid(library: str) -> None:
@@ -67,7 +64,7 @@ def test_float_unary(library: str, attr: str) -> None:
     df = integer_dataframe_2(library).persist()
     scalar = df.col("a").mean()
     float_scalar = float(scalar.persist())  # type: ignore[arg-type]
-    assert getattr(scalar, attr)().persist() == getattr(float_scalar, attr)()
+    assert (getattr(scalar, attr)() == getattr(float_scalar, attr)()).persist()
 
 
 @pytest.mark.parametrize(

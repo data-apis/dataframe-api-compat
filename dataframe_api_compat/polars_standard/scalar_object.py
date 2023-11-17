@@ -193,16 +193,16 @@ class Scalar(ScalarT):
         if not self.is_persisted:
             msg = "Can't call __bool__ on Scalar. Please use .persist() first."
             raise RuntimeError(msg)
-        return self.materialise().__bool__()
+        return self.materialise().__bool__()  # type: ignore[no-any-return]
 
     def __int__(self) -> int:
         if not self.is_persisted:
             msg = "Can't call __int__ on Scalar. Please use .persist() first."
             raise RuntimeError(msg)
-        return self.materialise().__int__()
+        return self.materialise().__int__()  # type: ignore[no-any-return]
 
     def __float__(self) -> float:
         if not self.is_persisted:
             msg = "Can't call __float__ on Scalar. Please use .persist() first."
             raise RuntimeError(msg)
-        return self.materialise().__float__()
+        return self.materialise().__float__()  # type: ignore[no-any-return]
