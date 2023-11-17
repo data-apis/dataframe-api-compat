@@ -11,6 +11,8 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from dataframe_api import GroupBy as GroupByT
+    from dataframe_api.typing import NullType
+    from dataframe_api.typing import Scalar
 else:
     GroupByT = object
 
@@ -32,7 +34,7 @@ class GroupBy(GroupByT):
         result = self.group_by(self.keys).count().rename({"count": "size"})
         return DataFrame(result, api_version=self._api_version)
 
-    def any(self, *, skip_nulls: bool = True) -> DataFrame:
+    def any(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         grp = self.group_by(self.keys)
         if not all(
             self.df.schema[col] is pl.Boolean
@@ -44,7 +46,7 @@ class GroupBy(GroupByT):
         result = grp.agg(pl.col("*").any())
         return DataFrame(result, api_version=self._api_version)
 
-    def all(self, *, skip_nulls: bool = True) -> DataFrame:
+    def all(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         grp = self.group_by(self.keys)
         if not all(
             self.df.schema[col] is pl.Boolean
@@ -56,35 +58,35 @@ class GroupBy(GroupByT):
         result = grp.agg(pl.col("*").all())
         return DataFrame(result, api_version=self._api_version)
 
-    def min(self, *, skip_nulls: bool = True) -> DataFrame:
+    def min(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self.group_by(self.keys).agg(pl.col("*").min())
         return DataFrame(result, api_version=self._api_version)
 
-    def max(self, *, skip_nulls: bool = True) -> DataFrame:
+    def max(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self.group_by(self.keys).agg(pl.col("*").max())
         return DataFrame(result, api_version=self._api_version)
 
-    def sum(self, *, skip_nulls: bool = True) -> DataFrame:
+    def sum(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self.group_by(self.keys).agg(pl.col("*").sum())
         return DataFrame(result, api_version=self._api_version)
 
-    def prod(self, *, skip_nulls: bool = True) -> DataFrame:
+    def prod(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self.group_by(self.keys).agg(pl.col("*").product())
         return DataFrame(result, api_version=self._api_version)
 
-    def median(self, *, skip_nulls: bool = True) -> DataFrame:
+    def median(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self.group_by(self.keys).agg(pl.col("*").median())
         return DataFrame(result, api_version=self._api_version)
 
-    def mean(self, *, skip_nulls: bool = True) -> DataFrame:
+    def mean(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self.group_by(self.keys).agg(pl.col("*").mean())
         return DataFrame(result, api_version=self._api_version)
 
     def std(
         self,
         *,
-        correction: int | float = 1.0,
-        skip_nulls: bool = True,
+        correction: float | Scalar | NullType = 1.0,
+        skip_nulls: bool | Scalar = True,
     ) -> DataFrame:
         result = self.group_by(self.keys).agg(pl.col("*").std())
         return DataFrame(result, api_version=self._api_version)
@@ -92,8 +94,8 @@ class GroupBy(GroupByT):
     def var(
         self,
         *,
-        correction: int | float = 1.0,
-        skip_nulls: bool = True,
+        correction: float | Scalar | NullType = 1.0,
+        skip_nulls: bool | Scalar = True,
     ) -> DataFrame:
         result = self.group_by(self.keys).agg(pl.col("*").var())
         return DataFrame(result, api_version=self._api_version)

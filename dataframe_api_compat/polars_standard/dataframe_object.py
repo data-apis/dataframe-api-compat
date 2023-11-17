@@ -17,9 +17,11 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from dataframe_api import DataFrame as DataFrameT
+    from dataframe_api.typing import AnyScalar
     from dataframe_api.typing import DType
     from dataframe_api.typing import Namespace
     from dataframe_api.typing import NullType
+    from dataframe_api.typing import Scalar
 
     from dataframe_api_compat.polars_standard.group_by_object import GroupBy
 
@@ -69,9 +71,6 @@ class DataFrame(DataFrameT):
         self.is_persisted = is_persisted
 
     def materialise_expression(self, expr: pl.Expr) -> pl.Series:
-        if not self.is_persisted:
-            msg = "Cannot materialise a lazy dataframe, please call `persist` first"
-            raise ValueError(msg)  # todo better err message
         df = self.dataframe.collect().select(expr)
         return df.get_column(df.columns[0])
 
@@ -97,7 +96,12 @@ class DataFrame(DataFrameT):
         )
 
     def col(self, value: str) -> Column:
-        return Column(pl.col(value), df=self, api_version=self.api_version)
+        return Column(
+            pl.col(value),
+            df=self,
+            api_version=self.api_version,
+            is_persisted=self.is_persisted,
+        )
 
     @property
     def schema(self) -> dict[str, DType]:
@@ -139,7 +143,7 @@ class DataFrame(DataFrameT):
         )
 
     def get_rows(self, indices: Column) -> DataFrame:  # type: ignore[override]
-        self._validate_column(indices)
+        self._validate_other(indices)
         return self._from_dataframe(
             self.dataframe.select(pl.all().take(indices.expr)),
         )
@@ -152,19 +156,32 @@ class DataFrame(DataFrameT):
     ) -> DataFrame:
         return self._from_dataframe(self.df[start:stop:step])
 
-    def _validate_column(self, column: Column) -> None:
-        if id(self) != id(column.df):
-            msg = "Column is from a different dataframe"
-            raise ValueError(msg)
+    def _validate_other(self, other: Any) -> Any:
+        from dataframe_api_compat.polars_standard.column_object import Column
+        from dataframe_api_compat.polars_standard.scalar_object import Scalar
+
+        if isinstance(other, Scalar):
+            if id(self) != id(other.df):
+                msg = "cannot compare columns/scalars from different dataframes"
+                raise ValueError(
+                    msg,
+                )
+            return other.value
+        if isinstance(other, Column):
+            if id(self) != id(other.df):
+                msg = "cannot compare columns from different dataframes"
+                raise ValueError(msg)
+            return other.column
+        return other
 
     def filter(self, mask: Column) -> DataFrame:  # type: ignore[override]
-        self._validate_column(mask)
+        self._validate_other(mask)
         return self._from_dataframe(self.df.filter(mask.expr))
 
     def assign(self, *columns: Column) -> DataFrame:  # type: ignore[override]
         new_columns: list[pl.Expr] = []
         for col in columns:
-            self._validate_column(col)
+            self._validate_other(col)
             new_columns.append(col.expr)
         df = self.dataframe.with_columns(new_columns)
         return self._from_dataframe(df)
@@ -336,42 +353,42 @@ class DataFrame(DataFrameT):
 
     # Reductions
 
-    def any(self, *, skip_nulls: bool = True) -> DataFrame:
+    def any(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.select(pl.col("*").any()),
         )
 
-    def all(self, *, skip_nulls: bool = True) -> DataFrame:
+    def all(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.select(pl.col("*").all()),
         )
 
-    def min(self, *, skip_nulls: bool = True) -> DataFrame:
+    def min(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.select(pl.col("*").min()),
         )
 
-    def max(self, *, skip_nulls: bool = True) -> DataFrame:
+    def max(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.select(pl.col("*").max()),
         )
 
-    def sum(self, *, skip_nulls: bool = True) -> DataFrame:
+    def sum(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.select(pl.col("*").sum()),
         )
 
-    def prod(self, *, skip_nulls: bool = True) -> DataFrame:
+    def prod(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.select(pl.col("*").product()),
         )
 
-    def mean(self, *, skip_nulls: bool = True) -> DataFrame:
+    def mean(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.select(pl.col("*").mean()),
         )
 
-    def median(self, *, skip_nulls: bool = True) -> DataFrame:
+    def median(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.select(pl.col("*").median()),
         )
@@ -379,8 +396,8 @@ class DataFrame(DataFrameT):
     def std(
         self,
         *,
-        correction: int | float = 1.0,
-        skip_nulls: bool = True,
+        correction: float | Scalar | NullType = 1.0,
+        skip_nulls: bool | Scalar = True,
     ) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.select(pl.col("*").std()),
@@ -389,8 +406,8 @@ class DataFrame(DataFrameT):
     def var(
         self,
         *,
-        correction: int | float = 1.0,
-        skip_nulls: bool = True,
+        correction: float | Scalar | NullType = 1.0,
+        skip_nulls: bool | Scalar = True,
     ) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.select(pl.col("*").var()),
@@ -398,11 +415,19 @@ class DataFrame(DataFrameT):
 
     # Horizontal reductions
 
-    def all_rowwise(self, *, skip_nulls: bool = True) -> Column:  # pragma: no cover
+    def all_rowwise(
+        self,
+        *,
+        skip_nulls: bool | Scalar = True,
+    ) -> Column:  # pragma: no cover
         msg = "Please use `__dataframe_namespace__().all` instead"
         raise NotImplementedError(msg)
 
-    def any_rowwise(self, *, skip_nulls: bool = True) -> Column:  # pragma: no cover
+    def any_rowwise(
+        self,
+        *,
+        skip_nulls: bool | Scalar = True,
+    ) -> Column:  # pragma: no cover
         msg = "Please use `__dataframe_namespace__().any` instead"
         raise NotImplementedError(msg)
 
@@ -418,7 +443,7 @@ class DataFrame(DataFrameT):
     def unique_indices(
         self,
         *keys: str,
-        skip_nulls: bool = True,
+        skip_nulls: bool | Scalar = True,
     ) -> Column:  # pragma: no cover
         msg = "Please use `__dataframe_namespace__().unique_indices` instead"
         raise NotImplementedError(msg)
@@ -438,19 +463,20 @@ class DataFrame(DataFrameT):
 
     def fill_nan(
         self,
-        value: float | NullType,
+        value: float | NullType | Scalar,
     ) -> DataFrame:
-        if isinstance(value, self.__dataframe_namespace__().NullType):
+        _value = self._validate_other(value)
+        if isinstance(_value, self.__dataframe_namespace__().NullType):
             return self._from_dataframe(
                 self.dataframe.fill_nan(pl.lit(None)),
             )
         return self._from_dataframe(
-            self.dataframe.fill_nan(value),
+            self.dataframe.fill_nan(_value),
         )
 
     def fill_null(
         self,
-        value: Any,
+        value: AnyScalar,
         *,
         column_names: list[str] | None = None,
     ) -> DataFrame:

@@ -17,13 +17,13 @@ def test_scale_column_polars() -> None:
     s = pl.Series("a", [1, 2, 3])
     ser = s.__column_consortium_standard__()
     ser = ser - ser.mean()
-    result = ser.column
+    result = pl.select(ser.column)["a"]
     assert_series_equal(result, pl.Series("a", [-1, 0, 1.0]))
 
 
 def test_scale_column_polars_from_persisted_df() -> None:
     df = pl.DataFrame({"a": [1, 2, 3]})
-    ser = df.__dataframe_consortium_standard__().persist().col("a")
+    ser = df.__dataframe_consortium_standard__().col("a")
     ser = ser - ser.mean()
-    result = ser.column
+    result = pl.select(ser.persist().column)["a"]
     assert_series_equal(result, pl.Series("a", [-1, 0, 1.0]))

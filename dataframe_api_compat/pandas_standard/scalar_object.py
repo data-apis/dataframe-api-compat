@@ -1,16 +1,31 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from typing import Any
 
 from dataframe_api_compat.pandas_standard.column_object import Column
 from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
 
+if TYPE_CHECKING:
+    from dataframe_api.typing import DType
+    from dataframe_api.typing import Scalar as ScalarT
+else:
+    ScalarT = object
 
-class Scalar:
-    def __init__(self, value: Any, api_version: str, df: DataFrame | None) -> None:
+
+class Scalar(ScalarT):
+    def __init__(
+        self,
+        value: Any,
+        api_version: str,
+        df: DataFrame | None,
+        *,
+        is_persisted: bool = False,
+    ) -> None:
         self.value = value
         self._api_version = api_version
         self.df = df
+        self.is_persisted = is_persisted
 
     def _validate_other(self, other: Any) -> Any:
         if isinstance(other, (Column, DataFrame)):
@@ -27,12 +42,18 @@ class Scalar:
     def _from_scalar(self, scalar: Scalar) -> Scalar:
         return Scalar(scalar, df=self.df, api_version=self._api_version)
 
-    def materialise(self) -> Any:
-        if self.df is None:
-            # free-standing column
-            return self.value
-        self.df.validate_is_persisted()
-        return self.value
+    @property
+    def dtype(self) -> DType:  # pragma: no cover  # todo
+        msg = "dtype not yet implemented for Scalar"
+        raise NotImplementedError(msg)
+
+    def persist(self) -> Scalar:
+        return Scalar(
+            self.value,
+            df=self.df,
+            api_version=self._api_version,
+            is_persisted=True,
+        )
 
     def __lt__(self, other: Any) -> Scalar:
         other = self._validate_other(other)
@@ -154,25 +175,29 @@ class Scalar:
             return NotImplemented
         return self._from_scalar(self.value.__rtruediv__(other))
 
-    def __neg__(self) -> Any:
-        item = self.materialise()
-        return item.__neg__()
+    def __neg__(self) -> Scalar:
+        return self._from_scalar(self.value.__neg__())
 
-    def __abs__(self) -> bool:
-        item = self.materialise()
-        return item.__abs__()  # type: ignore[no-any-return]
+    def __abs__(self) -> Scalar:
+        return self._from_scalar(self.value.__abs__())
 
     def __bool__(self) -> bool:
-        item = self.materialise()
-        return item.__bool__()  # type: ignore[no-any-return]
+        if not self.is_persisted:
+            msg = "Can't call __bool__ on Scalar. Please use .persist() first."
+            raise RuntimeError(msg)
+        return self.value.__bool__()  # type: ignore[no-any-return]
 
     def __int__(self) -> int:
-        item = self.materialise()
-        return item.__int__()  # type: ignore[no-any-return]
+        if not self.is_persisted:
+            msg = "Can't call __int__ on Scalar. Please use .persist() first."
+            raise RuntimeError(msg)
+        return self.value.__int__()  # type: ignore[no-any-return]
 
     def __float__(self) -> float:
-        item = self.materialise()
-        return item.__float__()  # type: ignore[no-any-return]
+        if not self.is_persisted:
+            msg = "Can't call __float__ on Scalar. Please use .persist() first."
+            raise RuntimeError(msg)
+        return self.value.__float__()  # type: ignore[no-any-return]
 
     def __repr__(self) -> str:  # pragma: no cover
         return self.value.__repr__()  # type: ignore[no-any-return]

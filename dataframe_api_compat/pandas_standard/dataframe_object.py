@@ -18,6 +18,8 @@ if TYPE_CHECKING:
 
     from dataframe_api import DataFrame as DataFrameT
     from dataframe_api.typing import DType
+    from dataframe_api.typing import NullType
+    from dataframe_api.typing import Scalar
 
     from dataframe_api_compat.pandas_standard.column_object import Column
     from dataframe_api_compat.pandas_standard.group_by_object import GroupBy
@@ -40,7 +42,7 @@ class DataFrame(DataFrameT):
 
     def validate_is_persisted(self) -> pd.DataFrame:
         if not self.is_persisted:
-            msg = "Method requires you to call `.persist` first on the parent dataframe.\n\nNote: `.persist` forces materialisation in lazy libraries and so should be called as late as possible in your pipeline, and only once per dataframe."
+            msg = "Method requires you to call `.persist` first.\n\nNote: `.persist` forces materialisation in lazy libraries and so should be called as late as possible in your pipeline. Use with care."
             raise ValueError(
                 msg,
             )
@@ -67,10 +69,23 @@ class DataFrame(DataFrameT):
                 msg,
             )
 
-    def _validate_column(self, column: Column) -> None:
-        if id(self) != id(column.df):
-            msg = "cannot compare columns from different dataframes"
-            raise ValueError(msg)
+    def _validate_other(self, other: Any) -> Any:
+        from dataframe_api_compat.pandas_standard.column_object import Column
+        from dataframe_api_compat.pandas_standard.scalar_object import Scalar
+
+        if isinstance(other, Scalar):
+            if id(self) != id(other.df):
+                msg = "cannot compare columns/scalars from different dataframes"
+                raise ValueError(
+                    msg,
+                )
+            return other.value
+        if isinstance(other, Column):
+            if id(self) != id(other.df):
+                msg = "cannot compare columns from different dataframes"
+                raise ValueError(msg)
+            return other.column
+        return other
 
     def _from_dataframe(self, df: pd.DataFrame) -> DataFrame:
         return DataFrame(
@@ -87,6 +102,7 @@ class DataFrame(DataFrameT):
             self.dataframe.loc[:, name],
             df=self,
             api_version=self.api_version,
+            is_persisted=self.is_persisted,
         )
 
     def shape(self) -> tuple[int, int]:
@@ -143,7 +159,7 @@ class DataFrame(DataFrameT):
         self,
         indices: Column,  # type: ignore[override]
     ) -> DataFrame:
-        self._validate_column(indices)
+        self._validate_other(indices)
         return self._from_dataframe(
             self.dataframe.iloc[indices.column, :],
         )
@@ -152,7 +168,7 @@ class DataFrame(DataFrameT):
         self,
         mask: Column,  # type: ignore[override]
     ) -> DataFrame:
-        self._validate_column(mask)
+        self._validate_other(mask)
         df = self.dataframe
         df = df.loc[mask.column]
         return self._from_dataframe(df)
@@ -163,7 +179,7 @@ class DataFrame(DataFrameT):
     ) -> DataFrame:
         df = self.dataframe.copy()  # TODO: remove defensive copy with CoW?
         for column in columns:
-            self._validate_column(column)
+            self._validate_other(column)
             df[column.name] = column.column
         return self._from_dataframe(df)
 
@@ -309,44 +325,44 @@ class DataFrame(DataFrameT):
 
     # Reductions
 
-    def any(self, *, skip_nulls: bool = True) -> DataFrame:
+    def any(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         self._validate_booleanness()
         return self._from_dataframe(
             self.dataframe.any().to_frame().T,
         )
 
-    def all(self, *, skip_nulls: bool = True) -> DataFrame:
+    def all(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         self._validate_booleanness()
         return self._from_dataframe(
             self.dataframe.all().to_frame().T,
         )
 
-    def min(self, *, skip_nulls: bool = True) -> DataFrame:
+    def min(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.min().to_frame().T,
         )
 
-    def max(self, *, skip_nulls: bool = True) -> DataFrame:
+    def max(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.max().to_frame().T,
         )
 
-    def sum(self, *, skip_nulls: bool = True) -> DataFrame:
+    def sum(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.sum().to_frame().T,
         )
 
-    def prod(self, *, skip_nulls: bool = True) -> DataFrame:
+    def prod(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.prod().to_frame().T,
         )
 
-    def median(self, *, skip_nulls: bool = True) -> DataFrame:
+    def median(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.median().to_frame().T,
         )
 
-    def mean(self, *, skip_nulls: bool = True) -> DataFrame:
+    def mean(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.mean().to_frame().T,
         )
@@ -354,8 +370,8 @@ class DataFrame(DataFrameT):
     def std(
         self,
         *,
-        correction: int | float = 1.0,
-        skip_nulls: bool = True,
+        correction: float | Scalar | NullType = 1.0,
+        skip_nulls: bool | Scalar = True,
     ) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.std().to_frame().T,
@@ -364,8 +380,8 @@ class DataFrame(DataFrameT):
     def var(
         self,
         *,
-        correction: int | float = 1.0,
-        skip_nulls: bool = True,
+        correction: float | Scalar | NullType = 1.0,
+        skip_nulls: bool | Scalar = True,
     ) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.var().to_frame().T,
@@ -373,11 +389,19 @@ class DataFrame(DataFrameT):
 
     # Horizontal reductions
 
-    def all_rowwise(self, *, skip_nulls: bool = True) -> Column:  # pragma: no cover
+    def all_rowwise(
+        self,
+        *,
+        skip_nulls: bool | Scalar = True,
+    ) -> Column:  # pragma: no cover
         msg = "Please use `__dataframe_namespace__().all_rowwise` instead"
         raise NotImplementedError(msg)
 
-    def any_rowwise(self, *, skip_nulls: bool = True) -> Column:  # pragma: no cover
+    def any_rowwise(
+        self,
+        *,
+        skip_nulls: bool | Scalar = True,
+    ) -> Column:  # pragma: no cover
         msg = "Please use `__dataframe_namespace__().any` instead"
         raise NotImplementedError(msg)
 
@@ -393,14 +417,14 @@ class DataFrame(DataFrameT):
     def unique_indices(
         self,
         *keys: str,
-        skip_nulls: bool = True,
+        skip_nulls: bool | Scalar = True,
     ) -> Column:  # pragma: no cover
         msg = "Please use `__dataframe_namespace__().unique_indices` instead"
         raise NotImplementedError(msg)
 
     # Transformations
 
-    def is_null(self, *, skip_nulls: bool = True) -> DataFrame:
+    def is_null(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result: list[pd.Series] = []
         for column in self.dataframe.columns:
             result.append(self.dataframe[column].isna())
@@ -417,21 +441,22 @@ class DataFrame(DataFrameT):
                 result.append(self.dataframe[column].isna())
         return self._from_dataframe(pd.concat(result, axis=1))
 
-    def fill_nan(self, value: float | pd.NAType) -> DataFrame:
+    def fill_nan(self, value: float | Scalar | NullType) -> DataFrame:
+        _value = self._validate_other(value)
         new_cols = {}
         df = self.dataframe
         for col in df.columns:
             ser = df[col].copy()
             if is_extension_array_dtype(ser.dtype):
-                if self.__dataframe_namespace__().is_null(value):
+                if self.__dataframe_namespace__().is_null(_value):
                     ser[np.isnan(ser).fillna(False).to_numpy(bool)] = pd.NA
                 else:
-                    ser[np.isnan(ser).fillna(False).to_numpy(bool)] = value
+                    ser[np.isnan(ser).fillna(False).to_numpy(bool)] = _value
             else:
-                if self.__dataframe_namespace__().is_null(value):
+                if self.__dataframe_namespace__().is_null(_value):
                     ser[np.isnan(ser).fillna(False).to_numpy(bool)] = np.nan
                 else:
-                    ser[np.isnan(ser).fillna(False).to_numpy(bool)] = value
+                    ser[np.isnan(ser).fillna(False).to_numpy(bool)] = _value
             new_cols[col] = ser
         df = pd.DataFrame(new_cols)
         return self._from_dataframe(df)

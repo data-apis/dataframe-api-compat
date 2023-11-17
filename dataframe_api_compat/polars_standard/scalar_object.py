@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from typing import Any
 
 import polars as pl
@@ -7,12 +8,30 @@ import polars as pl
 from dataframe_api_compat.polars_standard.column_object import Column
 from dataframe_api_compat.polars_standard.dataframe_object import DataFrame
 
+if TYPE_CHECKING:
+    from dataframe_api.typing import DType
+    from dataframe_api.typing import Scalar as ScalarT
+else:
+    ScalarT = object
 
-class Scalar:
-    def __init__(self, value: Any, api_version: str, df: DataFrame | None) -> None:
+
+class Scalar(ScalarT):
+    def __init__(
+        self,
+        value: Any,
+        api_version: str,
+        df: DataFrame | None,
+        *,
+        is_persisted: bool = False,
+    ) -> None:
         self.value = value
         self._api_version = api_version
         self.df = df
+        self.is_persisted = is_persisted
+
+    @property
+    def dtype(self) -> DType:  # pragma: no cover  # todo
+        return self.value.dtype  # type: ignore[no-any-return]
 
     def _validate_other(self, other: Any) -> Any:
         if isinstance(other, (Column, DataFrame)):
@@ -27,9 +46,27 @@ class Scalar:
         return other
 
     def materialise(self) -> Any:
+        if not self.is_persisted:
+            msg = "Can't call __bool__ on Scalar. Please use .persist() first."
+            raise RuntimeError(msg)
+
         if self.df is None:
-            return pl.select(self.value).item()
-        return self.df.materialise_expression(self.value).item()
+            value = pl.select(self.value).item()
+        else:
+            value = self.df.materialise_expression(self.value).item()
+        return value
+
+    def persist(self) -> Scalar:
+        if self.df is None:
+            value = pl.select(self.value).item()
+        else:
+            value = self.df.materialise_expression(self.value).item()
+        return Scalar(
+            value,
+            df=self.df,
+            api_version=self._api_version,
+            is_persisted=True,
+        )
 
     def _from_scalar(self, scalar: Scalar) -> Scalar:
         return Scalar(scalar, df=self.df, api_version=self._api_version)
@@ -161,13 +198,10 @@ class Scalar:
         return self._from_scalar(self.value.__abs__())
 
     def __bool__(self) -> bool:
-        item = self.materialise()
-        return item.__bool__()  # type: ignore[no-any-return]
+        return self.materialise().__bool__()  # type: ignore[no-any-return]
 
     def __int__(self) -> int:
-        item = self.materialise()
-        return item.__int__()  # type: ignore[no-any-return]
+        return self.materialise().__int__()  # type: ignore[no-any-return]
 
     def __float__(self) -> float:
-        item = self.materialise()
-        return item.__float__()  # type: ignore[no-any-return]
+        return self.materialise().__float__()  # type: ignore[no-any-return]

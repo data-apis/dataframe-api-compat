@@ -16,9 +16,9 @@ if TYPE_CHECKING:
     from dataframe_api import Column as ColumnT
     from dataframe_api.typing import DType
     from dataframe_api.typing import NullType
+    from dataframe_api.typing import Scalar
 
     from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
-    from dataframe_api_compat.pandas_standard.scalar_object import Scalar
 else:
     ColumnT = object
 
@@ -43,6 +43,7 @@ class Column(ColumnT):
         *,
         df: DataFrame | None,
         api_version: str,
+        is_persisted: bool = False,
     ) -> None:
         """Parameters
         ----------
@@ -56,6 +57,7 @@ class Column(ColumnT):
         self.api_version = api_version
         self.df = df
         self._scalar = Scalar
+        self._is_persisted = is_persisted
 
     def __repr__(self) -> str:  # pragma: no cover
         return self.column.__repr__()  # type: ignore[no-any-return]
@@ -89,8 +91,11 @@ class Column(ColumnT):
         return other
 
     def materialise(self) -> pd.Series:
-        if self.df is not None:
-            self.df.validate_is_persisted()
+        if not self._is_persisted:
+            msg = "Column is not persisted, please call `.persist()` first.\nNote: `persist` forces computation, use it with care, only when you need to,\nand as late and little as possible."
+            raise RuntimeError(
+                msg,
+            )
         return self.column
 
     # In the standard
@@ -99,6 +104,14 @@ class Column(ColumnT):
     ) -> dataframe_api_compat.pandas_standard.Namespace:
         return dataframe_api_compat.pandas_standard.Namespace(
             api_version=self.api_version,
+        )
+
+    def persist(self) -> Column:
+        return Column(
+            self.column,
+            df=self.df,
+            api_version=self.api_version,
+            is_persisted=True,
         )
 
     @property
@@ -127,8 +140,13 @@ class Column(ColumnT):
         return self._from_series(ser.loc[mask.column])
 
     def get_value(self, row_number: int) -> Any:
-        ser = self.materialise()
-        return ser.iloc[row_number]
+        ser = self.column
+        return self._scalar(
+            ser.iloc[row_number],
+            api_version=self.api_version,
+            df=self.df,
+            is_persisted=self._is_persisted,
+        )
 
     def slice_rows(
         self,
@@ -170,7 +188,7 @@ class Column(ColumnT):
         ser = self.column
         return self._from_series(ser < other).rename(ser.name)
 
-    def __and__(self, other: Column | bool) -> Column:
+    def __and__(self, other: Column | bool | Scalar) -> Column:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser & other).rename(ser.name)
@@ -178,7 +196,7 @@ class Column(ColumnT):
     def __rand__(self, other: Column | Any) -> Column:
         return self.__and__(other)
 
-    def __or__(self, other: Column | bool) -> Column:
+    def __or__(self, other: Column | bool | Scalar) -> Column:
         ser = self.column
         other = self._validate_comparand(other)
         return self._from_series(ser | other).rename(ser.name)
@@ -253,39 +271,45 @@ class Column(ColumnT):
 
     # Reductions
 
-    def any(self, *, skip_nulls: bool = True) -> Scalar:  # type: ignore[override]  # todo
+    def any(self, *, skip_nulls: bool | Scalar = True) -> Scalar:
+        _skip_nulls = self._validate_comparand(skip_nulls)
         ser = self.column
         return self._scalar(ser.any(), api_version=self.api_version, df=self.df)
 
-    def all(self, *, skip_nulls: bool = True) -> Scalar:  # type: ignore[override]  # todo
+    def all(self, *, skip_nulls: bool | Scalar = True) -> Scalar:
         ser = self.column
         return self._scalar(ser.all(), api_version=self.api_version, df=self.df)
 
-    def min(self, *, skip_nulls: bool = True) -> Any:
+    def min(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
         return self._scalar(ser.min(), api_version=self.api_version, df=self.df)
 
-    def max(self, *, skip_nulls: bool = True) -> Any:
+    def max(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
         return self._scalar(ser.max(), api_version=self.api_version, df=self.df)
 
-    def sum(self, *, skip_nulls: bool = True) -> Any:
+    def sum(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
         return self._scalar(ser.sum(), api_version=self.api_version, df=self.df)
 
-    def prod(self, *, skip_nulls: bool = True) -> Any:
+    def prod(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
         return self._scalar(ser.prod(), api_version=self.api_version, df=self.df)
 
-    def median(self, *, skip_nulls: bool = True) -> Any:
+    def median(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
         return self._scalar(ser.median(), api_version=self.api_version, df=self.df)
 
-    def mean(self, *, skip_nulls: bool = True) -> Any:
+    def mean(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
         return self._scalar(ser.mean(), api_version=self.api_version, df=self.df)
 
-    def std(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
+    def std(
+        self,
+        *,
+        correction: float | Scalar | NullType = 1.0,
+        skip_nulls: bool | Scalar = True,
+    ) -> Any:
         ser = self.column
         return self._scalar(
             ser.std(ddof=correction),
@@ -293,7 +317,12 @@ class Column(ColumnT):
             df=self.df,
         )
 
-    def var(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
+    def var(
+        self,
+        *,
+        correction: float | Scalar | NullType = 1.0,
+        skip_nulls: bool | Scalar = True,
+    ) -> Any:
         ser = self.column
         return self._scalar(
             ser.var(ddof=correction),
@@ -342,12 +371,12 @@ class Column(ColumnT):
     def unique_indices(
         self,
         *,
-        skip_nulls: bool = True,
+        skip_nulls: bool | Scalar = True,
     ) -> Column:  # pragma: no cover
         msg = "not yet supported"
         raise NotImplementedError(msg)
 
-    def fill_nan(self, value: float | NullType) -> Column:
+    def fill_nan(self, value: float | NullType | Scalar) -> Column:
         ser = self.column.copy()
         if is_extension_array_dtype(ser.dtype):
             if self.__column_namespace__().is_null(value):
@@ -382,23 +411,23 @@ class Column(ColumnT):
             ser = ser.fillna(value)
         return self._from_series(ser.rename(self.name))
 
-    def cumulative_sum(self, *, skip_nulls: bool = True) -> Column:
+    def cumulative_sum(self, *, skip_nulls: bool | Scalar = True) -> Column:
         ser = self.column
         return self._from_series(ser.cumsum())
 
-    def cumulative_prod(self, *, skip_nulls: bool = True) -> Column:
+    def cumulative_prod(self, *, skip_nulls: bool | Scalar = True) -> Column:
         ser = self.column
         return self._from_series(ser.cumprod())
 
-    def cumulative_max(self, *, skip_nulls: bool = True) -> Column:
+    def cumulative_max(self, *, skip_nulls: bool | Scalar = True) -> Column:
         ser = self.column
         return self._from_series(ser.cummax())
 
-    def cumulative_min(self, *, skip_nulls: bool = True) -> Column:
+    def cumulative_min(self, *, skip_nulls: bool | Scalar = True) -> Column:
         ser = self.column
         return self._from_series(ser.cummin())
 
-    def rename(self, name: str) -> Column:
+    def rename(self, name: str | Scalar) -> Column:
         ser = self.column
         return self._from_series(ser.rename(name))
 
@@ -412,7 +441,7 @@ class Column(ColumnT):
         ser = self.materialise()
         return len(ser)
 
-    def shift(self, offset: int) -> Column:
+    def shift(self, offset: int | Scalar) -> Column:
         ser = self.column
         return self._from_series(ser.shift(offset))
 
@@ -470,7 +499,7 @@ class Column(ColumnT):
     def unix_timestamp(
         self,
         *,
-        time_unit: Literal["s", "ms", "us"] = "s",
+        time_unit: str | Scalar = "s",
     ) -> Column:
         ser = self.column
         if ser.dt.tz is None:

@@ -32,7 +32,7 @@ def test_column_from_1d_array(
     namespace_dtype: str,
     pandas_dtype: str,
 ) -> None:
-    ser = integer_dataframe_1(library).persist().col("a")
+    ser = integer_dataframe_1(library).col("a").persist()
     namespace = ser.__column_namespace__()
     arr = np.array([1, 2, 3])
     result = namespace.dataframe_from_columns(
@@ -40,7 +40,7 @@ def test_column_from_1d_array(
             arr,
             name="result",
             dtype=getattr(namespace, namespace_dtype)(),
-        ),
+        ).persist(),
     )
     result_pd = interchange_to_pandas(result)["result"]
     expected = pd.Series([1, 2, 3], name="result", dtype=pandas_dtype)
@@ -66,7 +66,7 @@ def test_column_from_1d_array_string(
             arr,
             name="result",
             dtype=getattr(namespace, namespace_dtype)(),
-        ),
+        ).persist(),
     )
     result_pd = interchange_to_pandas(result)["result"]
     expected = pd.Series(["a", "b", "c"], name="result", dtype=pandas_dtype)
@@ -92,7 +92,7 @@ def test_column_from_1d_array_bool(
             arr,
             name="result",
             dtype=getattr(namespace, namespace_dtype)(),
-        ),
+        ).persist(),
     )
     result_pd = interchange_to_pandas(result)["result"]
     expected = pd.Series([True, False, True], name="result", dtype=pandas_dtype)
@@ -108,7 +108,7 @@ def test_datetime_from_1d_array(library: str) -> None:
             arr,
             name="result",
             dtype=namespace.Datetime("ms"),
-        ),
+        ).persist(),
     )
     result_pd = interchange_to_pandas(result)["result"]
     expected = pd.Series(
@@ -131,7 +131,7 @@ def test_duration_from_1d_array(library: str) -> None:
             arr,
             name="result",
             dtype=namespace.Duration("ms"),
-        ),
+        ).persist(),
     )
     result_pd = interchange_to_pandas(result)["result"]
     expected = pd.Series(

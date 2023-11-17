@@ -16,8 +16,10 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from dataframe_api.groupby_object import Aggregation as AggregationT
+    from dataframe_api.typing import Column as ColumnT
     from dataframe_api.typing import DType
     from dataframe_api.typing import Namespace as NamespaceT
+    from dataframe_api.typing import Scalar
 
     BoolT = NamespaceT.Bool
     DateT = NamespaceT.Date
@@ -240,14 +242,14 @@ class Namespace(NamespaceT):
 
     def dataframe_from_columns(
         self,
-        *columns: Column,  # type: ignore[override]
+        *columns: ColumnT,
     ) -> DataFrame:
         data = {}
         api_versions: set[str] = set()
         for col in columns:
-            ser = col.materialise()
+            ser = col.materialise()  # type: ignore[attr-defined]
             data[ser.name] = ser
-            api_versions.add(col.api_version)
+            api_versions.add(col.api_version)  # type: ignore[attr-defined]
         return DataFrame(pd.DataFrame(data), api_version=list(api_versions)[0])
 
     def column_from_1d_array(
@@ -368,15 +370,15 @@ class Namespace(NamespaceT):
             self.output_name = output_name
             self.aggregation = aggregation
 
-        def rename(self, name: str) -> AggregationT:
-            return self.__class__(self.column_name, name, self.aggregation)
+        def rename(self, name: str | Scalar) -> AggregationT:
+            return self.__class__(self.column_name, name, self.aggregation)  # type: ignore[arg-type]
 
         @classmethod
         def any(
             cls: AggregationT,
             column: str,
             *,
-            skip_nulls: bool = True,
+            skip_nulls: bool | Scalar = True,
         ) -> AggregationT:
             return Namespace.Aggregation(column, column, "any")
 
@@ -385,7 +387,7 @@ class Namespace(NamespaceT):
             cls: AggregationT,
             column: str,
             *,
-            skip_nulls: bool = True,
+            skip_nulls: bool | Scalar = True,
         ) -> AggregationT:
             return Namespace.Aggregation(column, column, "all")
 
@@ -394,7 +396,7 @@ class Namespace(NamespaceT):
             cls: AggregationT,
             column: str,
             *,
-            skip_nulls: bool = True,
+            skip_nulls: bool | Scalar = True,
         ) -> AggregationT:
             return Namespace.Aggregation(column, column, "min")
 
@@ -403,7 +405,7 @@ class Namespace(NamespaceT):
             cls: AggregationT,
             column: str,
             *,
-            skip_nulls: bool = True,
+            skip_nulls: bool | Scalar = True,
         ) -> AggregationT:
             return Namespace.Aggregation(column, column, "max")
 
@@ -412,7 +414,7 @@ class Namespace(NamespaceT):
             cls: AggregationT,
             column: str,
             *,
-            skip_nulls: bool = True,
+            skip_nulls: bool | Scalar = True,
         ) -> AggregationT:
             return Namespace.Aggregation(column, column, "sum")
 
@@ -421,7 +423,7 @@ class Namespace(NamespaceT):
             cls: AggregationT,
             column: str,
             *,
-            skip_nulls: bool = True,
+            skip_nulls: bool | Scalar = True,
         ) -> AggregationT:
             return Namespace.Aggregation(column, column, "prod")
 
@@ -430,7 +432,7 @@ class Namespace(NamespaceT):
             cls: AggregationT,
             column: str,
             *,
-            skip_nulls: bool = True,
+            skip_nulls: bool | Scalar = True,
         ) -> AggregationT:
             return Namespace.Aggregation(column, column, "median")
 
@@ -439,7 +441,7 @@ class Namespace(NamespaceT):
             cls: AggregationT,
             column: str,
             *,
-            skip_nulls: bool = True,
+            skip_nulls: bool | Scalar = True,
         ) -> AggregationT:
             return Namespace.Aggregation(column, column, "mean")
 
@@ -448,8 +450,8 @@ class Namespace(NamespaceT):
             cls: AggregationT,
             column: str,
             *,
-            correction: int | float = 1,
-            skip_nulls: bool = True,
+            correction: float | Scalar | NullTypeT = 1,
+            skip_nulls: bool | Scalar = True,
         ) -> AggregationT:
             return Namespace.Aggregation(column, column, "std")
 
@@ -458,8 +460,8 @@ class Namespace(NamespaceT):
             cls: AggregationT,
             column: str,
             *,
-            correction: int | float = 1,
-            skip_nulls: bool = True,
+            correction: float | Scalar | NullTypeT = 1,
+            skip_nulls: bool | Scalar = True,
         ) -> AggregationT:
             return Namespace.Aggregation(column, column, "var")
 
