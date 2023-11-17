@@ -14,7 +14,7 @@ def test_to_array_object(library: str) -> None:
 
 def test_column_to_array_object(library: str) -> None:
     col = integer_dataframe_1(library).col("a")
-    result = np.asarray(col.persist().to_array())
-    result = np.asarray(col.persist().to_array())
+    result = np.asarray(col.persist().to_array())  # type: ignore[attr-defined]
+    result = np.asarray(col.persist().to_array())  # type: ignore[attr-defined]
     expected = np.array([1, 2, 3], dtype=np.int64)
     np.testing.assert_array_equal(result, expected)

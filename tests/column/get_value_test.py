@@ -10,4 +10,4 @@ def test_get_value(library: str) -> None:
 
 def test_mean_scalar(library: str) -> None:
     result = integer_dataframe_1(library).persist().col("a").max()
-    assert int(result.persist()) == 3  # type: ignore[arg-type]  # todo
+    assert int(result.persist()) == 3

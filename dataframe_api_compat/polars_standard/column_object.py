@@ -43,7 +43,7 @@ class Column(ColumnT):
         self._is_persisted = is_persisted
 
     def __repr__(self) -> str:  # pragma: no cover
-        column = self.materialise("Column.__repr__")
+        column = self.materialise()
         return column.__repr__()
 
     def _from_expr(self, expr: pl.Expr) -> Self:
@@ -162,7 +162,11 @@ class Column(ColumnT):
     def is_in(self, values: Self) -> Self:
         return self._from_expr(self.expr.is_in(values.expr))
 
-    def unique_indices(self, *, skip_nulls: bool = True) -> Self:
+    def unique_indices(
+        self,
+        *,
+        skip_nulls: bool | Scalar = True,  # type: ignore[override]
+    ) -> Self:
         raise NotImplementedError
 
     def is_null(self) -> Self:
@@ -179,37 +183,61 @@ class Column(ColumnT):
     def all(self, *, skip_nulls: bool = True) -> Scalar:  # type: ignore[override]  # todo fix
         return self._to_scalar(self.expr.all())
 
-    def min(self, *, skip_nulls: bool = True) -> Scalar:
+    def min(
+        self,
+        *,
+        skip_nulls: bool | Scalar = True,  # type: ignore[override]
+    ) -> Scalar:
         return self._to_scalar(self.expr.min())
 
-    def max(self, *, skip_nulls: bool = True) -> Scalar:
+    def max(
+        self,
+        *,
+        skip_nulls: bool | Scalar = True,  # type: ignore[override]
+    ) -> Scalar:
         return self._to_scalar(self.expr.max())
 
-    def sum(self, *, skip_nulls: bool = True) -> Scalar:
+    def sum(
+        self,
+        *,
+        skip_nulls: bool | Scalar = True,  # type: ignore[override]
+    ) -> Scalar:
         return self._to_scalar(self.expr.sum())
 
-    def prod(self, *, skip_nulls: bool = True) -> Scalar:
+    def prod(
+        self,
+        *,
+        skip_nulls: bool | Scalar = True,  # type: ignore[override]
+    ) -> Scalar:
         return self._to_scalar(self.expr.product())
 
-    def mean(self, *, skip_nulls: bool = True) -> Scalar:
+    def mean(
+        self,
+        *,
+        skip_nulls: bool | Scalar = True,  # type: ignore[override]
+    ) -> Scalar:
         return self._to_scalar(self.expr.mean())
 
-    def median(self, *, skip_nulls: bool = True) -> Scalar:
+    def median(
+        self,
+        *,
+        skip_nulls: bool | Scalar = True,  # type: ignore[override]
+    ) -> Scalar:
         return self._to_scalar(self.expr.median())
 
     def std(
         self,
         *,
-        correction: int | float = 1.0,
-        skip_nulls: bool = True,
+        correction: float | Scalar = 1.0,
+        skip_nulls: bool | Scalar = True,  # type: ignore[override]
     ) -> Scalar:
         return self._to_scalar(self.expr.std())
 
     def var(
         self,
         *,
-        correction: int | float = 1.0,
-        skip_nulls: bool = True,
+        correction: float | Scalar = 1.0,  # type: ignore[override]
+        skip_nulls: bool | Scalar = True,  # type: ignore[override]
     ) -> Scalar:
         return self._to_scalar(self.expr.var())
 
@@ -300,18 +328,27 @@ class Column(ColumnT):
         remainder = self - quotient * other
         return quotient, remainder
 
-    def __and__(self, other: Self | bool) -> Self:
+    def __and__(
+        self,
+        other: Self | bool | Scalar,  # type: ignore[override]
+    ) -> Self:
         other = self._validate_comparand(other)
         return self._from_expr(self.expr & other)  # type: ignore[arg-type]
 
-    def __rand__(self, other: Column | Any) -> Column:
+    def __rand__(
+        self,
+        other: Column | Any | Scalar,
+    ) -> Column:
         return self.__and__(other)
 
-    def __or__(self, other: Self | bool) -> Self:
+    def __or__(
+        self,
+        other: Self | bool | Scalar,  # type: ignore[override]
+    ) -> Self:
         other = self._validate_comparand(other)
         return self._from_expr(self.expr | other)  # type: ignore[arg-type]
 
-    def __ror__(self, other: Column | Any) -> Column:
+    def __ror__(self, other: Column | Any | Scalar) -> Column:
         return self.__or__(other)
 
     def __invert__(self) -> Column:
@@ -335,7 +372,11 @@ class Column(ColumnT):
         expr = self.expr.sort(descending=not ascending)
         return self._from_expr(expr)
 
-    def fill_nan(self, value: float | NullType) -> Column:
+    def fill_nan(
+        self,
+        value: float | NullType | Scalar,  # type: ignore[override]
+    ) -> Column:
+        value = self._validate_comparand(value)
         if isinstance(value, self.__column_namespace__().NullType):
             return self._from_expr(self.expr.fill_nan(pl.lit(None)))
         return self._from_expr(self.expr.fill_nan(value))

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from typing import Any
 
 import polars as pl
@@ -7,12 +8,22 @@ import polars as pl
 from dataframe_api_compat.polars_standard.column_object import Column
 from dataframe_api_compat.polars_standard.dataframe_object import DataFrame
 
+if TYPE_CHECKING:
+    from dataframe_api.typing import DType
+    from dataframe_api.typing import Scalar as ScalarT
+else:
+    ScalarT = object
 
-class Scalar:
+
+class Scalar(ScalarT):
     def __init__(self, value: Any, api_version: str, df: DataFrame | None) -> None:
         self.value = value
         self._api_version = api_version
         self.df = df
+
+    @property
+    def dtype(self) -> DType:
+        return self.value.dtype
 
     def _validate_other(self, other: Any) -> Any:
         if isinstance(other, (Column, DataFrame)):
