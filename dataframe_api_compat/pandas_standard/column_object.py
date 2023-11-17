@@ -43,6 +43,7 @@ class Column(ColumnT):
         *,
         df: DataFrame | None,
         api_version: str,
+        is_persisted: bool = False,
     ) -> None:
         """Parameters
         ----------
@@ -56,6 +57,7 @@ class Column(ColumnT):
         self.api_version = api_version
         self.df = df
         self._scalar = Scalar
+        self._is_persisted = is_persisted
 
     def __repr__(self) -> str:  # pragma: no cover
         return self.column.__repr__()  # type: ignore[no-any-return]
@@ -88,9 +90,12 @@ class Column(ColumnT):
             return other.column
         return other
 
-    def materialise(self) -> pd.Series:
-        if self.df is not None:
-            self.df.validate_is_persisted()
+    def validate_is_persisted(self) -> pd.Series:
+        if not self._is_persisted:
+            msg = "Column is not persisted, please call `.persist()` first.\nNote: `persist` forces computation, use it with care, only when you need to,\nand as late and little as possible."
+            raise RuntimeError(
+                msg,
+            )
         return self.column
 
     # In the standard
@@ -99,6 +104,14 @@ class Column(ColumnT):
     ) -> dataframe_api_compat.pandas_standard.Namespace:
         return dataframe_api_compat.pandas_standard.Namespace(
             api_version=self.api_version,
+        )
+
+    def persist(self) -> Column:
+        return Column(
+            self.column,
+            df=self.df,
+            api_version=self.api_version,
+            is_persisted=True,
         )
 
     @property
@@ -407,7 +420,7 @@ class Column(ColumnT):
         return self._from_series(ser.rename(name))
 
     def to_array(self) -> Any:
-        ser = self.materialise()
+        ser = self.validate_is_persisted()
         return ser.to_numpy(
             dtype=NUMPY_MAPPING.get(self.column.dtype.name, self.column.dtype.name),
         )

@@ -40,7 +40,7 @@ class DataFrame(DataFrameT):
 
     def validate_is_persisted(self) -> pd.DataFrame:
         if not self.is_persisted:
-            msg = "Method requires you to call `.persist` first on the parent dataframe.\n\nNote: `.persist` forces materialisation in lazy libraries and so should be called as late as possible in your pipeline, and only once per dataframe."
+            msg = "Method requires you to call `.persist` first.\n\nNote: `.persist` forces materialisation in lazy libraries and so should be called as late as possible in your pipeline. Use with care."
             raise ValueError(
                 msg,
             )

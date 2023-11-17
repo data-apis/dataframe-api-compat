@@ -136,7 +136,7 @@ class Column(ColumnT):
         return self._to_scalar(self.expr.take(row_number))
 
     def to_array(self) -> Any:
-        ser = self.materialise("Column.to_array")
+        ser = self.validate_is_persisted()
         return ser.to_numpy()
 
     def __iter__(self) -> NoReturn:
