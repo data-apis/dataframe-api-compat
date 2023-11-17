@@ -18,6 +18,8 @@ if TYPE_CHECKING:
 
     from dataframe_api import DataFrame as DataFrameT
     from dataframe_api.typing import DType
+    from dataframe_api.typing import NullType
+    from dataframe_api.typing import Scalar
 
     from dataframe_api_compat.pandas_standard.column_object import Column
     from dataframe_api_compat.pandas_standard.group_by_object import GroupBy
@@ -309,44 +311,44 @@ class DataFrame(DataFrameT):
 
     # Reductions
 
-    def any(self, *, skip_nulls: bool = True) -> DataFrame:
+    def any(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         self._validate_booleanness()
         return self._from_dataframe(
             self.dataframe.any().to_frame().T,
         )
 
-    def all(self, *, skip_nulls: bool = True) -> DataFrame:
+    def all(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         self._validate_booleanness()
         return self._from_dataframe(
             self.dataframe.all().to_frame().T,
         )
 
-    def min(self, *, skip_nulls: bool = True) -> DataFrame:
+    def min(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.min().to_frame().T,
         )
 
-    def max(self, *, skip_nulls: bool = True) -> DataFrame:
+    def max(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.max().to_frame().T,
         )
 
-    def sum(self, *, skip_nulls: bool = True) -> DataFrame:
+    def sum(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.sum().to_frame().T,
         )
 
-    def prod(self, *, skip_nulls: bool = True) -> DataFrame:
+    def prod(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.prod().to_frame().T,
         )
 
-    def median(self, *, skip_nulls: bool = True) -> DataFrame:
+    def median(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.median().to_frame().T,
         )
 
-    def mean(self, *, skip_nulls: bool = True) -> DataFrame:
+    def mean(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.mean().to_frame().T,
         )
@@ -354,8 +356,8 @@ class DataFrame(DataFrameT):
     def std(
         self,
         *,
-        correction: int | float = 1.0,
-        skip_nulls: bool = True,
+        correction: float | Scalar | NullType = 1.0,
+        skip_nulls: bool | Scalar = True,
     ) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.std().to_frame().T,
@@ -364,8 +366,8 @@ class DataFrame(DataFrameT):
     def var(
         self,
         *,
-        correction: int | float = 1.0,
-        skip_nulls: bool = True,
+        correction: float | Scalar | NullType = 1.0,
+        skip_nulls: bool | Scalar = True,
     ) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.var().to_frame().T,
@@ -373,11 +375,19 @@ class DataFrame(DataFrameT):
 
     # Horizontal reductions
 
-    def all_rowwise(self, *, skip_nulls: bool = True) -> Column:  # pragma: no cover
+    def all_rowwise(
+        self,
+        *,
+        skip_nulls: bool | Scalar = True,
+    ) -> Column:  # pragma: no cover
         msg = "Please use `__dataframe_namespace__().all_rowwise` instead"
         raise NotImplementedError(msg)
 
-    def any_rowwise(self, *, skip_nulls: bool = True) -> Column:  # pragma: no cover
+    def any_rowwise(
+        self,
+        *,
+        skip_nulls: bool | Scalar = True,
+    ) -> Column:  # pragma: no cover
         msg = "Please use `__dataframe_namespace__().any` instead"
         raise NotImplementedError(msg)
 
@@ -393,14 +403,14 @@ class DataFrame(DataFrameT):
     def unique_indices(
         self,
         *keys: str,
-        skip_nulls: bool = True,
+        skip_nulls: bool | Scalar = True,
     ) -> Column:  # pragma: no cover
         msg = "Please use `__dataframe_namespace__().unique_indices` instead"
         raise NotImplementedError(msg)
 
     # Transformations
 
-    def is_null(self, *, skip_nulls: bool = True) -> DataFrame:
+    def is_null(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result: list[pd.Series] = []
         for column in self.dataframe.columns:
             result.append(self.dataframe[column].isna())

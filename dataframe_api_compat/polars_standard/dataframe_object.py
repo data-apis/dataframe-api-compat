@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from dataframe_api.typing import DType
     from dataframe_api.typing import Namespace
     from dataframe_api.typing import NullType
+    from dataframe_api.typing import Scalar
 
     from dataframe_api_compat.polars_standard.group_by_object import GroupBy
 
@@ -333,42 +334,42 @@ class DataFrame(DataFrameT):
 
     # Reductions
 
-    def any(self, *, skip_nulls: bool = True) -> DataFrame:
+    def any(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.select(pl.col("*").any()),
         )
 
-    def all(self, *, skip_nulls: bool = True) -> DataFrame:
+    def all(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.select(pl.col("*").all()),
         )
 
-    def min(self, *, skip_nulls: bool = True) -> DataFrame:
+    def min(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.select(pl.col("*").min()),
         )
 
-    def max(self, *, skip_nulls: bool = True) -> DataFrame:
+    def max(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.select(pl.col("*").max()),
         )
 
-    def sum(self, *, skip_nulls: bool = True) -> DataFrame:
+    def sum(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.select(pl.col("*").sum()),
         )
 
-    def prod(self, *, skip_nulls: bool = True) -> DataFrame:
+    def prod(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.select(pl.col("*").product()),
         )
 
-    def mean(self, *, skip_nulls: bool = True) -> DataFrame:
+    def mean(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.select(pl.col("*").mean()),
         )
 
-    def median(self, *, skip_nulls: bool = True) -> DataFrame:
+    def median(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.select(pl.col("*").median()),
         )
@@ -376,8 +377,8 @@ class DataFrame(DataFrameT):
     def std(
         self,
         *,
-        correction: int | float = 1.0,
-        skip_nulls: bool = True,
+        correction: float | Scalar | NullType = 1.0,
+        skip_nulls: bool | Scalar = True,
     ) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.select(pl.col("*").std()),
@@ -386,8 +387,8 @@ class DataFrame(DataFrameT):
     def var(
         self,
         *,
-        correction: int | float = 1.0,
-        skip_nulls: bool = True,
+        correction: float | Scalar | NullType = 1.0,
+        skip_nulls: bool | Scalar = True,
     ) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.select(pl.col("*").var()),
@@ -395,11 +396,19 @@ class DataFrame(DataFrameT):
 
     # Horizontal reductions
 
-    def all_rowwise(self, *, skip_nulls: bool = True) -> Column:  # pragma: no cover
+    def all_rowwise(
+        self,
+        *,
+        skip_nulls: bool | Scalar = True,
+    ) -> Column:  # pragma: no cover
         msg = "Please use `__dataframe_namespace__().all` instead"
         raise NotImplementedError(msg)
 
-    def any_rowwise(self, *, skip_nulls: bool = True) -> Column:  # pragma: no cover
+    def any_rowwise(
+        self,
+        *,
+        skip_nulls: bool | Scalar = True,
+    ) -> Column:  # pragma: no cover
         msg = "Please use `__dataframe_namespace__().any` instead"
         raise NotImplementedError(msg)
 
@@ -415,7 +424,7 @@ class DataFrame(DataFrameT):
     def unique_indices(
         self,
         *keys: str,
-        skip_nulls: bool = True,
+        skip_nulls: bool | Scalar = True,
     ) -> Column:  # pragma: no cover
         msg = "Please use `__dataframe_namespace__().unique_indices` instead"
         raise NotImplementedError(msg)

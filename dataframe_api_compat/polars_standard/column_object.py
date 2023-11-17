@@ -177,10 +177,10 @@ class Column(ColumnT):
 
     # Reductions
 
-    def any(self, *, skip_nulls: bool = True) -> Scalar:  # type: ignore[override]  # todo, fix
+    def any(self, *, skip_nulls: bool | Scalar = True) -> Scalar:
         return self._to_scalar(self.expr.any())
 
-    def all(self, *, skip_nulls: bool = True) -> Scalar:  # type: ignore[override]  # todo fix
+    def all(self, *, skip_nulls: bool | Scalar = True) -> Scalar:
         return self._to_scalar(self.expr.all())
 
     def min(
@@ -385,16 +385,16 @@ class Column(ColumnT):
         value = self._validate_comparand(value)
         return self._from_expr(self.expr.fill_null(value))
 
-    def cumulative_sum(self, *, skip_nulls: bool = True) -> Column:
+    def cumulative_sum(self, *, skip_nulls: bool | Scalar = True) -> Column:
         return self._from_expr(self.expr.cumsum())
 
-    def cumulative_prod(self, *, skip_nulls: bool = True) -> Column:
+    def cumulative_prod(self, *, skip_nulls: bool | Scalar = True) -> Column:
         return self._from_expr(self.expr.cumprod())
 
-    def cumulative_max(self, *, skip_nulls: bool = True) -> Column:
+    def cumulative_max(self, *, skip_nulls: bool | Scalar = True) -> Column:
         return self._from_expr(self.expr.cummax())
 
-    def cumulative_min(self, *, skip_nulls: bool = True) -> Column:
+    def cumulative_min(self, *, skip_nulls: bool | Scalar = True) -> Column:
         return self._from_expr(self.expr.cummin())
 
     def rename(self, name: str | Scalar) -> Column:
@@ -453,8 +453,9 @@ class Column(ColumnT):
     def unix_timestamp(
         self,
         *,
-        time_unit: Literal["s", "ms", "us"] = "s",
+        time_unit: str | Scalar = "s",
     ) -> Column:
-        if time_unit != "s":
-            return self._from_expr(self.expr.dt.timestamp(time_unit=time_unit))
+        _time_unit = self._validate_comparand(time_unit)
+        if _time_unit != "s":
+            return self._from_expr(self.expr.dt.timestamp(time_unit=_time_unit))
         return self._from_expr(self.expr.dt.timestamp(time_unit="ms") // 1000)

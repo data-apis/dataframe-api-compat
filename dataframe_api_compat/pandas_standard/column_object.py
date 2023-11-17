@@ -270,39 +270,44 @@ class Column(ColumnT):
 
     # Reductions
 
-    def any(self, *, skip_nulls: bool = True) -> Scalar:  # type: ignore[override]  # todo
+    def any(self, *, skip_nulls: bool | Scalar = True) -> Scalar:  # type: ignore[override]  # todo
         ser = self.column
         return self._scalar(ser.any(), api_version=self.api_version, df=self.df)
 
-    def all(self, *, skip_nulls: bool = True) -> Scalar:  # type: ignore[override]  # todo
+    def all(self, *, skip_nulls: bool | Scalar = True) -> Scalar:  # type: ignore[override]  # todo
         ser = self.column
         return self._scalar(ser.all(), api_version=self.api_version, df=self.df)
 
-    def min(self, *, skip_nulls: bool = True) -> Any:
+    def min(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
         return self._scalar(ser.min(), api_version=self.api_version, df=self.df)
 
-    def max(self, *, skip_nulls: bool = True) -> Any:
+    def max(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
         return self._scalar(ser.max(), api_version=self.api_version, df=self.df)
 
-    def sum(self, *, skip_nulls: bool = True) -> Any:
+    def sum(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
         return self._scalar(ser.sum(), api_version=self.api_version, df=self.df)
 
-    def prod(self, *, skip_nulls: bool = True) -> Any:
+    def prod(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
         return self._scalar(ser.prod(), api_version=self.api_version, df=self.df)
 
-    def median(self, *, skip_nulls: bool = True) -> Any:
+    def median(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
         return self._scalar(ser.median(), api_version=self.api_version, df=self.df)
 
-    def mean(self, *, skip_nulls: bool = True) -> Any:
+    def mean(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
         return self._scalar(ser.mean(), api_version=self.api_version, df=self.df)
 
-    def std(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
+    def std(
+        self,
+        *,
+        correction: float | Scalar | NullType = 1.0,
+        skip_nulls: bool | Scalar = True,
+    ) -> Any:
         ser = self.column
         return self._scalar(
             ser.std(ddof=correction),
@@ -310,7 +315,12 @@ class Column(ColumnT):
             df=self.df,
         )
 
-    def var(self, *, correction: int | float = 1.0, skip_nulls: bool = True) -> Any:
+    def var(
+        self,
+        *,
+        correction: float | Scalar | NullType = 1.0,
+        skip_nulls: bool | Scalar = True,
+    ) -> Any:
         ser = self.column
         return self._scalar(
             ser.var(ddof=correction),
@@ -359,7 +369,7 @@ class Column(ColumnT):
     def unique_indices(
         self,
         *,
-        skip_nulls: bool = True,
+        skip_nulls: bool | Scalar = True,
     ) -> Column:  # pragma: no cover
         msg = "not yet supported"
         raise NotImplementedError(msg)
@@ -399,19 +409,19 @@ class Column(ColumnT):
             ser = ser.fillna(value)
         return self._from_series(ser.rename(self.name))
 
-    def cumulative_sum(self, *, skip_nulls: bool = True) -> Column:
+    def cumulative_sum(self, *, skip_nulls: bool | Scalar = True) -> Column:
         ser = self.column
         return self._from_series(ser.cumsum())
 
-    def cumulative_prod(self, *, skip_nulls: bool = True) -> Column:
+    def cumulative_prod(self, *, skip_nulls: bool | Scalar = True) -> Column:
         ser = self.column
         return self._from_series(ser.cumprod())
 
-    def cumulative_max(self, *, skip_nulls: bool = True) -> Column:
+    def cumulative_max(self, *, skip_nulls: bool | Scalar = True) -> Column:
         ser = self.column
         return self._from_series(ser.cummax())
 
-    def cumulative_min(self, *, skip_nulls: bool = True) -> Column:
+    def cumulative_min(self, *, skip_nulls: bool | Scalar = True) -> Column:
         ser = self.column
         return self._from_series(ser.cummin())
 

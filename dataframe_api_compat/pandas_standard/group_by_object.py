@@ -10,6 +10,8 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from dataframe_api import GroupBy as GroupByT
+    from dataframe_api.typing import NullType
+    from dataframe_api.typing import Scalar
 
     import dataframe_api_compat
 else:
@@ -45,44 +47,44 @@ class GroupBy(GroupByT):
                 msg,
             )
 
-    def any(self, *, skip_nulls: bool = True) -> DataFrame:
+    def any(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         self._validate_booleanness()
         result = self.grouped.any()
         self._validate_result(result)
         return DataFrame(result, api_version=self._api_version)
 
-    def all(self, *, skip_nulls: bool = True) -> DataFrame:
+    def all(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         self._validate_booleanness()
         result = self.grouped.all()
         self._validate_result(result)
         return DataFrame(result, api_version=self._api_version)
 
-    def min(self, *, skip_nulls: bool = True) -> DataFrame:
+    def min(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self.grouped.min()
         self._validate_result(result)
         return DataFrame(result, api_version=self._api_version)
 
-    def max(self, *, skip_nulls: bool = True) -> DataFrame:
+    def max(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self.grouped.max()
         self._validate_result(result)
         return DataFrame(result, api_version=self._api_version)
 
-    def sum(self, *, skip_nulls: bool = True) -> DataFrame:
+    def sum(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self.grouped.sum()
         self._validate_result(result)
         return DataFrame(result, api_version=self._api_version)
 
-    def prod(self, *, skip_nulls: bool = True) -> DataFrame:
+    def prod(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self.grouped.prod()
         self._validate_result(result)
         return DataFrame(result, api_version=self._api_version)
 
-    def median(self, *, skip_nulls: bool = True) -> DataFrame:
+    def median(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self.grouped.median()
         self._validate_result(result)
         return DataFrame(result, api_version=self._api_version)
 
-    def mean(self, *, skip_nulls: bool = True) -> DataFrame:
+    def mean(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self.grouped.mean()
         self._validate_result(result)
         return DataFrame(result, api_version=self._api_version)
@@ -90,8 +92,8 @@ class GroupBy(GroupByT):
     def std(
         self,
         *,
-        correction: int | float = 1.0,
-        skip_nulls: bool = True,
+        correction: float | Scalar | NullType = 1.0,
+        skip_nulls: bool | Scalar = True,
     ) -> DataFrame:
         result = self.grouped.std()
         self._validate_result(result)
@@ -100,8 +102,8 @@ class GroupBy(GroupByT):
     def var(
         self,
         *,
-        correction: int | float = 1.0,
-        skip_nulls: bool = True,
+        correction: float | Scalar | NullType = 1.0,
+        skip_nulls: bool | Scalar = True,
     ) -> DataFrame:
         result = self.grouped.var()
         self._validate_result(result)
