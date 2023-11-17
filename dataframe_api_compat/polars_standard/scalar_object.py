@@ -46,6 +46,10 @@ class Scalar(ScalarT):
         return other
 
     def materialise(self) -> Any:
+        if not self.is_persisted:
+            msg = "Can't call __bool__ on Scalar. Please use .persist() first."
+            raise RuntimeError(msg)
+
         if self.df is None:
             value = pl.select(self.value).item()
         else:
@@ -53,8 +57,12 @@ class Scalar(ScalarT):
         return value
 
     def persist(self) -> Scalar:
+        if self.df is None:
+            value = pl.select(self.value).item()
+        else:
+            value = self.df.materialise_expression(self.value).item()
         return Scalar(
-            self.value,
+            value,
             df=self.df,
             api_version=self._api_version,
             is_persisted=True,
@@ -190,19 +198,10 @@ class Scalar(ScalarT):
         return self._from_scalar(self.value.__abs__())
 
     def __bool__(self) -> bool:
-        if not self.is_persisted:
-            msg = "Can't call __bool__ on Scalar. Please use .persist() first."
-            raise RuntimeError(msg)
         return self.materialise().__bool__()  # type: ignore[no-any-return]
 
     def __int__(self) -> int:
-        if not self.is_persisted:
-            msg = "Can't call __int__ on Scalar. Please use .persist() first."
-            raise RuntimeError(msg)
         return self.materialise().__int__()  # type: ignore[no-any-return]
 
     def __float__(self) -> float:
-        if not self.is_persisted:
-            msg = "Can't call __float__ on Scalar. Please use .persist() first."
-            raise RuntimeError(msg)
         return self.materialise().__float__()  # type: ignore[no-any-return]
