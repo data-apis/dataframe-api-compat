@@ -31,9 +31,9 @@ jobs:
       - name: run pytest (3.8 only)
         if: max.python-version == "3.8"
         run: pytest tests --cov=dataframe_api_compat --cov=tests
-      - name: run pytest (not 3.8)
+      - name: run pytest (not 3.8, report coverage)
         if: max.python-version != "3.8"
-        run: pytest tests --cov=dataframe_api_compat --cov=tests
+        run: pytest tests --cov=dataframe_api_compat --cov=tests --cov-fail-under=100
       - name: install type-checking reqs
         run: python -m pip install 'git+https://github.com/data-apis/dataframe-api.git#egg=dataframe_api&subdirectory=spec/API_specification' mypy typing-extensions
       - name: run mypy
