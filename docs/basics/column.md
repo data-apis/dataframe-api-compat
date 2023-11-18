@@ -13,7 +13,31 @@ at some examples.
 
 Let's write a dataframe-agnostic function which keeps rows in a dataframe where the column
 `'a'`'s values are greater than zero.
-```python
+
+```python exec="true" source="tabbed-left"
+print("I'm the result!")
+```
+
+
+<!-- ```python exec="1" source="tabbed-left"
+import pandas as pd
+import polars as pl
+
+def my_func(df):
+    df_s = df.__dataframe_consortium_standard__(api_version='2023.11-beta')
+    df_s = df_s.filter(df_s.col('a') > 0)
+    return df_s.dataframe
+
+df_pd = pd.DataFrame({'a': [-1, 1, 3], 'b': [3, 5, -3]})
+df_pl = pl.DataFrame({'a': [-1, 1, 3], 'b': [3, 5, -3]})
+print('pandas output:')
+print(my_func(df_pd))
+print()
+print('Polars output:')
+print(my_func(df_pl).collect())
+``` -->
+
+<!-- ```python exec="true" source="above" result="bash"
 import pandas as pd
 import polars as pl
 
@@ -30,29 +54,12 @@ print()
 print('Polars output:')
 print(my_func(df_pl).collect())
 ```
-This outputs:
-```
-pandas output:
-   a  b
-0  1  5
-1  3 -3
-
-Polars output:
-shape: (2, 2)
-┌─────┬─────┐
-│ a   ┆ b   │
-│ --- ┆ --- │
-│ i64 ┆ i64 │
-╞═════╪═════╡
-│ 1   ┆ 5   │
-│ 3   ┆ -3  │
-└─────┴─────┘
-```
 
 ## Example 2: multiply a column's values by a constant
 
 Let's write a dataframe-agnostic function which multiplies the values in column
 `'a'` by 2.
+
 ```python
 import pandas as pd
 import polars as pl
@@ -69,26 +76,6 @@ print(my_func(df_pd))
 print()
 print('Polars output:')
 print(my_func(df_pl).collect())
-```
-This outputs:
-```
-pandas output:
-   a  b
-0 -2  3
-1  2  5
-2  6 -3
-
-Polars output:
-shape: (3, 2)
-┌─────┬─────┐
-│ a   ┆ b   │
-│ --- ┆ --- │
-│ i64 ┆ i64 │
-╞═════╪═════╡
-│ -2  ┆ 3   │
-│ 2   ┆ 5   │
-│ 6   ┆ -3  │
-└─────┴─────┘
 ```
 
 Note that column `'a'` was overwritten. If we had wanted to add a new column called `'c'` containing column `'a'`'s
@@ -157,7 +144,11 @@ This is because `Column`s for the Polars implementation are backed by `polars.Ex
 The error is there to ensure that the Polars and pandas implementations behave in the same way.
 If you wish to compare columns from different dataframes, you should first join the dataframes.
 For example:
-```python
+```python exec="on"
+import pandas as pd
+import polars as pl
+
+
 def my_func(df1, df2):
     df1_s = df1.__dataframe_consortium_standard__(api_version='2023.11-beta')
     df2_s = df2.__dataframe_consortium_standard__(api_version='2023.11-beta')
@@ -190,4 +181,4 @@ shape: (2, 2)
 │ 1   ┆ 5   │
 │ 3   ┆ -3  │
 └─────┴─────┘
-```
+``` -->
