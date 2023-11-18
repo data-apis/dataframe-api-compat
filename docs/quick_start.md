@@ -5,6 +5,7 @@
 Please start by creating and activating a Python virtual environment.
 
 Then, please install:
+
 - pandas
 - Polars
 - dataframe-api-compat
