@@ -1,3 +1,8 @@
+import sys
+
+import pytest
+
+
 class TestPolars:
     def test_dataframe(self) -> None:
         import polars as pl
@@ -22,6 +27,10 @@ class TestPolars:
         assert col.name == "a"
 
 
+@pytest.mark.skipif(
+    sys.version_info < (3, 9) or sys.version_info >= (3, 12),
+    reason="pandas doesn't support 3.8",
+)
 class TestPandas:
     def test_pandas(self) -> None:
         """

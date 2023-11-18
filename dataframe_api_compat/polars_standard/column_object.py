@@ -7,6 +7,8 @@ from typing import NoReturn
 
 import polars as pl
 
+POLARS_VERSION = pl.__version__
+
 if TYPE_CHECKING:
     from dataframe_api import Column as ColumnT
     from dataframe_api.typing import DType
@@ -132,7 +134,9 @@ class Column(ColumnT):
         return self.df
 
     def get_rows(self, indices: Column) -> Column:
-        return self._from_expr(self.expr.take(indices.expr))
+        if POLARS_VERSION < "0.19.14":
+            return self._from_expr(self.expr.take(indices.expr))
+        return self._from_expr(self.expr.gather(indices.expr))
 
     def slice_rows(
         self,
@@ -145,14 +149,21 @@ class Column(ColumnT):
         length = None if stop is None else stop - start
         if step is None:
             step = 1
-        return self._from_expr(self.expr.slice(start, length).take_every(step))
+        if POLARS_VERSION < "0.19.14":
+            return self._from_expr(self.expr.slice(start, length).take_every(step))
+        return self._from_expr(self.expr.slice(start, length).gather_every(step))
 
     def filter(self, mask: Column) -> Column:
         return self._from_expr(self.expr.filter(mask.expr))
 
     def get_value(self, row_number: int) -> Any:
+        if POLARS_VERSION < "0.19.14":
+            return self._to_scalar(
+                self.expr.take(row_number),
+                is_persisted=self._is_persisted,
+            )
         return self._to_scalar(
-            self.expr.take(row_number),
+            self.expr.gather(row_number),
             is_persisted=self._is_persisted,
         )
 
@@ -390,16 +401,24 @@ class Column(ColumnT):
         return self._from_expr(self.expr.fill_null(value))
 
     def cumulative_sum(self, *, skip_nulls: bool | Scalar = True) -> Column:
-        return self._from_expr(self.expr.cumsum())
+        if POLARS_VERSION < "0.19.14":
+            return self._from_expr(self.expr.cumsum())
+        return self._from_expr(self.expr.cum_sum())
 
     def cumulative_prod(self, *, skip_nulls: bool | Scalar = True) -> Column:
-        return self._from_expr(self.expr.cumprod())
+        if POLARS_VERSION < "0.19.14":
+            return self._from_expr(self.expr.cumprod())
+        return self._from_expr(self.expr.cum_prod())
 
     def cumulative_max(self, *, skip_nulls: bool | Scalar = True) -> Column:
-        return self._from_expr(self.expr.cummax())
+        if POLARS_VERSION < "0.19.14":
+            return self._from_expr(self.expr.cummax())
+        return self._from_expr(self.expr.cum_max())
 
     def cumulative_min(self, *, skip_nulls: bool | Scalar = True) -> Column:
-        return self._from_expr(self.expr.cummin())
+        if POLARS_VERSION < "0.19.14":
+            return self._from_expr(self.expr.cummin())
+        return self._from_expr(self.expr.cum_min())
 
     def rename(self, name: str | Scalar) -> Column:
         _name = self._validate_comparand(name)

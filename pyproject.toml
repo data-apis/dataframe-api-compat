@@ -10,7 +10,7 @@ authors = [
 ]
 description = "Implementation of the DataFrame Standard for pandas and Polars"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.8"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -24,7 +24,7 @@ classifiers = [
 [tool.ruff]
 line-length = 90
 fix = true
-target-version = "py39"
+target-version = "py38"
 
 select = [
 #   "E", # pycodestyle
@@ -80,3 +80,9 @@ xfail_strict = true
 
 [tool.coverage.run]
 plugins = ["covdefaults"]
+
+[tool.coverage.report]
+exclude_also = [
+  "if POLARS_VERSION < ",
+  "if sys.version_info() <",
+]
