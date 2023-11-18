@@ -28,6 +28,15 @@ content = content.replace(
 with open("dataframe_api_compat/__init__.py", "w", encoding="utf-8") as f:
     f.write(content)
 
+with open("docs/installation.md", encoding="utf-8") as f:
+    content = f.read()
+content = content.replace(
+    old_version,
+    version,
+)
+with open("dataframe_api_compat/__init__.py", "w", encoding="utf-8") as f:
+    f.write(content)
+
 subprocess.run(["git", "commit", "-a", "-m", f"Bump version to {version}"])
 subprocess.run(["git", "tag", "-a", version, "-m", version])
 subprocess.run(["git", "push", "--follow-tags"])

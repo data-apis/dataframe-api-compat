@@ -60,7 +60,18 @@ class Column(ColumnT):
         self._is_persisted = is_persisted
 
     def __repr__(self) -> str:  # pragma: no cover
-        return self.column.__repr__()  # type: ignore[no-any-return]
+        header = f" Standard Column (api_version={self.api_version}) "
+        length = len(header)
+        return (
+            "┌"
+            + "─" * length
+            + "┐\n"
+            + f"|{header}|\n"
+            + "| Add `.column` to see native output         |\n"
+            + "└"
+            + "─" * length
+            + "┘\n"
+        )
 
     def __iter__(self) -> NoReturn:
         msg = ""

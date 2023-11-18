@@ -51,7 +51,18 @@ class DataFrame(DataFrameT):
         return self.dataframe
 
     def __repr__(self) -> str:  # pragma: no cover
-        return self.dataframe.__repr__()  # type: ignore[no-any-return]
+        header = f" Standard DataFrame (api_version={self.api_version}) "
+        length = len(header)
+        return (
+            "┌"
+            + "─" * length
+            + "┐\n"
+            + f"|{header}|\n"
+            + "| Add `.dataframe` to see native output         |\n"
+            + "└"
+            + "─" * length
+            + "┘\n"
+        )
 
     def _validate_columns(self, columns: Sequence[str]) -> None:
         counter = collections.Counter(columns)

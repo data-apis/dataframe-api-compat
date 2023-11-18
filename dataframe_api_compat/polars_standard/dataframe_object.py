@@ -119,7 +119,18 @@ class DataFrame(DataFrameT):
         return df.shape
 
     def __repr__(self) -> str:  # pragma: no cover
-        return self.dataframe.__repr__()
+        header = f" Standard DataFrame (api_version={self.api_version}) "
+        length = len(header)
+        return (
+            "┌"
+            + "─" * length
+            + "┐\n"
+            + f"|{header}|\n"
+            + "| Add `.dataframe` to see native output         |\n"
+            + "└"
+            + "─" * length
+            + "┘\n"
+        )
 
     def __dataframe_namespace__(self) -> Namespace:
         return dataframe_api_compat.polars_standard.Namespace(

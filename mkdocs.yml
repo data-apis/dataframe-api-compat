@@ -1,9 +1,9 @@
 site_name: dataframe-api-compat
 nav:
   - Home: index.md
-  - About: about.md
   - Installation: installation.md
   - Quick start: quick_start.md
+  - Basics: basics.md
   - Tutorial: tutorial.md
 #  - Code Reference:
 #      - pandas DataFrame: pandas-dataframe.md
@@ -16,6 +16,7 @@ nav:
 #      - Polars Scalar: polars-scalar.md
 theme:
   name: material
+  font: false
 plugins:
 - search
 - mkdocstrings

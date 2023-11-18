@@ -2,13 +2,12 @@
 
 ## Prerequisites
 
-Please start by creating and activating a Python virtual environment.
+Please start by following the [installation instructions](installation.md)
 
-Then, please install:
+Then, please install the following:
 
-- pandas
-- Polars
-- dataframe-api-compat
+- [pandas](https://pandas.pydata.org/docs/getting_started/install.html)
+- [Polars](https://pola-rs.github.io/polars/user-guide/installation/)
 
 ## Simple example
 
@@ -32,12 +31,12 @@ print('pandas result: ', my_function(df_pandas))
 print('Polars result: ', my_function(df_polars))
 ```
 
-If your output looks like this:
+If you run `python t.py` and your output looks like this:
 ```
 pandas result: ['a', 'b']
 Polars result: ['a', 'b']
 ```
 
-then your installation worked perfectly!
+then all your installations worked perfectly.
 
-Read the tutorial to learn about what `dataframe-api-compat` can do for you.
+Let's learn about what you just did, and what `dataframe-api-compat` can do for you.
