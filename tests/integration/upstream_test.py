@@ -28,7 +28,7 @@ class TestPolars:
 
 
 @pytest.mark.skipif(
-    sys.version_info < (3, 8),
+    sys.version_info <= (3, 8),
     reason="pandas doesn't support 3.8",
 )
 class TestPandas:
