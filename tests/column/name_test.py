@@ -15,7 +15,7 @@ def test_name(library: str) -> None:
 
 
 @pytest.mark.skipif(
-    sys.version_info < (3, 9),
+    sys.version_info < (3, 9) or sys.version_info >= (3, 12),
     reason="pandas doesn't support 3.8",
 )
 def test_invalid_name_pandas() -> None:
