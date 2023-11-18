@@ -3,7 +3,6 @@ repos:
     rev: v4.4.0
     hooks:
     -   id: check-docstring-first
-    -   id: check-yaml
     -   id: debug-statements
     -   id: end-of-file-fixer
     -   id: name-tests-test

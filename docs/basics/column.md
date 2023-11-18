@@ -6,20 +6,17 @@ We only used DataFrame methods there - but what if we need to operate on its col
 
 ## Extracting a column
 
-To extract a column from a dataframe, you can use the `DataFrame.col` method. Let's look
-at some examples.
 
 ## Example 1: filter based on a column's values
 
-Let's write a dataframe-agnostic function which keeps rows in a dataframe where the column
-`'a'`'s values are greater than zero.
-
-```python exec="true" source="tabbed-left"
-print("I'm the result!")
+```python exec="1" source="above" session="ex1"
+def my_func(df):
+    df_s = df.__dataframe_consortium_standard__(api_version='2023.11-beta')
+    df_s = df_s.filter(df_s.col('a') > 0)
+    return df_s.dataframe
 ```
 
-
-<!-- ```python exec="1" source="tabbed-left"
+```python exec="true" source="tabbed-left" result="bash" session="ex1"
 import pandas as pd
 import polars as pl
 
@@ -30,28 +27,7 @@ def my_func(df):
 
 df_pd = pd.DataFrame({'a': [-1, 1, 3], 'b': [3, 5, -3]})
 df_pl = pl.DataFrame({'a': [-1, 1, 3], 'b': [3, 5, -3]})
-print('pandas output:')
 print(my_func(df_pd))
-print()
-print('Polars output:')
-print(my_func(df_pl).collect())
-``` -->
-
-<!-- ```python exec="true" source="above" result="bash"
-import pandas as pd
-import polars as pl
-
-def my_func(df):
-    df_s = df.__dataframe_consortium_standard__(api_version='2023.11-beta')
-    df_s = df_s.filter(df_s.col('a') > 0)
-    return df_s.dataframe
-
-df_pd = pd.DataFrame({'a': [-1, 1, 3], 'b': [3, 5, -3]})
-df_pl = pl.DataFrame({'a': [-1, 1, 3], 'b': [3, 5, -3]})
-print('pandas output:')
-print(my_func(df_pd))
-print()
-print('Polars output:')
 print(my_func(df_pl).collect())
 ```
 
@@ -181,4 +157,4 @@ shape: (2, 2)
 │ 1   ┆ 5   │
 │ 3   ┆ -3  │
 └─────┴─────┘
-``` -->
+```

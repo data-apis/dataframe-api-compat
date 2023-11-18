@@ -22,17 +22,12 @@ theme:
 plugins:
 - search
 - mkdocstrings
-- markdown-exec
 markdown_extensions:
-  # - pymdownx.highlight:
-  #     anchor_linenums: true
-  #     line_spans: __span
-  #     pygments_lang_class: true
-  # - pymdownx.inlinehilite
-  # - pymdownx.snippets
-  # - pymdownx.details
-  # - md_in_html
-  # - attr_list
-  - pymdownx.tabbed
-  - pymdownx.highlight
-  # - pymdownx.superfences
+- pymdownx.tabbed:
+    alternate_style: true
+- pymdownx.superfences:
+    custom_fences:
+    - name: python
+      class: python
+      validator: !!python/name:markdown_exec.validator
+      format: !!python/name:markdown_exec.formatter
