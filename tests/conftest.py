@@ -8,7 +8,7 @@ LIBRARIES = {
     (3, 9): ["pandas-numpy", "pandas-nullable", "polars-lazy"],
     (3, 10): ["pandas-numpy", "pandas-nullable", "polars-lazy"],
     (3, 11): ["pandas-numpy", "pandas-nullable", "polars-lazy"],
-    (3, 12): ["pandas-numpy", "pandas-nullable", "polars-lazy"],
+    (3, 12): ["polars-lazy"],
 }
 
 
