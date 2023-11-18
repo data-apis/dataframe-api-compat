@@ -12,20 +12,44 @@ def test_within_df_propagation(library: str) -> None:
     df1 = df1
     df1 = df1 + 1
     with pytest.raises(RuntimeError):
-        _ = int(df1.col("a").mean())  # type: ignore[call-overload]
+        _ = int(df1.col("a").get_value(0))  # type: ignore[call-overload]
 
     df1 = integer_dataframe_1(library)
     df1 = df1.persist()
     df1 = df1 + 1
     # the call below would recompute `df1 + 1` multiple times
     with pytest.raises(RuntimeError):
-        _ = int(df1.col("a").mean())  # type: ignore[call-overload]
+        _ = int(df1.col("a").get_value(0))  # type: ignore[call-overload]
 
     # this is the correct way
     df1 = integer_dataframe_1(library)
     df1 = df1 + 1
     df1 = df1.persist()
     assert int(df1.col("a").get_value(0)) == 2  # type: ignore[call-overload]
+
+    # persisting the column works too
+    df1 = integer_dataframe_1(library)
+    df1 = df1 + 1
+    assert int(df1.col("a").persist().get_value(0)) == 2  # type: ignore[call-overload]
+
+    # ...but not if the column was modified
+    df1 = integer_dataframe_1(library)
+    df1 = df1 + 1
+    col = df1.col("a").persist()
+    with pytest.raises(RuntimeError):
+        assert int((col + 1).get_value(0)) == 2  # type: ignore[call-overload]
+
+    # persisting the scalar works too
+    df1 = integer_dataframe_1(library)
+    df1 = df1 + 1
+    assert int(df1.col("a").get_value(0).persist()) == 2  # type: ignore[call-overload]
+
+    # ...but not if you modify the scalar
+    df1 = integer_dataframe_1(library)
+    df1 = df1 + 1
+    scalar = df1.col("a").get_value(0).persist()
+    with pytest.raises(RuntimeError):
+        assert int(scalar + 1) == 2  # type: ignore[call-overload]
 
 
 def test_within_df_within_col_propagation(library: str) -> None:
