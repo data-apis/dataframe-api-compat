@@ -11,8 +11,10 @@ def test_convert_to_std_column() -> None:
     assert float(s.mean().persist()) == 2
     s = pl.Series("bob", [1, 2, 3]).__column_consortium_standard__()
     assert float(s.mean().persist()) == 2
-    if sys.version_info >= (3, 9):
-        s = pd.Series([1, 2, 3]).__column_consortium_standard__()
-        assert float(s.mean().persist()) == 2
-        s = pd.Series([1, 2, 3], name="alice").__column_consortium_standard__()
-        assert float(s.mean().persist()) == 2
+    if sys.version_info < (3, 8):
+        # pandas doesn't support 3.8
+        return
+    s = pd.Series([1, 2, 3]).__column_consortium_standard__()
+    assert float(s.mean().persist()) == 2
+    s = pd.Series([1, 2, 3], name="alice").__column_consortium_standard__()
+    assert float(s.mean().persist()) == 2
