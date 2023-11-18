@@ -1,10 +1,17 @@
 from __future__ import annotations
 
+import sys
+
 import pandas as pd
 import polars as pl
+import pytest
 from polars.testing import assert_series_equal
 
 
+@pytest.mark.skipif(
+    sys.version_info < (3, 8),
+    reason="pandas doesn't support 3.8",
+)
 def test_scale_column_pandas() -> None:
     s = pd.Series([1, 2, 3], name="a")
     ser = s.__column_consortium_standard__()
