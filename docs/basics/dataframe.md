@@ -1,6 +1,9 @@
-# Basics
+# DataFrame
 
-The basic premise of the project is this: you want to write a function which supports both pandas and Polars
+Let's suppose:
+
+- You have a function which accepts a dataframe as input, and returns a dataframe as output.
+- You'd like your function to be dataframe-agnostic.
 
 The steps you'll want to follow are:
 

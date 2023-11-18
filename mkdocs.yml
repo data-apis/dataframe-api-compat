@@ -3,7 +3,9 @@ nav:
   - Home: index.md
   - Installation: installation.md
   - Quick start: quick_start.md
-  - Basics: basics.md
+  - Basics:
+    - basics/dataframe.md
+    - basics/column.md
   - Tutorial: tutorial.md
 #  - Code Reference:
 #      - pandas DataFrame: pandas-dataframe.md
