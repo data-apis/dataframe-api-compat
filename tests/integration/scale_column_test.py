@@ -9,7 +9,7 @@ from polars.testing import assert_series_equal
 
 
 @pytest.mark.skipif(
-    sys.version_info <= (3, 8),
+    sys.version_info < (3, 9),
     reason="pandas doesn't support 3.8",
 )
 def test_scale_column_pandas() -> None:
