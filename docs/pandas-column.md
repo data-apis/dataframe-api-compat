@@ -1,0 +1,56 @@
+# Pandas Column
+::: dataframe_api_compat.pandas_standard.Column
+    handler: python
+    paths: []
+    options:
+      members:
+      - all
+      - any
+      - api_version
+      - column
+      - cumulative_max
+      - cumulative_min
+      - cumulative_prod
+      - cumulative_sum
+      - day
+      - df
+      - dtype
+      - fill_nan
+      - fill_null
+      - filter
+      - floor
+      - get_rows
+      - get_value
+      - hour
+      - is_in
+      - is_nan
+      - is_null
+      - iso_weekday
+      - materialise
+      - max
+      - mean
+      - median
+      - microsecond
+      - min
+      - minute
+      - month
+      - name
+      - nanosecond
+      - parent_dataframe
+      - persist
+      - prod
+      - rename
+      - second
+      - shift
+      - slice_rows
+      - sort
+      - sorted_indices
+      - std
+      - sum
+      - to_array
+      - unique_indices
+      - unix_timestamp
+      - var
+      - yearshow_signature_annotations: true
+      show_bases: false
+      show_source: false

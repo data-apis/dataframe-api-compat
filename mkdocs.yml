@@ -1,0 +1,18 @@
+site_name: dataframe-api-compat
+nav:
+  - Home: index.md
+  - About: about.md
+  - Code Reference:
+      - pandas DataFrame: pandas-dataframe.md
+      - pandas Column: pandas-column.md
+      - pandas Namespace: pandas-namespace.md
+      - pandas Scalar: pandas-scalar.md
+      - Polars DataFrame: polars-dataframe.md
+      - Polars Column: polars-column.md
+      - Polars Namespace: polars-namespace.md
+      - Polars Scalar: polars-scalar.md
+theme:
+  name: material
+plugins:
+- search
+- mkdocstrings

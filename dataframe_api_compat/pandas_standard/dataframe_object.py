@@ -28,6 +28,8 @@ else:
 
 
 class DataFrame(DataFrameT):
+    """dataframe object"""
+
     def __init__(
         self,
         dataframe: pd.DataFrame,
@@ -96,6 +98,7 @@ class DataFrame(DataFrameT):
     # In the Standard
 
     def col(self, name: str) -> Column:
+        """col"""
         from dataframe_api_compat.pandas_standard.column_object import Column
 
         return Column(
