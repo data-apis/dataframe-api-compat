@@ -51,6 +51,7 @@
       - unique_indices
       - unix_timestamp
       - var
-      - yearshow_signature_annotations: true
+      - year
+      show_signature_annotations: true
       show_bases: false
       show_source: false
