@@ -28,6 +28,8 @@ if TYPE_CHECKING:
 else:
     DataFrameT = object
 
+POLARS_VERSION = pl.__version__
+
 
 def _is_integer_dtype(dtype: Any) -> bool:
     return any(  # pragma: no cover
@@ -144,6 +146,10 @@ class DataFrame(DataFrameT):
 
     def get_rows(self, indices: Column) -> DataFrame:  # type: ignore[override]
         self._validate_other(indices)
+        if POLARS_VERSION >= "0.19.14":
+            return self._from_dataframe(
+                self.dataframe.select(pl.all().gather(indices.expr)),
+            )
         return self._from_dataframe(
             self.dataframe.select(pl.all().take(indices.expr)),
         )
