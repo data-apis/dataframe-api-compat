@@ -16,20 +16,22 @@ def my_func(df):
     return df_s.dataframe
 ```
 
-```python exec="true" source="tabbed-left" result="bash" session="ex1"
-import pandas as pd
-import polars as pl
+=== "pandas"
+    ```python exec="true" source="tabbed-left" result="bash" session="ex1"
+    import pandas as pd
 
-def my_func(df):
-    df_s = df.__dataframe_consortium_standard__(api_version='2023.11-beta')
-    df_s = df_s.filter(df_s.col('a') > 0)
-    return df_s.dataframe
+    df_pd = pd.DataFrame({'a': [-1, 1, 3], 'b': [3, 5, -3]})
+    print(my_func(df_pd))
+    ```
 
-df_pd = pd.DataFrame({'a': [-1, 1, 3], 'b': [3, 5, -3]})
-df_pl = pl.DataFrame({'a': [-1, 1, 3], 'b': [3, 5, -3]})
-print(my_func(df_pd))
-print(my_func(df_pl).collect())
-```
+=== "Polars"
+    ```python exec="true" source="tabbed-left" result="bash" session="ex1"
+    import polars as pl
+
+    df_pl = pl.DataFrame({'a': [-1, 1, 3], 'b': [3, 5, -3]})
+    print(my_func(df_pl).collect())
+    ```
+
 
 ## Example 2: multiply a column's values by a constant
 
