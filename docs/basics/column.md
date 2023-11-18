@@ -132,3 +132,62 @@ shape: (3, 3)
 ```
 
 ## Example 3: cross-dataframe column comparisons
+
+You might expect a function like the following to just work:
+```python
+def my_func(df1, df2):
+    df1_s = df1.__dataframe_consortium_standard__(api_version='2023.11-beta')
+    df2_s = df2.__dataframe_consortium_standard__(api_version='2023.11-beta')
+    df1_s.filter(df2_s.col('a') > 0)
+    return df_s.dataframe
+
+df_pd = pd.DataFrame({'a': [-1, 1, 3], 'b': [3, 5, -3]})
+df_pl = pl.DataFrame({'a': [-1, 1, 3], 'b': [3, 5, -3]})
+print('pandas output:')
+print(my_func(df_pd, df_pd+1))
+print()
+print('Polars output:')
+print(my_func(df_pl, df_pl+1).collect())
+```
+If you try running this, you'll see:
+```
+ValueError: cannot compare columns from different dataframes
+```
+This is because `Column`s for the Polars implementation are backed by `polars.Expr`s.
+The error is there to ensure that the Polars and pandas implementations behave in the same way.
+If you wish to compare columns from different dataframes, you should first join the dataframes.
+For example:
+```python
+def my_func(df1, df2):
+    df1_s = df1.__dataframe_consortium_standard__(api_version='2023.11-beta')
+    df2_s = df2.__dataframe_consortium_standard__(api_version='2023.11-beta')
+    df1_s = df1_s.join(df2_s, left_on=['a', 'b'], right_on=['a', 'b'], how='left')
+    df1_s = df1_s.filter(df1_s.col('a') > 0)
+    return df1_s.dataframe
+
+df_pd = pd.DataFrame({'a': [-1, 1, 3], 'b': [3, 5, -3]})
+df_pl = pl.DataFrame({'a': [-1, 1, 3], 'b': [3, 5, -3]})
+print('pandas output:')
+print(my_func(df_pd, df_pd+1))
+print()
+print('Polars output:')
+print(my_func(df_pl, df_pl+1).collect())
+```
+which outputs
+```
+pandas output:
+   a  b
+0  1  5
+1  3 -3
+
+Polars output:
+shape: (2, 2)
+┌─────┬─────┐
+│ a   ┆ b   │
+│ --- ┆ --- │
+│ i64 ┆ i64 │
+╞═════╪═════╡
+│ 1   ┆ 5   │
+│ 3   ┆ -3  │
+└─────┴─────┘
+```
