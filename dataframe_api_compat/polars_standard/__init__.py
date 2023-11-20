@@ -185,14 +185,11 @@ class Namespace(NamespaceT):
         self,
         data: Any,
         *,
-        schema: dict[str, Any],
+        names: Sequence[str],
     ) -> DataFrame:  # pragma: no cover
         df = pl.DataFrame(
             data,
-            schema={
-                key: _map_standard_to_polars_dtypes(value)
-                for key, value in schema.items()
-            },
+            schema=names,
         ).lazy()
         return DataFrame(df, api_version=self.api_version)
 

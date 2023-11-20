@@ -320,14 +320,9 @@ class Namespace(NamespaceT):
         self,
         data: Any,
         *,
-        schema: dict[str, Any],
+        names: Sequence[str],
     ) -> DataFrame:  # pragma: no cover
-        df = pd.DataFrame(data, columns=list(schema)).astype(
-            {
-                key: map_standard_dtype_to_pandas_dtype(value)
-                for key, value in schema.items()
-            },
-        )
+        df = pd.DataFrame(data, columns=list(names))
         return DataFrame(df, api_version=self.api_version)
 
     def is_null(self, value: Any) -> bool:
@@ -384,6 +379,13 @@ class Namespace(NamespaceT):
 
         def rename(self, name: str | ScalarT) -> AggregationT:
             return self.__class__(self.column_name, name, self.aggregation)  # type: ignore[arg-type]
+
+        def replace(self, **kwargs: str) -> AggregationT:
+            return self.__class__(
+                column_name=kwargs.get("column_name", self.column_name),
+                output_name=kwargs.get("output_name", self.output_name),
+                aggregation=kwargs.get("aggregation", self.aggregation),
+            )
 
         @classmethod
         def any(
@@ -481,4 +483,4 @@ class Namespace(NamespaceT):
         def size(
             cls: AggregationT,
         ) -> AggregationT:
-            return Namespace.Aggregation("placeholder", "size", "size")
+            return Namespace.Aggregation("__placeholder__", "size", "size")
