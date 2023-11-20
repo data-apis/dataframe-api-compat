@@ -127,6 +127,9 @@ def validate_aggregations(
 
 
 def resolve_aggregation(aggregation: AggregationT) -> pl.Expr:
-    return getattr(pl.col(aggregation.column_name), aggregation.aggregation)().alias(
-        aggregation.output_name,
+    return getattr(  # type: ignore[no-any-return]
+        pl.col(aggregation.column_name),
+        aggregation.aggregation,
+    )().alias(  # type: ignore[attr-defined]
+        aggregation.output_name,  # type: ignore[attr-defined]
     )
