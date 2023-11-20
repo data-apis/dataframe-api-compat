@@ -368,13 +368,13 @@ class Namespace(NamespaceT):
     def any_rowwise(self, *columns: Column) -> Column:
         return reduce(lambda x, y: x | y, columns)
 
-    class Aggregation(AggregationT):  # pragma: no cover
+    class Aggregation(AggregationT):
         def __init__(self, column_name: str, output_name: str, aggregation: str) -> None:
             self.column_name = column_name
             self.output_name = output_name
             self.aggregation = aggregation
 
-        def __repr__(self) -> str:
+        def __repr__(self) -> str:  # pragma: no cover
             return f"{self.__class__.__name__}({self.column_name!r}, {self.output_name!r}, {self.aggregation!r})"
 
         def rename(self, name: str | ScalarT) -> AggregationT:

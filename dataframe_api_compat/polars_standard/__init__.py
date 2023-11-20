@@ -196,7 +196,7 @@ class Namespace(NamespaceT):
     def date(self, year: int, month: int, day: int) -> Any:
         return pl.date(year, month, day)
 
-    class Aggregation(AggregationT):  # pragma: no cover
+    class Aggregation(AggregationT):
         def __init__(self, column_name: str, output_name: str, aggregation: str) -> None:
             self.column_name = column_name
             self.output_name = output_name
@@ -264,7 +264,7 @@ class Namespace(NamespaceT):
             *,
             skip_nulls: bool | ScalarT = True,
         ) -> AggregationT:
-            return Namespace.Aggregation(column, column, "prod")
+            return Namespace.Aggregation(column, column, "product")
 
         @classmethod
         def median(
