@@ -12,9 +12,7 @@ Let's try writing a function which, for each column, subtracts its mean.
 ```python exec="1" source="above" session="ex1"
 def my_func(df):
     df_s = df.__dataframe_consortium_standard__(api_version='2023.11-beta')
-    new_columns = []
-    for column_name in df_s.column_names:
-        new_columns.append(df.col(column_name) - df.col(column_name).mean())
+    new_columns = [col - col.mean() for col in df_s.columns_iter()]
     df_s = df_s.assign(*new_columns)
     return df_s.dataframe
 ```

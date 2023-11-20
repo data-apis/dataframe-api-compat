@@ -67,36 +67,34 @@ class StandardScalar:
 
 Here is our dataframe-agnostic standard scaler:
 ```python exec="1" source="above" session="tute-ex1"
-class StandardScalar:
+class StandardScaler:
     def fit(self, df):
         df = df.__dataframe_consortium_standard__(api_version='2023.11-beta')
         ns = df.__dataframe_namespace__()
 
-        means = [col.mean() for col in df.columns_iter()]
-        std_devs = [col.std() for col in df.columns_iter()]
-        df_means = df.assign(*means)
-        df_std_devs = df.assign(*std_devs)
-        df = ns.concat([means, std_devs])
+        df = ns.concat([df.mean(), df.std()])
         df = df.persist()
         means = {col.name: float(col.get_value(0)) for col in df.columns_iter()}
         std_devs = {col.name: float(col.get_value(1)) for col in df.columns_iter()}
-        std_devs = {}
         self._means = means
         self._std_devs = std_devs
 
     def transform(self, df):
         df = df.__dataframe_consortium_standard__(api_version='2023.11-beta')
-        new_columns = [(col - self.means[col.name])/self.std_devs[col_name] for col in df.columns_iter()]
+        new_columns = [(col - self._means[col.name])/self._std_devs[col.name] for col in df.columns_iter()]
         df = df.assign(*new_columns)
         return df.dataframe
 ```
+
+Next, let's try running it. Note that `StandardScaler.transform` is completely lazy (it contains no `persist`)
+calls, so the output for Polars is a `polars.LazyFrame`. So, to see the output, we need to call `.collect`:
 
 === "pandas"
     ```python exec="true" source="material-block" result="python" session="tute-ex1"
     import pandas as pd
 
-    df = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
-    scaler = StandardScalar()
+    df = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 7]})
+    scaler = StandardScaler()
     scaler.fit(df)
     print(scaler.transform(df))
     ```
@@ -105,8 +103,8 @@ class StandardScalar:
     ```python exec="true" source="material-block" result="python" session="tute-ex1"
     import polars as pl
 
-    df = pl.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
+    df = pl.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 7]})
     scaler = StandardScaler()
     scaler.fit(df)
-    print(scaler.transform(df))
+    print(scaler.transform(df).collect())
     ```
