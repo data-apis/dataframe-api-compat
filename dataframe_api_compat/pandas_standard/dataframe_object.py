@@ -420,7 +420,7 @@ class DataFrame(DataFrameT):
         *,
         skip_nulls: bool | Scalar = True,
     ) -> Column:  # pragma: no cover
-        msg = "Please use `__dataframe_namespace__().any` instead"
+        msg = "Please use `__dataframe_namespace__().any_rowwise` instead"
         raise NotImplementedError(msg)
 
     def sorted_indices(
