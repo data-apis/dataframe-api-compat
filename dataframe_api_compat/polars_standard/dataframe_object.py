@@ -566,7 +566,6 @@ class DataFrame(DataFrameT):
             is_persisted=True,
         )
 
-    def to_array(self, dtype: DType) -> Any:
-        dtype = dtype  # todo
+    def to_array(self, dtype: DType | None = None) -> Any:
         df = self.validate_is_persisted()
         return df.to_numpy()

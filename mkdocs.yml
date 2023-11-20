@@ -6,6 +6,8 @@ nav:
   - Basics:
     - basics/dataframe.md
     - basics/column.md
+    - basics/scalar.md
+    - basics/persist.md
   - Tutorial: tutorial.md
 #  - Code Reference:
 #      - pandas DataFrame: pandas-dataframe.md
