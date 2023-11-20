@@ -113,41 +113,35 @@ class GroupBy(GroupByT):
         self,
         *aggregations: dataframe_api_compat.pandas_standard.Namespace.Aggregation,
     ) -> DataFrame:  # pragma: no cover
-        output_names = [aggregation.output_name for aggregation in aggregations]
+        [aggregation.output_name for aggregation in aggregations]
 
         include_size = False
         size_output_name = None
-        column_aggregations: list[
-            dataframe_api_compat.pandas_standard.Namespace.Aggregation
-        ] = []
+        column_aggregations: dict[
+            str,
+            dataframe_api_compat.pandas_standard.Namespace.Aggregation,
+        ] = {}
         for aggregation in aggregations:
             if aggregation.aggregation == "size":
                 include_size = True
                 size_output_name = aggregation.output_name
             else:
-                column_aggregations.append(aggregation)
-
-        agg = {
-            aggregation.column_name: aggregation.aggregation
-            for aggregation in column_aggregations
-        }
-        if agg:
-            aggregated = self.grouped.agg(agg).rename(
-                {
-                    aggregation.column_name: aggregation.output_name
-                    for aggregation in column_aggregations
-                },
-                axis=1,
-            )
+                column_aggregations[aggregation.output_name] = pd.NamedAgg(
+                    column=aggregation.column_name,
+                    aggfunc=aggregation.aggregation,
+                )
+        if column_aggregations:
+            aggregated = self.grouped.agg(**column_aggregations)
 
         if include_size:
-            size = self.grouped.size().drop(self.keys, axis=1)
-            assert len(size.columns) == 1
-            size = size.rename(columns={size.columns[0]: size_output_name})
+            size = self.grouped.size()
+            assert len(size.columns) == 1 + len(self.keys)
+            size_name = size.columns.difference(self.keys)[0]
+            size = size.rename(columns={size_name: size_output_name})
 
-        if agg and include_size:
-            df = pd.concat([aggregated, size], axis=1)
-        elif agg:
+        if column_aggregations and include_size:
+            df = pd.concat([aggregated, size.drop(self.keys, axis=1)], axis=1)
+        elif column_aggregations:
             df = aggregated
         elif include_size:
             df = size
@@ -155,7 +149,7 @@ class GroupBy(GroupByT):
             msg = "No aggregations specified"
             raise ValueError(msg)
         return DataFrame(
-            df.loc[:, output_names],
+            df,
             api_version=self._api_version,
             is_persisted=False,
         )
