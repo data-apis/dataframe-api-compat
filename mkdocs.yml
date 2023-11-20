@@ -1,14 +1,16 @@
 site_name: Dataframe API Compat
+repo_url: https://github.com/squidfunk/mkdocs-material
 nav:
   - Home: index.md
   - Installation: installation.md
   - Quick start: quick_start.md
-  - Basics:
+  - Tutorial:
     - basics/dataframe.md
     - basics/column.md
     - basics/scalar.md
     - basics/persist.md
-  - Tutorial: tutorial.md
+    - basics/complete_example.md
+  - API Reference: reference.md
 #  - Code Reference:
 #      - pandas DataFrame: pandas-dataframe.md
 #      - pandas Column: pandas-column.md

@@ -1,4 +1,4 @@
-# Tutorial
+# Complete example
 
 We're going to write a dataframe-agnostic "Standard Scaler". This class will have
 `fit` and `transform` methods (like `scikit-learn` transformers), and will work
