@@ -11,68 +11,13 @@
 		src="https://github.com/data-apis/dataframe-api-compat/assets/33491632/9616bbdc-97d7-4936-8530-67280ba472d0">
 </h1>
 
-Implementation of the [DataFrame Standard](https://data-apis.org/dataframe-api/draft/index.html)
-for pandas and polars.
+Extremely lightweight compatibility layer between pandas and Polars:
 
-What's this?
-------------
-Please read our blog post! https://data-apis.org/blog/dataframe_standard_rfc/.
+- ✅ No dependencies.
+- ✅ Lightweight: wheel is smaller than 30 kB.
+- ✅ Simple, minimal, perfectly backwards-compatible* API.
 
-Documentation
--------------
-Please check https://data-apis.org/dataframe-api/draft/API_specification/index.html
-for the methods supported by the Consortium Dataframe Standard.
+Aiming to transform the data science landscape by allowing tools to natively support
+any major dataframe library.
 
-How to try this out
--------------------
-
-Here's an example of how you can try this out:
-```python
-import polars as pl
-
-df = pl.DataFrame({'a': [1,2,3]})
-df_std = df.__dataframe_consortium_standard__()
-```
-The object `df_std` is a Standard-compliant DataFrame. Check the
-[API Specification](https://data-apis.org/dataframe-api/draft/API_specification/index.html)
-for the full list of methods supported on it.
-
-Here's an example of a dataframe-agnostic function:
-```python
-from typing import Any
-
-
-def my_dataframe_agnostic_function(df_non_standard: Any) -> Any:
-    df = df_non_standard.__dataframe_consortium_standard__()
-
-    for column_name in df.column_names:
-        new_column = df.col(column_name)
-        new_column = (new_column - new_column.mean()) / new_column.std()
-        df = df.assign(new_column.rename(f'{column_name}_scaled'))
-
-    return df.dataframe
-```
-
-As long as you have this package installed, then either a pandas or Polars DataFrame
-should work with the code above, e.g.:
-
-```python
-import pandas as pd
-import polars as pl
-
-df_pd = pd.DataFrame({'a': [1,2,3], 'b': [4,5,6]})
-df_pl = pl.DataFrame({'a': [1,2,3], 'b': [4,5,6]})
-
-my_dataframe_agnostic_function(df_pd)
-my_dataframe_agnostic_function(df_pl)
-```
-
-Compliance with the Standard
-----------------------------
-The classes here also have an extra `.persist` method, which is not (yet) part of the Standard.
-
-Installation
-------------
-```
-pip install dataframe-api-compat
-```
+Documentation, including installation instructions and tutorial, are here: https://data-apis.org/dataframe-api-compat.
