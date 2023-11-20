@@ -159,7 +159,7 @@ class Namespace(NamespaceT):
         *,
         dtype: DType,
         name: str = "",
-    ) -> Column:  # pragma: no cover
+    ) -> Column:
         ser = pl.Series(
             values=array,
             dtype=_map_standard_to_polars_dtypes(dtype),
@@ -185,21 +185,18 @@ class Namespace(NamespaceT):
         self,
         data: Any,
         *,
-        schema: dict[str, Any],
-    ) -> DataFrame:  # pragma: no cover
+        names: Sequence[str],
+    ) -> DataFrame:
         df = pl.DataFrame(
             data,
-            schema={
-                key: _map_standard_to_polars_dtypes(value)
-                for key, value in schema.items()
-            },
+            schema=names,
         ).lazy()
         return DataFrame(df, api_version=self.api_version)
 
     def date(self, year: int, month: int, day: int) -> Any:
         return pl.date(year, month, day)
 
-    class Aggregation(AggregationT):  # pragma: no cover
+    class Aggregation(AggregationT):
         def __init__(self, column_name: str, output_name: str, aggregation: str) -> None:
             self.column_name = column_name
             self.output_name = output_name
@@ -207,6 +204,13 @@ class Namespace(NamespaceT):
 
         def rename(self, name: str | ScalarT) -> AggregationT:
             return self.__class__(self.column_name, name, self.aggregation)  # type: ignore[arg-type]
+
+        def replace(self, **kwargs: str) -> AggregationT:
+            return self.__class__(
+                column_name=kwargs.get("column_name", self.column_name),
+                output_name=kwargs.get("output_name", self.output_name),
+                aggregation=kwargs.get("aggregation", self.aggregation),
+            )
 
         @classmethod
         def any(
@@ -260,7 +264,7 @@ class Namespace(NamespaceT):
             *,
             skip_nulls: bool | ScalarT = True,
         ) -> AggregationT:
-            return Namespace.Aggregation(column, column, "prod")
+            return Namespace.Aggregation(column, column, "product")
 
         @classmethod
         def median(
@@ -304,7 +308,7 @@ class Namespace(NamespaceT):
         def size(
             cls: AggregationT,
         ) -> AggregationT:
-            return Namespace.Aggregation("placeholder", "size", "size")
+            return Namespace.Aggregation("__placeholder__", "size", "count")
 
     def concat(
         self,

@@ -14,9 +14,10 @@ def test_dataframe_from_2d_array(library: str) -> None:
     arr = np.array([[1, 4], [2, 5], [3, 6]])
     result = namespace.dataframe_from_2d_array(
         arr,
-        schema={"a": namespace.Int64(), "b": namespace.Int64()},
+        names=["a", "b"],
     )
-    result_pd = interchange_to_pandas(result)
+    # TODO: consistent return type, for windows compat?
+    result_pd = interchange_to_pandas(result).astype("int64")
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
     pd.testing.assert_frame_equal(result_pd, expected)

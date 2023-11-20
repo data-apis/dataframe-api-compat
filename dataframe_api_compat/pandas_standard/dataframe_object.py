@@ -214,7 +214,7 @@ class DataFrame(DataFrameT):
             self.dataframe.rename(columns=mapping),
         )
 
-    def get_column_names(self) -> list[str]:  # pragma: no cover
+    def get_column_names(self) -> list[str]:
         # DO NOT REMOVE
         # This one is used in upstream tests - even if deprecated,
         # just leave it in for backwards compatibility

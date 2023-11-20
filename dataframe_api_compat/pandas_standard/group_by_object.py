@@ -9,11 +9,11 @@ from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from dataframe_api import Aggregation as AggregationT
     from dataframe_api import GroupBy as GroupByT
     from dataframe_api.typing import NullType
     from dataframe_api.typing import Scalar
 
-    import dataframe_api_compat
 else:
     GroupByT = object
 
@@ -109,53 +109,39 @@ class GroupBy(GroupByT):
         self._validate_result(result)
         return DataFrame(result, api_version=self._api_version)
 
-    def aggregate(  # type: ignore[override]
+    def aggregate(
         self,
-        *aggregations: dataframe_api_compat.pandas_standard.Namespace.Aggregation,
-    ) -> DataFrame:  # pragma: no cover
-        output_names = [aggregation.output_name for aggregation in aggregations]
-
-        include_size = False
-        size_output_name = None
-        column_aggregations: list[
-            dataframe_api_compat.pandas_standard.Namespace.Aggregation
-        ] = []
-        for aggregation in aggregations:
-            if aggregation.aggregation == "size":
-                include_size = True
-                size_output_name = aggregation.output_name
-            else:
-                column_aggregations.append(aggregation)
-
-        agg = {
-            aggregation.column_name: aggregation.aggregation
-            for aggregation in column_aggregations
-        }
-        if agg:
-            aggregated = self.grouped.agg(agg).rename(
-                {
-                    aggregation.column_name: aggregation.output_name
-                    for aggregation in column_aggregations
-                },
-                axis=1,
-            )
-
-        if include_size:
-            size = self.grouped.size().drop(self.keys, axis=1)
-            assert len(size.columns) == 1
-            size = size.rename(columns={size.columns[0]: size_output_name})
-
-        if agg and include_size:
-            df = pd.concat([aggregated, size], axis=1)
-        elif agg:
-            df = aggregated
-        elif include_size:
-            df = size
-        else:
-            msg = "No aggregations specified"
-            raise ValueError(msg)
+        *aggregations: AggregationT,
+    ) -> DataFrame:
+        aggregations = validate_aggregations(*aggregations, keys=self.keys)
         return DataFrame(
-            df.loc[:, output_names],
+            self.grouped.agg(
+                **{
+                    aggregation.output_name: resolve_aggregation(  # type: ignore[attr-defined]
+                        aggregation,
+                    )
+                    for aggregation in aggregations
+                },
+            ),
             api_version=self._api_version,
             is_persisted=False,
         )
+
+
+def validate_aggregations(
+    *aggregations: AggregationT,
+    keys: Sequence[str],
+) -> tuple[AggregationT, ...]:
+    return tuple(
+        aggregation
+        if aggregation.column_name != "__placeholder__"  # type: ignore[attr-defined]
+        else aggregation.replace(column_name=keys[0])  # type: ignore[attr-defined]
+        for aggregation in aggregations
+    )
+
+
+def resolve_aggregation(aggregation: AggregationT) -> pd.NamedAgg:
+    return pd.NamedAgg(
+        column=aggregation.column_name,  # type: ignore[attr-defined]
+        aggfunc=aggregation.aggregation,  # type: ignore[attr-defined]
+    )
