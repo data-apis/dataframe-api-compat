@@ -208,6 +208,13 @@ class Namespace(NamespaceT):
         def rename(self, name: str | ScalarT) -> AggregationT:
             return self.__class__(self.column_name, name, self.aggregation)  # type: ignore[arg-type]
 
+        def replace(self, **kwargs: dict[str, str]) -> AggregationT:
+            return self.__class__(
+                column_name=kwargs.get("column_name", self.column_name),
+                output_name=kwargs.get("output_name", self.output_name),
+                aggregation=kwargs.get("aggregation", self.aggregation),
+            )
+
         @classmethod
         def any(
             cls: AggregationT,
@@ -304,7 +311,7 @@ class Namespace(NamespaceT):
         def size(
             cls: AggregationT,
         ) -> AggregationT:
-            return Namespace.Aggregation("placeholder", "size", "size")
+            return Namespace.Aggregation("__placeholder__", "size", "count")
 
     def concat(
         self,

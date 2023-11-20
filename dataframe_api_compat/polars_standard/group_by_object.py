@@ -104,15 +104,21 @@ class GroupBy(GroupByT):
         self,
         *aggregations: Namespace.Aggregation,
     ) -> DataFrame:
+        aggregations = [
+            aggregation
+            if aggregation.column_name != "__placeholder__"
+            else aggregation.replace(column_name=self.keys[0])
+            for aggregation in aggregations
+        ]
         return DataFrame(
             self.group_by(self.keys).agg(
                 *[
                     getattr(
-                        pl.col(aggregation.column_name),  # type: ignore[attr-defined]
-                        aggregation.aggregation,  # type: ignore[attr-defined]
+                        pl.col(aggregation.column_name),
+                        aggregation.aggregation,
                     )().alias(
                         aggregation.output_name,
-                    )  # type: ignore[attr-defined]
+                    )
                     for aggregation in aggregations
                 ],
             ),
