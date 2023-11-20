@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from dataframe_api import GroupBy as GroupByT
-    from dataframe_api.typing import Namespace
+    from dataframe_api.groupby_object import Aggregation as AggregationT
     from dataframe_api.typing import NullType
     from dataframe_api.typing import Scalar
 else:
@@ -100,28 +100,33 @@ class GroupBy(GroupByT):
         result = self.group_by(self.keys).agg(pl.col("*").var())
         return DataFrame(result, api_version=self._api_version)
 
-    def aggregate(  # type: ignore[override]
+    def aggregate(
         self,
-        *aggregations: Namespace.Aggregation,
+        *aggregations: AggregationT,
     ) -> DataFrame:
-        aggregations = [
-            aggregation
-            if aggregation.column_name != "__placeholder__"
-            else aggregation.replace(column_name=self.keys[0])
-            for aggregation in aggregations
-        ]
+        aggregations = validate_aggregations(*aggregations, keys=self.keys)
         return DataFrame(
             self.group_by(self.keys).agg(
-                *[
-                    getattr(
-                        pl.col(aggregation.column_name),
-                        aggregation.aggregation,
-                    )().alias(
-                        aggregation.output_name,
-                    )
-                    for aggregation in aggregations
-                ],
+                *[resolve_aggregation(aggregation) for aggregation in aggregations],
             ),
             api_version=self._api_version,
             is_persisted=False,
         )
+
+
+def validate_aggregations(
+    *aggregations: AggregationT,
+    keys: Sequence[str],
+) -> tuple[AggregationT, ...]:
+    return tuple(
+        aggregation
+        if aggregation.column_name != "__placeholder__"  # type: ignore[attr-defined]
+        else aggregation.replace(column_name=keys[0])  # type: ignore[attr-defined]
+        for aggregation in aggregations
+    )
+
+
+def resolve_aggregation(aggregation: AggregationT) -> pl.Expr:
+    return getattr(pl.col(aggregation.column_name), aggregation.aggregation)().alias(
+        aggregation.output_name,
+    )
