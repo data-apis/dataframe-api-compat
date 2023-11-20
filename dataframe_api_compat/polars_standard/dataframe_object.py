@@ -4,6 +4,7 @@ import collections
 import secrets
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Iterator
 from typing import Literal
 from typing import NoReturn
 
@@ -140,6 +141,9 @@ class DataFrame(DataFrameT):
     @property
     def column_names(self) -> list[str]:
         return self.dataframe.columns
+
+    def columns_iter(self) -> Iterator[Column]:
+        return (self.col(col_name) for col_name in self.column_names)
 
     @property
     def dataframe(self) -> pl.LazyFrame:

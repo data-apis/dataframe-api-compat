@@ -3,6 +3,7 @@ from __future__ import annotations
 import collections
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Iterator
 from typing import Literal
 from typing import NoReturn
 
@@ -142,6 +143,9 @@ class DataFrame(DataFrameT):
     @property
     def column_names(self) -> list[str]:
         return self.dataframe.columns.tolist()  # type: ignore[no-any-return]
+
+    def columns_iter(self) -> Iterator[Column]:
+        return (self.col(col_name) for col_name in self.column_names)
 
     def slice_rows(
         self,

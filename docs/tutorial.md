@@ -27,9 +27,7 @@ The general strategy will be:
 class StandardScalar:
     def transform(self, df):
         df = df.__dataframe_consortium_standard__(api_version='2023.11-beta')
-        new_columns = []
-        for col_name in df.column_names:
-            new_columns.append((df.col(col_name) - self.means[col_name])/self.std_devs[col_name])
+        new_columns = [(col - self.means[col.name])/self.std_devs[col_name] for col in df.columns_iter()]
         df = df.assign(*new_columns)
         return df.dataframe
 ```
@@ -43,26 +41,24 @@ call `.collect()` on the result if they want to materialise its values.
 Unlike the `transform` method, `fit` cannot stay lazy, as we need to compute concrete values
 for the means and standard deviations.
 
-We will need to use the `persist` method here. `DataFrame.persist` is a no-op in pandas, and
-evaluates to `.collect().lazy` in Polars. Think of it as "materialise the dataframe up until
-this point, then go back to being lazy". We need to call it in order to be able to extract
-concrete values in `Column.get_value`.
+We will need to use the `persist` method here, see [persist](persist.md).
+We need to call it in order to be able to extract concrete values in `Column.get_value`.
 
 ```python
 class StandardScalar:
     def fit(self, df):
         df = df.__dataframe_consortium_standard__(api_version='2023.11-beta')
-        new_columns = []
-        for col_name in df.column_names:
-            new_columns.append(df.col(col_name).mean().rename(f'{col_name}_mean')
-            new_columns.append(df.col(col_name).std().rename(f'{col_name}_std')
-        df = df.assign(*new_columns)
+        ns = df.__dataframe_namespace__()
+
+        means = [col.mean() for col in df.columns_iter()]
+        std_devs = [col.std() for col in df.columns_iter()]
+        df_means = df.assign(*means)
+        df_std_devs = df.assign(*std_devs)
+        df = ns.concat([means, std_devs])
         df = df.persist()
-        means = {}
+        means = {col.name: float(col.get_value(0)) for col in df.columns_iter()}
+        std_devs = {col.name: float(col.get_value(1)) for col in df.columns_iter()}
         std_devs = {}
-        for col_name in df.column_names:
-            means[col_name] = float(df_means.col(col_name).get_value(0))
-            std_devs[col_name] = float(df_std_devs.col(col_name).get_value(0))
         self._means = means
         self._std_devs = std_devs
 ```
@@ -70,34 +66,47 @@ class StandardScalar:
 ## Putting it all together
 
 Here is our dataframe-agnostic standard scaler:
-```python
+```python exec="1" source="above" session="tute-ex1"
 class StandardScalar:
     def fit(self, df):
         df = df.__dataframe_consortium_standard__(api_version='2023.11-beta')
-        new_columns = []
-        for col_name in df.column_names:
-            new_columns.append(df.col(col_name).mean().rename(f'{col_name}_mean')
-            new_columns.append(df.col(col_name).std().rename(f'{col_name}_std')
-        df = df.assign(*new_columns)
+        ns = df.__dataframe_namespace__()
+
+        means = [col.mean() for col in df.columns_iter()]
+        std_devs = [col.std() for col in df.columns_iter()]
+        df_means = df.assign(*means)
+        df_std_devs = df.assign(*std_devs)
+        df = ns.concat([means, std_devs])
         df = df.persist()
-        means = {}
+        means = {col.name: float(col.get_value(0)) for col in df.columns_iter()}
+        std_devs = {col.name: float(col.get_value(1)) for col in df.columns_iter()}
         std_devs = {}
-        for col_name in df.column_names:
-            means[col_name] = float(df_means.col(col_name).get_value(0))
-            std_devs[col_name] = float(df_std_devs.col(col_name).get_value(0))
         self._means = means
         self._std_devs = std_devs
 
     def transform(self, df):
         df = df.__dataframe_consortium_standard__(api_version='2023.11-beta')
-        new_columns = []
-        for col_name in df.column_names:
-            new_columns.append((df.col(col_name) - self.means[col_name])/self.std_devs[col_name])
+        new_columns = [(col - self.means[col.name])/self.std_devs[col_name] for col in df.columns_iter()]
         df = df.assign(*new_columns)
         return df.dataframe
-
-df = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
-scaler = StandardScaler()
-scaler.fit(df)
-print(scaler.transform(df))
 ```
+
+=== "pandas"
+    ```python exec="true" source="material-block" result="python" session="tute-ex1"
+    import pandas as pd
+
+    df = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
+    scaler = StandardScalar()
+    scaler.fit(df)
+    print(scaler.transform(df))
+    ```
+
+=== "Polars"
+    ```python exec="true" source="material-block" result="python" session="tute-ex1"
+    import polars as pl
+
+    df = pl.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
+    scaler = StandardScaler()
+    scaler.fit(df)
+    print(scaler.transform(df))
+    ```
