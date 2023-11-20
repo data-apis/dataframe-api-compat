@@ -1,5 +1,5 @@
 site_name: Dataframe API Compat
-repo_url: https://github.com/squidfunk/mkdocs-material
+repo_url: https://github.com/data-apis/dataframe-api-compat.git
 nav:
   - Home: index.md
   - Installation: installation.md

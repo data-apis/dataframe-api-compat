@@ -2,8 +2,8 @@
 
 To write a dataframe-agnostic function, the steps you'll want to follow are:
 
-1. Opt-in to the DataFrame API by calling `__dataframe_consortium_standard__` on your dataframe.
-2. Express your logic using methods from the [DataFrame API](https://data-apis.org/dataframe-api/draft/API_specification/index.html)
+1. Opt-in to the Dataframe API by calling `__dataframe_consortium_standard__` on your dataframe.
+2. Express your logic using methods from the [Dataframe API](https://data-apis.org/dataframe-api/draft/API_specification/index.html)
    You may want to look at the [official examples](https://github.com/data-apis/dataframe-api/tree/main/spec/API_specification/examples)
    for inspiration.
 3. If you need to return a dataframe to the user in its original library, call `DataFrame.dataframe`.
@@ -46,7 +46,7 @@ If you look at the two outputs, you'll see that:
 - For pandas, the output is a `pandas.DataFrame`.
 - But for Polars, the output is a `polars.LazyFrame`.
 
-This is because the DataFrame API only has a single `DataFrame` class - so for Polars,
+This is because the Dataframe API only has a single `DataFrame` class - so for Polars,
 all operations are done lazily in order to make full use of Polars' query engine.
 If you want to convert that to a `polars.DataFrame`, it is the caller's responsibility
 to call `.collect`. Check the modified example below:

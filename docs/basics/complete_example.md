@@ -16,8 +16,8 @@ stored them in attributes `self.means` and `self.std_devs`.
 ## Transform method
 
 The general strategy will be:
-1. opt-in to the DataFrame API Standard by calling `__dataframe_consortium_standard__`;
-2. calculate new columns using methods from the DataFrame API Standard:
+1. opt-in to the Dataframe API Standard by calling `__dataframe_consortium_standard__`;
+2. calculate new columns using methods from the Dataframe API Standard:
    - `DataFrame.col`
    - `DataFrame.assign`
 3. return the original (non-standard-compliant) dataframe to the user by calling
