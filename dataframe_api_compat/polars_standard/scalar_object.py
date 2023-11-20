@@ -33,6 +33,14 @@ class Scalar(ScalarT):
     def dtype(self) -> DType:  # pragma: no cover  # todo
         return self.value.dtype  # type: ignore[no-any-return]
 
+    @property
+    def scalar(self) -> Any:  # pragma: no cover  # todo
+        return self.value
+
+    @property
+    def parent_dataframe(self) -> Any:  # pragma: no cover  # todo
+        return self.df
+
     def _validate_other(self, other: Any) -> Any:
         if isinstance(other, (Column, DataFrame)):
             return NotImplemented
@@ -205,3 +213,17 @@ class Scalar(ScalarT):
 
     def __float__(self) -> float:
         return self.materialise().__float__()  # type: ignore[no-any-return]
+
+    def __repr__(self) -> str:  # pragma: no cover
+        header = f" Standard Scalar (api_version={self._api_version}) "
+        length = len(header)
+        return (
+            "┌"
+            + "─" * length
+            + "┐\n"
+            + f"|{header}|\n"
+            + "| Add `.scalar` to see native output         |\n"
+            + "└"
+            + "─" * length
+            + "┘\n"
+        )

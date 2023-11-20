@@ -45,7 +45,18 @@ class Column(ColumnT):
         self._is_persisted = is_persisted
 
     def __repr__(self) -> str:  # pragma: no cover
-        return self.expr.__repr__()
+        header = f" Standard Column (api_version={self.api_version}) "
+        length = len(header)
+        return (
+            "┌"
+            + "─" * length
+            + "┐\n"
+            + f"|{header}|\n"
+            + "| Add `.column` to see native output         |\n"
+            + "└"
+            + "─" * length
+            + "┘\n"
+        )
 
     def _from_expr(self, expr: pl.Expr) -> Self:
         return self.__class__(expr, df=self.df, api_version=self.api_version)

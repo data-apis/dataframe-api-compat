@@ -47,6 +47,14 @@ class Scalar(ScalarT):
         msg = "dtype not yet implemented for Scalar"
         raise NotImplementedError(msg)
 
+    @property
+    def scalar(self) -> Any:  # pragma: no cover  # todo
+        return self.value
+
+    @property
+    def parent_dataframe(self) -> Any:  # pragma: no cover  # todo
+        return self.df
+
     def persist(self) -> Scalar:
         return Scalar(
             self.value,
@@ -200,4 +208,15 @@ class Scalar(ScalarT):
         return self.value.__float__()  # type: ignore[no-any-return]
 
     def __repr__(self) -> str:  # pragma: no cover
-        return self.value.__repr__()  # type: ignore[no-any-return]
+        header = f" Standard Scalar (api_version={self._api_version}) "
+        length = len(header)
+        return (
+            "┌"
+            + "─" * length
+            + "┐\n"
+            + f"|{header}|\n"
+            + "| Add `.scalar` to see native output         |\n"
+            + "└"
+            + "─" * length
+            + "┘\n"
+        )

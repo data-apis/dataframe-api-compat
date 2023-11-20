@@ -1,0 +1,36 @@
+site_name: dataframe-api-compat
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Quick start: quick_start.md
+  - Basics:
+    - basics/dataframe.md
+    - basics/column.md
+    - basics/scalar.md
+    - basics/persist.md
+  - Tutorial: tutorial.md
+#  - Code Reference:
+#      - pandas DataFrame: pandas-dataframe.md
+#      - pandas Column: pandas-column.md
+#      - pandas Namespace: pandas-namespace.md
+#      - pandas Scalar: pandas-scalar.md
+#      - Polars DataFrame: polars-dataframe.md
+#      - Polars Column: polars-column.md
+#      - Polars Namespace: polars-namespace.md
+#      - Polars Scalar: polars-scalar.md
+theme:
+  name: material
+  font: false
+plugins:
+- search
+- mkdocstrings
+markdown_extensions:
+- md_in_html
+- pymdownx.tabbed:
+    alternate_style: true
+- pymdownx.superfences:
+    custom_fences:
+    - name: python
+      class: python
+      validator: !!python/name:markdown_exec.validator
+      format: !!python/name:markdown_exec.formatter

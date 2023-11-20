@@ -4,6 +4,7 @@ import collections
 import secrets
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Iterator
 from typing import Literal
 from typing import NoReturn
 
@@ -119,7 +120,18 @@ class DataFrame(DataFrameT):
         return df.shape
 
     def __repr__(self) -> str:  # pragma: no cover
-        return self.dataframe.__repr__()
+        header = f" Standard DataFrame (api_version={self.api_version}) "
+        length = len(header)
+        return (
+            "┌"
+            + "─" * length
+            + "┐\n"
+            + f"|{header}|\n"
+            + "| Add `.dataframe` to see native output         |\n"
+            + "└"
+            + "─" * length
+            + "┘\n"
+        )
 
     def __dataframe_namespace__(self) -> Namespace:
         return dataframe_api_compat.polars_standard.Namespace(
@@ -129,6 +141,9 @@ class DataFrame(DataFrameT):
     @property
     def column_names(self) -> list[str]:
         return self.dataframe.columns
+
+    def columns_iter(self) -> Iterator[Column]:
+        return (self.col(col_name) for col_name in self.column_names)
 
     @property
     def dataframe(self) -> pl.LazyFrame:
@@ -555,7 +570,6 @@ class DataFrame(DataFrameT):
             is_persisted=True,
         )
 
-    def to_array(self, dtype: DType) -> Any:
-        dtype = dtype  # todo
+    def to_array(self, dtype: DType | None = None) -> Any:
         df = self.validate_is_persisted()
         return df.to_numpy()

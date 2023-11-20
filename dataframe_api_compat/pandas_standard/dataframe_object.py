@@ -3,6 +3,7 @@ from __future__ import annotations
 import collections
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Iterator
 from typing import Literal
 from typing import NoReturn
 
@@ -28,6 +29,8 @@ else:
 
 
 class DataFrame(DataFrameT):
+    """dataframe object"""
+
     def __init__(
         self,
         dataframe: pd.DataFrame,
@@ -49,7 +52,18 @@ class DataFrame(DataFrameT):
         return self.dataframe
 
     def __repr__(self) -> str:  # pragma: no cover
-        return self.dataframe.__repr__()  # type: ignore[no-any-return]
+        header = f" Standard DataFrame (api_version={self.api_version}) "
+        length = len(header)
+        return (
+            "┌"
+            + "─" * length
+            + "┐\n"
+            + f"|{header}|\n"
+            + "| Add `.dataframe` to see native output         |\n"
+            + "└"
+            + "─" * length
+            + "┘\n"
+        )
 
     def _validate_columns(self, columns: Sequence[str]) -> None:
         counter = collections.Counter(columns)
@@ -96,6 +110,7 @@ class DataFrame(DataFrameT):
     # In the Standard
 
     def col(self, name: str) -> Column:
+        """col"""
         from dataframe_api_compat.pandas_standard.column_object import Column
 
         return Column(
@@ -128,6 +143,9 @@ class DataFrame(DataFrameT):
     @property
     def column_names(self) -> list[str]:
         return self.dataframe.columns.tolist()  # type: ignore[no-any-return]
+
+    def columns_iter(self) -> Iterator[Column]:
+        return (self.col(col_name) for col_name in self.column_names)
 
     def slice_rows(
         self,
@@ -544,6 +562,6 @@ class DataFrame(DataFrameT):
             is_persisted=True,
         )
 
-    def to_array(self, dtype: DType) -> Any:
+    def to_array(self, dtype: DType | None = None) -> Any:
         self.validate_is_persisted()
-        return self.dataframe.to_numpy(dtype)
+        return self.dataframe.to_numpy()
