@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-from typing import Any
 
 import polars as pl
 
@@ -11,6 +10,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from dataframe_api import GroupBy as GroupByT
+    from dataframe_api.typing import Namespace
     from dataframe_api.typing import NullType
     from dataframe_api.typing import Scalar
 else:
@@ -100,5 +100,22 @@ class GroupBy(GroupByT):
         result = self.group_by(self.keys).agg(pl.col("*").var())
         return DataFrame(result, api_version=self._api_version)
 
-    def aggregate(self, *args: Any) -> Any:
-        raise NotImplementedError  # todo
+    def aggregate(  # type: ignore[override]
+        self,
+        *aggregations: Namespace.Aggregation,
+    ) -> DataFrame:
+        return DataFrame(
+            self.group_by(self.keys).agg(
+                *[
+                    getattr(
+                        pl.col(aggregation.column_name),  # type: ignore[attr-defined]
+                        aggregation.aggregation,  # type: ignore[attr-defined]
+                    )().alias(
+                        aggregation.output_name,
+                    )  # type: ignore[attr-defined]
+                    for aggregation in aggregations
+                ],
+            ),
+            api_version=self._api_version,
+            is_persisted=False,
+        )

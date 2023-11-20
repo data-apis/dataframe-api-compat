@@ -112,7 +112,7 @@ class GroupBy(GroupByT):
     def aggregate(  # type: ignore[override]
         self,
         *aggregations: dataframe_api_compat.pandas_standard.Namespace.Aggregation,
-    ) -> DataFrame:  # pragma: no cover
+    ) -> DataFrame:
         [aggregation.output_name for aggregation in aggregations]
 
         include_size = False
