@@ -16,6 +16,7 @@ def test_dataframe_from_2d_array(library: str) -> None:
         arr,
         names=["a", "b"],
     )
+    # TODO: consistent return type, for windows compat?
     result_pd = interchange_to_pandas(result).astype("int64")
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
