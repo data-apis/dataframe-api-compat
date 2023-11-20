@@ -1,15 +1,12 @@
-# Dataframe-API-compat
+# Dataframe API Compat
 
 Extremely lightweight compatibility layer between pandas and Polars:
 
 - ✅ No dependencies.
 - ✅ Lightweight: wheel is smaller than 30 kB.
-- ✅ Simple, minimal, perfectly backwards-compatible* API.
+- ✅ Simple, minimal, perfectly backwards-compatible (after February 2024) API.
 
-Aiming to transform the data science landscape by allowing tools to natively support
-any major dataframe library.
-
-*after the first non-beta release, scheduled for February 2024.
+No need to choose - support both with ease!
 
 ## Who's this for?
 

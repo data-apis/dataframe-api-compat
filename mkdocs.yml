@@ -1,4 +1,4 @@
-site_name: dataframe-api-compat
+site_name: Dataframe API Compat
 nav:
   - Home: index.md
   - Installation: installation.md
