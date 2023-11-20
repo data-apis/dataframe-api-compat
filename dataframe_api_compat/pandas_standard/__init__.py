@@ -321,7 +321,7 @@ class Namespace(NamespaceT):
         data: Any,
         *,
         names: Sequence[str],
-    ) -> DataFrame:  # pragma: no cover
+    ) -> DataFrame:
         df = pd.DataFrame(data, columns=list(names))
         return DataFrame(df, api_version=self.api_version)
 

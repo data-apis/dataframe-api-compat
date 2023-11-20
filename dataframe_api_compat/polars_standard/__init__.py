@@ -159,7 +159,7 @@ class Namespace(NamespaceT):
         *,
         dtype: DType,
         name: str = "",
-    ) -> Column:  # pragma: no cover
+    ) -> Column:
         ser = pl.Series(
             values=array,
             dtype=_map_standard_to_polars_dtypes(dtype),
@@ -186,7 +186,7 @@ class Namespace(NamespaceT):
         data: Any,
         *,
         names: Sequence[str],
-    ) -> DataFrame:  # pragma: no cover
+    ) -> DataFrame:
         df = pl.DataFrame(
             data,
             schema=names,
