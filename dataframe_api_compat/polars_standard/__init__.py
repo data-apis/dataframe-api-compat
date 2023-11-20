@@ -208,7 +208,7 @@ class Namespace(NamespaceT):
         def rename(self, name: str | ScalarT) -> AggregationT:
             return self.__class__(self.column_name, name, self.aggregation)  # type: ignore[arg-type]
 
-        def replace(self, **kwargs: Any) -> AggregationT:
+        def replace(self, **kwargs: str) -> AggregationT:
             return self.__class__(
                 column_name=kwargs.get("column_name", self.column_name),
                 output_name=kwargs.get("output_name", self.output_name),
