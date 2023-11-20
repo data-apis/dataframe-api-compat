@@ -34,7 +34,7 @@ content = content.replace(
     old_version,
     version,
 )
-with open("dataframe_api_compat/__init__.py", "w", encoding="utf-8") as f:
+with open("docs/installation.md", "w", encoding="utf-8") as f:
     f.write(content)
 
 subprocess.run(["git", "commit", "-a", "-m", f"Bump version to {version}"])
