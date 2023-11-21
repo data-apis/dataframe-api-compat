@@ -124,6 +124,10 @@ def test_datetime_from_1d_array(library: str) -> None:
     tuple(int(v) for v in pl.__version__.split(".")) < (0, 19, 9),
     reason="upstream bug",
 )
+@pytest.mark.skipif(
+    tuple(int(v) for v in pd.__version__.split(".")) < (2, 0, 0),
+    reason="pandas before non-nano",
+)
 def test_duration_from_1d_array(library: str) -> None:
     ser = integer_dataframe_1(library).persist().col("a")
     namespace = ser.__column_namespace__()
