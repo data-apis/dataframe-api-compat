@@ -6,6 +6,7 @@ from datetime import timedelta
 
 import numpy as np
 import pandas as pd
+import polars as pl
 import pytest
 
 from tests.utils import integer_dataframe_1
@@ -119,6 +120,10 @@ def test_datetime_from_1d_array(library: str) -> None:
     pd.testing.assert_series_equal(result_pd, expected)
 
 
+@pytest.mark.skipif(
+    tuple(int(v) for v in pl.__version__.split(".")) < (0, 19, 8),
+    reason="upstream bug",
+)
 def test_duration_from_1d_array(library: str) -> None:
     ser = integer_dataframe_1(library).persist().col("a")
     namespace = ser.__column_namespace__()
