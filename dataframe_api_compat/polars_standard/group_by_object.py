@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from typing import cast
 
 import polars as pl
 
+from dataframe_api_compat.polars_standard import Namespace
 from dataframe_api_compat.polars_standard.dataframe_object import DataFrame
 
 if TYPE_CHECKING:
@@ -13,6 +15,7 @@ if TYPE_CHECKING:
     from dataframe_api.groupby_object import Aggregation as AggregationT
     from dataframe_api.typing import NullType
     from dataframe_api.typing import Scalar
+
 else:
     GroupByT = object
 
@@ -114,11 +117,12 @@ class GroupBy(GroupByT):
 
 
 def resolve_aggregation(aggregation: AggregationT) -> pl.Expr:
-    if aggregation.aggregation == "count":  # type: ignore[attr-defined]
+    aggregation = cast(Namespace.Aggregation, aggregation)
+    if aggregation.aggregation == "count":
         return pl.count().alias(aggregation.output_name)
-    return getattr(  # type: ignore[no-any-return]
-        pl.col(aggregation.column_name),  # type: ignore[attr-defined]
-        aggregation.aggregation,  # type: ignore[attr-defined]
+    return getattr(
+        pl.col(aggregation.column_name),
+        aggregation.aggregation,
     )().alias(
-        aggregation.output_name,  # type: ignore[attr-defined]
+        aggregation.output_name,
     )
