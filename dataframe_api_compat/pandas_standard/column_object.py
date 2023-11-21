@@ -84,10 +84,12 @@ class Column(ColumnT):
             df=self.df,
         )
 
-    def _validate_comparand(self, other: Column | Any) -> Column | Any:
+    def _validate_comparand(self, other: Any) -> Any:
         from dataframe_api_compat.pandas_standard.scalar_object import Scalar
 
         if isinstance(other, Scalar):
+            if other.df is None:
+                return other.value
             if id(self.df) != id(other.df):
                 msg = "cannot compare columns/scalars from different dataframes"
                 raise ValueError(
@@ -95,6 +97,8 @@ class Column(ColumnT):
                 )
             return other.value
         if isinstance(other, Column):
+            if other.df is None:
+                return other.column
             if id(self.df) != id(other.df):
                 msg = "cannot compare columns from different dataframes"
                 raise ValueError(msg)

@@ -12,6 +12,7 @@ import pandas as pd
 
 from dataframe_api_compat.pandas_standard.column_object import Column
 from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
+from dataframe_api_compat.pandas_standard.scalar_object import Scalar
 
 if TYPE_CHECKING:
     from dataframe_api.groupby_object import Aggregation as AggregationT
@@ -319,7 +320,7 @@ class Namespace(NamespaceT):
     def is_null(self, value: Any) -> bool:
         return value is self.null
 
-    def is_dtype(self, dtype: Any, kind: str | tuple[str, ...]) -> bool:
+    def is_dtype(self, dtype: DType, kind: str | tuple[str, ...]) -> bool:
         if isinstance(kind, str):
             kind = (kind,)
         dtypes: set[Any] = set()
@@ -346,10 +347,14 @@ class Namespace(NamespaceT):
                 dtypes.add(Namespace.String)
         return isinstance(dtype, tuple(dtypes))
 
-    def date(self, year: int, month: int, day: int) -> Any:
+    def date(self, year: int, month: int, day: int) -> Scalar:
         import datetime as dt  # temporary: make own class
 
-        return pd.Timestamp(dt.date(year, month, day))
+        return Scalar(
+            pd.Timestamp(dt.date(year, month, day)),
+            api_version=self._api_version,
+            df=None,
+        )
 
     # --- horizontal reductions
 
