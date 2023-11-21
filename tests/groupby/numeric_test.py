@@ -39,7 +39,13 @@ def test_group_by_numeric(
     expected = pd.DataFrame({"key": [1, 2], "b": expected_b, "c": expected_c})
     if library == "pandas-nullable" and tuple(
         int(v) for v in pd.__version__.split(".")
-    ) < (2, 0, 0):
+    ) < (
+        2,
+        0,
+        0,
+    ):  # pragma: no cover
         # upstream bug
         result_pd = result_pd.astype({"key": "int64"})
+    else:
+        pass
     pd.testing.assert_frame_equal(result_pd, expected)

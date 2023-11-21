@@ -48,6 +48,8 @@ def test_schema(library: str) -> None:
     ):
         # pandas non-nanosecond support only came in 2.0
         assert result["n"].time_unit == "ms"
+    else:  # pragma: no cover
+        pass
     assert result["n"].time_zone is None
     assert isinstance(result["o"], namespace.Datetime)
     if not (
@@ -57,6 +59,8 @@ def test_schema(library: str) -> None:
         # pandas non-nanosecond support only came in 2.0
         # pandas non-nanosecond support only came in 2.0
         assert result["o"].time_unit == "us"
+    else:  # pragma: no cover
+        pass
     assert result["o"].time_zone is None
     if not (
         library.startswith("pandas")
@@ -67,3 +71,5 @@ def test_schema(library: str) -> None:
         assert result["p"].time_unit == "ms"
         assert isinstance(result["q"], namespace.Duration)
         assert result["q"].time_unit == "us"
+    else:  # pragma: no cover
+        pass
