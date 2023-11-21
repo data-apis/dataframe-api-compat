@@ -32,23 +32,6 @@ else:
 POLARS_VERSION = pl.__version__
 
 
-def _is_integer_dtype(dtype: Any) -> bool:
-    return any(  # pragma: no cover
-        # definitely covered, not sure what this is
-        dtype is _dtype
-        for _dtype in (
-            pl.Int64,
-            pl.Int32,
-            pl.Int16,
-            pl.Int8,
-            pl.UInt64,
-            pl.UInt32,
-            pl.UInt16,
-            pl.UInt8,
-        )
-    )
-
-
 def generate_random_token(column_names: list[str]) -> str:
     token = secrets.token_hex(8)
     attempts = 0
@@ -320,11 +303,7 @@ class DataFrame(DataFrameT):
         original_type = self.dataframe.schema
         ret = self.dataframe.select([pl.col(col).pow(other) for col in self.column_names])
         for column in self.dataframe.columns:
-            if _is_integer_dtype(original_type[column]) and isinstance(other, int):
-                if other < 0:  # pragma: no cover (todo)
-                    msg = "Cannot raise integer to negative power"
-                    raise ValueError(msg)
-                ret = ret.with_columns(pl.col(column).cast(original_type[column]))
+            ret = ret.with_columns(pl.col(column).cast(original_type[column]))
         return self._from_dataframe(ret)
 
     def __rpow__(self, other: Any) -> DataFrame:  # pragma: no cover
