@@ -61,7 +61,8 @@ class Scalar(ScalarT):
         if self.df is None:
             value = pl.select(self.value).item()
         else:
-            value = self.df.materialise_expression(self.value).item()
+            df = self.df.dataframe.collect().select(self.value)
+            value = df.get_column(df.columns[0]).item()
         return value
 
     def persist(self) -> Scalar:

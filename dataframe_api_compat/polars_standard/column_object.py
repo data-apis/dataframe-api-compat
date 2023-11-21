@@ -58,16 +58,11 @@ class Column(ColumnT):
             + "┘\n"
         )
 
+    def __iter__(self) -> NoReturn:
+        raise NotImplementedError
+
     def _from_expr(self, expr: pl.Expr) -> Self:
         return self.__class__(expr, df=self._df, api_version=self._api_version)
-
-    # In the standard
-    def __column_namespace__(self) -> Namespace:  # pragma: no cover
-        import dataframe_api_compat
-
-        return dataframe_api_compat.polars_standard.Namespace(
-            api_version=self._api_version,
-        )
 
     def _validate_comparand(self, other: Any) -> Any:
         from dataframe_api_compat.polars_standard.scalar_object import Scalar
@@ -88,18 +83,27 @@ class Column(ColumnT):
             return other._expr
         return other
 
-    def materialise(self) -> pl.Series:
+    def _materialise(self) -> pl.Series:
         if not self._is_persisted:
             msg = "Column is not persisted, please call `.persist()` first.\nNote: `persist` forces computation, use it with care, only when you need to,\nand as late and little as possible."
             raise RuntimeError(
                 msg,
             )
         if self._df is not None:
-            ser = self._df.materialise_expression(self._expr)
+            df = self._df.dataframe.collect().select(self._expr)
+            ser = df.get_column(df.columns[0])
         else:
             df = pl.select(self._expr)
             ser = df.get_column(df.columns[0])
         return ser
+
+    # In the standard
+    def __column_namespace__(self) -> Namespace:  # pragma: no cover
+        import dataframe_api_compat
+
+        return dataframe_api_compat.polars_standard.Namespace(
+            api_version=self._api_version,
+        )
 
     def _to_scalar(self, value: pl.Expr, *, is_persisted: bool = False) -> Scalar:
         from dataframe_api_compat.polars_standard.scalar_object import Scalar
@@ -183,11 +187,8 @@ class Column(ColumnT):
         )
 
     def to_array(self) -> Any:
-        ser = self.materialise()
+        ser = self._materialise()
         return ser.to_numpy()
-
-    def __iter__(self) -> NoReturn:
-        raise NotImplementedError
 
     def is_in(self, values: Self) -> Self:
         return self._from_expr(self._expr.is_in(values._expr))
@@ -440,7 +441,7 @@ class Column(ColumnT):
         return self._from_expr(self._expr.alias(_name))
 
     def __len__(self) -> int:
-        ser = self.materialise()
+        ser = self._materialise()
         return len(ser)
 
     def shift(self, offset: int | Scalar) -> Column:

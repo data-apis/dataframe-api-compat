@@ -105,7 +105,7 @@ class Column(ColumnT):
             return other.column
         return other
 
-    def materialise(self) -> pd.Series:
+    def _materialise(self) -> pd.Series:
         if not self._is_persisted:
             msg = "Column is not persisted, please call `.persist()` first.\nNote: `persist` forces computation, use it with care, only when you need to,\nand as late and little as possible."
             raise RuntimeError(
@@ -447,13 +447,13 @@ class Column(ColumnT):
         return self._from_series(ser.rename(name))
 
     def to_array(self) -> Any:
-        ser = self.materialise()
+        ser = self._materialise()
         return ser.to_numpy(
             dtype=NUMPY_MAPPING.get(self.column.dtype.name, self.column.dtype.name),
         )
 
     def __len__(self) -> int:
-        ser = self.materialise()
+        ser = self._materialise()
         return len(ser)
 
     def shift(self, offset: int | Scalar) -> Column:

@@ -246,7 +246,7 @@ class Namespace(NamespaceT):
         data = {}
         api_versions: set[str] = set()
         for col in columns:
-            ser = col.materialise()  # type: ignore[attr-defined]
+            ser = col._materialise()  # type: ignore[attr-defined]
             data[ser.name] = ser
             api_versions.add(col._api_version)  # type: ignore[attr-defined]
         return DataFrame(pd.DataFrame(data), api_version=list(api_versions)[0])

@@ -73,10 +73,6 @@ class DataFrame(DataFrameT):
         self.api_version = api_version
         self.is_persisted = is_persisted
 
-    def materialise_expression(self, expr: pl.Expr) -> pl.Series:
-        df = self.dataframe.collect().select(expr)
-        return df.get_column(df.columns[0])
-
     def validate_is_persisted(self) -> pl.DataFrame:
         if not self.is_persisted:
             msg = "Method  requires you to call `.persist` first on the parent dataframe.\n\nNote: `.persist` forces materialisation in lazy libraries and so should be called as late as possible in your pipeline, and only once per dataframe."
