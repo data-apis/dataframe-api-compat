@@ -120,9 +120,6 @@ def test_datetime_from_1d_array(library: str) -> None:
 
 
 def test_duration_from_1d_array(library: str) -> None:
-    if library == "polars-lazy":
-        # needs fixing upstream
-        return
     ser = integer_dataframe_1(library).persist().col("a")
     namespace = ser.__column_namespace__()
     arr = np.array([timedelta(1), timedelta(2)], dtype="timedelta64[ms]")
@@ -133,7 +130,13 @@ def test_duration_from_1d_array(library: str) -> None:
             dtype=namespace.Duration("ms"),
         ).persist(),
     )
-    result_pd = interchange_to_pandas(result)["result"]
+    if library == "polars-lazy":
+        # https://github.com/data-apis/dataframe-api/issues/329
+        result_pd = (
+            result.dataframe.collect().to_pandas()["result"].astype("timedelta64[ms]")
+        )
+    else:
+        result_pd = result.dataframe["result"]
     expected = pd.Series(
         [timedelta(1), timedelta(2)],
         name="result",

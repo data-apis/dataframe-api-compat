@@ -376,7 +376,7 @@ def map_polars_dtype_to_standard_dtype(dtype: Any) -> DType:
         return Namespace.Bool()
     if dtype == pl.Utf8:
         return Namespace.String()
-    if dtype == pl.Date:
+    if dtype == pl.Date:  # pragma: no cover  # not supported yet?
         return Namespace.Date()
     if isinstance(dtype, pl.Datetime):
         time_unit = cast(Literal["ms", "us"], dtype.time_unit)
@@ -415,8 +415,7 @@ def _map_standard_to_polars_dtypes(dtype: Any) -> pl.DataType:
         return pl.Utf8()
     if isinstance(dtype, Namespace.Datetime):
         return pl.Datetime(dtype.time_unit, dtype.time_zone)
-    if isinstance(dtype, Namespace.Duration):  # pragma: no cover
-        # pending fix in polars itself
+    if isinstance(dtype, Namespace.Duration):
         return pl.Duration(dtype.time_unit)
     msg = f"Unknown dtype: {dtype}"  # pragma: no cover
     raise AssertionError(msg)

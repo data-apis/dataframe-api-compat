@@ -108,8 +108,6 @@ def map_pandas_dtype_to_standard_dtype(dtype: Any) -> DType:
         return Namespace.String()
     if dtype == "string":
         return Namespace.String()
-    if dtype == "datetime64[s]":
-        return Namespace.Date()
     if dtype.startswith("datetime64["):
         match = re.search(r"datetime64\[(\w{1,2})", dtype)
         assert match is not None
