@@ -41,7 +41,7 @@ class DataFrame(DataFrameT):
         self.is_persisted = is_persisted
         self._validate_columns(dataframe.columns)
         self._dataframe = dataframe.reset_index(drop=True)
-        self.api_version = api_version
+        self._api_version = api_version
 
     def validate_is_persisted(self) -> pd.DataFrame:
         if not self.is_persisted:
@@ -52,7 +52,7 @@ class DataFrame(DataFrameT):
         return self.dataframe
 
     def __repr__(self) -> str:  # pragma: no cover
-        header = f" Standard DataFrame (api_version={self.api_version}) "
+        header = f" Standard DataFrame (api_version={self._api_version}) "
         length = len(header)
         return (
             "┌"
@@ -104,7 +104,7 @@ class DataFrame(DataFrameT):
     def _from_dataframe(self, df: pd.DataFrame) -> DataFrame:
         return DataFrame(
             df,
-            api_version=self.api_version,
+            api_version=self._api_version,
         )
 
     # In the Standard
@@ -116,7 +116,7 @@ class DataFrame(DataFrameT):
         return Column(
             self.dataframe.loc[:, name],
             df=self,
-            api_version=self.api_version,
+            api_version=self._api_version,
             is_persisted=self.is_persisted,
         )
 
@@ -137,7 +137,7 @@ class DataFrame(DataFrameT):
         self,
     ) -> dataframe_api_compat.pandas_standard.Namespace:
         return dataframe_api_compat.pandas_standard.Namespace(
-            api_version=self.api_version,
+            api_version=self._api_version,
         )
 
     @property
@@ -166,7 +166,7 @@ class DataFrame(DataFrameT):
             if key not in self.column_names:
                 msg = f"key {key} not present in DataFrame's columns"
                 raise KeyError(msg)
-        return GroupBy(self.dataframe, keys, api_version=self.api_version)
+        return GroupBy(self.dataframe, keys, api_version=self._api_version)
 
     def select(self, *columns: str) -> DataFrame:
         return self._from_dataframe(
@@ -558,7 +558,7 @@ class DataFrame(DataFrameT):
     def persist(self) -> DataFrame:
         return DataFrame(
             self.dataframe,
-            api_version=self.api_version,
+            api_version=self._api_version,
             is_persisted=True,
         )
 
