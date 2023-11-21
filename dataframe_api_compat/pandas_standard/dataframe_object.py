@@ -38,13 +38,13 @@ class DataFrame(DataFrameT):
         api_version: str,
         is_persisted: bool = False,
     ) -> None:
-        self.is_persisted = is_persisted
+        self._is_persisted = is_persisted
         self._validate_columns(dataframe.columns)
         self._dataframe = dataframe.reset_index(drop=True)
         self._api_version = api_version
 
-    def validate_is_persisted(self) -> pd.DataFrame:
-        if not self.is_persisted:
+    def _validate_is_persisted(self) -> pd.DataFrame:
+        if not self._is_persisted:
             msg = "Method requires you to call `.persist` first.\n\nNote: `.persist` forces materialisation in lazy libraries and so should be called as late as possible in your pipeline. Use with care."
             raise ValueError(
                 msg,
@@ -117,11 +117,11 @@ class DataFrame(DataFrameT):
             self.dataframe.loc[:, name],
             df=self,
             api_version=self._api_version,
-            is_persisted=self.is_persisted,
+            is_persisted=self._is_persisted,
         )
 
     def shape(self) -> tuple[int, int]:
-        df = self.validate_is_persisted()
+        df = self._validate_is_persisted()
         return df.shape  # type: ignore[no-any-return]
 
     @property
@@ -563,5 +563,5 @@ class DataFrame(DataFrameT):
         )
 
     def to_array(self, dtype: DType | None = None) -> Any:
-        self.validate_is_persisted()
+        self._validate_is_persisted()
         return self.dataframe.to_numpy()

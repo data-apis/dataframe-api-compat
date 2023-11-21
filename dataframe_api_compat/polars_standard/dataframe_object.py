@@ -48,16 +48,16 @@ class DataFrame(DataFrameT):
     def __init__(
         self,
         df: pl.LazyFrame,
-        api_version: str,
         *,
+        api_version: str,
         is_persisted: bool = False,
     ) -> None:
-        self.df = df
-        self.api_version = api_version
-        self.is_persisted = is_persisted
+        self._df = df
+        self._api_version = api_version
+        self._is_persisted = is_persisted
 
-    def validate_is_persisted(self) -> pl.DataFrame:
-        if not self.is_persisted:
+    def _validate_is_persisted(self) -> pl.DataFrame:
+        if not self._is_persisted:
             msg = "Method  requires you to call `.persist` first on the parent dataframe.\n\nNote: `.persist` forces materialisation in lazy libraries and so should be called as late as possible in your pipeline, and only once per dataframe."
             raise ValueError(
                 msg,
@@ -74,15 +74,15 @@ class DataFrame(DataFrameT):
     def _from_dataframe(self, df: pl.LazyFrame) -> DataFrame:
         return DataFrame(
             df,
-            api_version=self.api_version,
+            api_version=self._api_version,
         )
 
     def col(self, value: str) -> Column:
         return Column(
             pl.col(value),
             df=self,
-            api_version=self.api_version,
-            is_persisted=self.is_persisted,
+            api_version=self._api_version,
+            is_persisted=self._is_persisted,
         )
 
     @property
@@ -95,11 +95,11 @@ class DataFrame(DataFrameT):
         }
 
     def shape(self) -> tuple[int, int]:
-        df = self.validate_is_persisted()
+        df = self._validate_is_persisted()
         return df.shape
 
     def __repr__(self) -> str:  # pragma: no cover
-        header = f" Standard DataFrame (api_version={self.api_version}) "
+        header = f" Standard DataFrame (api_version={self._api_version}) "
         length = len(header)
         return (
             "┌"
@@ -114,7 +114,7 @@ class DataFrame(DataFrameT):
 
     def __dataframe_namespace__(self) -> Namespace:
         return dataframe_api_compat.polars_standard.Namespace(
-            api_version=self.api_version,
+            api_version=self._api_version,
         )
 
     @property
@@ -126,16 +126,16 @@ class DataFrame(DataFrameT):
 
     @property
     def dataframe(self) -> pl.LazyFrame:
-        return self.df
+        return self._df
 
     def group_by(self, *keys: str) -> GroupBy:
         from dataframe_api_compat.polars_standard.group_by_object import GroupBy
 
-        return GroupBy(self.dataframe, list(keys), api_version=self.api_version)
+        return GroupBy(self.dataframe, list(keys), api_version=self._api_version)
 
     def select(self, *columns: str) -> DataFrame:
         return self._from_dataframe(
-            self.df.select(list(columns)),
+            self._df.select(list(columns)),
         )
 
     def get_rows(self, indices: Column) -> DataFrame:  # type: ignore[override]
@@ -154,7 +154,7 @@ class DataFrame(DataFrameT):
         stop: int | None,
         step: int | None,
     ) -> DataFrame:
-        return self._from_dataframe(self.df[start:stop:step])
+        return self._from_dataframe(self._df[start:stop:step])
 
     def _validate_other(self, other: Any) -> Any:
         from dataframe_api_compat.polars_standard.column_object import Column
@@ -176,7 +176,7 @@ class DataFrame(DataFrameT):
 
     def filter(self, mask: Column) -> DataFrame:  # type: ignore[override]
         self._validate_other(mask)
-        return self._from_dataframe(self.df.filter(mask._expr))
+        return self._from_dataframe(self._df.filter(mask._expr))
 
     def assign(self, *columns: Column) -> DataFrame:  # type: ignore[override]
         new_columns: list[pl.Expr] = []
@@ -541,10 +541,10 @@ class DataFrame(DataFrameT):
     def persist(self) -> DataFrame:
         return DataFrame(
             self.dataframe.collect().lazy(),
-            api_version=self.api_version,
+            api_version=self._api_version,
             is_persisted=True,
         )
 
     def to_array(self, dtype: DType | None = None) -> Any:
-        df = self.validate_is_persisted()
+        df = self._validate_is_persisted()
         return df.to_numpy()

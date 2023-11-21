@@ -305,7 +305,7 @@ class Namespace(NamespaceT):
         api_versions: set[str] = set()
         for df in dataframes:
             dfs.append(df.dataframe)
-            api_versions.add(df.api_version)
+            api_versions.add(df._api_version)
         if len(api_versions) > 1:  # pragma: no cover
             msg = f"Multiple api versions found: {api_versions}"
             raise ValueError(msg)
