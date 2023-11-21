@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from typing import cast
 
 import pandas as pd
 
+from dataframe_api_compat.pandas_standard import Namespace
 from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
 
 if TYPE_CHECKING:
@@ -13,6 +15,7 @@ if TYPE_CHECKING:
     from dataframe_api import GroupBy as GroupByT
     from dataframe_api.typing import NullType
     from dataframe_api.typing import Scalar
+
 
 else:
     GroupByT = object
@@ -141,6 +144,7 @@ def validate_aggregations(
 
 
 def resolve_aggregation(aggregation: AggregationT) -> pd.NamedAgg:
+    aggregation = cast(Namespace.Aggregation, aggregation)
     return pd.NamedAgg(
         column=aggregation.column_name,  # type: ignore[attr-defined]
         aggfunc=aggregation.aggregation,  # type: ignore[attr-defined]
