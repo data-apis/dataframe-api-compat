@@ -7,6 +7,14 @@ class TestPolars:
     def test_dataframe(self) -> None:
         import polars as pl
 
+        if tuple(int(v) for v in pl.__version__.split(".")) < (
+            0,
+            19,
+            0,
+        ):  # pragma: no cover
+            # before consortium standard in polars
+            return
+
         df_pl = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
         df = df_pl.__dataframe_consortium_standard__()
         result = df.get_column_names()
@@ -15,6 +23,14 @@ class TestPolars:
 
     def test_lazyframe(self) -> None:
         import polars as pl
+
+        if tuple(int(v) for v in pl.__version__.split(".")) < (
+            0,
+            19,
+            0,
+        ):  # pragma: no cover
+            # before consortium standard in polars
+            return
 
         df_pl = pl.LazyFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
         df = df_pl.__dataframe_consortium_standard__()
@@ -40,6 +56,14 @@ class TestPandas:
         this is just to check that the entry point works as expected.
         """
         import pandas as pd
+
+        if tuple(int(v) for v in pd.__version__.split(".")) < (
+            2,
+            1,
+            0,
+        ):  # pragma: no cover
+            # before consortium standard in pandas
+            return
 
         df_pd = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
         df = df_pd.__dataframe_consortium_standard__()
