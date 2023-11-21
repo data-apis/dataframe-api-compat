@@ -74,8 +74,8 @@ force-single-line = true
 
 [tool.pytest.ini_options]
 filterwarnings = [
-  # Fail on warnings...
   "error",
+  'ignore:distutils Version classes are deprecated:DeprecationWarning',
 ]
 xfail_strict = true
 
