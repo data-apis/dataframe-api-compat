@@ -109,6 +109,24 @@ class DataFrame(DataFrameT):
             api_version=self._api_version,
         )
 
+    # Properties
+    @property
+    def schema(self) -> dict[str, Any]:
+        return {
+            column_name: dataframe_api_compat.pandas_standard.map_pandas_dtype_to_standard_dtype(
+                dtype.name,
+            )
+            for column_name, dtype in self.dataframe.dtypes.items()
+        }
+
+    @property
+    def dataframe(self) -> pd.DataFrame:
+        return self._dataframe
+
+    @property
+    def column_names(self) -> list[str]:
+        return self.dataframe.columns.tolist()  # type: ignore[no-any-return]
+
     # In the Standard
 
     def col(self, name: str) -> Column:
@@ -125,15 +143,6 @@ class DataFrame(DataFrameT):
         df = self._validate_is_persisted()
         return df.shape  # type: ignore[no-any-return]
 
-    @property
-    def schema(self) -> dict[str, Any]:
-        return {
-            column_name: dataframe_api_compat.pandas_standard.map_pandas_dtype_to_standard_dtype(
-                dtype.name,
-            )
-            for column_name, dtype in self.dataframe.dtypes.items()
-        }
-
     def __dataframe_namespace__(
         self,
     ) -> dataframe_api_compat.pandas_standard.Namespace:
@@ -141,16 +150,8 @@ class DataFrame(DataFrameT):
             api_version=self._api_version,
         )
 
-    @property
-    def column_names(self) -> list[str]:
-        return self.dataframe.columns.tolist()  # type: ignore[no-any-return]
-
     def columns_iter(self) -> Iterator[Column]:
         return (self.col(col_name) for col_name in self.column_names)
-
-    @property
-    def dataframe(self) -> pd.DataFrame:
-        return self._dataframe
 
     def slice_rows(
         self,

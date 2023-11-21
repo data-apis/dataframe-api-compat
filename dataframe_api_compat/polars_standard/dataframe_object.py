@@ -111,7 +111,32 @@ class DataFrame(DataFrameT):
             api_version=self._api_version,
         )
 
+    # Properties
+    @property
+    def schema(self) -> dict[str, DType]:
+        return {
+            column_name: dataframe_api_compat.polars_standard.map_polars_dtype_to_standard_dtype(
+                dtype,
+            )
+            for column_name, dtype in self.dataframe.schema.items()
+        }
+
+    @property
+    def column_names(self) -> list[str]:
+        return self.dataframe.columns
+
+    @property
+    def dataframe(self) -> pl.LazyFrame:
+        return self._df
+
     # In the Standard
+    def __dataframe_namespace__(self) -> Namespace:
+        return dataframe_api_compat.polars_standard.Namespace(
+            api_version=self._api_version,
+        )
+
+    def columns_iter(self) -> Iterator[Column]:
+        return (self.col(col_name) for col_name in self.column_names)
 
     def col(self, value: str) -> Column:
         from dataframe_api_compat.polars_standard.column_object import Column
@@ -126,31 +151,6 @@ class DataFrame(DataFrameT):
     def shape(self) -> tuple[int, int]:
         df = self._validate_is_persisted()
         return df.shape
-
-    @property
-    def schema(self) -> dict[str, DType]:
-        return {
-            column_name: dataframe_api_compat.polars_standard.map_polars_dtype_to_standard_dtype(
-                dtype,
-            )
-            for column_name, dtype in self.dataframe.schema.items()
-        }
-
-    def __dataframe_namespace__(self) -> Namespace:
-        return dataframe_api_compat.polars_standard.Namespace(
-            api_version=self._api_version,
-        )
-
-    @property
-    def column_names(self) -> list[str]:
-        return self.dataframe.columns
-
-    def columns_iter(self) -> Iterator[Column]:
-        return (self.col(col_name) for col_name in self.column_names)
-
-    @property
-    def dataframe(self) -> pl.LazyFrame:
-        return self._df
 
     def group_by(self, *keys: str) -> GroupBy:
         from dataframe_api_compat.polars_standard.group_by_object import GroupBy
