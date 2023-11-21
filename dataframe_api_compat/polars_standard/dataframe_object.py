@@ -165,7 +165,7 @@ class DataFrame(DataFrameT):
 
     def get_rows(self, indices: Column) -> DataFrame:
         _indices = self._validate_other(indices)
-        if POLARS_VERSION < (0, 19, 4):
+        if POLARS_VERSION < (0, 19, 14):
             return self._from_dataframe(
                 self.dataframe.select(pl.all().take(_indices)),
             )

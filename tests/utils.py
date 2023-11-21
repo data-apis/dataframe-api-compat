@@ -18,6 +18,9 @@ DType = TypeVar("DType")
 if TYPE_CHECKING:
     from dataframe_api import DataFrame
 
+POLARS_VERSION = tuple(int(v) for v in pl.__version__.split("."))
+PANDAS_VERSION = tuple(int(v) for v in pd.__version__.split("."))
+
 
 def convert_to_standard_compliant_dataframe(
     df: pd.DataFrame | pl.DataFrame,
