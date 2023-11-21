@@ -370,6 +370,8 @@ class DataFrame(DataFrameT):
             quotient_df,
         ), self._from_dataframe(remainder_df)
 
+    # Unary
+
     def __invert__(self) -> DataFrame:
         self._validate_booleanness()
         return self._from_dataframe(
@@ -378,15 +380,6 @@ class DataFrame(DataFrameT):
 
     def __iter__(self) -> NoReturn:
         raise NotImplementedError
-
-    def is_null(self) -> DataFrame:
-        return self._from_dataframe(
-            self.dataframe.with_columns(pl.col("*").is_null()),
-        )
-
-    def is_nan(self) -> DataFrame:
-        df = self.dataframe.with_columns(pl.col("*").is_nan())
-        return self._from_dataframe(df)
 
     # Reductions
 
@@ -485,6 +478,17 @@ class DataFrame(DataFrameT):
         msg = "Please use `__dataframe_namespace__().unique_indices` instead"
         raise NotImplementedError(msg)
 
+    # Transformations
+
+    def is_null(self) -> DataFrame:
+        return self._from_dataframe(
+            self.dataframe.with_columns(pl.col("*").is_null()),
+        )
+
+    def is_nan(self) -> DataFrame:
+        df = self.dataframe.with_columns(pl.col("*").is_nan())
+        return self._from_dataframe(df)
+
     def fill_nan(
         self,
         value: float | NullType | Scalar,
@@ -524,6 +528,8 @@ class DataFrame(DataFrameT):
             ],
         )
         return self.filter(mask)
+
+    # Other
 
     def join(
         self,
@@ -572,6 +578,8 @@ class DataFrame(DataFrameT):
             api_version=self._api_version,
             is_persisted=True,
         )
+
+    # Conversion
 
     def to_array(self, dtype: DType | None = None) -> Any:
         df = self._validate_is_persisted()
