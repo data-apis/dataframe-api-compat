@@ -3,6 +3,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
+from tests.utils import PANDAS_VERSION
 from tests.utils import integer_dataframe_1
 from tests.utils import integer_dataframe_2
 from tests.utils import interchange_to_pandas
@@ -47,9 +48,7 @@ def test_join_outer(library: str) -> None:
             "c": [4.0, 2.0, float("nan"), 6.0],
         },
     )
-    if library == "pandas-nullable" and tuple(
-        int(v) for v in pd.__version__.split(".")
-    ) < (
+    if library == "pandas-nullable" and PANDAS_VERSION < (
         2,
         0,
         0,
