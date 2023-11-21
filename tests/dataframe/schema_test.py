@@ -45,7 +45,7 @@ def test_schema(library: str) -> None:
     if not (
         library.startswith("pandas")
         and tuple(int(v) for v in pd.__version__.split(".")) < (2, 0, 0)
-    ):
+    ):  # pragma: no cover (coverage bug?)
         # pandas non-nanosecond support only came in 2.0
         assert result["n"].time_unit == "ms"
     else:  # pragma: no cover
@@ -55,8 +55,7 @@ def test_schema(library: str) -> None:
     if not (
         library.startswith("pandas")
         and tuple(int(v) for v in pd.__version__.split(".")) < (2, 0, 0)
-    ):
-        # pandas non-nanosecond support only came in 2.0
+    ):  # pragma: no cover (coverage bug?)
         # pandas non-nanosecond support only came in 2.0
         assert result["o"].time_unit == "us"
     else:  # pragma: no cover
