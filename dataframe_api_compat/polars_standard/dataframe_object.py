@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 else:
     DataFrameT = object
 
-POLARS_VERSION = pl.__version__
+POLARS_VERSION = tuple(int(v) for v in pl.__version__.split("."))
 
 
 def generate_random_token(column_names: list[str]) -> str:
@@ -165,7 +165,7 @@ class DataFrame(DataFrameT):
 
     def get_rows(self, indices: Column) -> DataFrame:
         _indices = self._validate_other(indices)
-        if POLARS_VERSION < "0.19.14":
+        if POLARS_VERSION < (0, 19, 4):
             return self._from_dataframe(
                 self.dataframe.select(pl.all().take(_indices)),
             )
