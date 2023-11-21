@@ -262,75 +262,93 @@ class DataFrame(DataFrameT):
         )
 
     def __rand__(self, other: Column | AnyScalar) -> DataFrame:
-        return self.__and__(other)
+        _other = self._validate_other(other)
+        return self.__and__(_other)
 
     def __or__(self, other: AnyScalar) -> DataFrame:
-        return self._from_dataframe(self.dataframe.__or__(other))
+        _other = self._validate_other(other)
+        return self._from_dataframe(self.dataframe.__or__(_other))
 
     def __ror__(self, other: Column | AnyScalar) -> DataFrame:
-        return self.__or__(other)
+        _other = self._validate_other(other)
+        return self.__or__(_other)
 
     def __add__(self, other: AnyScalar) -> DataFrame:
+        _other = self._validate_other(other)
         return self._from_dataframe(
-            self.dataframe.__add__(other),
+            self.dataframe.__add__(_other),
         )
 
     def __radd__(self, other: Column | AnyScalar) -> DataFrame:
-        return self.__add__(other)
+        _other = self._validate_other(other)
+        return self.__add__(_other)
 
     def __sub__(self, other: AnyScalar) -> DataFrame:
+        _other = self._validate_other(other)
         return self._from_dataframe(
-            self.dataframe.__sub__(other),
+            self.dataframe.__sub__(_other),
         )
 
     def __rsub__(self, other: Column | AnyScalar) -> DataFrame:
-        return -1 * self.__sub__(other)
+        _other = self._validate_other(other)
+        return -1 * self.__sub__(_other)
 
     def __mul__(self, other: AnyScalar) -> DataFrame:
+        _other = self._validate_other(other)
         return self._from_dataframe(
-            self.dataframe.__mul__(other),
+            self.dataframe.__mul__(_other),
         )
 
     def __rmul__(self, other: Column | AnyScalar) -> DataFrame:
-        return self.__mul__(other)
+        _other = self._validate_other(other)
+        return self.__mul__(_other)
 
     def __truediv__(self, other: AnyScalar) -> DataFrame:
+        _other = self._validate_other(other)
         return self._from_dataframe(
-            self.dataframe.__truediv__(other),
+            self.dataframe.__truediv__(_other),
         )
 
     def __rtruediv__(self, other: Column | AnyScalar) -> DataFrame:  # pragma: no cover
+        _other = self._validate_other(other)
         raise NotImplementedError
 
     def __floordiv__(self, other: AnyScalar) -> DataFrame:
+        _other = self._validate_other(other)
         return self._from_dataframe(
-            self.dataframe.__floordiv__(other),
+            self.dataframe.__floordiv__(_other),
         )
 
     def __rfloordiv__(self, other: Column | AnyScalar) -> DataFrame:  # pragma: no cover
+        _other = self._validate_other(other)
         raise NotImplementedError
 
     def __pow__(self, other: AnyScalar) -> DataFrame:
+        _other = self._validate_other(other)
         return self._from_dataframe(
-            self.dataframe.__pow__(other),
+            self.dataframe.__pow__(_other),
         )
 
     def __rpow__(self, other: Column | AnyScalar) -> DataFrame:  # pragma: no cover
+        _other = self._validate_other(other)
         raise NotImplementedError
 
     def __mod__(self, other: AnyScalar) -> DataFrame:
+        _other = self._validate_other(other)
         return self._from_dataframe(
             self.dataframe.__mod__(other),
         )
 
-    def __rmod__(self, other: Column | AnyScalar) -> DataFrame:  # pragma: no cover
+    def __rmod__(self, other: Column | AnyScalar) -> DataFrame:  # type: ignore[misc]  # pragma: no cover
+        _other = self._validate_other(other)
         raise NotImplementedError
 
     def __divmod__(
         self,
         other: DataFrame | AnyScalar,
     ) -> tuple[DataFrame, DataFrame]:
-        quotient, remainder = self.dataframe.__divmod__(other)
+        _other = self._validate_other(other)
+        quotient, remainder = self.dataframe.__divmod__(_other)
         return self._from_dataframe(quotient), self._from_dataframe(
             remainder,
         )
