@@ -174,7 +174,7 @@ class DataFrame(DataFrameT):
     ) -> DataFrame:
         self._validate_other(indices)
         return self._from_dataframe(
-            self.dataframe.iloc[indices.column, :],
+            self.dataframe.iloc[indices.column.to_list(), :],
         )
 
     def slice_rows(

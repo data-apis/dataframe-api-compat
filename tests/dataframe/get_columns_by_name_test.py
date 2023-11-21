@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pandas as pd
+import pytest
 
 from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import integer_dataframe_1
@@ -25,6 +26,7 @@ def test_select_list_of_str(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
+@pytest.mark.filterwarnings("ignore:np.find_common_type is deprecated")
 def test_select_empty(library: str) -> None:
     df = integer_dataframe_1(library)
     result = df.select()
