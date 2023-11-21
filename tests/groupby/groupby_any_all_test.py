@@ -35,6 +35,11 @@ def test_groupby_boolean(
     result = result.sort("key")
     result_pd = interchange_to_pandas(result)
     result_pd = convert_dataframe_to_pandas_numpy(result_pd)
+    if library == "pandas-nullable" and tuple(
+        int(v) for v in pd.__version__.split(".")
+    ) < (2, 0, 0):
+        # upstream bug
+        result_pd = result_pd.astype({"key": "int64"})
     expected = pd.DataFrame({"key": [1, 2], "b": expected_b, "c": expected_c})
     pd.testing.assert_frame_equal(result_pd, expected)
 
