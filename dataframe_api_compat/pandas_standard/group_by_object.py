@@ -146,6 +146,6 @@ def validate_aggregations(
 def resolve_aggregation(aggregation: AggregationT) -> pd.NamedAgg:
     aggregation = cast(Namespace.Aggregation, aggregation)
     return pd.NamedAgg(
-        column=aggregation.column_name,  # type: ignore[attr-defined]
-        aggfunc=aggregation.aggregation,  # type: ignore[attr-defined]
+        column=aggregation.column_name,
+        aggfunc=aggregation.aggregation,
     )
