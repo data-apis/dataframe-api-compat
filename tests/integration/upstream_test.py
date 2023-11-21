@@ -1,5 +1,3 @@
-import sys
-
 import pandas as pd
 import polars as pl
 import pytest
@@ -34,9 +32,7 @@ class TestPolars:
 
 
 @pytest.mark.skipif(
-    sys.version_info < (3, 9)
-    or sys.version_info >= (3, 12)
-    or tuple(int(v) for v in pd.__version__.split(".")) < (2, 1, 0),
+    tuple(int(v) for v in pd.__version__.split(".")) < (2, 1, 0),
     reason="pandas doesn't support 3.8",
 )
 class TestPandas:
