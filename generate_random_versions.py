@@ -20,9 +20,6 @@ with open("polars_versions.txt") as fd:
 versions = re.findall(r", (\d+\.\d+\.\d+)", content)
 polars_version = random.choice([i for i in versions if i >= MIN_POLARS_VERSION])
 
-with open(".github/workflows/random_version.yml") as fd:
-    content = fd.read()
-content = re.sub(r"pandas==\d+\.\d+\.\d+", f"pandas=={pandas_version}", content)
-content = re.sub(r"polars==\d+\.\d+\.\d+", f"polars=={polars_version}", content)
-with open(".github/workflows/random_version.yml", "w") as fd:
+content = f"pandas=={pandas_version}\npolars=={polars_version}\n"
+with open("random-requirements.txt", "w") as fd:
     fd.write(content)
