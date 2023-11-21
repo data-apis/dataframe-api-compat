@@ -11,7 +11,6 @@ from typing import NoReturn
 import polars as pl
 
 import dataframe_api_compat
-from dataframe_api_compat.polars_standard.column_object import Column
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -19,6 +18,7 @@ if TYPE_CHECKING:
 
     from dataframe_api import DataFrame as DataFrameT
     from dataframe_api.typing import AnyScalar
+    from dataframe_api.typing import Column
     from dataframe_api.typing import DType
     from dataframe_api.typing import Namespace
     from dataframe_api.typing import NullType
@@ -56,6 +56,8 @@ class DataFrame(DataFrameT):
         self._api_version = api_version
         self._is_persisted = is_persisted
 
+    # Validation helper methods
+
     def _validate_is_persisted(self) -> pl.DataFrame:
         if not self._is_persisted:
             msg = "Method  requires you to call `.persist` first on the parent dataframe.\n\nNote: `.persist` forces materialisation in lazy libraries and so should be called as late as possible in your pipeline, and only once per dataframe."
@@ -63,40 +65,6 @@ class DataFrame(DataFrameT):
                 msg,
             )
         return self.dataframe.collect()
-
-    def _validate_booleanness(self) -> None:
-        if not all(v == pl.Boolean for v in self.dataframe.schema.values()):
-            msg = "'any' can only be called on DataFrame where all dtypes are 'bool'"
-            raise TypeError(
-                msg,
-            )
-
-    def _from_dataframe(self, df: pl.LazyFrame) -> DataFrame:
-        return DataFrame(
-            df,
-            api_version=self._api_version,
-        )
-
-    def col(self, value: str) -> Column:
-        return Column(
-            pl.col(value),
-            df=self,
-            api_version=self._api_version,
-            is_persisted=self._is_persisted,
-        )
-
-    @property
-    def schema(self) -> dict[str, DType]:
-        return {
-            column_name: dataframe_api_compat.polars_standard.map_polars_dtype_to_standard_dtype(
-                dtype,
-            )
-            for column_name, dtype in self.dataframe.schema.items()
-        }
-
-    def shape(self) -> tuple[int, int]:
-        df = self._validate_is_persisted()
-        return df.shape
 
     def __repr__(self) -> str:  # pragma: no cover
         header = f" Standard DataFrame (api_version={self._api_version}) "
@@ -111,6 +79,62 @@ class DataFrame(DataFrameT):
             + "─" * length
             + "┘\n"
         )
+
+    def _validate_booleanness(self) -> None:
+        if not all(v == pl.Boolean for v in self.dataframe.schema.values()):
+            msg = "'any' can only be called on DataFrame where all dtypes are 'bool'"
+            raise TypeError(
+                msg,
+            )
+
+    def _validate_other(self, other: Any) -> Any:
+        from dataframe_api_compat.polars_standard.column_object import Column
+        from dataframe_api_compat.polars_standard.scalar_object import Scalar
+
+        if isinstance(other, Scalar):
+            if id(self) != id(other.df):
+                msg = "cannot compare columns/scalars from different dataframes"
+                raise ValueError(
+                    msg,
+                )
+            return other.value
+        if isinstance(other, Column):
+            if id(self) != id(other._df):
+                msg = "cannot compare columns from different dataframes"
+                raise ValueError(msg)
+            return other.column
+        return other
+
+    def _from_dataframe(self, df: pl.LazyFrame) -> DataFrame:
+        return DataFrame(
+            df,
+            api_version=self._api_version,
+        )
+
+    # In the Standard
+
+    def col(self, value: str) -> Column:
+        from dataframe_api_compat.polars_standard.column_object import Column
+
+        return Column(
+            pl.col(value),
+            df=self,
+            api_version=self._api_version,
+            is_persisted=self._is_persisted,
+        )
+
+    def shape(self) -> tuple[int, int]:
+        df = self._validate_is_persisted()
+        return df.shape
+
+    @property
+    def schema(self) -> dict[str, DType]:
+        return {
+            column_name: dataframe_api_compat.polars_standard.map_polars_dtype_to_standard_dtype(
+                dtype,
+            )
+            for column_name, dtype in self.dataframe.schema.items()
+        }
 
     def __dataframe_namespace__(self) -> Namespace:
         return dataframe_api_compat.polars_standard.Namespace(
@@ -138,14 +162,14 @@ class DataFrame(DataFrameT):
             self._df.select(list(columns)),
         )
 
-    def get_rows(self, indices: Column) -> DataFrame:  # type: ignore[override]
-        self._validate_other(indices)
+    def get_rows(self, indices: Column) -> DataFrame:
+        _indices = self._validate_other(indices)
         if POLARS_VERSION < "0.19.14":
             return self._from_dataframe(
-                self.dataframe.select(pl.all().take(indices._expr)),
+                self.dataframe.select(pl.all().take(_indices)),
             )
         return self._from_dataframe(
-            self.dataframe.select(pl.all().gather(indices._expr)),
+            self.dataframe.select(pl.all().gather(_indices)),
         )
 
     def slice_rows(
@@ -156,33 +180,15 @@ class DataFrame(DataFrameT):
     ) -> DataFrame:
         return self._from_dataframe(self._df[start:stop:step])
 
-    def _validate_other(self, other: Any) -> Any:
-        from dataframe_api_compat.polars_standard.column_object import Column
-        from dataframe_api_compat.polars_standard.scalar_object import Scalar
+    def filter(self, mask: Column) -> DataFrame:
+        _mask = self._validate_other(mask)
+        return self._from_dataframe(self._df.filter(_mask))
 
-        if isinstance(other, Scalar):
-            if id(self) != id(other.df):
-                msg = "cannot compare columns/scalars from different dataframes"
-                raise ValueError(
-                    msg,
-                )
-            return other.value
-        if isinstance(other, Column):
-            if id(self) != id(other._df):
-                msg = "cannot compare columns from different dataframes"
-                raise ValueError(msg)
-            return other.column
-        return other
-
-    def filter(self, mask: Column) -> DataFrame:  # type: ignore[override]
-        self._validate_other(mask)
-        return self._from_dataframe(self._df.filter(mask._expr))
-
-    def assign(self, *columns: Column) -> DataFrame:  # type: ignore[override]
+    def assign(self, *columns: Column) -> DataFrame:
         new_columns: list[pl.Expr] = []
         for col in columns:
-            self._validate_other(col)
-            new_columns.append(col._expr)
+            _expr = self._validate_other(col)
+            new_columns.append(_expr)
         df = self.dataframe.with_columns(new_columns)
         return self._from_dataframe(df)
 

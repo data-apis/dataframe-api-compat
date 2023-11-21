@@ -356,10 +356,10 @@ class Namespace(NamespaceT):
 
     # --- horizontal reductions
 
-    def all_rowwise(self, *columns: Column) -> Column:
+    def all_rowwise(self, *columns: ColumnT) -> ColumnT:
         return reduce(lambda x, y: x & y, columns)
 
-    def any_rowwise(self, *columns: Column) -> Column:
+    def any_rowwise(self, *columns: ColumnT) -> ColumnT:
         return reduce(lambda x, y: x | y, columns)
 
     class Aggregation(AggregationT):

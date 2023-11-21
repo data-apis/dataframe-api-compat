@@ -18,11 +18,11 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from dataframe_api import DataFrame as DataFrameT
+    from dataframe_api.typing import Column
     from dataframe_api.typing import DType
     from dataframe_api.typing import NullType
     from dataframe_api.typing import Scalar
 
-    from dataframe_api_compat.pandas_standard.column_object import Column
     from dataframe_api_compat.pandas_standard.group_by_object import GroupBy
 else:
     DataFrameT = object
@@ -42,6 +42,8 @@ class DataFrame(DataFrameT):
         self._validate_columns(dataframe.columns)
         self._dataframe = dataframe.reset_index(drop=True)
         self._api_version = api_version
+
+    # Validation helper methods
 
     def _validate_is_persisted(self) -> pd.DataFrame:
         if not self._is_persisted:
@@ -110,7 +112,6 @@ class DataFrame(DataFrameT):
     # In the Standard
 
     def col(self, name: str) -> Column:
-        """col"""
         from dataframe_api_compat.pandas_standard.column_object import Column
 
         return Column(
@@ -147,6 +148,10 @@ class DataFrame(DataFrameT):
     def columns_iter(self) -> Iterator[Column]:
         return (self.col(col_name) for col_name in self.column_names)
 
+    @property
+    def dataframe(self) -> pd.DataFrame:
+        return self._dataframe
+
     def slice_rows(
         self,
         start: int | None,
@@ -154,10 +159,6 @@ class DataFrame(DataFrameT):
         step: int | None,
     ) -> DataFrame:
         return self._from_dataframe(self.dataframe.iloc[start:stop:step])
-
-    @property
-    def dataframe(self) -> pd.DataFrame:
-        return self._dataframe
 
     def group_by(self, *keys: str) -> GroupBy:
         from dataframe_api_compat.pandas_standard.group_by_object import GroupBy
@@ -175,7 +176,7 @@ class DataFrame(DataFrameT):
 
     def get_rows(
         self,
-        indices: Column,  # type: ignore[override]
+        indices: Column,
     ) -> DataFrame:
         self._validate_other(indices)
         return self._from_dataframe(
@@ -184,21 +185,21 @@ class DataFrame(DataFrameT):
 
     def filter(
         self,
-        mask: Column,  # type: ignore[override]
+        mask: Column,
     ) -> DataFrame:
-        self._validate_other(mask)
+        _mask = self._validate_other(mask)
         df = self.dataframe
-        df = df.loc[mask.column]
+        df = df.loc[_mask]
         return self._from_dataframe(df)
 
     def assign(
         self,
-        *columns: Column,  # type: ignore[override]
+        *columns: Column,
     ) -> DataFrame:
         df = self.dataframe.copy()  # TODO: remove defensive copy with CoW?
         for column in columns:
-            self._validate_other(column)
-            df[column.name] = column.column
+            _series = self._validate_other(column)
+            df[_series.name] = _series
         return self._from_dataframe(df)
 
     def drop_columns(self, *labels: str) -> DataFrame:
