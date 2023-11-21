@@ -7,7 +7,7 @@ Generate files with:
 import random
 import re
 
-MIN_PANDAS_VERSION = (1, 0, 0)
+MIN_PANDAS_VERSION = (1, 2, 0)
 MIN_POLARS_VERSION = (0, 17, 0)  # todo: can we lower?
 
 with open("pandas_versions.txt") as fd:
