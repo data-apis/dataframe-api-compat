@@ -1,4 +1,4 @@
-name: ci
+name: random-versions
 
 on:
   pull_request:
