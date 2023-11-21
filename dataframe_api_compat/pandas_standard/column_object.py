@@ -360,7 +360,7 @@ class Column(ColumnT):
     def is_nan(self) -> Column:
         ser = self.column
         if is_extension_array_dtype(ser.dtype):
-            return self._from_series(np.isnan(ser).replace(pd.NA, False).astype(bool))
+            return self._from_series((ser != ser).fillna(False))  # noqa: PLR0124
         return self._from_series(ser.isna())
 
     def sort(
