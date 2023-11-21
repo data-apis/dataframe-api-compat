@@ -8,7 +8,7 @@ Extremely lightweight compatibility layer between pandas and Polars:
 
 - ✅ No dependencies.
 - ✅ Lightweight: wheel is smaller than 30 kB.
-- ✅ Simple, minimal, perfectly backwards-compatible (after February 2024) API.
+- ✅ Simple, minimal, and predictable.
 
 No need to choose - support both with ease!
 
