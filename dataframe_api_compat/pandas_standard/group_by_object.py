@@ -139,7 +139,7 @@ def validate_aggregations(
     return tuple(
         aggregation
         if aggregation.column_name != "__placeholder__"  # type: ignore[attr-defined]
-        else aggregation.replace(column_name=keys[0])  # type: ignore[attr-defined]
+        else aggregation._replace(column_name=keys[0])  # type: ignore[attr-defined]
         for aggregation in aggregations
     )
 
