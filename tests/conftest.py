@@ -4,7 +4,7 @@ import sys
 from typing import Any
 
 LIBRARIES = {
-    (3, 8): ["polars-lazy"],
+    (3, 8): ["pandas-numpy", "pandas-nullable", "polars-lazy"],
     (3, 9): ["pandas-numpy", "pandas-nullable", "polars-lazy"],
     (3, 10): ["pandas-numpy", "pandas-nullable", "polars-lazy"],
     (3, 11): ["pandas-numpy", "pandas-nullable", "polars-lazy"],

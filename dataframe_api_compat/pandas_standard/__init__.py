@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import datetime as dt
 import re
-from collections.abc import Sequence
 from functools import reduce
 from typing import TYPE_CHECKING
 from typing import Any
@@ -16,6 +15,8 @@ from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
 from dataframe_api_compat.pandas_standard.scalar_object import Scalar
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from dataframe_api.groupby_object import Aggregation as AggregationT
     from dataframe_api.typing import Column as ColumnT
     from dataframe_api.typing import DataFrame as DataFrameT
@@ -280,7 +281,7 @@ class Namespace(NamespaceT):
         self,
         dataframes: Sequence[DataFrameT],
     ) -> DataFrame:
-        dataframes = cast(Sequence[DataFrame], dataframes)
+        dataframes = cast("Sequence[DataFrame]", dataframes)
         dtypes = dataframes[0].dataframe.dtypes
         dfs: list[pd.DataFrame] = []
         api_versions: set[str] = set()
