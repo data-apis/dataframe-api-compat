@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import pandas as pd
 import pytest
 
+from tests.utils import PANDAS_VERSION
 from tests.utils import mixed_dataframe_1
 
 
@@ -20,7 +20,7 @@ from tests.utils import mixed_dataframe_1
     ],
 )
 @pytest.mark.skipif(
-    tuple(int(v) for v in pd.__version__.split(".")) < (2, 0, 0),
+    PANDAS_VERSION < (2, 0, 0),
     reason="before pandas got non-nano support",
 )
 def test_is_dtype(library: str, dtype: str, expected: list[str]) -> None:

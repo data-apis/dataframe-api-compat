@@ -4,10 +4,12 @@ import pandas as pd
 import polars as pl
 import pytest
 
+from tests.utils import PANDAS_VERSION
+from tests.utils import POLARS_VERSION
+
 
 @pytest.mark.skipif(
-    tuple(int(v) for v in pl.__version__.split(".")) < (0, 19, 0)
-    or tuple(int(v) for v in pd.__version__.split(".")) < (2, 1, 0),
+    POLARS_VERSION < (0, 19, 0) or PANDAS_VERSION < (2, 1, 0),
     reason="before consortium standard in polars/pandas",
 )
 def test_convert_to_std_column() -> None:

@@ -151,7 +151,7 @@ class Column(ColumnT):
         return self._df
 
     def get_rows(self, indices: Column) -> Column:
-        if POLARS_VERSION < (0, 19, 4):
+        if POLARS_VERSION < (0, 19, 14):
             return self._from_expr(self._expr.take(indices._expr))
         return self._from_expr(self._expr.gather(indices._expr))
 
@@ -159,7 +159,7 @@ class Column(ColumnT):
         return self._from_expr(self._expr.filter(mask._expr))
 
     def get_value(self, row_number: int) -> Any:
-        if POLARS_VERSION < (0, 19, 4):
+        if POLARS_VERSION < (0, 19, 14):
             return self._to_scalar(
                 self._expr.take(row_number),
                 is_persisted=self._is_persisted,
@@ -180,7 +180,7 @@ class Column(ColumnT):
         length = None if stop is None else stop - start
         if step is None:
             step = 1
-        if POLARS_VERSION < (0, 19, 4):
+        if POLARS_VERSION < (0, 19, 14):
             return self._from_expr(self._expr.slice(start, length).take_every(step))
         return self._from_expr(self._expr.slice(start, length).gather_every(step))
 
@@ -419,22 +419,22 @@ class Column(ColumnT):
         return self._from_expr(self._expr.fill_null(value))
 
     def cumulative_sum(self, *, skip_nulls: bool | Scalar = True) -> Column:
-        if POLARS_VERSION < (0, 19, 4):
+        if POLARS_VERSION < (0, 19, 14):
             return self._from_expr(self._expr.cumsum())
         return self._from_expr(self._expr.cum_sum())
 
     def cumulative_prod(self, *, skip_nulls: bool | Scalar = True) -> Column:
-        if POLARS_VERSION < (0, 19, 4):
+        if POLARS_VERSION < (0, 19, 14):
             return self._from_expr(self._expr.cumprod())
         return self._from_expr(self._expr.cum_prod())
 
     def cumulative_max(self, *, skip_nulls: bool | Scalar = True) -> Column:
-        if POLARS_VERSION < (0, 19, 4):
+        if POLARS_VERSION < (0, 19, 14):
             return self._from_expr(self._expr.cummax())
         return self._from_expr(self._expr.cum_max())
 
     def cumulative_min(self, *, skip_nulls: bool | Scalar = True) -> Column:
-        if POLARS_VERSION < (0, 19, 4):
+        if POLARS_VERSION < (0, 19, 14):
             return self._from_expr(self._expr.cummin())
         return self._from_expr(self._expr.cum_min())
 

@@ -18,6 +18,9 @@ DType = TypeVar("DType")
 if TYPE_CHECKING:
     from dataframe_api import DataFrame
 
+POLARS_VERSION = tuple(int(v) for v in pl.__version__.split("."))
+PANDAS_VERSION = tuple(int(v) for v in pd.__version__.split("."))
+
 
 def convert_to_standard_compliant_dataframe(
     df: pd.DataFrame | pl.DataFrame,
@@ -376,9 +379,9 @@ def temporal_dataframe_1(library: str) -> DataFrame:
         df = pd.DataFrame(
             {
                 "a": [
-                    datetime(2020, 1, 1, 1, 2, 1, 123543),
-                    datetime(2020, 1, 2, 3, 1, 2, 321654),
-                    datetime(2020, 1, 3, 5, 4, 9, 987321),
+                    datetime(2020, 1, 1, 1, 2, 1, 123000),
+                    datetime(2020, 1, 2, 3, 1, 2, 321000),
+                    datetime(2020, 1, 3, 5, 4, 9, 987000),
                 ],
                 "b": [
                     timedelta(1, milliseconds=1),
