@@ -433,5 +433,4 @@ def convert_to_standard_compliant_dataframe(
     api_version: str | None = None,
 ) -> DataFrame:
     df_lazy = df.lazy() if isinstance(df, pl.DataFrame) else df
-    # todo latest api version
     return DataFrame(df_lazy, api_version=api_version or "2023.11-beta")

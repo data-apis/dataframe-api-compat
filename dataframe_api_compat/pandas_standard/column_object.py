@@ -53,14 +53,14 @@ class Column(ColumnT):
         from dataframe_api_compat.pandas_standard.scalar_object import Scalar
 
         self._name = series.name or ""
-        self._column = series
-        self.api_version = api_version
-        self.df = df
+        self._series = series
+        self._api_version = api_version
+        self._df = df
         self._scalar = Scalar
         self._is_persisted = is_persisted
 
     def __repr__(self) -> str:  # pragma: no cover
-        header = f" Standard Column (api_version={self.api_version}) "
+        header = f" Standard Column (api_version={self._api_version}) "
         length = len(header)
         return (
             "┌"
@@ -80,8 +80,8 @@ class Column(ColumnT):
     def _from_series(self, series: pd.Series) -> Column:
         return Column(
             series.reset_index(drop=True),
-            api_version=self.api_version,
-            df=self.df,
+            api_version=self._api_version,
+            df=self._df,
         )
 
     def _validate_comparand(self, other: Any) -> Any:
@@ -90,16 +90,16 @@ class Column(ColumnT):
         if isinstance(other, Scalar):
             if other.df is None:
                 return other.value
-            if id(self.df) != id(other.df):
+            if id(self._df) != id(other.df):
                 msg = "cannot compare columns/scalars from different dataframes"
                 raise ValueError(
                     msg,
                 )
             return other.value
         if isinstance(other, Column):
-            if other.df is None:
+            if other._df is None:
                 return other.column
-            if id(self.df) != id(other.df):
+            if id(self._df) != id(other._df):
                 msg = "cannot compare columns from different dataframes"
                 raise ValueError(msg)
             return other.column
@@ -118,14 +118,14 @@ class Column(ColumnT):
         self,
     ) -> dataframe_api_compat.pandas_standard.Namespace:
         return dataframe_api_compat.pandas_standard.Namespace(
-            api_version=self.api_version,
+            api_version=self._api_version,
         )
 
     def persist(self) -> Column:
         return Column(
             self.column,
-            df=self.df,
-            api_version=self.api_version,
+            df=self._df,
+            api_version=self._api_version,
             is_persisted=True,
         )
 
@@ -135,17 +135,17 @@ class Column(ColumnT):
 
     @property
     def column(self) -> pd.Series[Any]:
-        return self._column
+        return self._series
 
     @property
     def dtype(self) -> DType:
         return dataframe_api_compat.pandas_standard.map_pandas_dtype_to_standard_dtype(
-            self._column.dtype,
+            self._series.dtype,
         )
 
     @property
     def parent_dataframe(self) -> DataFrame | None:
-        return self.df
+        return self._df
 
     def get_rows(self, indices: Column) -> Column:
         return self._from_series(self.column.iloc[indices.column])
@@ -158,8 +158,8 @@ class Column(ColumnT):
         ser = self.column
         return self._scalar(
             ser.iloc[row_number],
-            api_version=self.api_version,
-            df=self.df,
+            api_version=self._api_version,
+            df=self._df,
             is_persisted=self._is_persisted,
         )
 
@@ -289,35 +289,35 @@ class Column(ColumnT):
     def any(self, *, skip_nulls: bool | Scalar = True) -> Scalar:
         _skip_nulls = self._validate_comparand(skip_nulls)
         ser = self.column
-        return self._scalar(ser.any(), api_version=self.api_version, df=self.df)
+        return self._scalar(ser.any(), api_version=self._api_version, df=self._df)
 
     def all(self, *, skip_nulls: bool | Scalar = True) -> Scalar:
         ser = self.column
-        return self._scalar(ser.all(), api_version=self.api_version, df=self.df)
+        return self._scalar(ser.all(), api_version=self._api_version, df=self._df)
 
     def min(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
-        return self._scalar(ser.min(), api_version=self.api_version, df=self.df)
+        return self._scalar(ser.min(), api_version=self._api_version, df=self._df)
 
     def max(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
-        return self._scalar(ser.max(), api_version=self.api_version, df=self.df)
+        return self._scalar(ser.max(), api_version=self._api_version, df=self._df)
 
     def sum(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
-        return self._scalar(ser.sum(), api_version=self.api_version, df=self.df)
+        return self._scalar(ser.sum(), api_version=self._api_version, df=self._df)
 
     def prod(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
-        return self._scalar(ser.prod(), api_version=self.api_version, df=self.df)
+        return self._scalar(ser.prod(), api_version=self._api_version, df=self._df)
 
     def median(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
-        return self._scalar(ser.median(), api_version=self.api_version, df=self.df)
+        return self._scalar(ser.median(), api_version=self._api_version, df=self._df)
 
     def mean(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
-        return self._scalar(ser.mean(), api_version=self.api_version, df=self.df)
+        return self._scalar(ser.mean(), api_version=self._api_version, df=self._df)
 
     def std(
         self,
@@ -328,8 +328,8 @@ class Column(ColumnT):
         ser = self.column
         return self._scalar(
             ser.std(ddof=correction),
-            api_version=self.api_version,
-            df=self.df,
+            api_version=self._api_version,
+            df=self._df,
         )
 
     def var(
@@ -341,8 +341,8 @@ class Column(ColumnT):
         ser = self.column
         return self._scalar(
             ser.var(ddof=correction),
-            api_version=self.api_version,
-            df=self.df,
+            api_version=self._api_version,
+            df=self._df,
         )
 
     # Transformations

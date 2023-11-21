@@ -95,7 +95,7 @@ class DataFrame(DataFrameT):
                 )
             return other.value
         if isinstance(other, Column):
-            if id(self) != id(other.df):
+            if id(self) != id(other._df):
                 msg = "cannot compare columns from different dataframes"
                 raise ValueError(msg)
             return other.column
