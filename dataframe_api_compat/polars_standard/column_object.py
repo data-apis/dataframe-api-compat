@@ -68,12 +68,12 @@ class Column(ColumnT):
         from dataframe_api_compat.polars_standard.scalar_object import Scalar
 
         if isinstance(other, Scalar):
-            if other.df is None:
-                return other.value
-            if id(self._df) != id(other.df):
+            if other._df is None:
+                return other._value
+            if id(self._df) != id(other._df):
                 msg = "Columns/scalars are from different dataframes"
                 raise ValueError(msg)
-            return other.value
+            return other._value
         if isinstance(other, Column):
             if other._df is None:
                 return other._expr

@@ -91,12 +91,12 @@ class DataFrame(DataFrameT):
         from dataframe_api_compat.pandas_standard.scalar_object import Scalar
 
         if isinstance(other, Scalar):
-            if id(self) != id(other.df):
+            if id(self) != id(other._df):
                 msg = "cannot compare columns/scalars from different dataframes"
                 raise ValueError(
                     msg,
                 )
-            return other.value
+            return other._value
         if isinstance(other, Column):
             if id(self) != id(other._df):
                 msg = "cannot compare columns from different dataframes"
