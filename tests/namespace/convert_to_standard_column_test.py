@@ -6,7 +6,7 @@ import pytest
 
 
 @pytest.mark.skipif(
-    tuple(int(v) for v in pl.__version__.split(".")) < (0, 18, 0)
+    tuple(int(v) for v in pl.__version__.split(".")) < (0, 19, 0)
     or tuple(int(v) for v in pd.__version__.split(".")) < (2, 1, 0),
     reason="before consortium standard in polars/pandas",
 )

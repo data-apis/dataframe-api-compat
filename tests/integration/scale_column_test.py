@@ -19,7 +19,7 @@ def test_scale_column_pandas() -> None:
 
 
 @pytest.mark.skipif(
-    tuple(int(v) for v in pl.__version__.split(".")) < (0, 18, 0),
+    tuple(int(v) for v in pl.__version__.split(".")) < (0, 19, 0),
     reason="before consortium standard in polars",
 )
 def test_scale_column_polars() -> None:
@@ -31,7 +31,7 @@ def test_scale_column_polars() -> None:
 
 
 @pytest.mark.skipif(
-    tuple(int(v) for v in pl.__version__.split(".")) < (0, 18, 0),
+    tuple(int(v) for v in pl.__version__.split(".")) < (0, 19, 0),
     reason="before consortium standard in polars",
 )
 def test_scale_column_polars_from_persisted_df() -> None:
