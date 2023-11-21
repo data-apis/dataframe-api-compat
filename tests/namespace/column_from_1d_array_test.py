@@ -6,9 +6,10 @@ from datetime import timedelta
 
 import numpy as np
 import pandas as pd
-import polars as pl
 import pytest
 
+from tests.utils import PANDAS_VERSION
+from tests.utils import POLARS_VERSION
 from tests.utils import integer_dataframe_1
 from tests.utils import interchange_to_pandas
 
@@ -121,11 +122,11 @@ def test_datetime_from_1d_array(library: str) -> None:
 
 
 @pytest.mark.skipif(
-    tuple(int(v) for v in pl.__version__.split(".")) < (0, 19, 9),
+    POLARS_VERSION < (0, 19, 9),
     reason="upstream bug",
 )
 @pytest.mark.skipif(
-    tuple(int(v) for v in pd.__version__.split(".")) < (2, 0, 0),
+    PANDAS_VERSION < (2, 0, 0),
     reason="pandas before non-nano",
 )
 def test_duration_from_1d_array(library: str) -> None:
