@@ -26,4 +26,12 @@ def test_cumulative_functions_column(
     expected = pd.Series(expected_data, name="result")
     result = df.assign(getattr(ser, func)().rename("result"))
     result_pd = interchange_to_pandas(result)["result"]
+
+    if (
+        tuple(int(v) for v in pd.__version__.split(".")) < (2, 0, 0)
+        and library == "pandas-nullable"
+    ):  # pragma: no cover
+        # Upstream bug
+        result_pd = result_pd.astype("int64")
+
     pd.testing.assert_series_equal(result_pd, expected)

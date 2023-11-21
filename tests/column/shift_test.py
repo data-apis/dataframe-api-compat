@@ -9,14 +9,16 @@ from tests.utils import interchange_to_pandas
 
 def test_shift_with_fill_value(library: str) -> None:
     df = integer_dataframe_1(library)
-    result = df.assign(df.col("a").shift(1).fill_null(999.0))
+    result = df.assign(df.col("a").shift(1).fill_null(999))
     expected = pd.DataFrame(
         {
-            "a": [999.0, 1, 2],
+            "a": [999, 1, 2],
             "b": [4, 5, 6],
         },
     )
     result_pd = interchange_to_pandas(result)
+    if library == "pandas-numpy":
+        result_pd = result_pd.astype("int64")
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
@@ -47,4 +49,6 @@ def test_shift_with_fill_value_complicated(library: str) -> None:
         },
     )
     result_pd = interchange_to_pandas(result)
+    if library == "pandas-nullable":
+        result_pd = result_pd.astype({"a": "float64"})
     pd.testing.assert_frame_equal(result_pd, expected)

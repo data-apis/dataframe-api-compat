@@ -174,7 +174,7 @@ class DataFrame(DataFrameT):
     ) -> DataFrame:
         self._validate_other(indices)
         return self._from_dataframe(
-            self.dataframe.iloc[indices.column, :],
+            self.dataframe.iloc[indices.column.to_list(), :],
         )
 
     def slice_rows(
@@ -470,15 +470,7 @@ class DataFrame(DataFrameT):
         return self._from_dataframe(pd.concat(result, axis=1))
 
     def is_nan(self) -> DataFrame:
-        result: list[pd.Series] = []
-        for column in self.dataframe.columns:
-            if is_extension_array_dtype(self.dataframe[column].dtype):
-                result.append(
-                    np.isnan(self.dataframe[column]).replace(pd.NA, False).astype(bool),
-                )
-            else:
-                result.append(self.dataframe[column].isna())
-        return self._from_dataframe(pd.concat(result, axis=1))
+        return self.assign(*[col.is_nan() for col in self.columns_iter()])
 
     def fill_nan(self, value: float | Scalar | NullType) -> DataFrame:
         _value = self._validate_other(value)
@@ -509,24 +501,13 @@ class DataFrame(DataFrameT):
         if column_names is None:
             column_names = self.dataframe.columns.tolist()
         assert isinstance(column_names, list)  # help type checkers
-        df = self.dataframe.copy()
-        for column in column_names:
-            col = df[column]
-            if is_extension_array_dtype(col.dtype):
-                # crazy hack to preserve nan...
-                num = pd.Series(
-                    np.where(np.isnan(col).fillna(False), 0, col.fillna(value)),
-                    dtype=col.dtype,
-                )
-                other = pd.Series(
-                    np.where(np.isnan(col).fillna(False), 0, 1),
-                    dtype=col.dtype,
-                )
-                col = num / other
-            else:
-                col = col.fillna(value)
-            df[column] = col
-        return self._from_dataframe(df)
+        return self.assign(
+            *[
+                col.fill_null(value)
+                for col in self.columns_iter()
+                if col.name in column_names
+            ],
+        )
 
     def drop_nulls(
         self,

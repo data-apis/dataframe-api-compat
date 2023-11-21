@@ -360,7 +360,7 @@ class Column(ColumnT):
     def is_nan(self) -> Column:
         ser = self.column
         if is_extension_array_dtype(ser.dtype):
-            return self._from_series(np.isnan(ser).replace(pd.NA, False).astype(bool))
+            return self._from_series((ser != ser).fillna(False))  # noqa: PLR0124
         return self._from_series(ser.isna())
 
     def sort(
@@ -418,16 +418,9 @@ class Column(ColumnT):
         value = self._validate_comparand(value)
         ser = self.column.copy()
         if is_extension_array_dtype(ser.dtype):
-            # crazy hack to preserve nan...
-            num = pd.Series(
-                np.where(np.isnan(ser).fillna(False), 0, ser.fillna(value)),
-                dtype=ser.dtype,
-            )
-            other = pd.Series(
-                np.where(np.isnan(ser).fillna(False), 0, 1),
-                dtype=ser.dtype,
-            )
-            ser = num / other
+            # Mask should include NA values, but not NaN ones
+            mask = ser.isna() & (~(ser != ser).fillna(False))  # noqa: PLR0124
+            ser = ser.where(~mask, value)
         else:
             ser = ser.fillna(value)
         return self._from_series(ser.rename(self.name))

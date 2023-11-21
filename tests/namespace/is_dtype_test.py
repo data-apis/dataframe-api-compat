@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pandas as pd
 import pytest
 
 from tests.utils import mixed_dataframe_1
@@ -17,6 +18,10 @@ from tests.utils import mixed_dataframe_1
         (("string", "integral"), ["a", "b", "c", "d", "e", "f", "g", "h", "l"]),
         (("string", "unsigned integer"), ["e", "f", "g", "h", "l"]),
     ],
+)
+@pytest.mark.skipif(
+    tuple(int(v) for v in pd.__version__.split(".")) < (2, 0, 0),
+    reason="before pandas got non-nano support",
 )
 def test_is_dtype(library: str, dtype: str, expected: list[str]) -> None:
     df = mixed_dataframe_1(library).persist()
