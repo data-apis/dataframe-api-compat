@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import date
 from datetime import datetime
 from datetime import timedelta
 from typing import TYPE_CHECKING
@@ -494,7 +493,7 @@ def mixed_dataframe_1(library: str) -> DataFrame:
         "j": [1.0, 2.0, 3.0],
         "k": [True, False, True],
         "l": ["a", "b", "c"],
-        "m": [date(2020, 1, 1), date(2020, 1, 2), date(2020, 1, 3)],
+        "m": [datetime(2020, 1, 1), datetime(2020, 1, 2), datetime(2020, 1, 3)],
         "n": [datetime(2020, 1, 1), datetime(2020, 1, 2), datetime(2020, 1, 3)],
         "o": [datetime(2020, 1, 1), datetime(2020, 1, 2), datetime(2020, 1, 3)],
         "p": [timedelta(days=1), timedelta(days=2), timedelta(days=3)],
@@ -562,7 +561,7 @@ def mixed_dataframe_1(library: str) -> DataFrame:
                 "j": pl.Float32,
                 "k": pl.Boolean,
                 "l": pl.Utf8,
-                "m": pl.Date,
+                "m": pl.Datetime("ms"),
                 "n": pl.Datetime("ms"),
                 "o": pl.Datetime("us"),
                 "p": pl.Duration("ms"),

@@ -11,7 +11,6 @@ from typing import NoReturn
 import polars as pl
 
 import dataframe_api_compat
-from dataframe_api_compat.polars_standard.column_object import Column
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -19,6 +18,7 @@ if TYPE_CHECKING:
 
     from dataframe_api import DataFrame as DataFrameT
     from dataframe_api.typing import AnyScalar
+    from dataframe_api.typing import Column
     from dataframe_api.typing import DType
     from dataframe_api.typing import Namespace
     from dataframe_api.typing import NullType
@@ -30,23 +30,6 @@ else:
     DataFrameT = object
 
 POLARS_VERSION = pl.__version__
-
-
-def _is_integer_dtype(dtype: Any) -> bool:
-    return any(  # pragma: no cover
-        # definitely covered, not sure what this is
-        dtype is _dtype
-        for _dtype in (
-            pl.Int64,
-            pl.Int32,
-            pl.Int16,
-            pl.Int8,
-            pl.UInt64,
-            pl.UInt32,
-            pl.UInt16,
-            pl.UInt8,
-        )
-    )
 
 
 def generate_random_token(column_names: list[str]) -> str:
@@ -65,62 +48,26 @@ class DataFrame(DataFrameT):
     def __init__(
         self,
         df: pl.LazyFrame,
-        api_version: str,
         *,
+        api_version: str,
         is_persisted: bool = False,
     ) -> None:
-        self.df = df
-        self.api_version = api_version
-        self.is_persisted = is_persisted
+        self._df = df
+        self._api_version = api_version
+        self._is_persisted = is_persisted
 
-    def materialise_expression(self, expr: pl.Expr) -> pl.Series:
-        df = self.dataframe.collect().select(expr)
-        return df.get_column(df.columns[0])
+    # Validation helper methods
 
-    def validate_is_persisted(self) -> pl.DataFrame:
-        if not self.is_persisted:
+    def _validate_is_persisted(self) -> pl.DataFrame:
+        if not self._is_persisted:
             msg = "Method  requires you to call `.persist` first on the parent dataframe.\n\nNote: `.persist` forces materialisation in lazy libraries and so should be called as late as possible in your pipeline, and only once per dataframe."
             raise ValueError(
                 msg,
             )
         return self.dataframe.collect()
 
-    def _validate_booleanness(self) -> None:
-        if not all(v == pl.Boolean for v in self.dataframe.schema.values()):
-            msg = "'any' can only be called on DataFrame where all dtypes are 'bool'"
-            raise TypeError(
-                msg,
-            )
-
-    def _from_dataframe(self, df: pl.LazyFrame) -> DataFrame:
-        return DataFrame(
-            df,
-            api_version=self.api_version,
-        )
-
-    def col(self, value: str) -> Column:
-        return Column(
-            pl.col(value),
-            df=self,
-            api_version=self.api_version,
-            is_persisted=self.is_persisted,
-        )
-
-    @property
-    def schema(self) -> dict[str, DType]:
-        return {
-            column_name: dataframe_api_compat.polars_standard.map_polars_dtype_to_standard_dtype(
-                dtype,
-            )
-            for column_name, dtype in self.dataframe.schema.items()
-        }
-
-    def shape(self) -> tuple[int, int]:
-        df = self.validate_is_persisted()
-        return df.shape
-
     def __repr__(self) -> str:  # pragma: no cover
-        header = f" Standard DataFrame (api_version={self.api_version}) "
+        header = f" Standard DataFrame (api_version={self._api_version}) "
         length = len(header)
         return (
             "┌"
@@ -133,49 +80,12 @@ class DataFrame(DataFrameT):
             + "┘\n"
         )
 
-    def __dataframe_namespace__(self) -> Namespace:
-        return dataframe_api_compat.polars_standard.Namespace(
-            api_version=self.api_version,
-        )
-
-    @property
-    def column_names(self) -> list[str]:
-        return self.dataframe.columns
-
-    def columns_iter(self) -> Iterator[Column]:
-        return (self.col(col_name) for col_name in self.column_names)
-
-    @property
-    def dataframe(self) -> pl.LazyFrame:
-        return self.df
-
-    def group_by(self, *keys: str) -> GroupBy:
-        from dataframe_api_compat.polars_standard.group_by_object import GroupBy
-
-        return GroupBy(self.dataframe, list(keys), api_version=self.api_version)
-
-    def select(self, *columns: str) -> DataFrame:
-        return self._from_dataframe(
-            self.df.select(list(columns)),
-        )
-
-    def get_rows(self, indices: Column) -> DataFrame:  # type: ignore[override]
-        self._validate_other(indices)
-        if POLARS_VERSION < "0.19.14":
-            return self._from_dataframe(
-                self.dataframe.select(pl.all().take(indices.expr)),
+    def _validate_booleanness(self) -> None:
+        if not all(v == pl.Boolean for v in self.dataframe.schema.values()):
+            msg = "'any' can only be called on DataFrame where all dtypes are 'bool'"
+            raise TypeError(
+                msg,
             )
-        return self._from_dataframe(
-            self.dataframe.select(pl.all().gather(indices.expr)),
-        )
-
-    def slice_rows(
-        self,
-        start: int | None,
-        stop: int | None,
-        step: int | None,
-    ) -> DataFrame:
-        return self._from_dataframe(self.df[start:stop:step])
 
     def _validate_other(self, other: Any) -> Any:
         from dataframe_api_compat.polars_standard.column_object import Column
@@ -189,21 +99,96 @@ class DataFrame(DataFrameT):
                 )
             return other.value
         if isinstance(other, Column):
-            if id(self) != id(other.df):
+            if id(self) != id(other._df):
                 msg = "cannot compare columns from different dataframes"
                 raise ValueError(msg)
             return other.column
         return other
 
-    def filter(self, mask: Column) -> DataFrame:  # type: ignore[override]
-        self._validate_other(mask)
-        return self._from_dataframe(self.df.filter(mask.expr))
+    def _from_dataframe(self, df: pl.LazyFrame) -> DataFrame:
+        return DataFrame(
+            df,
+            api_version=self._api_version,
+        )
 
-    def assign(self, *columns: Column) -> DataFrame:  # type: ignore[override]
+    # In the Standard
+
+    def col(self, value: str) -> Column:
+        from dataframe_api_compat.polars_standard.column_object import Column
+
+        return Column(
+            pl.col(value),
+            df=self,
+            api_version=self._api_version,
+            is_persisted=self._is_persisted,
+        )
+
+    def shape(self) -> tuple[int, int]:
+        df = self._validate_is_persisted()
+        return df.shape
+
+    @property
+    def schema(self) -> dict[str, DType]:
+        return {
+            column_name: dataframe_api_compat.polars_standard.map_polars_dtype_to_standard_dtype(
+                dtype,
+            )
+            for column_name, dtype in self.dataframe.schema.items()
+        }
+
+    def __dataframe_namespace__(self) -> Namespace:
+        return dataframe_api_compat.polars_standard.Namespace(
+            api_version=self._api_version,
+        )
+
+    @property
+    def column_names(self) -> list[str]:
+        return self.dataframe.columns
+
+    def columns_iter(self) -> Iterator[Column]:
+        return (self.col(col_name) for col_name in self.column_names)
+
+    @property
+    def dataframe(self) -> pl.LazyFrame:
+        return self._df
+
+    def group_by(self, *keys: str) -> GroupBy:
+        from dataframe_api_compat.polars_standard.group_by_object import GroupBy
+
+        return GroupBy(self.dataframe, list(keys), api_version=self._api_version)
+
+    def select(self, *columns: str) -> DataFrame:
+        return self._from_dataframe(
+            self._df.select(list(columns)),
+        )
+
+    def get_rows(self, indices: Column) -> DataFrame:
+        _indices = self._validate_other(indices)
+        if POLARS_VERSION < "0.19.14":
+            return self._from_dataframe(
+                self.dataframe.select(pl.all().take(_indices)),
+            )
+        return self._from_dataframe(
+            self.dataframe.select(pl.all().gather(_indices)),
+        )
+
+    def slice_rows(
+        self,
+        start: int | None,
+        stop: int | None,
+        step: int | None,
+    ) -> DataFrame:
+        return self._from_dataframe(self._df[start:stop:step])
+
+    def filter(self, mask: Column) -> DataFrame:
+        _mask = self._validate_other(mask)
+        return self._from_dataframe(self._df.filter(_mask))
+
+    def assign(self, *columns: Column) -> DataFrame:
         new_columns: list[pl.Expr] = []
         for col in columns:
-            self._validate_other(col)
-            new_columns.append(col.expr)
+            _expr = self._validate_other(col)
+            new_columns.append(_expr)
         df = self.dataframe.with_columns(new_columns)
         return self._from_dataframe(df)
 
@@ -324,11 +309,7 @@ class DataFrame(DataFrameT):
         original_type = self.dataframe.schema
         ret = self.dataframe.select([pl.col(col).pow(other) for col in self.column_names])
         for column in self.dataframe.columns:
-            if _is_integer_dtype(original_type[column]) and isinstance(other, int):
-                if other < 0:  # pragma: no cover (todo)
-                    msg = "Cannot raise integer to negative power"
-                    raise ValueError(msg)
-                ret = ret.with_columns(pl.col(column).cast(original_type[column]))
+            ret = ret.with_columns(pl.col(column).cast(original_type[column]))
         return self._from_dataframe(ret)
 
     def __rpow__(self, other: Any) -> DataFrame:  # pragma: no cover
@@ -566,10 +547,10 @@ class DataFrame(DataFrameT):
     def persist(self) -> DataFrame:
         return DataFrame(
             self.dataframe.collect().lazy(),
-            api_version=self.api_version,
+            api_version=self._api_version,
             is_persisted=True,
         )
 
     def to_array(self, dtype: DType | None = None) -> Any:
-        df = self.validate_is_persisted()
+        df = self._validate_is_persisted()
         return df.to_numpy()

@@ -12,15 +12,10 @@ from dataframe_api_compat.polars_standard.column_object import Column
 from dataframe_api_compat.polars_standard.dataframe_object import DataFrame
 from dataframe_api_compat.polars_standard.scalar_object import Scalar
 
-__all__ = [
-    "DataFrame",
-    "Column",
-    "Scalar",
-    "Namespace",
-]
-
-
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from dataframe_api.typing import DataFrame as DataFrameT
     from dataframe_api.typing import Namespace as NamespaceT
     from dataframe_api.typing import Scalar as ScalarT
 
@@ -40,7 +35,6 @@ if TYPE_CHECKING:
     UInt32T = NamespaceT.UInt32
     UInt64T = NamespaceT.UInt64
     NullTypeT = NamespaceT.NullType
-    from collections.abc import Sequence
 
     from dataframe_api.groupby_object import Aggregation as AggregationT
     from dataframe_api.typing import DType
@@ -142,9 +136,9 @@ class Namespace(NamespaceT):
         data = {}
         api_version: set[str] = set()
         for col in columns:
-            ser = col.materialise()
+            ser = col._materialise()
             data[ser.name] = ser
-            api_version.add(col.api_version)
+            api_version.add(col._api_version)
         if len(api_version) > 1:  # pragma: no cover
             msg = f"found multiple api versions: {api_version}"
             raise ValueError(msg)
@@ -193,8 +187,8 @@ class Namespace(NamespaceT):
         ).lazy()
         return DataFrame(df, api_version=self.api_version)
 
-    def date(self, year: int, month: int, day: int) -> Any:
-        return pl.date(year, month, day)
+    def date(self, year: int, month: int, day: int) -> Scalar:
+        return Scalar(pl.date(year, month, day), api_version=self.api_version, df=None)
 
     class Aggregation(AggregationT):
         def __init__(self, column_name: str, output_name: str, aggregation: str) -> None:
@@ -204,13 +198,6 @@ class Namespace(NamespaceT):
 
         def rename(self, name: str | ScalarT) -> AggregationT:
             return self.__class__(self.column_name, name, self.aggregation)  # type: ignore[arg-type]
-
-        def replace(self, **kwargs: str) -> AggregationT:
-            return self.__class__(
-                column_name=kwargs.get("column_name", self.column_name),
-                output_name=kwargs.get("output_name", self.output_name),
-                aggregation=kwargs.get("aggregation", self.aggregation),
-            )
 
         @classmethod
         def any(
@@ -312,13 +299,14 @@ class Namespace(NamespaceT):
 
     def concat(
         self,
-        dataframes: Sequence[DataFrame],  # type: ignore[override]
+        dataframes: Sequence[DataFrameT],
     ) -> DataFrame:
+        dataframes = cast("Sequence[DataFrame]", dataframes)
         dfs: list[pl.LazyFrame] = []
         api_versions: set[str] = set()
         for df in dataframes:
             dfs.append(df.dataframe)
-            api_versions.add(df.api_version)
+            api_versions.add(df._api_version)
         if len(api_versions) > 1:  # pragma: no cover
             msg = f"Multiple api versions found: {api_versions}"
             raise ValueError(msg)
@@ -389,7 +377,7 @@ def map_polars_dtype_to_standard_dtype(dtype: Any) -> DType:
         return Namespace.Bool()
     if dtype == pl.Utf8:
         return Namespace.String()
-    if dtype == pl.Date:
+    if dtype == pl.Date:  # pragma: no cover  # not supported yet?
         return Namespace.Date()
     if isinstance(dtype, pl.Datetime):
         time_unit = cast(Literal["ms", "us"], dtype.time_unit)
@@ -428,8 +416,7 @@ def _map_standard_to_polars_dtypes(dtype: Any) -> pl.DataType:
         return pl.Utf8()
     if isinstance(dtype, Namespace.Datetime):
         return pl.Datetime(dtype.time_unit, dtype.time_zone)
-    if isinstance(dtype, Namespace.Duration):  # pragma: no cover
-        # pending fix in polars itself
+    if isinstance(dtype, Namespace.Duration):
         return pl.Duration(dtype.time_unit)
     msg = f"Unknown dtype: {dtype}"  # pragma: no cover
     raise AssertionError(msg)
@@ -447,5 +434,4 @@ def convert_to_standard_compliant_dataframe(
     api_version: str | None = None,
 ) -> DataFrame:
     df_lazy = df.lazy() if isinstance(df, pl.DataFrame) else df
-    # todo latest api version
     return DataFrame(df_lazy, api_version=api_version or "2023.11-beta")

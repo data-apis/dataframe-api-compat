@@ -1,7 +1,8 @@
-"""Hello everybody"""
 from __future__ import annotations
 
+import datetime as dt
 import re
+from collections.abc import Sequence
 from functools import reduce
 from typing import TYPE_CHECKING
 from typing import Any
@@ -14,18 +15,10 @@ from dataframe_api_compat.pandas_standard.column_object import Column
 from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
 from dataframe_api_compat.pandas_standard.scalar_object import Scalar
 
-__all__ = [
-    "Column",
-    "DataFrame",
-    "Scalar",
-    "Namespace",
-]
-
 if TYPE_CHECKING:
-    from collections.abc import Sequence
-
     from dataframe_api.groupby_object import Aggregation as AggregationT
     from dataframe_api.typing import Column as ColumnT
+    from dataframe_api.typing import DataFrame as DataFrameT
     from dataframe_api.typing import DType
     from dataframe_api.typing import Namespace as NamespaceT
     from dataframe_api.typing import Scalar as ScalarT
@@ -116,8 +109,6 @@ def map_pandas_dtype_to_standard_dtype(dtype: Any) -> DType:
         return Namespace.String()
     if dtype == "string":
         return Namespace.String()
-    if dtype == "datetime64[s]":
-        return Namespace.Date()
     if dtype.startswith("datetime64["):
         match = re.search(r"datetime64\[(\w{1,2})", dtype)
         assert match is not None
@@ -189,7 +180,7 @@ def convert_to_standard_compliant_dataframe(
 class Namespace(NamespaceT):
     def __init__(self, *, api_version: str) -> None:
         self.__dataframe_api_version__ = api_version
-        self.api_version = api_version
+        self._api_version = api_version
 
     class Int64(Int64T):
         ...
@@ -256,26 +247,26 @@ class Namespace(NamespaceT):
         data = {}
         api_versions: set[str] = set()
         for col in columns:
-            ser = col.materialise()  # type: ignore[attr-defined]
+            ser = col._materialise()  # type: ignore[attr-defined]
             data[ser.name] = ser
-            api_versions.add(col.api_version)  # type: ignore[attr-defined]
+            api_versions.add(col._api_version)  # type: ignore[attr-defined]
         return DataFrame(pd.DataFrame(data), api_version=list(api_versions)[0])
 
     def column_from_1d_array(
         self,
         data: Any,
         *,
-        dtype: Any,
+        dtype: DType,
         name: str | None = None,
     ) -> Column:
         ser = pd.Series(data, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
-        return Column(ser, api_version=self.api_version, df=None)
+        return Column(ser, api_version=self._api_version, df=None)
 
     def column_from_sequence(
         self,
         sequence: Sequence[Any],
         *,
-        dtype: Any,
+        dtype: DType,
         name: str = "",
     ) -> Column:
         ser = pd.Series(
@@ -283,12 +274,13 @@ class Namespace(NamespaceT):
             dtype=map_standard_dtype_to_pandas_dtype(dtype),
             name=name,
         )
-        return Column(ser, api_version=self.api_version, df=None)
+        return Column(ser, api_version=self._api_version, df=None)
 
     def concat(
         self,
-        dataframes: Sequence[DataFrame],  # type: ignore[override]
+        dataframes: Sequence[DataFrameT],
     ) -> DataFrame:
+        dataframes = cast(Sequence[DataFrame], dataframes)
         dtypes = dataframes[0].dataframe.dtypes
         dfs: list[pd.DataFrame] = []
         api_versions: set[str] = set()
@@ -301,9 +293,8 @@ class Namespace(NamespaceT):
             except AssertionError as exc:
                 msg = "Expected matching columns"
                 raise ValueError(msg) from exc
-            else:
-                dfs.append(df.dataframe)
-            api_versions.add(df.api_version)
+            dfs.append(df.dataframe)
+            api_versions.add(df._api_version)
         if len(api_versions) > 1:  # pragma: no cover
             msg = f"Multiple api versions found: {api_versions}"
             raise ValueError(msg)
@@ -323,12 +314,12 @@ class Namespace(NamespaceT):
         names: Sequence[str],
     ) -> DataFrame:
         df = pd.DataFrame(data, columns=list(names))
-        return DataFrame(df, api_version=self.api_version)
+        return DataFrame(df, api_version=self._api_version)
 
     def is_null(self, value: Any) -> bool:
         return value is self.null
 
-    def is_dtype(self, dtype: Any, kind: str | tuple[str, ...]) -> bool:
+    def is_dtype(self, dtype: DType, kind: str | tuple[str, ...]) -> bool:
         if isinstance(kind, str):
             kind = (kind,)
         dtypes: set[Any] = set()
@@ -355,17 +346,19 @@ class Namespace(NamespaceT):
                 dtypes.add(Namespace.String)
         return isinstance(dtype, tuple(dtypes))
 
-    def date(self, year: int, month: int, day: int) -> Any:
-        import datetime as dt  # temporary: make own class
-
-        return pd.Timestamp(dt.date(year, month, day))
+    def date(self, year: int, month: int, day: int) -> Scalar:
+        return Scalar(
+            pd.Timestamp(dt.date(year, month, day)),
+            api_version=self._api_version,
+            df=None,
+        )
 
     # --- horizontal reductions
 
-    def all_rowwise(self, *columns: Column) -> Column:
+    def all_rowwise(self, *columns: ColumnT) -> ColumnT:
         return reduce(lambda x, y: x & y, columns)
 
-    def any_rowwise(self, *columns: Column) -> Column:
+    def any_rowwise(self, *columns: ColumnT) -> ColumnT:
         return reduce(lambda x, y: x | y, columns)
 
     class Aggregation(AggregationT):

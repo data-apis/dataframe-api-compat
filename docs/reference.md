@@ -9,9 +9,9 @@ with any other packages which implements the spec.
 
 ## Dataframe Interchange Protocol
 
-Related project, focused more on a standardised way of interchanging data between libraries
-https://data-apis.org/dataframe-protocol/latest/index.html.
+Standardised way of interchanging data between libraries, see
+[here](https://data-apis.org/dataframe-protocol/latest/index.html).
 
 ## Array API
 
-Array counterpart to the DataFrame API https://data-apis.org/array-api/2022.12/index.html.
+Array counterpart to the DataFrame API, see [here](https://data-apis.org/array-api/2022.12/index.html).

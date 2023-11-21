@@ -53,14 +53,14 @@ class Column(ColumnT):
         from dataframe_api_compat.pandas_standard.scalar_object import Scalar
 
         self._name = series.name or ""
-        self._column = series
-        self.api_version = api_version
-        self.df = df
+        self._series = series
+        self._api_version = api_version
+        self._df = df
         self._scalar = Scalar
         self._is_persisted = is_persisted
 
     def __repr__(self) -> str:  # pragma: no cover
-        header = f" Standard Column (api_version={self.api_version}) "
+        header = f" Standard Column (api_version={self._api_version}) "
         length = len(header)
         return (
             "┌"
@@ -80,28 +80,32 @@ class Column(ColumnT):
     def _from_series(self, series: pd.Series) -> Column:
         return Column(
             series.reset_index(drop=True),
-            api_version=self.api_version,
-            df=self.df,
+            api_version=self._api_version,
+            df=self._df,
         )
 
-    def _validate_comparand(self, other: Column | Any) -> Column | Any:
+    def _validate_comparand(self, other: Any) -> Any:
         from dataframe_api_compat.pandas_standard.scalar_object import Scalar
 
         if isinstance(other, Scalar):
-            if id(self.df) != id(other.df):
+            if other.df is None:
+                return other.value
+            if id(self._df) != id(other.df):
                 msg = "cannot compare columns/scalars from different dataframes"
                 raise ValueError(
                     msg,
                 )
             return other.value
         if isinstance(other, Column):
-            if id(self.df) != id(other.df):
+            if other._df is None:
+                return other.column
+            if id(self._df) != id(other._df):
                 msg = "cannot compare columns from different dataframes"
                 raise ValueError(msg)
             return other.column
         return other
 
-    def materialise(self) -> pd.Series:
+    def _materialise(self) -> pd.Series:
         if not self._is_persisted:
             msg = "Column is not persisted, please call `.persist()` first.\nNote: `persist` forces computation, use it with care, only when you need to,\nand as late and little as possible."
             raise RuntimeError(
@@ -114,14 +118,14 @@ class Column(ColumnT):
         self,
     ) -> dataframe_api_compat.pandas_standard.Namespace:
         return dataframe_api_compat.pandas_standard.Namespace(
-            api_version=self.api_version,
+            api_version=self._api_version,
         )
 
     def persist(self) -> Column:
         return Column(
             self.column,
-            df=self.df,
-            api_version=self.api_version,
+            df=self._df,
+            api_version=self._api_version,
             is_persisted=True,
         )
 
@@ -131,17 +135,17 @@ class Column(ColumnT):
 
     @property
     def column(self) -> pd.Series[Any]:
-        return self._column
+        return self._series
 
     @property
     def dtype(self) -> DType:
         return dataframe_api_compat.pandas_standard.map_pandas_dtype_to_standard_dtype(
-            self._column.dtype,
+            self._series.dtype,
         )
 
     @property
     def parent_dataframe(self) -> DataFrame | None:
-        return self.df
+        return self._df
 
     def get_rows(self, indices: Column) -> Column:
         return self._from_series(self.column.iloc[indices.column])
@@ -154,8 +158,8 @@ class Column(ColumnT):
         ser = self.column
         return self._scalar(
             ser.iloc[row_number],
-            api_version=self.api_version,
-            df=self.df,
+            api_version=self._api_version,
+            df=self._df,
             is_persisted=self._is_persisted,
         )
 
@@ -276,6 +280,8 @@ class Column(ColumnT):
         remainder = self - quotient * other
         return quotient, remainder
 
+    # Unary
+
     def __invert__(self: Column) -> Column:
         ser = self.column
         return self._from_series(~ser)
@@ -285,35 +291,35 @@ class Column(ColumnT):
     def any(self, *, skip_nulls: bool | Scalar = True) -> Scalar:
         _skip_nulls = self._validate_comparand(skip_nulls)
         ser = self.column
-        return self._scalar(ser.any(), api_version=self.api_version, df=self.df)
+        return self._scalar(ser.any(), api_version=self._api_version, df=self._df)
 
     def all(self, *, skip_nulls: bool | Scalar = True) -> Scalar:
         ser = self.column
-        return self._scalar(ser.all(), api_version=self.api_version, df=self.df)
+        return self._scalar(ser.all(), api_version=self._api_version, df=self._df)
 
     def min(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
-        return self._scalar(ser.min(), api_version=self.api_version, df=self.df)
+        return self._scalar(ser.min(), api_version=self._api_version, df=self._df)
 
     def max(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
-        return self._scalar(ser.max(), api_version=self.api_version, df=self.df)
+        return self._scalar(ser.max(), api_version=self._api_version, df=self._df)
 
     def sum(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
-        return self._scalar(ser.sum(), api_version=self.api_version, df=self.df)
+        return self._scalar(ser.sum(), api_version=self._api_version, df=self._df)
 
     def prod(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
-        return self._scalar(ser.prod(), api_version=self.api_version, df=self.df)
+        return self._scalar(ser.prod(), api_version=self._api_version, df=self._df)
 
     def median(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
-        return self._scalar(ser.median(), api_version=self.api_version, df=self.df)
+        return self._scalar(ser.median(), api_version=self._api_version, df=self._df)
 
     def mean(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
-        return self._scalar(ser.mean(), api_version=self.api_version, df=self.df)
+        return self._scalar(ser.mean(), api_version=self._api_version, df=self._df)
 
     def std(
         self,
@@ -324,8 +330,8 @@ class Column(ColumnT):
         ser = self.column
         return self._scalar(
             ser.std(ddof=correction),
-            api_version=self.api_version,
-            df=self.df,
+            api_version=self._api_version,
+            df=self._df,
         )
 
     def var(
@@ -337,9 +343,13 @@ class Column(ColumnT):
         ser = self.column
         return self._scalar(
             ser.var(ddof=correction),
-            api_version=self.api_version,
-            df=self.df,
+            api_version=self._api_version,
+            df=self._df,
         )
+
+    def __len__(self) -> int:
+        ser = self._materialise()
+        return len(ser)
 
     # Transformations
 
@@ -364,6 +374,10 @@ class Column(ColumnT):
             return self._from_series(ser.sort_values().rename(self.name))
         return self._from_series(ser.sort_values().rename(self.name)[::-1])
 
+    def is_in(self, values: Column) -> Column:
+        ser = self.column
+        return self._from_series(ser.isin(values.column))
+
     def sorted_indices(
         self,
         *,
@@ -374,10 +388,6 @@ class Column(ColumnT):
         if ascending:
             return self._from_series(ser.sort_values().index.to_series(name=self.name))
         return self._from_series(ser.sort_values().index.to_series(name=self.name)[::-1])
-
-    def is_in(self, values: Column) -> Column:
-        ser = self.column
-        return self._from_series(ser.isin(values.column))
 
     def unique_indices(
         self,
@@ -442,19 +452,17 @@ class Column(ColumnT):
         ser = self.column
         return self._from_series(ser.rename(name))
 
-    def to_array(self) -> Any:
-        ser = self.materialise()
-        return ser.to_numpy(
-            dtype=NUMPY_MAPPING.get(self.column.dtype.name, self.column.dtype.name),
-        )
-
-    def __len__(self) -> int:
-        ser = self.materialise()
-        return len(ser)
-
     def shift(self, offset: int | Scalar) -> Column:
         ser = self.column
         return self._from_series(ser.shift(offset))
+
+    # Conversions
+
+    def to_array(self) -> Any:
+        ser = self._materialise()
+        return ser.to_numpy(
+            dtype=NUMPY_MAPPING.get(self.column.dtype.name, self.column.dtype.name),
+        )
 
     # --- temporal methods ---
 
@@ -518,42 +526,34 @@ class Column(ColumnT):
         else:  # pragma: no cover (todo: tz-awareness)
             result = ser.dt.tz_convert("UTC").dt.tz_localize(None) - datetime(1970, 1, 1)
         if time_unit == "s":
-            return self._from_series(
-                pd.Series(
-                    np.floor(result.dt.total_seconds().astype("float64")),
-                    name=ser.name,
-                ),
+            result = pd.Series(
+                np.floor(result.dt.total_seconds().astype("float64")),
+                name=ser.name,
             )
         elif time_unit == "ms":
-            return self._from_series(
-                pd.Series(
-                    np.floor(
-                        np.floor(result.dt.total_seconds()) * 1000
-                        + result.dt.microseconds // 1000,
-                    ),
-                    name=ser.name,
+            result = pd.Series(
+                np.floor(
+                    np.floor(result.dt.total_seconds()) * 1000
+                    + result.dt.microseconds // 1000,
                 ),
+                name=ser.name,
             )
         elif time_unit == "us":
-            return self._from_series(
-                pd.Series(
-                    np.floor(result.dt.total_seconds()) * 1_000_000
-                    + result.dt.microseconds,
-                    name=ser.name,
-                ),
+            result = pd.Series(
+                np.floor(result.dt.total_seconds()) * 1_000_000 + result.dt.microseconds,
+                name=ser.name,
             )
         elif time_unit == "ns":
-            return self._from_series(
-                pd.Series(
-                    (
-                        np.floor(result.dt.total_seconds()).astype("Int64") * 1_000_000
-                        + result.dt.microseconds.astype("Int64")
-                    )
-                    * 1000
-                    + result.dt.nanoseconds.astype("Int64"),
-                    name=ser.name,
-                ),
+            result = pd.Series(
+                (
+                    np.floor(result.dt.total_seconds()).astype("Int64") * 1_000_000
+                    + result.dt.microseconds.astype("Int64")
+                )
+                * 1000
+                + result.dt.nanoseconds.astype("Int64"),
+                name=ser.name,
             )
         else:  # pragma: no cover
             msg = "Got invalid time_unit"
             raise AssertionError(msg)
+        return self._from_series(result)

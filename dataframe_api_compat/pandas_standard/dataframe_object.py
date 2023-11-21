@@ -18,11 +18,11 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from dataframe_api import DataFrame as DataFrameT
+    from dataframe_api.typing import Column
     from dataframe_api.typing import DType
     from dataframe_api.typing import NullType
     from dataframe_api.typing import Scalar
 
-    from dataframe_api_compat.pandas_standard.column_object import Column
     from dataframe_api_compat.pandas_standard.group_by_object import GroupBy
 else:
     DataFrameT = object
@@ -38,13 +38,15 @@ class DataFrame(DataFrameT):
         api_version: str,
         is_persisted: bool = False,
     ) -> None:
-        self.is_persisted = is_persisted
+        self._is_persisted = is_persisted
         self._validate_columns(dataframe.columns)
         self._dataframe = dataframe.reset_index(drop=True)
-        self.api_version = api_version
+        self._api_version = api_version
 
-    def validate_is_persisted(self) -> pd.DataFrame:
-        if not self.is_persisted:
+    # Validation helper methods
+
+    def _validate_is_persisted(self) -> pd.DataFrame:
+        if not self._is_persisted:
             msg = "Method requires you to call `.persist` first.\n\nNote: `.persist` forces materialisation in lazy libraries and so should be called as late as possible in your pipeline. Use with care."
             raise ValueError(
                 msg,
@@ -52,7 +54,7 @@ class DataFrame(DataFrameT):
         return self.dataframe
 
     def __repr__(self) -> str:  # pragma: no cover
-        header = f" Standard DataFrame (api_version={self.api_version}) "
+        header = f" Standard DataFrame (api_version={self._api_version}) "
         length = len(header)
         return (
             "┌"
@@ -95,7 +97,7 @@ class DataFrame(DataFrameT):
                 )
             return other.value
         if isinstance(other, Column):
-            if id(self) != id(other.df):
+            if id(self) != id(other._df):
                 msg = "cannot compare columns from different dataframes"
                 raise ValueError(msg)
             return other.column
@@ -104,24 +106,23 @@ class DataFrame(DataFrameT):
     def _from_dataframe(self, df: pd.DataFrame) -> DataFrame:
         return DataFrame(
             df,
-            api_version=self.api_version,
+            api_version=self._api_version,
         )
 
     # In the Standard
 
     def col(self, name: str) -> Column:
-        """col"""
         from dataframe_api_compat.pandas_standard.column_object import Column
 
         return Column(
             self.dataframe.loc[:, name],
             df=self,
-            api_version=self.api_version,
-            is_persisted=self.is_persisted,
+            api_version=self._api_version,
+            is_persisted=self._is_persisted,
         )
 
     def shape(self) -> tuple[int, int]:
-        df = self.validate_is_persisted()
+        df = self._validate_is_persisted()
         return df.shape  # type: ignore[no-any-return]
 
     @property
@@ -137,7 +138,7 @@ class DataFrame(DataFrameT):
         self,
     ) -> dataframe_api_compat.pandas_standard.Namespace:
         return dataframe_api_compat.pandas_standard.Namespace(
-            api_version=self.api_version,
+            api_version=self._api_version,
         )
 
     @property
@@ -147,6 +148,10 @@ class DataFrame(DataFrameT):
     def columns_iter(self) -> Iterator[Column]:
         return (self.col(col_name) for col_name in self.column_names)
 
+    @property
+    def dataframe(self) -> pd.DataFrame:
+        return self._dataframe
+
     def slice_rows(
         self,
         start: int | None,
@@ -155,10 +160,6 @@ class DataFrame(DataFrameT):
     ) -> DataFrame:
         return self._from_dataframe(self.dataframe.iloc[start:stop:step])
 
-    @property
-    def dataframe(self) -> pd.DataFrame:
-        return self._dataframe
-
     def group_by(self, *keys: str) -> GroupBy:
         from dataframe_api_compat.pandas_standard.group_by_object import GroupBy
 
@@ -166,7 +167,7 @@ class DataFrame(DataFrameT):
             if key not in self.column_names:
                 msg = f"key {key} not present in DataFrame's columns"
                 raise KeyError(msg)
-        return GroupBy(self.dataframe, keys, api_version=self.api_version)
+        return GroupBy(self.dataframe, keys, api_version=self._api_version)
 
     def select(self, *columns: str) -> DataFrame:
         return self._from_dataframe(
@@ -175,7 +176,7 @@ class DataFrame(DataFrameT):
 
     def get_rows(
         self,
-        indices: Column,  # type: ignore[override]
+        indices: Column,
     ) -> DataFrame:
         self._validate_other(indices)
         return self._from_dataframe(
@@ -184,21 +185,21 @@ class DataFrame(DataFrameT):
 
     def filter(
         self,
-        mask: Column,  # type: ignore[override]
+        mask: Column,
     ) -> DataFrame:
-        self._validate_other(mask)
+        _mask = self._validate_other(mask)
         df = self.dataframe
-        df = df.loc[mask.column]
+        df = df.loc[_mask]
         return self._from_dataframe(df)
 
     def assign(
         self,
-        *columns: Column,  # type: ignore[override]
+        *columns: Column,
     ) -> DataFrame:
         df = self.dataframe.copy()  # TODO: remove defensive copy with CoW?
         for column in columns:
-            self._validate_other(column)
-            df[column.name] = column.column
+            _series = self._validate_other(column)
+            df[_series.name] = _series
         return self._from_dataframe(df)
 
     def drop_columns(self, *labels: str) -> DataFrame:
@@ -558,10 +559,10 @@ class DataFrame(DataFrameT):
     def persist(self) -> DataFrame:
         return DataFrame(
             self.dataframe,
-            api_version=self.api_version,
+            api_version=self._api_version,
             is_persisted=True,
         )
 
     def to_array(self, dtype: DType | None = None) -> Any:
-        self.validate_is_persisted()
+        self._validate_is_persisted()
         return self.dataframe.to_numpy()
