@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
 from functools import reduce
 from typing import TYPE_CHECKING
 from typing import Any
@@ -14,6 +13,8 @@ from dataframe_api_compat.polars_standard.dataframe_object import DataFrame
 from dataframe_api_compat.polars_standard.scalar_object import Scalar
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from dataframe_api.typing import DataFrame as DataFrameT
     from dataframe_api.typing import Namespace as NamespaceT
     from dataframe_api.typing import Scalar as ScalarT
@@ -300,7 +301,7 @@ class Namespace(NamespaceT):
         self,
         dataframes: Sequence[DataFrameT],
     ) -> DataFrame:
-        dataframes = cast(Sequence[DataFrame], dataframes)
+        dataframes = cast("Sequence[DataFrame]", dataframes)
         dfs: list[pl.LazyFrame] = []
         api_versions: set[str] = set()
         for df in dataframes:
