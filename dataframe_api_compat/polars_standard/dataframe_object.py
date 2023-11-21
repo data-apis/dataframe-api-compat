@@ -130,6 +130,7 @@ class DataFrame(DataFrameT):
         return self._df
 
     # In the Standard
+
     def __dataframe_namespace__(self) -> Namespace:
         return dataframe_api_compat.polars_standard.Namespace(
             api_version=self._api_version,
@@ -209,7 +210,20 @@ class DataFrame(DataFrameT):
         # just leave it in for backwards compatibility
         return self.dataframe.columns
 
-    # Binary
+    def sort(
+        self,
+        *keys: str,
+        ascending: Sequence[bool] | bool = True,
+        nulls_position: Literal["first", "last"] = "last",
+    ) -> DataFrame:
+        if not keys:
+            keys = tuple(self.dataframe.columns)
+        # TODO: what if there's multiple `ascending`?
+        return self._from_dataframe(
+            self.dataframe.sort(list(keys), descending=not ascending),
+        )
+
+    # Binary operations
 
     def __eq__(  # type: ignore[override]
         self,
@@ -449,19 +463,6 @@ class DataFrame(DataFrameT):
     ) -> Column:  # pragma: no cover
         msg = "Please use `__dataframe_namespace__().unique_indices` instead"
         raise NotImplementedError(msg)
-
-    def sort(
-        self,
-        *keys: str,
-        ascending: Sequence[bool] | bool = True,
-        nulls_position: Literal["first", "last"] = "last",
-    ) -> DataFrame:
-        if not keys:
-            keys = tuple(self.dataframe.columns)
-        # TODO: what if there's multiple `ascending`?
-        return self._from_dataframe(
-            self.dataframe.sort(list(keys), descending=not ascending),
-        )
 
     def fill_nan(
         self,

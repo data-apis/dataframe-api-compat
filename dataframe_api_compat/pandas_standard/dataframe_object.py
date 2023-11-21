@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from dataframe_api import DataFrame as DataFrameT
+    from dataframe_api.typing import AnyScalar
     from dataframe_api.typing import Column
     from dataframe_api.typing import DType
     from dataframe_api.typing import NullType
@@ -111,7 +112,7 @@ class DataFrame(DataFrameT):
 
     # Properties
     @property
-    def schema(self) -> dict[str, Any]:
+    def schema(self) -> dict[str, DType]:
         return {
             column_name: dataframe_api_compat.pandas_standard.map_pandas_dtype_to_standard_dtype(
                 dtype.name,
@@ -129,6 +130,16 @@ class DataFrame(DataFrameT):
 
     # In the Standard
 
+    def __dataframe_namespace__(
+        self,
+    ) -> dataframe_api_compat.pandas_standard.Namespace:
+        return dataframe_api_compat.pandas_standard.Namespace(
+            api_version=self._api_version,
+        )
+
+    def columns_iter(self) -> Iterator[Column]:
+        return (self.col(col_name) for col_name in self.column_names)
+
     def col(self, name: str) -> Column:
         from dataframe_api_compat.pandas_standard.column_object import Column
 
@@ -142,24 +153,6 @@ class DataFrame(DataFrameT):
     def shape(self) -> tuple[int, int]:
         df = self._validate_is_persisted()
         return df.shape  # type: ignore[no-any-return]
-
-    def __dataframe_namespace__(
-        self,
-    ) -> dataframe_api_compat.pandas_standard.Namespace:
-        return dataframe_api_compat.pandas_standard.Namespace(
-            api_version=self._api_version,
-        )
-
-    def columns_iter(self) -> Iterator[Column]:
-        return (self.col(col_name) for col_name in self.column_names)
-
-    def slice_rows(
-        self,
-        start: int | None,
-        stop: int | None,
-        step: int | None,
-    ) -> DataFrame:
-        return self._from_dataframe(self.dataframe.iloc[start:stop:step])
 
     def group_by(self, *keys: str) -> GroupBy:
         from dataframe_api_compat.pandas_standard.group_by_object import GroupBy
@@ -183,6 +176,14 @@ class DataFrame(DataFrameT):
         return self._from_dataframe(
             self.dataframe.iloc[indices.column, :],
         )
+
+    def slice_rows(
+        self,
+        start: int | None,
+        stop: int | None,
+        step: int | None,
+    ) -> DataFrame:
+        return self._from_dataframe(self.dataframe.iloc[start:stop:step])
 
     def filter(
         self,
@@ -237,97 +238,97 @@ class DataFrame(DataFrameT):
 
     # Binary operations
 
-    def __eq__(self, other: Any) -> DataFrame:  # type: ignore[override]
+    def __eq__(self, other: AnyScalar) -> DataFrame:  # type: ignore[override]
         return self._from_dataframe(self.dataframe.__eq__(other))
 
-    def __ne__(self, other: Any) -> DataFrame:  # type: ignore[override]
+    def __ne__(self, other: AnyScalar) -> DataFrame:  # type: ignore[override]
         return self._from_dataframe(self.dataframe.__ne__(other))
 
-    def __ge__(self, other: Any) -> DataFrame:
+    def __ge__(self, other: AnyScalar) -> DataFrame:
         return self._from_dataframe(self.dataframe.__ge__(other))
 
-    def __gt__(self, other: Any) -> DataFrame:
+    def __gt__(self, other: AnyScalar) -> DataFrame:
         return self._from_dataframe(self.dataframe.__gt__(other))
 
-    def __le__(self, other: Any) -> DataFrame:
+    def __le__(self, other: AnyScalar) -> DataFrame:
         return self._from_dataframe(self.dataframe.__le__(other))
 
-    def __lt__(self, other: Any) -> DataFrame:
+    def __lt__(self, other: AnyScalar) -> DataFrame:
         return self._from_dataframe(self.dataframe.__lt__(other))
 
-    def __and__(self, other: Any) -> DataFrame:
+    def __and__(self, other: AnyScalar) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.__and__(other),
         )
 
-    def __rand__(self, other: Column | Any) -> DataFrame:
+    def __rand__(self, other: Column | AnyScalar) -> DataFrame:
         return self.__and__(other)
 
-    def __or__(self, other: Any) -> DataFrame:
+    def __or__(self, other: AnyScalar) -> DataFrame:
         return self._from_dataframe(self.dataframe.__or__(other))
 
-    def __ror__(self, other: Column | Any) -> DataFrame:
+    def __ror__(self, other: Column | AnyScalar) -> DataFrame:
         return self.__or__(other)
 
-    def __add__(self, other: Any) -> DataFrame:
+    def __add__(self, other: AnyScalar) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.__add__(other),
         )
 
-    def __radd__(self, other: Column | Any) -> DataFrame:
+    def __radd__(self, other: Column | AnyScalar) -> DataFrame:
         return self.__add__(other)
 
-    def __sub__(self, other: Any) -> DataFrame:
+    def __sub__(self, other: AnyScalar) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.__sub__(other),
         )
 
-    def __rsub__(self, other: Column | Any) -> DataFrame:
+    def __rsub__(self, other: Column | AnyScalar) -> DataFrame:
         return -1 * self.__sub__(other)
 
-    def __mul__(self, other: Any) -> DataFrame:
+    def __mul__(self, other: AnyScalar) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.__mul__(other),
         )
 
-    def __rmul__(self, other: Column | Any) -> DataFrame:
+    def __rmul__(self, other: Column | AnyScalar) -> DataFrame:
         return self.__mul__(other)
 
-    def __truediv__(self, other: Any) -> DataFrame:
+    def __truediv__(self, other: AnyScalar) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.__truediv__(other),
         )
 
-    def __rtruediv__(self, other: Column | Any) -> DataFrame:  # pragma: no cover
+    def __rtruediv__(self, other: Column | AnyScalar) -> DataFrame:  # pragma: no cover
         raise NotImplementedError
 
-    def __floordiv__(self, other: Any) -> DataFrame:
+    def __floordiv__(self, other: AnyScalar) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.__floordiv__(other),
         )
 
-    def __rfloordiv__(self, other: Column | Any) -> DataFrame:  # pragma: no cover
+    def __rfloordiv__(self, other: Column | AnyScalar) -> DataFrame:  # pragma: no cover
         raise NotImplementedError
 
-    def __pow__(self, other: Any) -> DataFrame:
+    def __pow__(self, other: AnyScalar) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.__pow__(other),
         )
 
-    def __rpow__(self, other: Column | Any) -> DataFrame:  # pragma: no cover
+    def __rpow__(self, other: Column | AnyScalar) -> DataFrame:  # pragma: no cover
         raise NotImplementedError
 
-    def __mod__(self, other: Any) -> DataFrame:
+    def __mod__(self, other: AnyScalar) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.__mod__(other),
         )
 
-    def __rmod__(self, other: Column | Any) -> DataFrame:  # pragma: no cover
+    def __rmod__(self, other: Column | AnyScalar) -> DataFrame:  # pragma: no cover
         raise NotImplementedError
 
     def __divmod__(
         self,
-        other: DataFrame | Any,
+        other: DataFrame | AnyScalar,
     ) -> tuple[DataFrame, DataFrame]:
         quotient, remainder = self.dataframe.__divmod__(other)
         return self._from_dataframe(quotient), self._from_dataframe(
@@ -483,7 +484,7 @@ class DataFrame(DataFrameT):
 
     def fill_null(
         self,
-        value: Any,
+        value: AnyScalar,
         *,
         column_names: list[str] | None = None,
     ) -> DataFrame:
