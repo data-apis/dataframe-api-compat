@@ -23,13 +23,13 @@ else:
 
 class GroupBy(GroupByT):
     def __init__(self, df: pd.DataFrame, keys: Sequence[str], api_version: str) -> None:
-        self.df = df
-        self.grouped = df.groupby(list(keys), sort=False, as_index=False)
-        self.keys = list(keys)
+        self._df = df
+        self._grouped = df.groupby(list(keys), sort=False, as_index=False)
+        self._keys = list(keys)
         self._api_version = api_version
 
     def _validate_result(self, result: pd.DataFrame) -> None:
-        failed_columns = self.df.columns.difference(result.columns)
+        failed_columns = self._df.columns.difference(result.columns)
         if len(failed_columns) > 0:  # pragma: no cover
             msg = "Groupby operation could not be performed on columns "
             f"{failed_columns}. Please drop them before calling group_by."
@@ -37,58 +37,58 @@ class GroupBy(GroupByT):
                 msg,
             )
 
-    def size(self) -> DataFrame:
-        return DataFrame(self.grouped.size(), api_version=self._api_version)
-
     def _validate_booleanness(self) -> None:
         if not (
-            (self.df.drop(columns=self.keys).dtypes == "bool")
-            | (self.df.drop(columns=self.keys).dtypes == "boolean")
+            (self._df.drop(columns=self._keys).dtypes == "bool")
+            | (self._df.drop(columns=self._keys).dtypes == "boolean")
         ).all():
             msg = "'function' can only be called on DataFrame where all dtypes are 'bool'"
             raise TypeError(
                 msg,
             )
 
+    def size(self) -> DataFrame:
+        return DataFrame(self._grouped.size(), api_version=self._api_version)
+
     def any(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         self._validate_booleanness()
-        result = self.grouped.any()
+        result = self._grouped.any()
         self._validate_result(result)
         return DataFrame(result, api_version=self._api_version)
 
     def all(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         self._validate_booleanness()
-        result = self.grouped.all()
+        result = self._grouped.all()
         self._validate_result(result)
         return DataFrame(result, api_version=self._api_version)
 
     def min(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
-        result = self.grouped.min()
+        result = self._grouped.min()
         self._validate_result(result)
         return DataFrame(result, api_version=self._api_version)
 
     def max(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
-        result = self.grouped.max()
+        result = self._grouped.max()
         self._validate_result(result)
         return DataFrame(result, api_version=self._api_version)
 
     def sum(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
-        result = self.grouped.sum()
+        result = self._grouped.sum()
         self._validate_result(result)
         return DataFrame(result, api_version=self._api_version)
 
     def prod(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
-        result = self.grouped.prod()
+        result = self._grouped.prod()
         self._validate_result(result)
         return DataFrame(result, api_version=self._api_version)
 
     def median(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
-        result = self.grouped.median()
+        result = self._grouped.median()
         self._validate_result(result)
         return DataFrame(result, api_version=self._api_version)
 
     def mean(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
-        result = self.grouped.mean()
+        result = self._grouped.mean()
         self._validate_result(result)
         return DataFrame(result, api_version=self._api_version)
 
@@ -98,7 +98,7 @@ class GroupBy(GroupByT):
         correction: float | Scalar | NullType = 1.0,
         skip_nulls: bool | Scalar = True,
     ) -> DataFrame:
-        result = self.grouped.std()
+        result = self._grouped.std()
         self._validate_result(result)
         return DataFrame(result, api_version=self._api_version)
 
@@ -108,7 +108,7 @@ class GroupBy(GroupByT):
         correction: float | Scalar | NullType = 1.0,
         skip_nulls: bool | Scalar = True,
     ) -> DataFrame:
-        result = self.grouped.var()
+        result = self._grouped.var()
         self._validate_result(result)
         return DataFrame(result, api_version=self._api_version)
 
@@ -116,16 +116,17 @@ class GroupBy(GroupByT):
         self,
         *aggregations: AggregationT,
     ) -> DataFrame:
-        aggregations = validate_aggregations(*aggregations, keys=self.keys)
+        aggregations = validate_aggregations(*aggregations, keys=self._keys)
+        df = self._grouped.agg(
+            **{
+                aggregation.output_name: resolve_aggregation(  # type: ignore[attr-defined]
+                    aggregation,
+                )
+                for aggregation in aggregations
+            },
+        )
         return DataFrame(
-            self.grouped.agg(
-                **{
-                    aggregation.output_name: resolve_aggregation(  # type: ignore[attr-defined]
-                        aggregation,
-                    )
-                    for aggregation in aggregations
-                },
-            ),
+            df,
             api_version=self._api_version,
             is_persisted=False,
         )
