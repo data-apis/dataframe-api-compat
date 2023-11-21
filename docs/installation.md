@@ -11,6 +11,6 @@ Then, if you start the Python REPL and see the following:
 ```python
 >>> import dataframe_api_compat
 >>> dataframe_api_compat.__version__
-'0.1.35'
+'0.1.36'
 ```
 then installation worked correctly!
