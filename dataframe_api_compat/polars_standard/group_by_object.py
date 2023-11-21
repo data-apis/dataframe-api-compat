@@ -104,7 +104,6 @@ class GroupBy(GroupByT):
         self,
         *aggregations: AggregationT,
     ) -> DataFrame:
-        aggregations = validate_aggregations(*aggregations, keys=self.keys)
         return DataFrame(
             self.group_by(self.keys).agg(
                 *[resolve_aggregation(aggregation) for aggregation in aggregations],
@@ -114,19 +113,9 @@ class GroupBy(GroupByT):
         )
 
 
-def validate_aggregations(
-    *aggregations: AggregationT,
-    keys: Sequence[str],
-) -> tuple[AggregationT, ...]:
-    return tuple(
-        aggregation
-        if aggregation.column_name != "__placeholder__"  # type: ignore[attr-defined]
-        else aggregation.replace(column_name=keys[0])  # type: ignore[attr-defined]
-        for aggregation in aggregations
-    )
-
-
 def resolve_aggregation(aggregation: AggregationT) -> pl.Expr:
+    if aggregation.aggregation == "count":  # type: ignore[attr-defined]
+        return pl.count().alias(aggregation.output_name)
     return getattr(  # type: ignore[no-any-return]
         pl.col(aggregation.column_name),  # type: ignore[attr-defined]
         aggregation.aggregation,  # type: ignore[attr-defined]
