@@ -370,15 +370,15 @@ class Namespace(NamespaceT):
         def __repr__(self) -> str:  # pragma: no cover
             return f"{self.__class__.__name__}({self.column_name!r}, {self.output_name!r}, {self.aggregation!r})"
 
-        def rename(self, name: str | ScalarT) -> AggregationT:
-            return self.__class__(self.column_name, name, self.aggregation)  # type: ignore[arg-type]
-
-        def replace(self, **kwargs: str) -> AggregationT:
+        def _replace(self, **kwargs: str) -> AggregationT:
             return self.__class__(
                 column_name=kwargs.get("column_name", self.column_name),
                 output_name=kwargs.get("output_name", self.output_name),
                 aggregation=kwargs.get("aggregation", self.aggregation),
             )
+
+        def rename(self, name: str | ScalarT) -> AggregationT:
+            return self.__class__(self.column_name, name, self.aggregation)  # type: ignore[arg-type]
 
         @classmethod
         def any(
