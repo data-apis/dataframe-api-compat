@@ -91,11 +91,9 @@ class Column(ColumnT):
             )
         if self._df is not None:
             df = self._df.dataframe.collect().select(self._expr)
-            ser = df.get_column(df.columns[0])
         else:
             df = pl.select(self._expr)
-            ser = df.get_column(df.columns[0])
-        return ser
+        return df.get_column(df.columns[0])
 
     # In the standard
     def __column_namespace__(self) -> Namespace:  # pragma: no cover
@@ -117,10 +115,10 @@ class Column(ColumnT):
 
     def persist(self) -> Column:
         if self._df is not None:
-            column = self._df.materialise_expression(self._expr)
+            df = self._df.dataframe.collect().select(self._expr)
         else:
             df = pl.select(self._expr)
-            column = df.get_column(df.columns[0])
+        column = df.get_column(df.columns[0])
         return Column(
             pl.lit(column),
             df=self._df,
