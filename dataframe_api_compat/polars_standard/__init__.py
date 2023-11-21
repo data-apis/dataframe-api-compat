@@ -137,7 +137,7 @@ class Namespace(NamespaceT):
         for col in columns:
             ser = col.materialise()
             data[ser.name] = ser
-            api_version.add(col.api_version)
+            api_version.add(col._api_version)
         if len(api_version) > 1:  # pragma: no cover
             msg = f"found multiple api versions: {api_version}"
             raise ValueError(msg)

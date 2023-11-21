@@ -163,10 +163,10 @@ class DataFrame(DataFrameT):
         self._validate_other(indices)
         if POLARS_VERSION < "0.19.14":
             return self._from_dataframe(
-                self.dataframe.select(pl.all().take(indices.expr)),
+                self.dataframe.select(pl.all().take(indices._expr)),
             )
         return self._from_dataframe(
-            self.dataframe.select(pl.all().gather(indices.expr)),
+            self.dataframe.select(pl.all().gather(indices._expr)),
         )
 
     def slice_rows(
@@ -189,7 +189,7 @@ class DataFrame(DataFrameT):
                 )
             return other.value
         if isinstance(other, Column):
-            if id(self) != id(other.df):
+            if id(self) != id(other._df):
                 msg = "cannot compare columns from different dataframes"
                 raise ValueError(msg)
             return other.column
@@ -197,13 +197,13 @@ class DataFrame(DataFrameT):
 
     def filter(self, mask: Column) -> DataFrame:  # type: ignore[override]
         self._validate_other(mask)
-        return self._from_dataframe(self.df.filter(mask.expr))
+        return self._from_dataframe(self.df.filter(mask._expr))
 
     def assign(self, *columns: Column) -> DataFrame:  # type: ignore[override]
         new_columns: list[pl.Expr] = []
         for col in columns:
             self._validate_other(col)
-            new_columns.append(col.expr)
+            new_columns.append(col._expr)
         df = self.dataframe.with_columns(new_columns)
         return self._from_dataframe(df)
 
