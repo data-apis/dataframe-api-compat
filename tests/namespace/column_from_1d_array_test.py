@@ -121,7 +121,7 @@ def test_datetime_from_1d_array(library: str) -> None:
 
 
 @pytest.mark.skipif(
-    tuple(int(v) for v in pl.__version__.split(".")) < (0, 19, 8),
+    tuple(int(v) for v in pl.__version__.split(".")) < (0, 19, 9),
     reason="upstream bug",
 )
 def test_duration_from_1d_array(library: str) -> None:
