@@ -227,7 +227,7 @@ class DataFrame(DataFrameT):
 
     def __eq__(  # type: ignore[override]
         self,
-        other: Any,
+        other: AnyScalar,
     ) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*").__eq__(other)),
@@ -235,115 +235,136 @@ class DataFrame(DataFrameT):
 
     def __ne__(  # type: ignore[override]
         self,
-        other: Any,
+        other: AnyScalar,
     ) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*").__ne__(other)),
         )
 
-    def __ge__(self, other: Any) -> DataFrame:
+    def __ge__(self, other: AnyScalar) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*").__ge__(other)),
         )
 
-    def __gt__(self, other: Any) -> DataFrame:
+    def __gt__(self, other: AnyScalar) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*").__gt__(other)),
         )
 
-    def __le__(self, other: Any) -> DataFrame:
+    def __le__(self, other: AnyScalar) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*").__le__(other)),
         )
 
-    def __lt__(self, other: Any) -> DataFrame:
+    def __lt__(self, other: AnyScalar) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*").__lt__(other)),
         )
 
-    def __and__(self, other: Any) -> DataFrame:
+    def __and__(self, other: AnyScalar) -> DataFrame:
+        _other = self._validate_other(other)
         return self._from_dataframe(
-            self.dataframe.with_columns(pl.col("*") & other),
+            self.dataframe.with_columns(pl.col("*") & _other),
         )
 
-    def __rand__(self, other: Any) -> DataFrame:
-        return self.__and__(other)
+    def __rand__(self, other: AnyScalar) -> DataFrame:
+        _other = self._validate_other(other)
+        return self.__and__(_other)
 
-    def __or__(self, other: Any) -> DataFrame:
+    def __or__(self, other: AnyScalar) -> DataFrame:
+        _other = self._validate_other(other)
         return self._from_dataframe(
             self.dataframe.with_columns(
-                (pl.col(col) | other).alias(col) for col in self.dataframe.columns
+                (pl.col(col) | _other).alias(col) for col in self.dataframe.columns
             ),
         )
 
-    def __ror__(self, other: Any) -> DataFrame:
-        return self.__or__(other)
+    def __ror__(self, other: AnyScalar) -> DataFrame:
+        _other = self._validate_other(other)
+        return self.__or__(_other)
 
-    def __add__(self, other: Any) -> DataFrame:
+    def __add__(self, other: AnyScalar) -> DataFrame:
+        _other = self._validate_other(other)
         return self._from_dataframe(
-            self.dataframe.with_columns(pl.col("*").__add__(other)),
+            self.dataframe.with_columns(pl.col("*").__add__(_other)),
         )
 
-    def __radd__(self, other: Any) -> DataFrame:
-        return self.__add__(other)
+    def __radd__(self, other: AnyScalar) -> DataFrame:
+        _other = self._validate_other(other)
+        return self.__add__(_other)
 
-    def __sub__(self, other: Any) -> DataFrame:
+    def __sub__(self, other: AnyScalar) -> DataFrame:
+        _other = self._validate_other(other)
         return self._from_dataframe(
-            self.dataframe.with_columns(pl.col("*").__sub__(other)),
+            self.dataframe.with_columns(pl.col("*").__sub__(_other)),
         )
 
-    def __rsub__(self, other: Any) -> DataFrame:
-        return -1 * self.__sub__(other)
+    def __rsub__(self, other: AnyScalar) -> DataFrame:
+        _other = self._validate_other(other)
+        return -1 * self.__sub__(_other)
 
-    def __mul__(self, other: Any) -> DataFrame:
+    def __mul__(self, other: AnyScalar) -> DataFrame:
+        _other = self._validate_other(other)
         return self._from_dataframe(
-            self.dataframe.with_columns(pl.col("*").__mul__(other)),
+            self.dataframe.with_columns(pl.col("*").__mul__(_other)),
         )
 
-    def __rmul__(self, other: Any) -> DataFrame:
-        return self.__mul__(other)
+    def __rmul__(self, other: AnyScalar) -> DataFrame:
+        _other = self._validate_other(other)
+        return self.__mul__(_other)
 
-    def __truediv__(self, other: Any) -> DataFrame:
+    def __truediv__(self, other: AnyScalar) -> DataFrame:
+        _other = self._validate_other(other)
         return self._from_dataframe(
-            self.dataframe.with_columns(pl.col("*").__truediv__(other)),
+            self.dataframe.with_columns(pl.col("*").__truediv__(_other)),
         )
 
-    def __rtruediv__(self, other: Any) -> DataFrame:  # pragma: no cover
+    def __rtruediv__(self, other: AnyScalar) -> DataFrame:  # pragma: no cover
+        _other = self._validate_other(other)
         raise NotImplementedError
 
-    def __floordiv__(self, other: Any) -> DataFrame:
+    def __floordiv__(self, other: AnyScalar) -> DataFrame:
+        _other = self._validate_other(other)
         return self._from_dataframe(
-            self.dataframe.with_columns(pl.col("*").__floordiv__(other)),
+            self.dataframe.with_columns(pl.col("*").__floordiv__(_other)),
         )
 
-    def __rfloordiv__(self, other: Any) -> DataFrame:
+    def __rfloordiv__(self, other: AnyScalar) -> DataFrame:  # pragma: no cover
+        _other = self._validate_other(other)
         raise NotImplementedError
 
-    def __pow__(self, other: Any) -> DataFrame:
+    def __pow__(self, other: AnyScalar) -> DataFrame:
+        _other = self._validate_other(other)
         original_type = self.dataframe.schema
-        ret = self.dataframe.select([pl.col(col).pow(other) for col in self.column_names])
+        ret = self.dataframe.select(
+            [pl.col(col).pow(_other) for col in self.column_names],
+        )
         for column in self.dataframe.columns:
             ret = ret.with_columns(pl.col(column).cast(original_type[column]))
         return self._from_dataframe(ret)
 
-    def __rpow__(self, other: Any) -> DataFrame:  # pragma: no cover
+    def __rpow__(self, other: AnyScalar) -> DataFrame:  # pragma: no cover
+        _other = self._validate_other(other)
         raise NotImplementedError
 
-    def __mod__(self, other: Any) -> DataFrame:
+    def __mod__(self, other: AnyScalar) -> DataFrame:
+        _other = self._validate_other(other)
         return self._from_dataframe(
-            self.dataframe.with_columns(pl.col("*") % other),
+            self.dataframe.with_columns(pl.col("*") % _other),
         )
 
-    def __rmod__(self, other: Any) -> DataFrame:
+    def __rmod__(self, other: AnyScalar) -> DataFrame:  # type: ignore[misc]  # pragma: no cover
+        _other = self._validate_other(other)
         raise NotImplementedError
 
     def __divmod__(
         self,
-        other: DataFrame | Any,
+        other: DataFrame | AnyScalar,
     ) -> tuple[DataFrame, DataFrame]:
-        quotient_df = self.dataframe.with_columns(pl.col("*") // other)
+        _other = self._validate_other(other)
+        quotient_df = self.dataframe.with_columns(pl.col("*") // _other)
         remainder_df = self.dataframe.with_columns(
-            pl.col("*") - (pl.col("*") // other) * other,
+            pl.col("*") - (pl.col("*") // _other) * _other,
         )
         return self._from_dataframe(
             quotient_df,
