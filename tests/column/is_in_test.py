@@ -23,6 +23,7 @@ if TYPE_CHECKING:
         (float_dataframe_3, [True, False]),
     ],
 )
+@pytest.mark.filterwarnings("ignore:np.find_common_type is deprecated")
 def test_is_in(
     library: str,
     df_factory: Callable[[str], Any],
@@ -45,6 +46,7 @@ def test_is_in(
         (float_dataframe_3, [True, False]),
     ],
 )
+@pytest.mark.filterwarnings("ignore:np.find_common_type is deprecated")
 def test_expr_is_in(
     library: str,
     df_factory: Callable[[str], Any],
