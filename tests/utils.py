@@ -471,9 +471,9 @@ def temporal_dataframe_1(library: str) -> DataFrame:
 def interchange_to_pandas(result: Any) -> pd.DataFrame:
     if isinstance(result.dataframe, pl.LazyFrame):
         df = result.dataframe.collect()
+        df = df.to_pandas()
     else:
         df = result.dataframe
-    df = pd.api.interchange.from_dataframe(df)
     df = convert_dataframe_to_pandas_numpy(df)
     return cast(pd.DataFrame, df)
 
