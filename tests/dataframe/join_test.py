@@ -48,11 +48,7 @@ def test_join_outer(library: str) -> None:
             "c": [4.0, 2.0, float("nan"), 6.0],
         },
     )
-    if library == "pandas-nullable" and PANDAS_VERSION < (
-        2,
-        0,
-        0,
-    ):  # pragma: no cover
+    if library == "pandas-nullable" and PANDAS_VERSION < (2, 0, 0):  # pragma: no cover
         # upstream bug
         result_pd = result_pd.astype({"a": "int64"})
     pd.testing.assert_frame_equal(result_pd, expected)
