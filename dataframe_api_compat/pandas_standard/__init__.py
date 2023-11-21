@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime as dt
 import re
 from collections.abc import Sequence
 from functools import reduce
@@ -346,8 +347,6 @@ class Namespace(NamespaceT):
         return isinstance(dtype, tuple(dtypes))
 
     def date(self, year: int, month: int, day: int) -> Scalar:
-        import datetime as dt  # temporary: make own class
-
         return Scalar(
             pd.Timestamp(dt.date(year, month, day)),
             api_version=self._api_version,
