@@ -155,6 +155,20 @@ class Column(ColumnT):
             return self._from_expr(self._expr.take(indices._expr))
         return self._from_expr(self._expr.gather(indices._expr))
 
+    def filter(self, mask: Column) -> Column:
+        return self._from_expr(self._expr.filter(mask._expr))
+
+    def get_value(self, row_number: int) -> Any:
+        if POLARS_VERSION < "0.19.14":
+            return self._to_scalar(
+                self._expr.take(row_number),
+                is_persisted=self._is_persisted,
+            )
+        return self._to_scalar(
+            self._expr.gather(row_number),
+            is_persisted=self._is_persisted,
+        )
+
     def slice_rows(
         self,
         start: int | None,
@@ -170,121 +184,7 @@ class Column(ColumnT):
             return self._from_expr(self._expr.slice(start, length).take_every(step))
         return self._from_expr(self._expr.slice(start, length).gather_every(step))
 
-    def filter(self, mask: Column) -> Column:
-        return self._from_expr(self._expr.filter(mask._expr))
-
-    def get_value(self, row_number: int) -> Any:
-        if POLARS_VERSION < "0.19.14":
-            return self._to_scalar(
-                self._expr.take(row_number),
-                is_persisted=self._is_persisted,
-            )
-        return self._to_scalar(
-            self._expr.gather(row_number),
-            is_persisted=self._is_persisted,
-        )
-
-    def to_array(self) -> Any:
-        ser = self._materialise()
-        return ser.to_numpy()
-
-    def is_in(self, values: Self) -> Self:
-        return self._from_expr(self._expr.is_in(values._expr))
-
-    def unique_indices(
-        self,
-        *,
-        skip_nulls: bool | Scalar = True,
-    ) -> Self:
-        raise NotImplementedError
-
-    def is_null(self) -> Self:
-        return self._from_expr(self._expr.is_null())
-
-    def is_nan(self) -> Column:
-        return self._from_expr(self._expr.is_nan())
-
-    # Reductions
-
-    def any(self, *, skip_nulls: bool | Scalar = True) -> Scalar:
-        return self._to_scalar(self._expr.any())
-
-    def all(self, *, skip_nulls: bool | Scalar = True) -> Scalar:
-        return self._to_scalar(self._expr.all())
-
-    def min(
-        self,
-        *,
-        skip_nulls: bool | Scalar = True,
-    ) -> Scalar:
-        return self._to_scalar(self._expr.min())
-
-    def max(
-        self,
-        *,
-        skip_nulls: bool | Scalar = True,
-    ) -> Scalar:
-        return self._to_scalar(self._expr.max())
-
-    def sum(
-        self,
-        *,
-        skip_nulls: bool | Scalar = True,
-    ) -> Scalar:
-        return self._to_scalar(self._expr.sum())
-
-    def prod(
-        self,
-        *,
-        skip_nulls: bool | Scalar = True,
-    ) -> Scalar:
-        return self._to_scalar(self._expr.product())
-
-    def mean(
-        self,
-        *,
-        skip_nulls: bool | Scalar = True,
-    ) -> Scalar:
-        return self._to_scalar(self._expr.mean())
-
-    def median(
-        self,
-        *,
-        skip_nulls: bool | Scalar = True,
-    ) -> Scalar:
-        return self._to_scalar(self._expr.median())
-
-    def std(
-        self,
-        *,
-        correction: float | Scalar = 1.0,
-        skip_nulls: bool | Scalar = True,
-    ) -> Scalar:
-        return self._to_scalar(self._expr.std())
-
-    def var(
-        self,
-        *,
-        correction: float | Scalar | NullType = 1.0,
-        skip_nulls: bool | Scalar = True,
-    ) -> Scalar:
-        return self._to_scalar(self._expr.var())
-
-    # Binary
-
-    def __add__(self, other: Column | Any) -> Column:
-        other = self._validate_comparand(other)
-        return self._from_expr(self._expr + other)
-
-    def __radd__(self, other: Column | Any) -> Column:
-        return self.__add__(other)
-
-    def __sub__(self, other: Column | Any) -> Column:
-        other = self._validate_comparand(other)
-        return self._from_expr(self._expr - other)
-
-    def __rsub__(self, other: Column | Any) -> Column:
-        return -1 * self.__sub__(other)
+    # Binary comparisons
 
     def __eq__(self, other: Column | Any) -> Column:  # type: ignore[override]
         other = self._validate_comparand(other)
@@ -380,8 +280,114 @@ class Column(ColumnT):
     def __ror__(self, other: Column | Any | Scalar) -> Column:
         return self.__or__(other)
 
+    def __add__(self, other: Column | Any) -> Column:
+        other = self._validate_comparand(other)
+        return self._from_expr(self._expr + other)
+
+    def __radd__(self, other: Column | Any) -> Column:
+        return self.__add__(other)
+
+    def __sub__(self, other: Column | Any) -> Column:
+        other = self._validate_comparand(other)
+        return self._from_expr(self._expr - other)
+
+    def __rsub__(self, other: Column | Any) -> Column:
+        return -1 * self.__sub__(other)
+
+    # Unary
+
     def __invert__(self) -> Column:
         return self._from_expr(~self._expr)
+
+    # Reductions
+
+    def any(self, *, skip_nulls: bool | Scalar = True) -> Scalar:
+        return self._to_scalar(self._expr.any())
+
+    def all(self, *, skip_nulls: bool | Scalar = True) -> Scalar:
+        return self._to_scalar(self._expr.all())
+
+    def min(
+        self,
+        *,
+        skip_nulls: bool | Scalar = True,
+    ) -> Scalar:
+        return self._to_scalar(self._expr.min())
+
+    def max(
+        self,
+        *,
+        skip_nulls: bool | Scalar = True,
+    ) -> Scalar:
+        return self._to_scalar(self._expr.max())
+
+    def sum(
+        self,
+        *,
+        skip_nulls: bool | Scalar = True,
+    ) -> Scalar:
+        return self._to_scalar(self._expr.sum())
+
+    def prod(
+        self,
+        *,
+        skip_nulls: bool | Scalar = True,
+    ) -> Scalar:
+        return self._to_scalar(self._expr.product())
+
+    def mean(
+        self,
+        *,
+        skip_nulls: bool | Scalar = True,
+    ) -> Scalar:
+        return self._to_scalar(self._expr.mean())
+
+    def median(
+        self,
+        *,
+        skip_nulls: bool | Scalar = True,
+    ) -> Scalar:
+        return self._to_scalar(self._expr.median())
+
+    def std(
+        self,
+        *,
+        correction: float | Scalar = 1.0,
+        skip_nulls: bool | Scalar = True,
+    ) -> Scalar:
+        return self._to_scalar(self._expr.std())
+
+    def var(
+        self,
+        *,
+        correction: float | Scalar | NullType = 1.0,
+        skip_nulls: bool | Scalar = True,
+    ) -> Scalar:
+        return self._to_scalar(self._expr.var())
+
+    def __len__(self) -> int:
+        ser = self._materialise()
+        return len(ser)
+
+    # Transformations
+
+    def is_null(self) -> Self:
+        return self._from_expr(self._expr.is_null())
+
+    def is_nan(self) -> Column:
+        return self._from_expr(self._expr.is_nan())
+
+    def sort(
+        self,
+        *,
+        ascending: bool = True,
+        nulls_position: Literal["first", "last"] = "last",
+    ) -> Column:
+        expr = self._expr.sort(descending=not ascending)
+        return self._from_expr(expr)
+
+    def is_in(self, values: Self) -> Self:
+        return self._from_expr(self._expr.is_in(values._expr))
 
     def sorted_indices(
         self,
@@ -392,14 +398,12 @@ class Column(ColumnT):
         expr = self._expr.arg_sort(descending=not ascending)
         return self._from_expr(expr)
 
-    def sort(
+    def unique_indices(
         self,
         *,
-        ascending: bool = True,
-        nulls_position: Literal["first", "last"] = "last",
-    ) -> Column:
-        expr = self._expr.sort(descending=not ascending)
-        return self._from_expr(expr)
+        skip_nulls: bool | Scalar = True,
+    ) -> Self:
+        raise NotImplementedError
 
     def fill_nan(
         self,
@@ -438,13 +442,15 @@ class Column(ColumnT):
         _name = self._validate_comparand(name)
         return self._from_expr(self._expr.alias(_name))
 
-    def __len__(self) -> int:
-        ser = self._materialise()
-        return len(ser)
-
     def shift(self, offset: int | Scalar) -> Column:
         _offset = self._validate_comparand(offset)
         return self._from_expr(self._expr.shift(_offset))
+
+    # Conversions
+
+    def to_array(self) -> Any:
+        ser = self._materialise()
+        return ser.to_numpy()
 
     # --- temporal methods ---
 

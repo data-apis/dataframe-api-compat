@@ -280,6 +280,8 @@ class Column(ColumnT):
         remainder = self - quotient * other
         return quotient, remainder
 
+    # Unary
+
     def __invert__(self: Column) -> Column:
         ser = self.column
         return self._from_series(~ser)
@@ -345,6 +347,10 @@ class Column(ColumnT):
             df=self._df,
         )
 
+    def __len__(self) -> int:
+        ser = self._materialise()
+        return len(ser)
+
     # Transformations
 
     def is_null(self) -> Column:
@@ -368,6 +374,10 @@ class Column(ColumnT):
             return self._from_series(ser.sort_values().rename(self.name))
         return self._from_series(ser.sort_values().rename(self.name)[::-1])
 
+    def is_in(self, values: Column) -> Column:
+        ser = self.column
+        return self._from_series(ser.isin(values.column))
+
     def sorted_indices(
         self,
         *,
@@ -378,10 +388,6 @@ class Column(ColumnT):
         if ascending:
             return self._from_series(ser.sort_values().index.to_series(name=self.name))
         return self._from_series(ser.sort_values().index.to_series(name=self.name)[::-1])
-
-    def is_in(self, values: Column) -> Column:
-        ser = self.column
-        return self._from_series(ser.isin(values.column))
 
     def unique_indices(
         self,
@@ -446,19 +452,17 @@ class Column(ColumnT):
         ser = self.column
         return self._from_series(ser.rename(name))
 
+    def shift(self, offset: int | Scalar) -> Column:
+        ser = self.column
+        return self._from_series(ser.shift(offset))
+
+    # Conversions
+
     def to_array(self) -> Any:
         ser = self._materialise()
         return ser.to_numpy(
             dtype=NUMPY_MAPPING.get(self.column.dtype.name, self.column.dtype.name),
         )
-
-    def __len__(self) -> int:
-        ser = self._materialise()
-        return len(ser)
-
-    def shift(self, offset: int | Scalar) -> Column:
-        ser = self.column
-        return self._from_series(ser.shift(offset))
 
     # --- temporal methods ---
 
@@ -522,42 +526,34 @@ class Column(ColumnT):
         else:  # pragma: no cover (todo: tz-awareness)
             result = ser.dt.tz_convert("UTC").dt.tz_localize(None) - datetime(1970, 1, 1)
         if time_unit == "s":
-            return self._from_series(
-                pd.Series(
-                    np.floor(result.dt.total_seconds().astype("float64")),
-                    name=ser.name,
-                ),
+            result = pd.Series(
+                np.floor(result.dt.total_seconds().astype("float64")),
+                name=ser.name,
             )
         elif time_unit == "ms":
-            return self._from_series(
-                pd.Series(
-                    np.floor(
-                        np.floor(result.dt.total_seconds()) * 1000
-                        + result.dt.microseconds // 1000,
-                    ),
-                    name=ser.name,
+            result = pd.Series(
+                np.floor(
+                    np.floor(result.dt.total_seconds()) * 1000
+                    + result.dt.microseconds // 1000,
                 ),
+                name=ser.name,
             )
         elif time_unit == "us":
-            return self._from_series(
-                pd.Series(
-                    np.floor(result.dt.total_seconds()) * 1_000_000
-                    + result.dt.microseconds,
-                    name=ser.name,
-                ),
+            result = pd.Series(
+                np.floor(result.dt.total_seconds()) * 1_000_000 + result.dt.microseconds,
+                name=ser.name,
             )
         elif time_unit == "ns":
-            return self._from_series(
-                pd.Series(
-                    (
-                        np.floor(result.dt.total_seconds()).astype("Int64") * 1_000_000
-                        + result.dt.microseconds.astype("Int64")
-                    )
-                    * 1000
-                    + result.dt.nanoseconds.astype("Int64"),
-                    name=ser.name,
-                ),
+            result = pd.Series(
+                (
+                    np.floor(result.dt.total_seconds()).astype("Int64") * 1_000_000
+                    + result.dt.microseconds.astype("Int64")
+                )
+                * 1000
+                + result.dt.nanoseconds.astype("Int64"),
+                name=ser.name,
             )
         else:  # pragma: no cover
             msg = "Got invalid time_unit"
             raise AssertionError(msg)
+        return self._from_series(result)
