@@ -426,41 +426,6 @@ class DataFrame(DataFrameT):
             self.dataframe.select(pl.col("*").var()),
         )
 
-    # Horizontal reductions
-
-    def all_rowwise(
-        self,
-        *,
-        skip_nulls: bool | Scalar = True,
-    ) -> Column:  # pragma: no cover
-        msg = "Please use `__dataframe_namespace__().all` instead"
-        raise NotImplementedError(msg)
-
-    def any_rowwise(
-        self,
-        *,
-        skip_nulls: bool | Scalar = True,
-    ) -> Column:  # pragma: no cover
-        msg = "Please use `__dataframe_namespace__().any` instead"
-        raise NotImplementedError(msg)
-
-    def sorted_indices(
-        self,
-        *keys: str,
-        ascending: Sequence[bool] | bool = True,
-        nulls_position: Literal["first", "last"] = "last",
-    ) -> Column:  # pragma: no cover
-        msg = "Please use `__dataframe_namespace__().sorted_indices` instead"
-        raise NotImplementedError(msg)
-
-    def unique_indices(
-        self,
-        *keys: str,
-        skip_nulls: bool | Scalar = True,
-    ) -> Column:  # pragma: no cover
-        msg = "Please use `__dataframe_namespace__().unique_indices` instead"
-        raise NotImplementedError(msg)
-
     # Transformations
 
     def is_null(self) -> DataFrame:
@@ -504,7 +469,7 @@ class DataFrame(DataFrameT):
         column_names: list[str] | None = None,
     ) -> DataFrame:
         namespace = self.__dataframe_namespace__()
-        mask = ~namespace.any_rowwise(  # type: ignore[attr-defined]
+        mask = ~namespace.any_horizontal(
             *[
                 self.col(col_name).is_null()
                 for col_name in column_names or self.column_names

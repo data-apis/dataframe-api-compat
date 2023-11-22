@@ -53,9 +53,9 @@
       - __truediv__
       - __weakref__
       - all
-      - all_rowwise
+      - all_horizontal
       - any
-      - any_rowwise
+      - any_horizontal
       - api_version
       - assign
       - col

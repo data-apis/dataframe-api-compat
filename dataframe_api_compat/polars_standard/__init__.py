@@ -15,6 +15,7 @@ from dataframe_api_compat.polars_standard.scalar_object import Scalar
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from dataframe_api.typing import Column as ColumnT
     from dataframe_api.typing import DataFrame as DataFrameT
     from dataframe_api.typing import Namespace as NamespaceT
     from dataframe_api.typing import Scalar as ScalarT
@@ -334,21 +335,21 @@ class Namespace(NamespaceT):
 
     # Horizontal reductions
 
-    def all_rowwise(self, *columns: Column, skip_nulls: bool | ScalarT = True) -> Column:
+    def all_horizontal(self, *columns: ColumnT, skip_nulls: bool = True) -> ColumnT:
         return reduce(lambda x, y: x & y, columns)
 
-    def any_rowwise(self, *columns: Column, skip_nulls: bool | ScalarT = True) -> Column:
+    def any_horizontal(self, *columns: ColumnT, skip_nulls: bool = True) -> ColumnT:
         return reduce(lambda x, y: x | y, columns)
 
     def sorted_indices(
         self,
-        *keys: str,
+        *columns: ColumnT,
         ascending: Sequence[bool] | bool = True,
         nulls_position: Literal["first", "last"] = "last",
     ) -> Column:
         raise NotImplementedError
 
-    def unique_indices(self, *keys: str, skip_nulls: bool | ScalarT = True) -> Column:
+    def unique_indices(self, *columns: ColumnT, skip_nulls: bool = True) -> Column:
         raise NotImplementedError
 
 

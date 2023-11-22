@@ -356,11 +356,26 @@ class Namespace(NamespaceT):
 
     # --- horizontal reductions
 
-    def all_rowwise(self, *columns: ColumnT) -> ColumnT:
+    def all_horizontal(self, *columns: ColumnT, skip_nulls: bool = True) -> ColumnT:
         return reduce(lambda x, y: x & y, columns)
 
-    def any_rowwise(self, *columns: ColumnT) -> ColumnT:
+    def any_horizontal(self, *columns: ColumnT, skip_nulls: bool = True) -> ColumnT:
         return reduce(lambda x, y: x | y, columns)
+
+    def sorted_indices(
+        self,
+        *columns: ColumnT,
+        ascending: Sequence[bool] | bool = True,
+        nulls_position: Literal["first", "last"] = "last",
+    ) -> Column:
+        raise NotImplementedError
+
+    def unique_indices(
+        self,
+        *columns: ColumnT,
+        skip_nulls: bool | ScalarT = True,
+    ) -> Column:
+        raise NotImplementedError
 
     class Aggregation(AggregationT):
         def __init__(self, column_name: str, output_name: str, aggregation: str) -> None:
