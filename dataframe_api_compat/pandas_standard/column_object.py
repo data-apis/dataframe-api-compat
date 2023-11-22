@@ -85,27 +85,6 @@ class Column(ColumnT):
             df=self._df,
         )
 
-    def _validate_comparand(self, other: Any) -> Any:
-        from dataframe_api_compat.pandas_standard.scalar_object import Scalar
-
-        if isinstance(other, Scalar):
-            if other._df is None:
-                return other._value
-            if id(self._df) != id(other._df):
-                msg = "cannot compare columns/scalars from different dataframes"
-                raise ValueError(
-                    msg,
-                )
-            return other._value
-        if isinstance(other, Column):
-            if other._df is None:
-                return other.column
-            if id(self._df) != id(other._df):
-                msg = "cannot compare columns from different dataframes"
-                raise ValueError(msg)
-            return other.column
-        return other
-
     def _materialise(self) -> pd.Series:
         if not self._is_persisted:
             msg = "Column is not persisted, please call `.persist()` first.\nNote: `persist` forces computation, use it with care, only when you need to,\nand as late and little as possible."
@@ -290,7 +269,6 @@ class Column(ColumnT):
     # Reductions
 
     def any(self, *, skip_nulls: bool | Scalar = True) -> Scalar:
-        _skip_nulls = self._validate_comparand(skip_nulls)
         ser = self.column
         return self._scalar(ser.any(), api_version=self._api_version, df=self._df)
 
