@@ -11,7 +11,7 @@ from typing import NoReturn
 import polars as pl
 
 import dataframe_api_compat
-from dataframe_api_compat.utils import validate
+from dataframe_api_compat.utils import validate_comparand
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -147,7 +147,7 @@ class DataFrame(DataFrameT):
         )
 
     def get_rows(self, indices: Column) -> DataFrame:
-        _indices = validate(self, indices)
+        _indices = validate_comparand(self, indices)
         if POLARS_VERSION < (0, 19, 14):
             return self._from_dataframe(
                 self.dataframe.select(pl.all().take(_indices)),
@@ -165,13 +165,13 @@ class DataFrame(DataFrameT):
         return self._from_dataframe(self._df[start:stop:step])
 
     def filter(self, mask: Column) -> DataFrame:
-        _mask = validate(self, mask)
+        _mask = validate_comparand(self, mask)
         return self._from_dataframe(self._df.filter(_mask))
 
     def assign(self, *columns: Column) -> DataFrame:
         new_columns: list[pl.Expr] = []
         for col in columns:
-            _expr = validate(self, col)
+            _expr = validate_comparand(self, col)
             new_columns.append(_expr)
         df = self.dataframe.with_columns(new_columns)
         return self._from_dataframe(df)
@@ -245,17 +245,17 @@ class DataFrame(DataFrameT):
         )
 
     def __and__(self, other: AnyScalar) -> DataFrame:
-        _other = validate(self, other)
+        _other = validate_comparand(self, other)
         return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*") & _other),
         )
 
     def __rand__(self, other: AnyScalar) -> DataFrame:
-        _other = validate(self, other)
+        _other = validate_comparand(self, other)
         return self.__and__(_other)
 
     def __or__(self, other: AnyScalar) -> DataFrame:
-        _other = validate(self, other)
+        _other = validate_comparand(self, other)
         return self._from_dataframe(
             self.dataframe.with_columns(
                 (pl.col(col) | _other).alias(col) for col in self.dataframe.columns
@@ -263,61 +263,61 @@ class DataFrame(DataFrameT):
         )
 
     def __ror__(self, other: AnyScalar) -> DataFrame:
-        _other = validate(self, other)
+        _other = validate_comparand(self, other)
         return self.__or__(_other)
 
     def __add__(self, other: AnyScalar) -> DataFrame:
-        _other = validate(self, other)
+        _other = validate_comparand(self, other)
         return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*").__add__(_other)),
         )
 
     def __radd__(self, other: AnyScalar) -> DataFrame:
-        _other = validate(self, other)
+        _other = validate_comparand(self, other)
         return self.__add__(_other)
 
     def __sub__(self, other: AnyScalar) -> DataFrame:
-        _other = validate(self, other)
+        _other = validate_comparand(self, other)
         return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*").__sub__(_other)),
         )
 
     def __rsub__(self, other: AnyScalar) -> DataFrame:
-        _other = validate(self, other)
+        _other = validate_comparand(self, other)
         return -1 * self.__sub__(_other)
 
     def __mul__(self, other: AnyScalar) -> DataFrame:
-        _other = validate(self, other)
+        _other = validate_comparand(self, other)
         return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*").__mul__(_other)),
         )
 
     def __rmul__(self, other: AnyScalar) -> DataFrame:
-        _other = validate(self, other)
+        _other = validate_comparand(self, other)
         return self.__mul__(_other)
 
     def __truediv__(self, other: AnyScalar) -> DataFrame:
-        _other = validate(self, other)
+        _other = validate_comparand(self, other)
         return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*").__truediv__(_other)),
         )
 
     def __rtruediv__(self, other: AnyScalar) -> DataFrame:  # pragma: no cover
-        _other = validate(self, other)
+        _other = validate_comparand(self, other)
         raise NotImplementedError
 
     def __floordiv__(self, other: AnyScalar) -> DataFrame:
-        _other = validate(self, other)
+        _other = validate_comparand(self, other)
         return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*").__floordiv__(_other)),
         )
 
     def __rfloordiv__(self, other: AnyScalar) -> DataFrame:  # pragma: no cover
-        _other = validate(self, other)
+        _other = validate_comparand(self, other)
         raise NotImplementedError
 
     def __pow__(self, other: AnyScalar) -> DataFrame:
-        _other = validate(self, other)
+        _other = validate_comparand(self, other)
         original_type = self.dataframe.schema
         ret = self.dataframe.select(
             [pl.col(col).pow(_other) for col in self.column_names],
@@ -327,24 +327,24 @@ class DataFrame(DataFrameT):
         return self._from_dataframe(ret)
 
     def __rpow__(self, other: AnyScalar) -> DataFrame:  # pragma: no cover
-        _other = validate(self, other)
+        _other = validate_comparand(self, other)
         raise NotImplementedError
 
     def __mod__(self, other: AnyScalar) -> DataFrame:
-        _other = validate(self, other)
+        _other = validate_comparand(self, other)
         return self._from_dataframe(
             self.dataframe.with_columns(pl.col("*") % _other),
         )
 
     def __rmod__(self, other: AnyScalar) -> DataFrame:  # type: ignore[misc]  # pragma: no cover
-        _other = validate(self, other)
+        _other = validate_comparand(self, other)
         raise NotImplementedError
 
     def __divmod__(
         self,
         other: DataFrame | AnyScalar,
     ) -> tuple[DataFrame, DataFrame]:
-        _other = validate(self, other)
+        _other = validate_comparand(self, other)
         quotient_df = self.dataframe.with_columns(pl.col("*") // _other)
         remainder_df = self.dataframe.with_columns(
             pl.col("*") - (pl.col("*") // _other) * _other,
@@ -476,7 +476,7 @@ class DataFrame(DataFrameT):
         self,
         value: float | NullType | Scalar,
     ) -> DataFrame:
-        _value = validate(self, value)
+        _value = validate_comparand(self, value)
         if isinstance(_value, self.__dataframe_namespace__().NullType):
             return self._from_dataframe(
                 self.dataframe.fill_nan(pl.lit(None)),

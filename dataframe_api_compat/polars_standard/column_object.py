@@ -7,7 +7,7 @@ from typing import NoReturn
 
 import polars as pl
 
-from dataframe_api_compat.utils import validate
+from dataframe_api_compat.utils import validate_comparand
 
 POLARS_VERSION = tuple(int(v) for v in pl.__version__.split("."))
 
@@ -170,31 +170,31 @@ class Column(ColumnT):
     # Binary comparisons
 
     def __eq__(self, other: Column | Any) -> Column:  # type: ignore[override]
-        other = validate(self, other)
+        other = validate_comparand(self, other)
         return self._from_expr(self._expr == other)
 
     def __ne__(self, other: Column | Any) -> Column:  # type: ignore[override]
-        other = validate(self, other)
+        other = validate_comparand(self, other)
         return self._from_expr(self._expr != other)
 
     def __ge__(self, other: Column | Any) -> Column:
-        other = validate(self, other)
+        other = validate_comparand(self, other)
         return self._from_expr(self._expr >= other)
 
     def __gt__(self, other: Column | Any) -> Column:
-        other = validate(self, other)
+        other = validate_comparand(self, other)
         return self._from_expr(self._expr > other)
 
     def __le__(self, other: Column | Any) -> Column:
-        other = validate(self, other)
+        other = validate_comparand(self, other)
         return self._from_expr(self._expr <= other)
 
     def __lt__(self, other: Column | Any) -> Column:
-        other = validate(self, other)
+        other = validate_comparand(self, other)
         return self._from_expr(self._expr < other)
 
     def __mul__(self, other: Column | Any) -> Column:
-        other = validate(self, other)
+        other = validate_comparand(self, other)
         res = self._expr * other
         return self._from_expr(res)
 
@@ -202,14 +202,14 @@ class Column(ColumnT):
         return self.__mul__(other)
 
     def __floordiv__(self, other: Column | Any) -> Column:
-        other = validate(self, other)
+        other = validate_comparand(self, other)
         return self._from_expr(self._expr // other)
 
     def __rfloordiv__(self, other: Column | Any) -> Column:
         raise NotImplementedError
 
     def __truediv__(self, other: Column | Any) -> Column:
-        other = validate(self, other)
+        other = validate_comparand(self, other)
         res = self._expr / other
         return self._from_expr(res)
 
@@ -217,7 +217,7 @@ class Column(ColumnT):
         raise NotImplementedError
 
     def __pow__(self, other: Column | Any) -> Column:
-        other = validate(self, other)
+        other = validate_comparand(self, other)
         ret = self._expr.pow(other)
         return self._from_expr(ret)
 
@@ -225,7 +225,7 @@ class Column(ColumnT):
         raise NotImplementedError
 
     def __mod__(self, other: Column | Any) -> Column:
-        other = validate(self, other)
+        other = validate_comparand(self, other)
         return self._from_expr(self._expr % other)
 
     def __rmod__(self, other: Column | Any) -> Column:
@@ -244,7 +244,7 @@ class Column(ColumnT):
         self,
         other: Self | bool | Scalar,
     ) -> Self:
-        _other = validate(self, other)
+        _other = validate_comparand(self, other)
         return self._from_expr(self._expr & _other)
 
     def __rand__(
@@ -257,21 +257,21 @@ class Column(ColumnT):
         self,
         other: Self | bool | Scalar,
     ) -> Self:
-        other = validate(self, other)
+        other = validate_comparand(self, other)
         return self._from_expr(self._expr | other)  # type: ignore[operator, arg-type]
 
     def __ror__(self, other: Column | Any | Scalar) -> Column:
         return self.__or__(other)
 
     def __add__(self, other: Column | Any) -> Column:
-        other = validate(self, other)
+        other = validate_comparand(self, other)
         return self._from_expr(self._expr + other)
 
     def __radd__(self, other: Column | Any) -> Column:
         return self.__add__(other)
 
     def __sub__(self, other: Column | Any) -> Column:
-        other = validate(self, other)
+        other = validate_comparand(self, other)
         return self._from_expr(self._expr - other)
 
     def __rsub__(self, other: Column | Any) -> Column:
@@ -392,13 +392,13 @@ class Column(ColumnT):
         self,
         value: float | NullType | Scalar,
     ) -> Column:
-        _value = validate(self, value)
+        _value = validate_comparand(self, value)
         if isinstance(_value, self.__column_namespace__().NullType):
             return self._from_expr(self._expr.fill_nan(pl.lit(None)))
         return self._from_expr(self._expr.fill_nan(_value))
 
     def fill_null(self, value: Any) -> Column:
-        value = validate(self, value)
+        value = validate_comparand(self, value)
         return self._from_expr(self._expr.fill_null(value))
 
     def cumulative_sum(self, *, skip_nulls: bool | Scalar = True) -> Column:
@@ -422,11 +422,11 @@ class Column(ColumnT):
         return self._from_expr(self._expr.cum_min())
 
     def rename(self, name: str | Scalar) -> Column:
-        _name = validate(self, name)
+        _name = validate_comparand(self, name)
         return self._from_expr(self._expr.alias(_name))
 
     def shift(self, offset: int | Scalar) -> Column:
-        _offset = validate(self, offset)
+        _offset = validate_comparand(self, offset)
         return self._from_expr(self._expr.shift(_offset))
 
     # Conversions
@@ -481,7 +481,7 @@ class Column(ColumnT):
         *,
         time_unit: str | Scalar = "s",
     ) -> Column:
-        _time_unit = validate(self, time_unit)
+        _time_unit = validate_comparand(self, time_unit)
         if _time_unit != "s":
             return self._from_expr(self._expr.dt.timestamp(time_unit=_time_unit))
         return self._from_expr(self._expr.dt.timestamp(time_unit="ms") // 1000)
