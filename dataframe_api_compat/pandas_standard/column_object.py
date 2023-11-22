@@ -394,7 +394,7 @@ class Column(ColumnT):
         self,
         value: Any,
     ) -> Column:
-        value = self._validate_comparand(value)
+        value = validate(self, value)
         ser = self.column.copy()
         if is_extension_array_dtype(ser.dtype):
             # Mask should include NA values, but not NaN ones

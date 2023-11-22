@@ -66,25 +66,6 @@ class Column(ColumnT):
     def _from_expr(self, expr: pl.Expr) -> Self:
         return self.__class__(expr, df=self._df, api_version=self._api_version)
 
-    def _validate_comparand(self, other: Any) -> Any:
-        from dataframe_api_compat.polars_standard.scalar_object import Scalar
-
-        if isinstance(other, Scalar):
-            if other._df is None:
-                return other._value
-            if id(self._df) != id(other._df):
-                msg = "Columns/scalars are from different dataframes"
-                raise ValueError(msg)
-            return other._value
-        if isinstance(other, Column):
-            if other._df is None:
-                return other._expr
-            if id(self._df) != id(other._df):
-                msg = "Columns are from different dataframes"
-                raise ValueError(msg)
-            return other._expr
-        return other
-
     def _materialise(self) -> pl.Series:
         if not self._is_persisted:
             msg = "Column is not persisted, please call `.persist()` first.\nNote: `persist` forces computation, use it with care, only when you need to,\nand as late and little as possible."
@@ -411,13 +392,13 @@ class Column(ColumnT):
         self,
         value: float | NullType | Scalar,
     ) -> Column:
-        _value = self._validate_comparand(value)
+        _value = validate(self, value)
         if isinstance(_value, self.__column_namespace__().NullType):
             return self._from_expr(self._expr.fill_nan(pl.lit(None)))
         return self._from_expr(self._expr.fill_nan(_value))
 
     def fill_null(self, value: Any) -> Column:
-        value = self._validate_comparand(value)
+        value = validate(self, value)
         return self._from_expr(self._expr.fill_null(value))
 
     def cumulative_sum(self, *, skip_nulls: bool | Scalar = True) -> Column:
@@ -441,11 +422,11 @@ class Column(ColumnT):
         return self._from_expr(self._expr.cum_min())
 
     def rename(self, name: str | Scalar) -> Column:
-        _name = self._validate_comparand(name)
+        _name = validate(self, name)
         return self._from_expr(self._expr.alias(_name))
 
     def shift(self, offset: int | Scalar) -> Column:
-        _offset = self._validate_comparand(offset)
+        _offset = validate(self, offset)
         return self._from_expr(self._expr.shift(_offset))
 
     # Conversions
@@ -500,7 +481,7 @@ class Column(ColumnT):
         *,
         time_unit: str | Scalar = "s",
     ) -> Column:
-        _time_unit = self._validate_comparand(time_unit)
+        _time_unit = validate(self, time_unit)
         if _time_unit != "s":
             return self._from_expr(self._expr.dt.timestamp(time_unit=_time_unit))
         return self._from_expr(self._expr.dt.timestamp(time_unit="ms") // 1000)
