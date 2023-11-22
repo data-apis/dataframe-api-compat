@@ -430,7 +430,7 @@ def convert_to_standard_compliant_column(
 
 
 def convert_to_standard_compliant_dataframe(
-    df: pl.LazyFrame,
+    df: pl.LazyFrame | pl.DataFrame,
     api_version: str | None = None,
 ) -> DataFrame:
     df_lazy = df.lazy() if isinstance(df, pl.DataFrame) else df
