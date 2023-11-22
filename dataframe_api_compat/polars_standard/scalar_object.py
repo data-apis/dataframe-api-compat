@@ -5,13 +5,14 @@ from typing import Any
 
 import polars as pl
 
-from dataframe_api_compat.polars_standard.column_object import Column
-from dataframe_api_compat.polars_standard.dataframe_object import DataFrame
+from dataframe_api_compat.utils import validate
 
 if TYPE_CHECKING:
     from dataframe_api.typing import DType
     from dataframe_api.typing import Namespace
     from dataframe_api.typing import Scalar as ScalarT
+
+    from dataframe_api_compat.polars_standard.dataframe_object import DataFrame
 else:
     ScalarT = object
 
@@ -34,18 +35,6 @@ class Scalar(ScalarT):
         from dataframe_api_compat.polars_standard import Namespace
 
         return Namespace(api_version=self._api_version)
-
-    def _validate_other(self, other: Any) -> Any:
-        if isinstance(other, (Column, DataFrame)):
-            return NotImplemented
-        if isinstance(other, Scalar):
-            if id(self._df) != id(other._df):
-                msg = "cannot compare columns/scalars from different dataframes"
-                raise ValueError(
-                    msg,
-                )
-            return other._value
-        return other
 
     def _from_scalar(self, scalar: Scalar) -> Scalar:
         return Scalar(scalar, df=self._df, api_version=self._api_version)
@@ -88,121 +77,121 @@ class Scalar(ScalarT):
         )
 
     def __lt__(self, other: Any) -> Scalar:
-        other = self._validate_other(other)
+        other = validate(self, other)
         if other is NotImplemented:
             return NotImplemented
         return self._from_scalar(self._value.__lt__(other))
 
     def __le__(self, other: Any) -> Scalar:
-        other = self._validate_other(other)
+        other = validate(self, other)
         if other is NotImplemented:
             return NotImplemented
         return self._from_scalar(self._value.__le__(other))
 
     def __eq__(self, other: Any) -> Scalar:  # type: ignore[override]
-        other = self._validate_other(other)
+        other = validate(self, other)
         if other is NotImplemented:
             return NotImplemented
         return self._from_scalar(self._value.__eq__(other))
 
     def __ne__(self, other: Any) -> Scalar:  # type: ignore[override]
-        other = self._validate_other(other)
+        other = validate(self, other)
         if other is NotImplemented:
             return NotImplemented
         return self._from_scalar(self._value.__ne__(other))
 
     def __gt__(self, other: Any) -> Scalar:
-        other = self._validate_other(other)
+        other = validate(self, other)
         if other is NotImplemented:
             return NotImplemented
         return self._from_scalar(self._value.__gt__(other))
 
     def __ge__(self, other: Any) -> Scalar:
-        other = self._validate_other(other)
+        other = validate(self, other)
         if other is NotImplemented:
             return NotImplemented
         return self._from_scalar(self._value.__ge__(other))
 
     def __add__(self, other: Any) -> Scalar:
-        other = self._validate_other(other)
+        other = validate(self, other)
         if other is NotImplemented:
             return NotImplemented
         return self._from_scalar(self._value.__add__(other))
 
     def __radd__(self, other: Any) -> Scalar:
-        other = self._validate_other(other)
+        other = validate(self, other)
         if other is NotImplemented:
             return NotImplemented
         return self._from_scalar(self._value.__radd__(other))
 
     def __sub__(self, other: Any) -> Scalar:
-        other = self._validate_other(other)
+        other = validate(self, other)
         if other is NotImplemented:
             return NotImplemented
         return self._from_scalar(self._value.__sub__(other))
 
     def __rsub__(self, other: Any) -> Scalar:
-        other = self._validate_other(other)
+        other = validate(self, other)
         if other is NotImplemented:
             return NotImplemented
         return self._from_scalar(self._value.__rsub__(other))
 
     def __mul__(self, other: Any) -> Scalar:
-        other = self._validate_other(other)
+        other = validate(self, other)
         if other is NotImplemented:
             return NotImplemented
         return self._from_scalar(self._value.__mul__(other))
 
     def __rmul__(self, other: Any) -> Scalar:
-        other = self._validate_other(other)
+        other = validate(self, other)
         if other is NotImplemented:
             return NotImplemented
         return self._from_scalar(self._value.__rmul__(other))
 
     def __mod__(self, other: Any) -> Scalar:
-        other = self._validate_other(other)
+        other = validate(self, other)
         if other is NotImplemented:
             return NotImplemented
         return self._from_scalar(self._value.__mod__(other))
 
     def __rmod__(self, other: Any) -> Scalar:
-        other = self._validate_other(other)
+        other = validate(self, other)
         if other is NotImplemented:
             return NotImplemented
         return self._from_scalar(self._value.__rmod__(other))
 
     def __pow__(self, other: Any) -> Scalar:
-        other = self._validate_other(other)
+        other = validate(self, other)
         if other is NotImplemented:
             return NotImplemented
         return self._from_scalar(self._value.__pow__(other))
 
     def __rpow__(self, other: Any) -> Scalar:
-        other = self._validate_other(other)
+        other = validate(self, other)
         if other is NotImplemented:
             return NotImplemented
         return self._from_scalar(self._value.__rpow__(other))
 
     def __floordiv__(self, other: Any) -> Scalar:
-        other = self._validate_other(other)
+        other = validate(self, other)
         if other is NotImplemented:
             return NotImplemented
         return self._from_scalar(self._value.__floordiv__(other))
 
     def __rfloordiv__(self, other: Any) -> Scalar:
-        other = self._validate_other(other)
+        other = validate(self, other)
         if other is NotImplemented:
             return NotImplemented
         return self._from_scalar(self._value.__rfloordiv__(other))
 
     def __truediv__(self, other: Any) -> Scalar:
-        other = self._validate_other(other)
+        other = validate(self, other)
         if other is NotImplemented:
             return NotImplemented
         return self._from_scalar(self._value.__truediv__(other))
 
     def __rtruediv__(self, other: Any) -> Scalar:
-        other = self._validate_other(other)
+        other = validate(self, other)
         if other is NotImplemented:
             return NotImplemented
         return self._from_scalar(self._value.__rtruediv__(other))
