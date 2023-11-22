@@ -12,6 +12,7 @@ import pandas as pd
 from pandas.api.types import is_extension_array_dtype
 
 import dataframe_api_compat
+from dataframe_api_compat.utils import validate_comparand
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -86,24 +87,6 @@ class DataFrame(DataFrameT):
                 msg,
             )
 
-    def _validate_other(self, other: Any) -> Any:
-        from dataframe_api_compat.pandas_standard.column_object import Column
-        from dataframe_api_compat.pandas_standard.scalar_object import Scalar
-
-        if isinstance(other, Scalar):
-            if id(self) != id(other._df):
-                msg = "cannot compare columns/scalars from different dataframes"
-                raise ValueError(
-                    msg,
-                )
-            return other._value
-        if isinstance(other, Column):
-            if id(self) != id(other._df):
-                msg = "cannot compare columns from different dataframes"
-                raise ValueError(msg)
-            return other.column
-        return other
-
     def _from_dataframe(self, df: pd.DataFrame) -> DataFrame:
         return DataFrame(
             df,
@@ -172,9 +155,9 @@ class DataFrame(DataFrameT):
         self,
         indices: Column,
     ) -> DataFrame:
-        self._validate_other(indices)
+        _indices = validate_comparand(self, indices)
         return self._from_dataframe(
-            self.dataframe.iloc[indices.column.to_list(), :],
+            self.dataframe.iloc[_indices.to_list(), :],
         )
 
     def slice_rows(
@@ -189,7 +172,7 @@ class DataFrame(DataFrameT):
         self,
         mask: Column,
     ) -> DataFrame:
-        _mask = self._validate_other(mask)
+        _mask = validate_comparand(self, mask)
         df = self.dataframe
         df = df.loc[_mask]
         return self._from_dataframe(df)
@@ -200,7 +183,7 @@ class DataFrame(DataFrameT):
     ) -> DataFrame:
         df = self.dataframe.copy()  # TODO: remove defensive copy with CoW?
         for column in columns:
-            _series = self._validate_other(column)
+            _series = validate_comparand(self, column)
             df[_series.name] = _series
         return self._from_dataframe(df)
 
@@ -262,92 +245,92 @@ class DataFrame(DataFrameT):
         )
 
     def __rand__(self, other: Column | AnyScalar) -> DataFrame:
-        _other = self._validate_other(other)
+        _other = validate_comparand(self, other)
         return self.__and__(_other)
 
     def __or__(self, other: AnyScalar) -> DataFrame:
-        _other = self._validate_other(other)
+        _other = validate_comparand(self, other)
         return self._from_dataframe(self.dataframe.__or__(_other))
 
     def __ror__(self, other: Column | AnyScalar) -> DataFrame:
-        _other = self._validate_other(other)
+        _other = validate_comparand(self, other)
         return self.__or__(_other)
 
     def __add__(self, other: AnyScalar) -> DataFrame:
-        _other = self._validate_other(other)
+        _other = validate_comparand(self, other)
         return self._from_dataframe(
             self.dataframe.__add__(_other),
         )
 
     def __radd__(self, other: Column | AnyScalar) -> DataFrame:
-        _other = self._validate_other(other)
+        _other = validate_comparand(self, other)
         return self.__add__(_other)
 
     def __sub__(self, other: AnyScalar) -> DataFrame:
-        _other = self._validate_other(other)
+        _other = validate_comparand(self, other)
         return self._from_dataframe(
             self.dataframe.__sub__(_other),
         )
 
     def __rsub__(self, other: Column | AnyScalar) -> DataFrame:
-        _other = self._validate_other(other)
+        _other = validate_comparand(self, other)
         return -1 * self.__sub__(_other)
 
     def __mul__(self, other: AnyScalar) -> DataFrame:
-        _other = self._validate_other(other)
+        _other = validate_comparand(self, other)
         return self._from_dataframe(
             self.dataframe.__mul__(_other),
         )
 
     def __rmul__(self, other: Column | AnyScalar) -> DataFrame:
-        _other = self._validate_other(other)
+        _other = validate_comparand(self, other)
         return self.__mul__(_other)
 
     def __truediv__(self, other: AnyScalar) -> DataFrame:
-        _other = self._validate_other(other)
+        _other = validate_comparand(self, other)
         return self._from_dataframe(
             self.dataframe.__truediv__(_other),
         )
 
     def __rtruediv__(self, other: Column | AnyScalar) -> DataFrame:  # pragma: no cover
-        _other = self._validate_other(other)
+        _other = validate_comparand(self, other)
         raise NotImplementedError
 
     def __floordiv__(self, other: AnyScalar) -> DataFrame:
-        _other = self._validate_other(other)
+        _other = validate_comparand(self, other)
         return self._from_dataframe(
             self.dataframe.__floordiv__(_other),
         )
 
     def __rfloordiv__(self, other: Column | AnyScalar) -> DataFrame:  # pragma: no cover
-        _other = self._validate_other(other)
+        _other = validate_comparand(self, other)
         raise NotImplementedError
 
     def __pow__(self, other: AnyScalar) -> DataFrame:
-        _other = self._validate_other(other)
+        _other = validate_comparand(self, other)
         return self._from_dataframe(
             self.dataframe.__pow__(_other),
         )
 
     def __rpow__(self, other: Column | AnyScalar) -> DataFrame:  # pragma: no cover
-        _other = self._validate_other(other)
+        _other = validate_comparand(self, other)
         raise NotImplementedError
 
     def __mod__(self, other: AnyScalar) -> DataFrame:
-        _other = self._validate_other(other)
+        _other = validate_comparand(self, other)
         return self._from_dataframe(
             self.dataframe.__mod__(other),
         )
 
     def __rmod__(self, other: Column | AnyScalar) -> DataFrame:  # type: ignore[misc]  # pragma: no cover
-        _other = self._validate_other(other)
+        _other = validate_comparand(self, other)
         raise NotImplementedError
 
     def __divmod__(
         self,
         other: DataFrame | AnyScalar,
     ) -> tuple[DataFrame, DataFrame]:
-        _other = self._validate_other(other)
+        _other = validate_comparand(self, other)
         quotient, remainder = self.dataframe.__divmod__(_other)
         return self._from_dataframe(quotient), self._from_dataframe(
             remainder,
@@ -473,7 +456,7 @@ class DataFrame(DataFrameT):
         return self.assign(*[col.is_nan() for col in self.columns_iter()])
 
     def fill_nan(self, value: float | Scalar | NullType) -> DataFrame:
-        _value = self._validate_other(value)
+        _value = validate_comparand(self, value)
         new_cols = {}
         df = self.dataframe
         for col in df.columns:

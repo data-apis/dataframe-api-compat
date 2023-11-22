@@ -11,6 +11,7 @@ import pandas as pd
 from pandas.api.types import is_extension_array_dtype
 
 import dataframe_api_compat.pandas_standard
+from dataframe_api_compat.utils import validate_comparand
 
 if TYPE_CHECKING:
     from dataframe_api import Column as ColumnT
@@ -84,27 +85,6 @@ class Column(ColumnT):
             df=self._df,
         )
 
-    def _validate_comparand(self, other: Any) -> Any:
-        from dataframe_api_compat.pandas_standard.scalar_object import Scalar
-
-        if isinstance(other, Scalar):
-            if other._df is None:
-                return other._value
-            if id(self._df) != id(other._df):
-                msg = "cannot compare columns/scalars from different dataframes"
-                raise ValueError(
-                    msg,
-                )
-            return other._value
-        if isinstance(other, Column):
-            if other._df is None:
-                return other.column
-            if id(self._df) != id(other._df):
-                msg = "cannot compare columns from different dataframes"
-                raise ValueError(msg)
-            return other.column
-        return other
-
     def _materialise(self) -> pd.Series:
         if not self._is_persisted:
             msg = "Column is not persisted, please call `.persist()` first.\nNote: `persist` forces computation, use it with care, only when you need to,\nand as late and little as possible."
@@ -124,7 +104,7 @@ class Column(ColumnT):
     def persist(self) -> Column:
         return Column(
             self.column,
-            df=self._df,
+            df=None,
             api_version=self._api_version,
             is_persisted=True,
         )
@@ -174,38 +154,38 @@ class Column(ColumnT):
     # Binary comparisons
 
     def __eq__(self, other: Column | Any) -> Column:  # type: ignore[override]
-        other = self._validate_comparand(other)
+        other = validate_comparand(self, other)
         ser = self.column
         return self._from_series(ser == other).rename(ser.name)
 
     def __ne__(self, other: Column | Any) -> Column:  # type: ignore[override]
-        other = self._validate_comparand(other)
+        other = validate_comparand(self, other)
         ser = self.column
         return self._from_series(ser != other).rename(ser.name)
 
     def __ge__(self, other: Column | Any) -> Column:
-        other = self._validate_comparand(other)
+        other = validate_comparand(self, other)
         ser = self.column
         return self._from_series(ser >= other).rename(ser.name)
 
     def __gt__(self, other: Column | Any) -> Column:
-        other = self._validate_comparand(other)
+        other = validate_comparand(self, other)
         ser = self.column
         return self._from_series(ser > other).rename(ser.name)
 
     def __le__(self, other: Column | Any) -> Column:
-        other = self._validate_comparand(other)
+        other = validate_comparand(self, other)
         ser = self.column
         return self._from_series(ser <= other).rename(ser.name)
 
     def __lt__(self, other: Column | Any) -> Column:
-        other = self._validate_comparand(other)
+        other = validate_comparand(self, other)
         ser = self.column
         return self._from_series(ser < other).rename(ser.name)
 
     def __and__(self, other: Column | bool | Scalar) -> Column:
         ser = self.column
-        other = self._validate_comparand(other)
+        other = validate_comparand(self, other)
         return self._from_series(ser & other).rename(ser.name)
 
     def __rand__(self, other: Column | Any) -> Column:
@@ -213,7 +193,7 @@ class Column(ColumnT):
 
     def __or__(self, other: Column | bool | Scalar) -> Column:
         ser = self.column
-        other = self._validate_comparand(other)
+        other = validate_comparand(self, other)
         return self._from_series(ser | other).rename(ser.name)
 
     def __ror__(self, other: Column | Any) -> Column:
@@ -221,7 +201,7 @@ class Column(ColumnT):
 
     def __add__(self, other: Column | Any) -> Column:
         ser = self.column
-        other = self._validate_comparand(other)
+        other = validate_comparand(self, other)
         return self._from_series(ser + other).rename(ser.name)
 
     def __radd__(self, other: Column | Any) -> Column:
@@ -229,7 +209,7 @@ class Column(ColumnT):
 
     def __sub__(self, other: Column | Any) -> Column:
         ser = self.column
-        other = self._validate_comparand(other)
+        other = validate_comparand(self, other)
         return self._from_series(ser - other).rename(ser.name)
 
     def __rsub__(self, other: Column | Any) -> Column:
@@ -237,7 +217,7 @@ class Column(ColumnT):
 
     def __mul__(self, other: Column | Any) -> Column:
         ser = self.column
-        other = self._validate_comparand(other)
+        other = validate_comparand(self, other)
         return self._from_series(ser * other).rename(ser.name)
 
     def __rmul__(self, other: Column | Any) -> Column:
@@ -245,7 +225,7 @@ class Column(ColumnT):
 
     def __truediv__(self, other: Column | Any) -> Column:
         ser = self.column
-        other = self._validate_comparand(other)
+        other = validate_comparand(self, other)
         return self._from_series(ser / other).rename(ser.name)
 
     def __rtruediv__(self, other: Column | Any) -> Column:
@@ -253,7 +233,7 @@ class Column(ColumnT):
 
     def __floordiv__(self, other: Column | Any) -> Column:
         ser = self.column
-        other = self._validate_comparand(other)
+        other = validate_comparand(self, other)
         return self._from_series(ser // other).rename(ser.name)
 
     def __rfloordiv__(self, other: Column | Any) -> Column:
@@ -261,7 +241,7 @@ class Column(ColumnT):
 
     def __pow__(self, other: Column | Any) -> Column:
         ser = self.column
-        other = self._validate_comparand(other)
+        other = validate_comparand(self, other)
         return self._from_series(ser**other).rename(ser.name)
 
     def __rpow__(self, other: Column | Any) -> Column:  # pragma: no cover
@@ -269,7 +249,7 @@ class Column(ColumnT):
 
     def __mod__(self, other: Column | Any) -> Column:
         ser = self.column
-        other = self._validate_comparand(other)
+        other = validate_comparand(self, other)
         return self._from_series(ser % other).rename(ser.name)
 
     def __rmod__(self, other: Column | Any) -> Column:  # pragma: no cover
@@ -289,7 +269,6 @@ class Column(ColumnT):
     # Reductions
 
     def any(self, *, skip_nulls: bool | Scalar = True) -> Scalar:
-        _skip_nulls = self._validate_comparand(skip_nulls)
         ser = self.column
         return self._scalar(ser.any(), api_version=self._api_version, df=self._df)
 
@@ -415,7 +394,7 @@ class Column(ColumnT):
         self,
         value: Any,
     ) -> Column:
-        value = self._validate_comparand(value)
+        value = validate_comparand(self, value)
         ser = self.column.copy()
         if is_extension_array_dtype(ser.dtype):
             # Mask should include NA values, but not NaN ones
