@@ -8,6 +8,7 @@ from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
 
 if TYPE_CHECKING:
     from dataframe_api.typing import DType
+    from dataframe_api.typing import Namespace
     from dataframe_api.typing import Scalar as ScalarT
 else:
     ScalarT = object
@@ -26,6 +27,11 @@ class Scalar(ScalarT):
         self._api_version = api_version
         self._df = df
         self._is_persisted = is_persisted
+
+    def __scalar_namespace__(self) -> Namespace:
+        from dataframe_api_compat.pandas_standard import Namespace
+
+        return Namespace(api_version=self._api_version)
 
     def _validate_other(self, other: Any) -> Any:
         if isinstance(other, (Column, DataFrame)):

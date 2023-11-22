@@ -7,6 +7,8 @@ from typing import NoReturn
 
 import polars as pl
 
+from dataframe_api_compat.utils import validate
+
 POLARS_VERSION = tuple(int(v) for v in pl.__version__.split("."))
 
 if TYPE_CHECKING:
@@ -121,7 +123,7 @@ class Column(ColumnT):
         column = df.get_column(df.columns[0])
         return Column(
             pl.lit(column),
-            df=self._df,
+            df=None,
             api_version=self._api_version,
             is_persisted=True,
         )
@@ -187,31 +189,31 @@ class Column(ColumnT):
     # Binary comparisons
 
     def __eq__(self, other: Column | Any) -> Column:  # type: ignore[override]
-        other = self._validate_comparand(other)
+        other = validate(self, other)
         return self._from_expr(self._expr == other)
 
     def __ne__(self, other: Column | Any) -> Column:  # type: ignore[override]
-        other = self._validate_comparand(other)
+        other = validate(self, other)
         return self._from_expr(self._expr != other)
 
     def __ge__(self, other: Column | Any) -> Column:
-        other = self._validate_comparand(other)
+        other = validate(self, other)
         return self._from_expr(self._expr >= other)
 
     def __gt__(self, other: Column | Any) -> Column:
-        other = self._validate_comparand(other)
+        other = validate(self, other)
         return self._from_expr(self._expr > other)
 
     def __le__(self, other: Column | Any) -> Column:
-        other = self._validate_comparand(other)
+        other = validate(self, other)
         return self._from_expr(self._expr <= other)
 
     def __lt__(self, other: Column | Any) -> Column:
-        other = self._validate_comparand(other)
+        other = validate(self, other)
         return self._from_expr(self._expr < other)
 
     def __mul__(self, other: Column | Any) -> Column:
-        other = self._validate_comparand(other)
+        other = validate(self, other)
         res = self._expr * other
         return self._from_expr(res)
 
@@ -219,14 +221,14 @@ class Column(ColumnT):
         return self.__mul__(other)
 
     def __floordiv__(self, other: Column | Any) -> Column:
-        other = self._validate_comparand(other)
+        other = validate(self, other)
         return self._from_expr(self._expr // other)
 
     def __rfloordiv__(self, other: Column | Any) -> Column:
         raise NotImplementedError
 
     def __truediv__(self, other: Column | Any) -> Column:
-        other = self._validate_comparand(other)
+        other = validate(self, other)
         res = self._expr / other
         return self._from_expr(res)
 
@@ -234,7 +236,7 @@ class Column(ColumnT):
         raise NotImplementedError
 
     def __pow__(self, other: Column | Any) -> Column:
-        other = self._validate_comparand(other)
+        other = validate(self, other)
         ret = self._expr.pow(other)
         return self._from_expr(ret)
 
@@ -242,7 +244,7 @@ class Column(ColumnT):
         raise NotImplementedError
 
     def __mod__(self, other: Column | Any) -> Column:
-        other = self._validate_comparand(other)
+        other = validate(self, other)
         return self._from_expr(self._expr % other)
 
     def __rmod__(self, other: Column | Any) -> Column:
@@ -261,7 +263,7 @@ class Column(ColumnT):
         self,
         other: Self | bool | Scalar,
     ) -> Self:
-        _other = self._validate_comparand(other)
+        _other = validate(self, other)
         return self._from_expr(self._expr & _other)
 
     def __rand__(
@@ -274,21 +276,21 @@ class Column(ColumnT):
         self,
         other: Self | bool | Scalar,
     ) -> Self:
-        other = self._validate_comparand(other)
+        other = validate(self, other)
         return self._from_expr(self._expr | other)  # type: ignore[operator, arg-type]
 
     def __ror__(self, other: Column | Any | Scalar) -> Column:
         return self.__or__(other)
 
     def __add__(self, other: Column | Any) -> Column:
-        other = self._validate_comparand(other)
+        other = validate(self, other)
         return self._from_expr(self._expr + other)
 
     def __radd__(self, other: Column | Any) -> Column:
         return self.__add__(other)
 
     def __sub__(self, other: Column | Any) -> Column:
-        other = self._validate_comparand(other)
+        other = validate(self, other)
         return self._from_expr(self._expr - other)
 
     def __rsub__(self, other: Column | Any) -> Column:
