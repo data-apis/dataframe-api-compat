@@ -56,6 +56,3 @@ def test_insert_eager_columns(library: str) -> None:
     df_pd = convert_dataframe_to_pandas_numpy(df_pd)
     expected = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
     pd.testing.assert_frame_equal(df_pd, expected)
-
-
-# def test_insert_range(library: str) -> None:
