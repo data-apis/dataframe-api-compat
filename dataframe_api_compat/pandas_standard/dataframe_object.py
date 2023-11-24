@@ -147,6 +147,10 @@ class DataFrame(DataFrameT):
         return GroupBy(self.dataframe, keys, api_version=self._api_version)
 
     def select(self, *columns: str) -> DataFrame:
+        cols = list(columns)
+        if cols and not isinstance(cols[0], str):
+            msg = f"Expected iterable of str, but the first element is: {type(cols[0])}"
+            raise TypeError(msg)
         return self._from_dataframe(
             self.dataframe.loc[:, list(columns)],
         )
@@ -181,8 +185,13 @@ class DataFrame(DataFrameT):
         self,
         *columns: Column,
     ) -> DataFrame:
+        from dataframe_api_compat.pandas_standard.column_object import Column
+
         df = self.dataframe.copy()  # TODO: remove defensive copy with CoW?
         for column in columns:
+            if not isinstance(column, Column):
+                msg = f"Expected iterable of Column, but the first element is: {type(column)}"
+                raise TypeError(msg)
             _series = validate_comparand(self, column)
             df[_series.name] = _series
         return self._from_dataframe(df)

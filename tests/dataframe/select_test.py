@@ -26,6 +26,12 @@ def test_select_list_of_str(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
+def test_select_list_of_str_invalid(library: str) -> None:
+    df = integer_dataframe_1(library)
+    with pytest.raises(TypeError):
+        _ = df.select(["a", "b"])  # type: ignore[arg-type]
+
+
 @pytest.mark.filterwarnings("ignore:np.find_common_type is deprecated")
 def test_select_empty(library: str) -> None:
     df = integer_dataframe_1(library)

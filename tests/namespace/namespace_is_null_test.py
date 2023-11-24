@@ -8,7 +8,7 @@ def test_is_null(library: str) -> None:
     df = integer_dataframe_1(library)
     other = integer_dataframe_2(library)
     # use scalar namespace just for coverage purposes
-    namespace = df.col("a").get_value(0).__scalar_namespace__()  # type: ignore[attr-defined]
+    namespace = df.col("a").get_value(0).__scalar_namespace__()
     namespace_other = other.__dataframe_namespace__()
     null = namespace.null
     assert namespace_other.is_null(null)
