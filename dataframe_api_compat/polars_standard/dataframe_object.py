@@ -142,8 +142,12 @@ class DataFrame(DataFrameT):
         return GroupBy(self.dataframe, list(keys), api_version=self._api_version)
 
     def select(self, *columns: str) -> DataFrame:
+        cols = list(columns)
+        if cols and not isinstance(cols[0], str):
+            msg = f"Expected iterable of str, but the first element is: {type(cols[0])}"
+            raise TypeError(msg)
         return self._from_dataframe(
-            self._df.select(list(columns)),
+            self._df.select(cols),
         )
 
     def get_rows(self, indices: Column) -> DataFrame:
@@ -169,8 +173,15 @@ class DataFrame(DataFrameT):
         return self._from_dataframe(self._df.filter(_mask))
 
     def assign(self, *columns: Column) -> DataFrame:
+        from dataframe_api_compat.polars_standard.column_object import Column
+
         new_columns: list[pl.Expr] = []
         for col in columns:
+            if not isinstance(col, Column):
+                msg = (
+                    f"Expected iterable of Column, but the first element is: {type(col)}"
+                )
+                raise TypeError(msg)
             _expr = validate_comparand(self, col)
             new_columns.append(_expr)
         df = self.dataframe.with_columns(new_columns)
