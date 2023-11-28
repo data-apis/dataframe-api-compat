@@ -60,7 +60,7 @@ jobs:
             ~\AppData\Local\pip\Cache
           key: ${{ runner.os }}-build-${{ matrix.python-version }}
       - name: install-reqs
-        run: python -m pip install --upgrade tox virtualenv setuptools pip -r requirements-dev.txt
+        run: python -m pip install --upgrade tox virtualenv setuptools pip -r --pre requirements-dev.txt
       - name: Run pytest
         run: pytest tests --cov=dataframe_api_compat --cov=tests --cov-fail-under=50
       # todo: add mypy here too!
