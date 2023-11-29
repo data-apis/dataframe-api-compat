@@ -59,7 +59,7 @@ class Scalar(ScalarT):
     def persist(self) -> Scalar:
         return Scalar(
             self._value,
-            df=self._df,
+            df=None,
             api_version=self._api_version,
             is_persisted=True,
         )
@@ -110,7 +110,7 @@ class Scalar(ScalarT):
         other = validate_comparand(self, other)
         if other is NotImplemented:
             return NotImplemented
-        return self._from_scalar(self._value.__radd__(other))
+        return self._from_scalar(other + self._value)
 
     def __sub__(self, other: Any) -> Scalar:
         other = validate_comparand(self, other)
@@ -122,7 +122,7 @@ class Scalar(ScalarT):
         other = validate_comparand(self, other)
         if other is NotImplemented:
             return NotImplemented
-        return self._from_scalar(self._value.__rsub__(other))
+        return self._from_scalar(other - self._value)
 
     def __mul__(self, other: Any) -> Scalar:
         other = validate_comparand(self, other)
@@ -134,7 +134,7 @@ class Scalar(ScalarT):
         other = validate_comparand(self, other)
         if other is NotImplemented:
             return NotImplemented
-        return self._from_scalar(self._value.__rmul__(other))
+        return self._from_scalar(other * self._value)
 
     def __mod__(self, other: Any) -> Scalar:
         other = validate_comparand(self, other)
@@ -146,7 +146,7 @@ class Scalar(ScalarT):
         other = validate_comparand(self, other)
         if other is NotImplemented:
             return NotImplemented
-        return self._from_scalar(self._value.__rmod__(other))
+        return self._from_scalar(other % self._value)
 
     def __pow__(self, other: Any) -> Scalar:
         other = validate_comparand(self, other)
@@ -158,7 +158,7 @@ class Scalar(ScalarT):
         other = validate_comparand(self, other)
         if other is NotImplemented:
             return NotImplemented
-        return self._from_scalar(self._value.__rpow__(other))
+        return self._from_scalar(other**self._value)
 
     def __floordiv__(self, other: Any) -> Scalar:
         other = validate_comparand(self, other)
@@ -170,7 +170,7 @@ class Scalar(ScalarT):
         other = validate_comparand(self, other)
         if other is NotImplemented:
             return NotImplemented
-        return self._from_scalar(self._value.__rfloordiv__(other))
+        return self._from_scalar(other // self._value)
 
     def __truediv__(self, other: Any) -> Scalar:
         other = validate_comparand(self, other)
@@ -182,7 +182,7 @@ class Scalar(ScalarT):
         other = validate_comparand(self, other)
         if other is NotImplemented:
             return NotImplemented
-        return self._from_scalar(self._value.__rtruediv__(other))
+        return self._from_scalar(other / self._value)
 
     def __neg__(self) -> Scalar:
         return self._from_scalar(self._value.__neg__())
