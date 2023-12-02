@@ -23,15 +23,16 @@ else:
 class GroupBy(GroupByT):
     def __init__(
         self,
-        df: pl.LazyFrame | pl.DataFrame,
+        df: DataFrame,
         keys: Sequence[str],
         api_version: str,
     ) -> None:
         for key in keys:
-            if key not in df.columns:
+            if key not in df.column_names:
                 msg = f"key {key} not present in DataFrame's columns"
                 raise KeyError(msg)
-        self._df = df
+        self._df = df.dataframe
+        self._is_persisted = df._is_persisted
         self._keys = keys
         self._api_version = api_version
         self._grouped = (
@@ -49,43 +50,50 @@ class GroupBy(GroupByT):
             msg = "Expected all boolean columns"
             raise TypeError(msg)
 
+    def _to_dataframe(self, result: pl.DataFrame | pl.LazyFrame) -> DataFrame:
+        return DataFrame(
+            result,
+            api_version=self._api_version,
+            is_persisted=self._is_persisted,
+        )
+
     def size(self) -> DataFrame:
         result = self._grouped.count().rename({"count": "size"})
-        return DataFrame(result, api_version=self._api_version)
+        return self._to_dataframe(result)
 
     def any(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         self._validate_booleanness()
         result = self._grouped.agg(pl.col("*").any())
-        return DataFrame(result, api_version=self._api_version)
+        return self._to_dataframe(result)
 
     def all(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         self._validate_booleanness()
         result = self._grouped.agg(pl.col("*").all())
-        return DataFrame(result, api_version=self._api_version)
+        return self._to_dataframe(result)
 
     def min(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self._grouped.agg(pl.col("*").min())
-        return DataFrame(result, api_version=self._api_version)
+        return self._to_dataframe(result)
 
     def max(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self._grouped.agg(pl.col("*").max())
-        return DataFrame(result, api_version=self._api_version)
+        return self._to_dataframe(result)
 
     def sum(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self._grouped.agg(pl.col("*").sum())
-        return DataFrame(result, api_version=self._api_version)
+        return self._to_dataframe(result)
 
     def prod(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self._grouped.agg(pl.col("*").product())
-        return DataFrame(result, api_version=self._api_version)
+        return self._to_dataframe(result)
 
     def median(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self._grouped.agg(pl.col("*").median())
-        return DataFrame(result, api_version=self._api_version)
+        return self._to_dataframe(result)
 
     def mean(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self._grouped.agg(pl.col("*").mean())
-        return DataFrame(result, api_version=self._api_version)
+        return self._to_dataframe(result)
 
     def std(
         self,
@@ -94,7 +102,7 @@ class GroupBy(GroupByT):
         skip_nulls: bool | Scalar = True,
     ) -> DataFrame:
         result = self._grouped.agg(pl.col("*").std())
-        return DataFrame(result, api_version=self._api_version)
+        return self._to_dataframe(result)
 
     def var(
         self,
@@ -103,18 +111,16 @@ class GroupBy(GroupByT):
         skip_nulls: bool | Scalar = True,
     ) -> DataFrame:
         result = self._grouped.agg(pl.col("*").var())
-        return DataFrame(result, api_version=self._api_version)
+        return self._to_dataframe(result)
 
     def aggregate(
         self,
         *aggregations: AggregationT,
     ) -> DataFrame:
-        return DataFrame(
+        return self._to_dataframe(
             self._grouped.agg(
                 *[resolve_aggregation(aggregation) for aggregation in aggregations],
             ),
-            api_version=self._api_version,
-            is_persisted=False,
         )
 
 
