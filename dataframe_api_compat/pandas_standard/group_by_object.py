@@ -22,9 +22,10 @@ else:
 
 
 class GroupBy(GroupByT):
-    def __init__(self, df: pd.DataFrame, keys: Sequence[str], api_version: str) -> None:
-        self._df = df
-        self._grouped = df.groupby(list(keys), sort=False, as_index=False)
+    def __init__(self, df: DataFrame, keys: Sequence[str], api_version: str) -> None:
+        self._df = df.dataframe
+        self._is_persisted = df._is_persisted
+        self._grouped = self._df.groupby(list(keys), sort=False, as_index=False)
         self._keys = list(keys)
         self._api_version = api_version
 
@@ -47,50 +48,57 @@ class GroupBy(GroupByT):
                 msg,
             )
 
+    def _to_dataframe(self, result: pd.DataFrame) -> DataFrame:
+        return DataFrame(
+            result,
+            api_version=self._api_version,
+            is_persisted=self._is_persisted,
+        )
+
     def size(self) -> DataFrame:
-        return DataFrame(self._grouped.size(), api_version=self._api_version)
+        return self._to_dataframe(self._grouped.size())
 
     def any(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         self._validate_booleanness()
         result = self._grouped.any()
         self._validate_result(result)
-        return DataFrame(result, api_version=self._api_version)
+        return self._to_dataframe(result)
 
     def all(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         self._validate_booleanness()
         result = self._grouped.all()
         self._validate_result(result)
-        return DataFrame(result, api_version=self._api_version)
+        return self._to_dataframe(result)
 
     def min(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self._grouped.min()
         self._validate_result(result)
-        return DataFrame(result, api_version=self._api_version)
+        return self._to_dataframe(result)
 
     def max(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self._grouped.max()
         self._validate_result(result)
-        return DataFrame(result, api_version=self._api_version)
+        return self._to_dataframe(result)
 
     def sum(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self._grouped.sum()
         self._validate_result(result)
-        return DataFrame(result, api_version=self._api_version)
+        return self._to_dataframe(result)
 
     def prod(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self._grouped.prod()
         self._validate_result(result)
-        return DataFrame(result, api_version=self._api_version)
+        return self._to_dataframe(result)
 
     def median(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self._grouped.median()
         self._validate_result(result)
-        return DataFrame(result, api_version=self._api_version)
+        return self._to_dataframe(result)
 
     def mean(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
         result = self._grouped.mean()
         self._validate_result(result)
-        return DataFrame(result, api_version=self._api_version)
+        return self._to_dataframe(result)
 
     def std(
         self,
@@ -100,7 +108,7 @@ class GroupBy(GroupByT):
     ) -> DataFrame:
         result = self._grouped.std()
         self._validate_result(result)
-        return DataFrame(result, api_version=self._api_version)
+        return self._to_dataframe(result)
 
     def var(
         self,
@@ -110,7 +118,7 @@ class GroupBy(GroupByT):
     ) -> DataFrame:
         result = self._grouped.var()
         self._validate_result(result)
-        return DataFrame(result, api_version=self._api_version)
+        return self._to_dataframe(result)
 
     def aggregate(
         self,
@@ -125,10 +133,8 @@ class GroupBy(GroupByT):
                 for aggregation in aggregations
             },
         )
-        return DataFrame(
+        return self._to_dataframe(
             df,
-            api_version=self._api_version,
-            is_persisted=False,
         )
 
 

@@ -31,6 +31,8 @@ class Scalar(ScalarT):
         self._api_version = api_version
         self._df = df
         self._is_persisted = is_persisted
+        if not isinstance(value, pl.Expr):
+            assert is_persisted
 
     def __scalar_namespace__(self) -> Namespace:
         from dataframe_api_compat.polars_standard import Namespace
