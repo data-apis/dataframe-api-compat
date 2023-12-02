@@ -64,6 +64,7 @@ class Scalar(ScalarT):
         if self._df is None:
             value = pl.select(self._value).item()
         else:
+            assert isinstance(self._df.dataframe, pl.LazyFrame)  # help mypy
             df = self._df.dataframe.collect().select(self._value)
             value = df.get_column(df.columns[0]).item()
         return value
@@ -72,6 +73,7 @@ class Scalar(ScalarT):
         if self._df is None:
             value = pl.select(self._value).item()
         else:
+            assert isinstance(self._df.dataframe, pl.LazyFrame)  # help mypy
             df = self._df.dataframe.collect().select(self._value)
             value = df.get_column(df.columns[0]).item()
         return Scalar(

@@ -69,7 +69,7 @@ class Column(ColumnT):
     def __iter__(self) -> NoReturn:
         raise NotImplementedError
 
-    def _from_expr(self, expr: pl.Expr) -> Self:
+    def _from_expr(self, expr: pl.Expr | pl.Series) -> Self:
         return self.__class__(
             expr,
             df=self._df,
@@ -84,6 +84,7 @@ class Column(ColumnT):
                 msg,
             )
         if self._df is not None:
+            assert isinstance(self._df.dataframe, pl.LazyFrame)  # help mypy
             df = self._df.dataframe.collect().select(self._expr)
         else:
             df = pl.select(self._expr)
@@ -97,7 +98,7 @@ class Column(ColumnT):
             api_version=self._api_version,
         )
 
-    def _to_scalar(self, value: pl.Expr | pl.Series) -> Scalar:
+    def _to_scalar(self, value: Any) -> Scalar:
         from dataframe_api_compat.polars_standard.scalar_object import Scalar
 
         return Scalar(
@@ -109,6 +110,7 @@ class Column(ColumnT):
 
     def persist(self) -> Column:
         if self._df is not None:
+            assert isinstance(self._df.dataframe, pl.LazyFrame)  # help mypy
             df = self._df.dataframe.collect().select(self._expr)
         else:
             df = pl.select(self._expr)
@@ -125,7 +127,7 @@ class Column(ColumnT):
         return self._name
 
     @property
-    def column(self) -> pl.Expr:
+    def column(self) -> pl.Expr | pl.Series:
         return self._expr
 
     @property
@@ -150,13 +152,13 @@ class Column(ColumnT):
         return self._from_expr(self._expr.gather(indices._expr))
 
     def filter(self, mask: Column) -> Column:
-        return self._from_expr(self._expr.filter(mask._expr))
+        return self._from_expr(self._expr.filter(mask._expr))  # type: ignore[arg-type]
 
     def get_value(self, row_number: int) -> Any:
         if POLARS_VERSION < (0, 19, 14):
             result = self._expr.take(row_number)
         result = self._expr.gather(row_number)
-        if self._is_persisted:
+        if isinstance(result, pl.Series):
             return self._to_scalar(result.item())
         return self._to_scalar(result)
 
@@ -378,7 +380,7 @@ class Column(ColumnT):
         return self._from_expr(expr)
 
     def is_in(self, values: Self) -> Self:
-        return self._from_expr(self._expr.is_in(values._expr))
+        return self._from_expr(self._expr.is_in(values._expr))  # type: ignore[arg-type]
 
     def sorted_indices(
         self,

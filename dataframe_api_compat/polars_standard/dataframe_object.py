@@ -66,7 +66,7 @@ class DataFrame(DataFrameT):
             raise ValueError(
                 msg,
             )
-        return self.dataframe
+        return self.dataframe  # type: ignore[return-value]
 
     def __repr__(self) -> str:  # pragma: no cover
         header = f" Standard DataFrame (api_version={self._api_version}) "
@@ -89,7 +89,7 @@ class DataFrame(DataFrameT):
                 msg,
             )
 
-    def _from_dataframe(self, df: pl.LazyFrame) -> DataFrame:
+    def _from_dataframe(self, df: pl.LazyFrame | pl.DataFrame) -> DataFrame:
         return DataFrame(
             df,
             api_version=self._api_version,
@@ -111,7 +111,7 @@ class DataFrame(DataFrameT):
         return self.dataframe.columns
 
     @property
-    def dataframe(self) -> pl.LazyFrame:
+    def dataframe(self) -> pl.LazyFrame | pl.DataFrame:
         return self._df
 
     # In the Standard
@@ -127,7 +127,7 @@ class DataFrame(DataFrameT):
     def col(self, value: str) -> Column:
         from dataframe_api_compat.polars_standard.column_object import Column
 
-        if self._is_persisted:
+        if isinstance(self.dataframe, pl.DataFrame):
             return Column(
                 self.dataframe.get_column(value),
                 df=None,
@@ -531,7 +531,7 @@ class DataFrame(DataFrameT):
         )
 
         result = self.dataframe.join(
-            other_df,
+            other_df,  # type: ignore[arg-type]
             left_on=left_on,
             right_on=right_on,
             how=how,
@@ -541,7 +541,7 @@ class DataFrame(DataFrameT):
         return self._from_dataframe(result)
 
     def persist(self) -> DataFrame:
-        if self._is_persisted:
+        if isinstance(self.dataframe, pl.DataFrame):
             warnings.warn(
                 "Calling `.persist` on DataFrame that was already persisted",
                 UserWarning,

@@ -298,7 +298,7 @@ class Namespace(NamespaceT):
         dataframes: Sequence[DataFrameT],
     ) -> DataFrame:
         dataframes = cast("Sequence[DataFrame]", dataframes)
-        dfs: list[pl.LazyFrame] = []
+        dfs: list[pl.LazyFrame | pl.DataFrame] = []
         api_versions: set[str] = set()
         for df in dataframes:
             dfs.append(df.dataframe)
@@ -306,8 +306,9 @@ class Namespace(NamespaceT):
         if len(api_versions) > 1:  # pragma: no cover
             msg = f"Multiple api versions found: {api_versions}"
             raise ValueError(msg)
+        # todo raise if not all share persistedness
         return DataFrame(
-            pl.concat(dfs),
+            pl.concat(dfs),  # type: ignore[type-var]
             api_version=api_versions.pop(),
         )
 
