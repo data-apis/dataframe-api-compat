@@ -157,7 +157,8 @@ class Column(ColumnT):
     def get_value(self, row_number: int) -> Any:
         if POLARS_VERSION < (0, 19, 14):
             result = self._expr.take(row_number)
-        result = self._expr.gather(row_number)
+        else:
+            result = self._expr.gather(row_number)
         if isinstance(result, pl.Series):
             return self._to_scalar(result.item())
         return self._to_scalar(result)
