@@ -146,7 +146,7 @@ class DataFrame(DataFrameT):
             if key not in self.column_names:
                 msg = f"key {key} not present in DataFrame's columns"
                 raise KeyError(msg)
-        return GroupBy(self.dataframe, keys, api_version=self._api_version)
+        return GroupBy(self, keys, api_version=self._api_version)
 
     def select(self, *columns: str) -> DataFrame:
         cols = list(columns)

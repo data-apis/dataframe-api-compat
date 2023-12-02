@@ -52,6 +52,8 @@ class Column(ColumnT):
         self._df = df
         self._api_version = api_version
         self._is_persisted = is_persisted
+        if isinstance(expr, pl.Series):
+            assert is_persisted
 
     def __repr__(self) -> str:  # pragma: no cover
         header = f" Standard Column (api_version={self._api_version}) "
