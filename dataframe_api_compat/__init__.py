@@ -10,4 +10,4 @@ with contextlib.suppress(ModuleNotFoundError):
 
 __all__ = ["pandas_standard", "polars_standard"]
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
