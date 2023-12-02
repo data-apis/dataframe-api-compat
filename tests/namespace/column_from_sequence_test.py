@@ -84,7 +84,7 @@ def test_column_from_sequence(
             values,
             dtype=getattr(namespace, dtype)(**kwargs),
             name="result",
-        ).persist(),
+        ),
     )
     result_pd = interchange_to_pandas(result)["result"]
     pd.testing.assert_series_equal(result_pd, expected)

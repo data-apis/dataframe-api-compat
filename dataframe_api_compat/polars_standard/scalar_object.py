@@ -67,7 +67,7 @@ class Scalar(ScalarT):
     def persist(self) -> Scalar:
         if self._df is None:
             warnings.warn(
-                "Calling `.persist` on Column that was already persisted",
+                "Calling `.persist` on Scalar that was already persisted",
                 UserWarning,
                 stacklevel=2,
             )

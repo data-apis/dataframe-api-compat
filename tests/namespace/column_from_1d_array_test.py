@@ -40,7 +40,7 @@ def test_column_from_1d_array(
         namespace.column_from_1d_array(  # type: ignore[call-arg]
             arr,
             name="result",
-        ).persist(),
+        ),
     )
     result_pd = interchange_to_pandas(result)["result"]
     expected = pd.Series([1, 2, 3], name="result", dtype=pandas_dtype)
@@ -57,7 +57,7 @@ def test_column_from_1d_array_string(
         namespace.column_from_1d_array(  # type: ignore[call-arg]
             arr,
             name="result",
-        ).persist(),
+        ),
     )
     result_pd = interchange_to_pandas(result)["result"]
     expected = pd.Series(["a", "b", "c"], name="result", dtype="object")
@@ -74,7 +74,7 @@ def test_column_from_1d_array_bool(
         namespace.column_from_1d_array(  # type: ignore[call-arg]
             arr,
             name="result",
-        ).persist(),
+        ),
     )
     result_pd = interchange_to_pandas(result)["result"]
     expected = pd.Series([True, False, True], name="result")
@@ -89,7 +89,7 @@ def test_datetime_from_1d_array(library: str) -> None:
         namespace.column_from_1d_array(  # type: ignore[call-arg]
             arr,
             name="result",
-        ).persist(),
+        ),
     )
     result_pd = interchange_to_pandas(result)["result"]
     expected = pd.Series(
@@ -116,7 +116,7 @@ def test_duration_from_1d_array(library: str) -> None:
         namespace.column_from_1d_array(  # type: ignore[call-arg]
             arr,
             name="result",
-        ).persist(),
+        ),
     )
     if library == "polars-lazy":
         # https://github.com/data-apis/dataframe-api/issues/329

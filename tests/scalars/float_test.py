@@ -36,8 +36,8 @@ def test_float_binary(library: str, attr: str) -> None:
     other = 0.5
     df = integer_dataframe_2(library).persist()
     scalar = df.col("a").mean()
-    float_scalar = float(scalar.persist())  # type: ignore[arg-type]
-    assert (getattr(scalar, attr)(other) == getattr(float_scalar, attr)(other)).persist()
+    float_scalar = float(scalar)  # type: ignore[arg-type]
+    assert getattr(scalar, attr)(other) == getattr(float_scalar, attr)(other)
 
 
 def test_float_binary_invalid(library: str) -> None:
@@ -52,7 +52,7 @@ def test_float_binary_lazy_valid(library: str) -> None:
     lhs = df.col("a").mean()
     rhs = df.col("b").mean()
     result = lhs > rhs
-    assert not bool(result.persist())
+    assert not bool(result)
 
 
 @pytest.mark.parametrize(
@@ -64,9 +64,10 @@ def test_float_binary_lazy_valid(library: str) -> None:
 )
 def test_float_unary(library: str, attr: str) -> None:
     df = integer_dataframe_2(library).persist()
-    scalar = df.col("a").mean()
-    float_scalar = float(scalar.persist())  # type: ignore[arg-type]
-    assert (getattr(scalar, attr)() == getattr(float_scalar, attr)()).persist()
+    with pytest.warns(UserWarning):
+        scalar = df.col("a").persist().mean()
+    float_scalar = float(scalar)  # type: ignore[arg-type]
+    assert getattr(scalar, attr)() == getattr(float_scalar, attr)()
 
 
 @pytest.mark.parametrize(
@@ -92,7 +93,7 @@ def test_free_standing(library: str) -> None:
         np.array([1, 2, 3]),
         name="a",
     )
-    result = float((ser.mean() + 1).persist())  # type: ignore[arg-type]
+    result = float(ser.mean() + 1)  # type: ignore[arg-type]
     assert result == 3.0
 
 

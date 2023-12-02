@@ -53,7 +53,7 @@ def test_within_df_within_col_propagation(library: str) -> None:
     df1 = integer_dataframe_1(library)
     df1 = df1 + 1
     df1 = df1.persist()
-    assert int((df1.col("a") + 1).mean().persist()) == 4  # type: ignore[call-overload]
+    assert int((df1.col("a") + 1).mean()) == 4  # type: ignore[call-overload]
 
 
 def test_cross_df_propagation(library: str) -> None:
@@ -81,8 +81,8 @@ def test_multiple_propagations(library: str) -> None:
     with pytest.warns(UserWarning):
         df1 = df.filter(df.col("a") > 1).persist()
         df2 = df.filter(df.col("a") <= 1).persist()
-    assert int(df1.col("a").mean().persist()) == 2  # type: ignore[call-overload]
-    assert int(df2.col("a").mean().persist()) == 1  # type: ignore[call-overload]
+    assert int(df1.col("a").mean()) == 2  # type: ignore[call-overload]
+    assert int(df2.col("a").mean()) == 1  # type: ignore[call-overload]
 
     # But what if I want to do this
     df = integer_dataframe_1(library)

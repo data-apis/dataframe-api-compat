@@ -11,10 +11,11 @@ def test_expr_any(library: str) -> None:
         bool(df.col("a").any())
     df = df.persist()
     result = df.col("a").any()
-    assert bool(result.persist())
+    with pytest.warns(UserWarning):
+        assert bool(result.persist())
 
 
 def test_expr_all(library: str) -> None:
     df = bool_dataframe_1(library).persist()
     result = df.col("a").all()
-    assert not bool(result.persist())
+    assert not bool(result)

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from typing import TYPE_CHECKING
 from typing import Any
 
@@ -62,6 +63,12 @@ class Scalar(ScalarT):
         return self._value
 
     def persist(self) -> Scalar:
+        if self._is_persisted:
+            warnings.warn(
+                "Calling `.persist` on Scalar that was already persisted",
+                UserWarning,
+                stacklevel=2,
+            )
         return Scalar(
             self._value,
             df=None,

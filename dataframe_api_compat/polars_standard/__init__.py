@@ -155,7 +155,7 @@ class Namespace(NamespaceT):
         name: str = "",
     ) -> Column:
         ser = pl.Series(values=array, name=name)
-        return Column(pl.lit(ser), api_version=self.api_version, df=None)
+        return Column(ser, api_version=self.api_version, df=None, is_persisted=True)
 
     def column_from_sequence(
         self,
@@ -169,7 +169,7 @@ class Namespace(NamespaceT):
             dtype=_map_standard_to_polars_dtypes(dtype),
             name=name,
         )
-        return Column(pl.lit(ser), api_version=self.api_version, df=None)
+        return Column(ser, api_version=self.api_version, df=None, is_persisted=True)
 
     def dataframe_from_2d_array(
         self,
@@ -423,7 +423,12 @@ def convert_to_standard_compliant_column(
     ser: pl.Series,
     api_version: str | None = None,
 ) -> Column:
-    return Column(pl.lit(ser), api_version=api_version or "2023.11-beta", df=None)
+    return Column(
+        ser,
+        api_version=api_version or "2023.11-beta",
+        df=None,
+        is_persisted=True,
+    )
 
 
 def convert_to_standard_compliant_dataframe(
