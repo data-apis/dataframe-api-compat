@@ -154,11 +154,7 @@ class Namespace(NamespaceT):
         *,
         name: str = "",
     ) -> Column:
-        ser = pl.Series(
-            values=array,
-            # todo remove dtype from standard
-            name=name,
-        )
+        ser = pl.Series(values=array, name=name)
         return Column(pl.lit(ser), api_version=self.api_version, df=None)
 
     def column_from_sequence(

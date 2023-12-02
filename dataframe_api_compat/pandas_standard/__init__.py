@@ -259,11 +259,7 @@ class Namespace(NamespaceT):
         *,
         name: str | None = None,
     ) -> Column:
-        ser = pd.Series(
-            data,
-            # todo remove dtype from standard here
-            name=name,
-        )
+        ser = pd.Series(data, name=name)
         return Column(ser, api_version=self._api_version, df=None)
 
     def column_from_sequence(
