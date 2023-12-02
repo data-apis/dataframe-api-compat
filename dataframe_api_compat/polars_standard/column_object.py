@@ -83,12 +83,7 @@ class Column(ColumnT):
             raise RuntimeError(
                 msg,
             )
-        if self._df is not None:
-            assert isinstance(self._df.dataframe, pl.LazyFrame)  # help mypy
-            df = self._df.dataframe.collect().select(self._expr)
-        else:
-            df = pl.select(self._expr)
-        return df.get_column(df.columns[0])
+        return self._expr
 
     # In the standard
     def __column_namespace__(self) -> Namespace:  # pragma: no cover
