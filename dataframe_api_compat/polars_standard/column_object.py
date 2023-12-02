@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Literal
@@ -108,6 +109,11 @@ class Column(ColumnT):
             assert isinstance(self._df.dataframe, pl.LazyFrame)  # help mypy
             df = self._df.dataframe.select(self._expr).collect()
         else:
+            warnings.warn(
+                "Calling `.persist` on Column that was already persisted",
+                UserWarning,
+                stacklevel=2,
+            )
             df = pl.select(self._expr)
         column = df.get_column(df.columns[0])
         return Column(

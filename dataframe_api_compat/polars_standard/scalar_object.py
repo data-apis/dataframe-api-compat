@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from typing import TYPE_CHECKING
 from typing import Any
 
@@ -65,6 +66,11 @@ class Scalar(ScalarT):
 
     def persist(self) -> Scalar:
         if self._df is None:
+            warnings.warn(
+                "Calling `.persist` on Column that was already persisted",
+                UserWarning,
+                stacklevel=2,
+            )
             value = self._value
         else:
             assert isinstance(self._df.dataframe, pl.LazyFrame)  # help mypy
