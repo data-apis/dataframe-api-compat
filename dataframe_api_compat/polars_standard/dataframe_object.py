@@ -149,7 +149,7 @@ class DataFrame(DataFrameT):
     def group_by(self, *keys: str) -> GroupBy:
         from dataframe_api_compat.polars_standard.group_by_object import GroupBy
 
-        return GroupBy(self.dataframe, list(keys), api_version=self._api_version)
+        return GroupBy(self, list(keys), api_version=self._api_version)
 
     def select(self, *columns: str) -> DataFrame:
         cols = list(columns)
