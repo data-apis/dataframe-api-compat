@@ -152,12 +152,12 @@ class Namespace(NamespaceT):
         self,
         array: Any,
         *,
-        dtype: DType,
         name: str = "",
     ) -> Column:
         ser = pl.Series(
             values=array,
-            dtype=_map_standard_to_polars_dtypes(dtype),
+            # todo remove dtype from standard
+            #dtype=_map_standard_to_polars_dtypes(dtype),
             name=name,
         )
         return Column(pl.lit(ser), api_version=self.api_version, df=None)

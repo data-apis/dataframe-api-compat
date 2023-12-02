@@ -35,7 +35,7 @@ class Scalar(ScalarT):
         return Namespace(api_version=self._api_version)
 
     def _from_scalar(self, scalar: Scalar) -> Scalar:
-        return Scalar(scalar, df=self._df, api_version=self._api_version)
+        return Scalar(scalar, df=self._df, api_version=self._api_version, is_persisted=self._is_persisted)
 
     @property
     def dtype(self) -> DType:  # pragma: no cover  # todo

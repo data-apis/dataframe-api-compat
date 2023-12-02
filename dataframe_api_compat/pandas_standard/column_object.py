@@ -83,6 +83,7 @@ class Column(ColumnT):
             series.reset_index(drop=True),
             api_version=self._api_version,
             df=self._df,
+            is_persisted=self._is_persisted
         )
 
     def _materialise(self) -> pd.Series:
@@ -329,6 +330,14 @@ class Column(ColumnT):
     def __len__(self) -> int:
         ser = self._materialise()
         return len(ser)
+
+    def n_unique(self) -> Scalar:
+        ser = self.column
+        return self._scalar(
+            ser.nunique(),
+            api_version=self._api_version,
+            df=self._df,
+        )
 
     # Transformations
 

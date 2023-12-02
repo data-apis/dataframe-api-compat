@@ -257,10 +257,14 @@ class Namespace(NamespaceT):
         self,
         data: Any,
         *,
-        dtype: DType,
         name: str | None = None,
     ) -> Column:
-        ser = pd.Series(data, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
+        ser = pd.Series(
+            data,
+            # todo remove dtype from standard here
+            #dtype=map_standard_dtype_to_pandas_dtype(dtype),
+            name=name,
+        )
         return Column(ser, api_version=self._api_version, df=None)
 
     def column_from_sequence(
@@ -272,7 +276,8 @@ class Namespace(NamespaceT):
     ) -> Column:
         ser = pd.Series(
             sequence,
-            dtype=map_standard_dtype_to_pandas_dtype(dtype),
+            # todo make optional?
+            #dtype=map_standard_dtype_to_pandas_dtype(dtype),
             name=name,
         )
         return Column(ser, api_version=self._api_version, df=None)

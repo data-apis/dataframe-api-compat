@@ -10,12 +10,10 @@ def test_free_vs_w_parent(library: str) -> None:
     namespace = df1.__dataframe_namespace__()
     free_ser1 = namespace.column_from_1d_array(
         np.array([1, 2, 3]),
-        dtype=namespace.Int64(),
         name="preds",
     )
     free_ser2 = namespace.column_from_1d_array(
         np.array([4, 5, 6]),
-        dtype=namespace.Int64(),
         name="preds",
     )
 
