@@ -475,6 +475,9 @@ def interchange_to_pandas(result: Any) -> pd.DataFrame:
     if isinstance(result.dataframe, pl.LazyFrame):
         df = result.dataframe.collect()
         df = df.to_pandas()
+    elif isinstance(result.dataframe, pl.DataFrame):
+        df = result.dataframe
+        df = df.to_pandas()
     else:
         df = result.dataframe
     df = convert_dataframe_to_pandas_numpy(df)

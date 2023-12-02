@@ -168,7 +168,12 @@ def convert_to_standard_compliant_column(
         raise ValueError(msg)
     if ser.name is None:
         ser = ser.rename("")
-    return Column(ser, api_version=api_version or "2023.11-beta", df=None)
+    return Column(
+        ser,
+        api_version=api_version or "2023.11-beta",
+        df=None,
+        is_persisted=True,
+    )
 
 
 def convert_to_standard_compliant_dataframe(
@@ -253,15 +258,14 @@ class Namespace(NamespaceT):
             api_versions.add(col._api_version)  # type: ignore[attr-defined]
         return DataFrame(pd.DataFrame(data), api_version=list(api_versions)[0])
 
-    def column_from_1d_array(
+    def column_from_1d_array(  # type: ignore[override]
         self,
         data: Any,
         *,
-        dtype: DType,
         name: str | None = None,
     ) -> Column:
-        ser = pd.Series(data, dtype=map_standard_dtype_to_pandas_dtype(dtype), name=name)
-        return Column(ser, api_version=self._api_version, df=None)
+        ser = pd.Series(data, name=name)
+        return Column(ser, api_version=self._api_version, df=None, is_persisted=True)
 
     def column_from_sequence(
         self,
@@ -272,10 +276,11 @@ class Namespace(NamespaceT):
     ) -> Column:
         ser = pd.Series(
             sequence,
+            # todo make optional?
             dtype=map_standard_dtype_to_pandas_dtype(dtype),
             name=name,
         )
-        return Column(ser, api_version=self._api_version, df=None)
+        return Column(ser, api_version=self._api_version, df=None, is_persisted=True)
 
     def concat(
         self,

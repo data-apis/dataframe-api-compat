@@ -21,7 +21,12 @@ else:
 
 
 class GroupBy(GroupByT):
-    def __init__(self, df: pl.LazyFrame, keys: Sequence[str], api_version: str) -> None:
+    def __init__(
+        self,
+        df: pl.LazyFrame | pl.DataFrame,
+        keys: Sequence[str],
+        api_version: str,
+    ) -> None:
         for key in keys:
             if key not in df.columns:
                 msg = f"key {key} not present in DataFrame's columns"

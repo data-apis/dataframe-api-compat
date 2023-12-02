@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from typing import TYPE_CHECKING
 from typing import Any
 
@@ -37,7 +38,12 @@ class Scalar(ScalarT):
         return Namespace(api_version=self._api_version)
 
     def _from_scalar(self, scalar: Scalar) -> Scalar:
-        return Scalar(scalar, df=self._df, api_version=self._api_version)
+        return Scalar(
+            scalar,
+            df=self._df,
+            api_version=self._api_version,
+            is_persisted=self._is_persisted,
+        )
 
     @property
     def dtype(self) -> DType:  # pragma: no cover  # todo
@@ -56,18 +62,19 @@ class Scalar(ScalarT):
             msg = "Can't call __bool__ on Scalar. Please use .persist() first."
             raise RuntimeError(msg)
 
-        if self._df is None:
-            value = pl.select(self._value).item()
-        else:
-            df = self._df.dataframe.collect().select(self._value)
-            value = df.get_column(df.columns[0]).item()
-        return value
+        return pl.select(self._value).item()
 
     def persist(self) -> Scalar:
         if self._df is None:
-            value = pl.select(self._value).item()
+            warnings.warn(
+                "Calling `.persist` on Scalar that was already persisted",
+                UserWarning,
+                stacklevel=2,
+            )
+            value = self._value
         else:
-            df = self._df.dataframe.collect().select(self._value)
+            assert isinstance(self._df.dataframe, pl.LazyFrame)  # help mypy
+            df = self._df.dataframe.select(self._value).collect()
             value = df.get_column(df.columns[0]).item()
         return Scalar(
             value,

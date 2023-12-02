@@ -19,9 +19,18 @@ then you'll likely be fine.
 The `dataframe-api-compat` package is written with lazy computation in mind. For the Polars implementation,
 all objects are backed by lazy constructs:
 
-- `DataFrame`: backed by `polars.LazyFrame`.
-- `Column`: backed by `polars.Expr`.
-- `Scalar`: backed by `polars.Expr`.
+- `DataFrame`:
+  - by default, backed by `polars.LazyFrame`
+  - if you call `persist`, backed by `polars.DataFrame`
+- `Column`:
+  - by default, backed by `polars.Expr`
+  - if you call `persist`, or if you called `persist` on
+    the dataframe it was derived from, backed by `polars.Series`
+- `Scalar`:
+  - by default, backed by `polars.Expr`
+  - if you call `persist`, or if you called `persist` on
+    the dataframe or column it was derived from, backed by
+    a Python scalar.
 
 All operations can be done lazily, except for:
 - `DataFrame.to_array()`,

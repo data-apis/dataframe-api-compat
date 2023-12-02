@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Literal
@@ -24,26 +25,32 @@ else:
     ColumnT = object
 
 
+def _extract_name(expr: pl.Expr | pl.Series, df: DataFrame | None) -> str:
+    if isinstance(expr, pl.Expr):
+        try:
+            return expr.meta.output_name()
+        except pl.ComputeError:  # pragma: no cover
+            # can remove if/when requiring polars >= 0.19.13
+            if df is not None:
+                # Unexpected error. Just let it raise.
+                raise
+            return ""
+    return expr.name
+
+
 class Column(ColumnT):
     def __init__(
         self,
-        expr: pl.Expr,
+        expr: pl.Expr | pl.Series,
         *,
         df: DataFrame | None,
         api_version: str,
         is_persisted: bool = False,
     ) -> None:
         self._expr = expr
+        self._name = _extract_name(expr, df)
         self._df = df
         self._api_version = api_version
-        try:
-            self._name = expr.meta.output_name()
-        except pl.ComputeError:  # pragma: no cover
-            # can remove if/when requiring polars >= 0.19.13
-            if df is not None:
-                # Unexpected error. Just let it raise.
-                raise
-            self._name = ""
         self._is_persisted = is_persisted
 
     def __repr__(self) -> str:  # pragma: no cover
@@ -63,8 +70,13 @@ class Column(ColumnT):
     def __iter__(self) -> NoReturn:
         raise NotImplementedError
 
-    def _from_expr(self, expr: pl.Expr) -> Self:
-        return self.__class__(expr, df=self._df, api_version=self._api_version)
+    def _from_expr(self, expr: pl.Expr | pl.Series) -> Self:
+        return self.__class__(
+            expr,
+            df=self._df,
+            api_version=self._api_version,
+            is_persisted=self._is_persisted,
+        )
 
     def _materialise(self) -> pl.Series:
         if not self._is_persisted:
@@ -72,11 +84,7 @@ class Column(ColumnT):
             raise RuntimeError(
                 msg,
             )
-        if self._df is not None:
-            df = self._df.dataframe.collect().select(self._expr)
-        else:
-            df = pl.select(self._expr)
-        return df.get_column(df.columns[0])
+        return self._expr  # type: ignore[return-value]
 
     # In the standard
     def __column_namespace__(self) -> Namespace:  # pragma: no cover
@@ -86,24 +94,30 @@ class Column(ColumnT):
             api_version=self._api_version,
         )
 
-    def _to_scalar(self, value: pl.Expr, *, is_persisted: bool = False) -> Scalar:
+    def _to_scalar(self, value: Any) -> Scalar:
         from dataframe_api_compat.polars_standard.scalar_object import Scalar
 
         return Scalar(
             value,
             api_version=self._api_version,
             df=self._df,
-            is_persisted=is_persisted,
+            is_persisted=self._is_persisted,
         )
 
     def persist(self) -> Column:
         if self._df is not None:
-            df = self._df.dataframe.collect().select(self._expr)
+            assert isinstance(self._df.dataframe, pl.LazyFrame)  # help mypy
+            df = self._df.dataframe.select(self._expr).collect()
         else:
+            warnings.warn(
+                "Calling `.persist` on Column that was already persisted",
+                UserWarning,
+                stacklevel=2,
+            )
             df = pl.select(self._expr)
         column = df.get_column(df.columns[0])
         return Column(
-            pl.lit(column),
+            column,
             df=None,
             api_version=self._api_version,
             is_persisted=True,
@@ -114,7 +128,7 @@ class Column(ColumnT):
         return self._name
 
     @property
-    def column(self) -> pl.Expr:
+    def column(self) -> pl.Expr | pl.Series:
         return self._expr
 
     @property
@@ -139,18 +153,16 @@ class Column(ColumnT):
         return self._from_expr(self._expr.gather(indices._expr))
 
     def filter(self, mask: Column) -> Column:
-        return self._from_expr(self._expr.filter(mask._expr))
+        return self._from_expr(self._expr.filter(mask._expr))  # type: ignore[arg-type]
 
     def get_value(self, row_number: int) -> Any:
         if POLARS_VERSION < (0, 19, 14):
-            return self._to_scalar(
-                self._expr.take(row_number),
-                is_persisted=self._is_persisted,
-            )
-        return self._to_scalar(
-            self._expr.gather(row_number),
-            is_persisted=self._is_persisted,
-        )
+            result = self._expr.take(row_number)
+        else:
+            result = self._expr.gather(row_number)
+        if isinstance(result, pl.Series):
+            return self._to_scalar(result.item())
+        return self._to_scalar(result)
 
     def slice_rows(
         self,
@@ -370,7 +382,7 @@ class Column(ColumnT):
         return self._from_expr(expr)
 
     def is_in(self, values: Self) -> Self:
-        return self._from_expr(self._expr.is_in(values._expr))
+        return self._from_expr(self._expr.is_in(values._expr))  # type: ignore[arg-type]
 
     def sorted_indices(
         self,

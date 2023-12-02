@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import collections
+import warnings
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Iterator
@@ -91,6 +92,7 @@ class DataFrame(DataFrameT):
         return DataFrame(
             df,
             api_version=self._api_version,
+            is_persisted=self._is_persisted,
         )
 
     # Properties
@@ -515,6 +517,12 @@ class DataFrame(DataFrameT):
         )
 
     def persist(self) -> DataFrame:
+        if self._is_persisted:
+            warnings.warn(
+                "Calling `.persist` on DataFrame that was already persisted",
+                UserWarning,
+                stacklevel=2,
+            )
         return DataFrame(
             self.dataframe,
             api_version=self._api_version,

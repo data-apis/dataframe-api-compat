@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from datetime import datetime
 from typing import TYPE_CHECKING
 from typing import Any
@@ -51,14 +52,22 @@ class Column(ColumnT):
         df
             DataFrame this column originates from.
         """
-        from dataframe_api_compat.pandas_standard.scalar_object import Scalar
 
         self._name = series.name or ""
         self._series = series
         self._api_version = api_version
         self._df = df
-        self._scalar = Scalar
         self._is_persisted = is_persisted
+
+    def _to_scalar(self, value: Any) -> Scalar:
+        from dataframe_api_compat.pandas_standard.scalar_object import Scalar
+
+        return Scalar(
+            value,
+            api_version=self._api_version,
+            df=self._df,
+            is_persisted=self._is_persisted,
+        )
 
     def __repr__(self) -> str:  # pragma: no cover
         header = f" Standard Column (api_version={self._api_version}) "
@@ -83,6 +92,7 @@ class Column(ColumnT):
             series.reset_index(drop=True),
             api_version=self._api_version,
             df=self._df,
+            is_persisted=self._is_persisted,
         )
 
     def _materialise(self) -> pd.Series:
@@ -102,6 +112,12 @@ class Column(ColumnT):
         )
 
     def persist(self) -> Column:
+        if self._is_persisted:
+            warnings.warn(
+                "Calling `.persist` on Column that was already persisted",
+                UserWarning,
+                stacklevel=2,
+            )
         return Column(
             self.column,
             df=None,
@@ -136,11 +152,8 @@ class Column(ColumnT):
 
     def get_value(self, row_number: int) -> Any:
         ser = self.column
-        return self._scalar(
+        return self._to_scalar(
             ser.iloc[row_number],
-            api_version=self._api_version,
-            df=self._df,
-            is_persisted=self._is_persisted,
         )
 
     def slice_rows(
@@ -270,35 +283,35 @@ class Column(ColumnT):
 
     def any(self, *, skip_nulls: bool | Scalar = True) -> Scalar:
         ser = self.column
-        return self._scalar(ser.any(), api_version=self._api_version, df=self._df)
+        return self._to_scalar(ser.any())
 
     def all(self, *, skip_nulls: bool | Scalar = True) -> Scalar:
         ser = self.column
-        return self._scalar(ser.all(), api_version=self._api_version, df=self._df)
+        return self._to_scalar(ser.all())
 
     def min(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
-        return self._scalar(ser.min(), api_version=self._api_version, df=self._df)
+        return self._to_scalar(ser.min())
 
     def max(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
-        return self._scalar(ser.max(), api_version=self._api_version, df=self._df)
+        return self._to_scalar(ser.max())
 
     def sum(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
-        return self._scalar(ser.sum(), api_version=self._api_version, df=self._df)
+        return self._to_scalar(ser.sum())
 
     def prod(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
-        return self._scalar(ser.prod(), api_version=self._api_version, df=self._df)
+        return self._to_scalar(ser.prod())
 
     def median(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
-        return self._scalar(ser.median(), api_version=self._api_version, df=self._df)
+        return self._to_scalar(ser.median())
 
     def mean(self, *, skip_nulls: bool | Scalar = True) -> Any:
         ser = self.column
-        return self._scalar(ser.mean(), api_version=self._api_version, df=self._df)
+        return self._to_scalar(ser.mean())
 
     def std(
         self,
@@ -307,10 +320,8 @@ class Column(ColumnT):
         skip_nulls: bool | Scalar = True,
     ) -> Any:
         ser = self.column
-        return self._scalar(
+        return self._to_scalar(
             ser.std(ddof=correction),
-            api_version=self._api_version,
-            df=self._df,
         )
 
     def var(
@@ -320,15 +331,19 @@ class Column(ColumnT):
         skip_nulls: bool | Scalar = True,
     ) -> Any:
         ser = self.column
-        return self._scalar(
+        return self._to_scalar(
             ser.var(ddof=correction),
-            api_version=self._api_version,
-            df=self._df,
         )
 
     def __len__(self) -> int:
         ser = self._materialise()
         return len(ser)
+
+    def n_unique(self) -> Scalar:  # pragma: no cover (todo, still needs adding upstream)
+        ser = self.column
+        return self._to_scalar(
+            ser.nunique(),
+        )
 
     # Transformations
 

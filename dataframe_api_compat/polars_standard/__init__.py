@@ -148,19 +148,14 @@ class Namespace(NamespaceT):
             api_version=list(api_version)[0],
         )
 
-    def column_from_1d_array(
+    def column_from_1d_array(  # type: ignore[override]
         self,
         array: Any,
         *,
-        dtype: DType,
         name: str = "",
     ) -> Column:
-        ser = pl.Series(
-            values=array,
-            dtype=_map_standard_to_polars_dtypes(dtype),
-            name=name,
-        )
-        return Column(pl.lit(ser), api_version=self.api_version, df=None)
+        ser = pl.Series(values=array, name=name)
+        return Column(ser, api_version=self.api_version, df=None, is_persisted=True)
 
     def column_from_sequence(
         self,
@@ -174,7 +169,7 @@ class Namespace(NamespaceT):
             dtype=_map_standard_to_polars_dtypes(dtype),
             name=name,
         )
-        return Column(pl.lit(ser), api_version=self.api_version, df=None)
+        return Column(ser, api_version=self.api_version, df=None, is_persisted=True)
 
     def dataframe_from_2d_array(
         self,
@@ -303,7 +298,7 @@ class Namespace(NamespaceT):
         dataframes: Sequence[DataFrameT],
     ) -> DataFrame:
         dataframes = cast("Sequence[DataFrame]", dataframes)
-        dfs: list[pl.LazyFrame] = []
+        dfs: list[pl.LazyFrame | pl.DataFrame] = []
         api_versions: set[str] = set()
         for df in dataframes:
             dfs.append(df.dataframe)
@@ -311,8 +306,9 @@ class Namespace(NamespaceT):
         if len(api_versions) > 1:  # pragma: no cover
             msg = f"Multiple api versions found: {api_versions}"
             raise ValueError(msg)
+        # todo raise if not all share persistedness
         return DataFrame(
-            pl.concat(dfs),
+            pl.concat(dfs),  # type: ignore[type-var]
             api_version=api_versions.pop(),
         )
 
@@ -427,7 +423,12 @@ def convert_to_standard_compliant_column(
     ser: pl.Series,
     api_version: str | None = None,
 ) -> Column:
-    return Column(pl.lit(ser), api_version=api_version or "2023.11-beta", df=None)
+    return Column(
+        ser,
+        api_version=api_version or "2023.11-beta",
+        df=None,
+        is_persisted=True,
+    )
 
 
 def convert_to_standard_compliant_dataframe(
