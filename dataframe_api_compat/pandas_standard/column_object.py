@@ -332,7 +332,7 @@ class Column(ColumnT):
         ser = self._materialise()
         return len(ser)
 
-    def n_unique(self) -> Scalar:
+    def n_unique(self) -> Scalar:  # pragma: no cover (todo, still needs adding upstream)
         ser = self.column
         return self._to_scalar(
             ser.nunique(),

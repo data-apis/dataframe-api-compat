@@ -61,20 +61,14 @@ class Scalar(ScalarT):
             msg = "Can't call __bool__ on Scalar. Please use .persist() first."
             raise RuntimeError(msg)
 
-        if self._df is None:
-            value = pl.select(self._value).item()
-        else:
-            assert isinstance(self._df.dataframe, pl.LazyFrame)  # help mypy
-            df = self._df.dataframe.collect().select(self._value)
-            value = df.get_column(df.columns[0]).item()
-        return value
+        return pl.select(self._value).item()
 
     def persist(self) -> Scalar:
         if self._df is None:
-            value = pl.select(self._value).item()
+            value = self._value
         else:
             assert isinstance(self._df.dataframe, pl.LazyFrame)  # help mypy
-            df = self._df.dataframe.collect().select(self._value)
+            df = self._df.dataframe.select(self._value).collect()
             value = df.get_column(df.columns[0]).item()
         return Scalar(
             value,
