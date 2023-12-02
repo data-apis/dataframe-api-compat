@@ -58,6 +58,7 @@ class Column(ColumnT):
         self._api_version = api_version
         self._df = df
         self._is_persisted = is_persisted
+        assert is_persisted ^ (df is not None)
 
     def _to_scalar(self, value: Any) -> Scalar:
         from dataframe_api_compat.pandas_standard.scalar_object import Scalar

@@ -130,7 +130,7 @@ class DataFrame(DataFrameT):
 
         return Column(
             self.dataframe.loc[:, name],
-            df=self,
+            df=None if self._is_persisted else self,
             api_version=self._api_version,
             is_persisted=self._is_persisted,
         )
