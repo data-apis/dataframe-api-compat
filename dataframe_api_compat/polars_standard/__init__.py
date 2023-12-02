@@ -184,7 +184,12 @@ class Namespace(NamespaceT):
         return DataFrame(df, api_version=self.api_version)
 
     def date(self, year: int, month: int, day: int) -> Scalar:
-        return Scalar(pl.date(year, month, day), api_version=self.api_version, df=None)
+        return Scalar(
+            pl.date(year, month, day),
+            api_version=self.api_version,
+            df=None,
+            is_persisted=True,
+        )
 
     class Aggregation(AggregationT):
         def __init__(self, column_name: str, output_name: str, aggregation: str) -> None:

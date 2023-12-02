@@ -357,6 +357,7 @@ class Namespace(NamespaceT):
             pd.Timestamp(dt.date(year, month, day)),
             api_version=self._api_version,
             df=None,
+            is_persisted=True,
         )
 
     # --- horizontal reductions
