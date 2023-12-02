@@ -253,7 +253,7 @@ class Namespace(NamespaceT):
             api_versions.add(col._api_version)  # type: ignore[attr-defined]
         return DataFrame(pd.DataFrame(data), api_version=list(api_versions)[0])
 
-    def column_from_1d_array(
+    def column_from_1d_array(  # type: ignore[override]
         self,
         data: Any,
         *,

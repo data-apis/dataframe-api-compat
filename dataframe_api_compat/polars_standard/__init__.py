@@ -148,7 +148,7 @@ class Namespace(NamespaceT):
             api_version=list(api_version)[0],
         )
 
-    def column_from_1d_array(
+    def column_from_1d_array(  # type: ignore[override]
         self,
         array: Any,
         *,
@@ -157,7 +157,6 @@ class Namespace(NamespaceT):
         ser = pl.Series(
             values=array,
             # todo remove dtype from standard
-            #dtype=_map_standard_to_polars_dtypes(dtype),
             name=name,
         )
         return Column(pl.lit(ser), api_version=self.api_version, df=None)
