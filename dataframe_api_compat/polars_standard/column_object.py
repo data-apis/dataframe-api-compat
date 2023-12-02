@@ -83,7 +83,7 @@ class Column(ColumnT):
             raise RuntimeError(
                 msg,
             )
-        return self._expr
+        return self._expr  # type: ignore[return-value]
 
     # In the standard
     def __column_namespace__(self) -> Namespace:  # pragma: no cover
