@@ -64,7 +64,12 @@ class Column(ColumnT):
         raise NotImplementedError
 
     def _from_expr(self, expr: pl.Expr) -> Self:
-        return self.__class__(expr, df=self._df, api_version=self._api_version)
+        return self.__class__(
+            expr,
+            df=self._df,
+            api_version=self._api_version,
+            is_persisted=self._is_persisted,
+        )
 
     def _materialise(self) -> pl.Series:
         if not self._is_persisted:

@@ -262,7 +262,6 @@ class Namespace(NamespaceT):
         ser = pd.Series(
             data,
             # todo remove dtype from standard here
-            #dtype=map_standard_dtype_to_pandas_dtype(dtype),
             name=name,
         )
         return Column(ser, api_version=self._api_version, df=None)
@@ -277,7 +276,7 @@ class Namespace(NamespaceT):
         ser = pd.Series(
             sequence,
             # todo make optional?
-            #dtype=map_standard_dtype_to_pandas_dtype(dtype),
+            dtype=map_standard_dtype_to_pandas_dtype(dtype),
             name=name,
         )
         return Column(ser, api_version=self._api_version, df=None)

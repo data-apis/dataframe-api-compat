@@ -36,8 +36,7 @@ def test_within_df_propagation(library: str) -> None:
     df1 = integer_dataframe_1(library)
     df1 = df1 + 1
     col = df1.col("a").persist()
-    with pytest.raises(RuntimeError):
-        assert int((col + 1).get_value(0)) == 3  # type: ignore[call-overload]
+    assert int((col + 1).get_value(0)) == 3  # type: ignore[call-overload]
 
     # persisting the scalar works too
     df1 = integer_dataframe_1(library)
@@ -48,8 +47,7 @@ def test_within_df_propagation(library: str) -> None:
     df1 = integer_dataframe_1(library)
     df1 = df1 + 1
     scalar = df1.col("a").get_value(0).persist()
-    with pytest.raises(RuntimeError):
-        assert int(scalar + 1) == 2  # type: ignore[call-overload]
+    assert int(scalar + 1) == 3  # type: ignore[call-overload]
 
 
 def test_within_df_within_col_propagation(library: str) -> None:

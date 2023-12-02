@@ -90,7 +90,6 @@ def test_free_standing(library: str) -> None:
     namespace = df.__dataframe_namespace__()
     ser = namespace.column_from_1d_array(
         np.array([1, 2, 3]),
-        dtype=namespace.Int64(),
         name="a",
     )
     result = float((ser.mean() + 1).persist())  # type: ignore[arg-type]
