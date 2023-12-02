@@ -88,7 +88,7 @@ def test_float_unary_invalid(library: str, attr: str) -> None:
 def test_free_standing(library: str) -> None:
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
-    ser = namespace.column_from_1d_array(
+    ser = namespace.column_from_1d_array(  # type: ignore[call-arg]
         np.array([1, 2, 3]),
         name="a",
     )

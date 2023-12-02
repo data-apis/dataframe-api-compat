@@ -37,7 +37,7 @@ def test_column_from_1d_array(
     namespace = ser.__column_namespace__()
     arr = np.array([1, 2, 3], dtype=pandas_dtype)
     result = namespace.dataframe_from_columns(
-        namespace.column_from_1d_array(
+        namespace.column_from_1d_array(  # type: ignore[call-arg]
             arr,
             name="result",
         ).persist(),
@@ -54,7 +54,7 @@ def test_column_from_1d_array_string(
     namespace = ser.__column_namespace__()
     arr = np.array(["a", "b", "c"])
     result = namespace.dataframe_from_columns(
-        namespace.column_from_1d_array(
+        namespace.column_from_1d_array(  # type: ignore[call-arg]
             arr,
             name="result",
         ).persist(),
@@ -71,7 +71,7 @@ def test_column_from_1d_array_bool(
     namespace = ser.__column_namespace__()
     arr = np.array([True, False, True])
     result = namespace.dataframe_from_columns(
-        namespace.column_from_1d_array(
+        namespace.column_from_1d_array(  # type: ignore[call-arg]
             arr,
             name="result",
         ).persist(),
@@ -86,7 +86,7 @@ def test_datetime_from_1d_array(library: str) -> None:
     namespace = ser.__column_namespace__()
     arr = np.array([date(2020, 1, 1), date(2020, 1, 2)], dtype="datetime64[ms]")
     result = namespace.dataframe_from_columns(
-        namespace.column_from_1d_array(
+        namespace.column_from_1d_array(  # type: ignore[call-arg]
             arr,
             name="result",
         ).persist(),
@@ -113,7 +113,7 @@ def test_duration_from_1d_array(library: str) -> None:
     namespace = ser.__column_namespace__()
     arr = np.array([timedelta(1), timedelta(2)], dtype="timedelta64[ms]")
     result = namespace.dataframe_from_columns(
-        namespace.column_from_1d_array(
+        namespace.column_from_1d_array(  # type: ignore[call-arg]
             arr,
             name="result",
         ).persist(),
