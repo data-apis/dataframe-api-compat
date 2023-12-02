@@ -106,7 +106,7 @@ class Column(ColumnT):
     def persist(self) -> Column:
         if self._df is not None:
             assert isinstance(self._df.dataframe, pl.LazyFrame)  # help mypy
-            df = self._df.dataframe.collect().select(self._expr)
+            df = self._df.dataframe.select(self._expr).collect()
         else:
             df = pl.select(self._expr)
         column = df.get_column(df.columns[0])
