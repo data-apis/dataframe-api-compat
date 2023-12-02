@@ -57,8 +57,7 @@ class DataFrame(DataFrameT):
         self._df = df
         self._api_version = api_version
         self._is_persisted = is_persisted
-        if isinstance(df, pl.DataFrame):
-            assert is_persisted
+        assert is_persisted ^ isinstance(df, pl.LazyFrame)
 
     # Validation helper methods
 
