@@ -29,6 +29,7 @@ class Scalar(ScalarT):
         self._api_version = api_version
         self._df = df
         self._is_persisted = is_persisted
+        assert is_persisted ^ (df is not None)
 
     def __scalar_namespace__(self) -> Namespace:
         from dataframe_api_compat.pandas_standard import Namespace
