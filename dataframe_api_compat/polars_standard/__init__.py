@@ -161,14 +161,17 @@ class Namespace(NamespaceT):
         self,
         sequence: Sequence[Any],
         *,
-        dtype: DType,
+        dtype: DType | None = None,
         name: str = "",
     ) -> Column:
-        ser = pl.Series(
-            values=sequence,
-            dtype=_map_standard_to_polars_dtypes(dtype),
-            name=name,
-        )
+        if dtype is not None:
+            ser = pl.Series(
+                values=sequence,
+                dtype=_map_standard_to_polars_dtypes(dtype),
+                name=name,
+            )
+        else:
+            ser = pl.Series(values=sequence, name=name)
         return Column(ser, api_version=self.api_version, df=None, is_persisted=True)
 
     def dataframe_from_2d_array(

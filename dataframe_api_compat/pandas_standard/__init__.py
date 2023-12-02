@@ -271,15 +271,17 @@ class Namespace(NamespaceT):
         self,
         sequence: Sequence[Any],
         *,
-        dtype: DType,
+        dtype: DType | None = None,
         name: str = "",
     ) -> Column:
-        ser = pd.Series(
-            sequence,
-            # todo make optional?
-            dtype=map_standard_dtype_to_pandas_dtype(dtype),
-            name=name,
-        )
+        if dtype is not None:
+            ser = pd.Series(
+                sequence,
+                dtype=map_standard_dtype_to_pandas_dtype(dtype),
+                name=name,
+            )
+        else:
+            ser = pd.Series(sequence, name=name)
         return Column(ser, api_version=self._api_version, df=None, is_persisted=True)
 
     def concat(
