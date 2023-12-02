@@ -24,26 +24,32 @@ else:
     ColumnT = object
 
 
+def _extract_name(expr: pl.Expr | pl.Series, df: DataFrame | None) -> str:
+    if isinstance(expr, pl.Expr):
+        try:
+            return expr.meta.output_name()
+        except pl.ComputeError:  # pragma: no cover
+            # can remove if/when requiring polars >= 0.19.13
+            if df is not None:
+                # Unexpected error. Just let it raise.
+                raise
+            return ""
+    return expr.name
+
+
 class Column(ColumnT):
     def __init__(
         self,
-        expr: pl.Expr,
+        expr: pl.Expr | pl.Series,
         *,
         df: DataFrame | None,
         api_version: str,
         is_persisted: bool = False,
     ) -> None:
         self._expr = expr
+        self._name = _extract_name(expr, df)
         self._df = df
         self._api_version = api_version
-        try:
-            self._name = expr.meta.output_name()
-        except pl.ComputeError:  # pragma: no cover
-            # can remove if/when requiring polars >= 0.19.13
-            if df is not None:
-                # Unexpected error. Just let it raise.
-                raise
-            self._name = ""
         self._is_persisted = is_persisted
 
     def __repr__(self) -> str:  # pragma: no cover
@@ -91,14 +97,14 @@ class Column(ColumnT):
             api_version=self._api_version,
         )
 
-    def _to_scalar(self, value: pl.Expr, *, is_persisted: bool = False) -> Scalar:
+    def _to_scalar(self, value: pl.Expr | pl.Series) -> Scalar:
         from dataframe_api_compat.polars_standard.scalar_object import Scalar
 
         return Scalar(
             value,
             api_version=self._api_version,
             df=self._df,
-            is_persisted=is_persisted,
+            is_persisted=self._is_persisted,
         )
 
     def persist(self) -> Column:
@@ -108,7 +114,7 @@ class Column(ColumnT):
             df = pl.select(self._expr)
         column = df.get_column(df.columns[0])
         return Column(
-            pl.lit(column),
+            column,
             df=None,
             api_version=self._api_version,
             is_persisted=True,
@@ -148,14 +154,11 @@ class Column(ColumnT):
 
     def get_value(self, row_number: int) -> Any:
         if POLARS_VERSION < (0, 19, 14):
-            return self._to_scalar(
-                self._expr.take(row_number),
-                is_persisted=self._is_persisted,
-            )
-        return self._to_scalar(
-            self._expr.gather(row_number),
-            is_persisted=self._is_persisted,
-        )
+            result = self._expr.take(row_number)
+        result = self._expr.gather(row_number)
+        if self._is_persisted:
+            return self._to_scalar(result.item())
+        return self._to_scalar(result)
 
     def slice_rows(
         self,

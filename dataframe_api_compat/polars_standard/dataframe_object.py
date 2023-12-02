@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import collections
 import secrets
+import warnings
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Iterator
@@ -48,7 +49,7 @@ def generate_random_token(column_names: list[str]) -> str:
 class DataFrame(DataFrameT):
     def __init__(
         self,
-        df: pl.LazyFrame,
+        df: pl.LazyFrame | pl.DataFrame,
         *,
         api_version: str,
         is_persisted: bool = False,
@@ -65,7 +66,7 @@ class DataFrame(DataFrameT):
             raise ValueError(
                 msg,
             )
-        return self.dataframe.collect()
+        return self.dataframe
 
     def __repr__(self) -> str:  # pragma: no cover
         header = f" Standard DataFrame (api_version={self._api_version}) "
@@ -92,6 +93,7 @@ class DataFrame(DataFrameT):
         return DataFrame(
             df,
             api_version=self._api_version,
+            is_persisted=self._is_persisted,
         )
 
     # Properties
@@ -125,11 +127,18 @@ class DataFrame(DataFrameT):
     def col(self, value: str) -> Column:
         from dataframe_api_compat.polars_standard.column_object import Column
 
+        if self._is_persisted:
+            return Column(
+                self.dataframe.get_column(value),
+                df=None,
+                api_version=self._api_version,
+                is_persisted=True,
+            )
         return Column(
             pl.col(value),
             df=self,
             api_version=self._api_version,
-            is_persisted=self._is_persisted,
+            is_persisted=False,
         )
 
     def shape(self) -> tuple[int, int]:
@@ -532,8 +541,17 @@ class DataFrame(DataFrameT):
         return self._from_dataframe(result)
 
     def persist(self) -> DataFrame:
+        if self._is_persisted:
+            warnings.warn(
+                "Calling `.persist` on DataFrame that was already persisted",
+                UserWarning,
+                stacklevel=2,
+            )
+            df = self.dataframe
+        else:
+            df = self.dataframe.collect()
         return DataFrame(
-            self.dataframe.collect().lazy(),
+            df,
             api_version=self._api_version,
             is_persisted=True,
         )

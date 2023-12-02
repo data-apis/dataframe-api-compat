@@ -41,8 +41,8 @@ def test_float_binary(library: str, attr: str) -> None:
 
 
 def test_float_binary_invalid(library: str) -> None:
-    lhs = integer_dataframe_2(library).persist().col("a").mean()
-    rhs = integer_dataframe_1(library).persist().col("b").mean()
+    lhs = integer_dataframe_2(library).col("a").mean()
+    rhs = integer_dataframe_1(library).col("b").mean()
     with pytest.raises(ValueError):
         _ = lhs > rhs
 
@@ -78,7 +78,7 @@ def test_float_unary(library: str, attr: str) -> None:
     ],
 )
 def test_float_unary_invalid(library: str, attr: str) -> None:
-    df = integer_dataframe_2(library).persist()
+    df = integer_dataframe_2(library)
     scalar = df.col("a").mean()
     float_scalar = float(scalar.persist())  # type: ignore[arg-type]
     with pytest.raises(RuntimeError):
