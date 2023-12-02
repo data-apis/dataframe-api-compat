@@ -88,3 +88,14 @@ def test_column_from_sequence(
     )
     result_pd = interchange_to_pandas(result)["result"]
     pd.testing.assert_series_equal(result_pd, expected)
+
+
+def test_column_from_sequence_no_dtype(
+    library: str,
+) -> None:
+    df = integer_dataframe_1(library)
+    namespace = df.__dataframe_namespace__()
+    result = namespace.dataframe_from_columns(namespace.column_from_sequence([1, 2, 3], name="result"))  # type: ignore[call-arg]
+    result_pd = interchange_to_pandas(result)["result"]
+    expected = pd.Series([1, 2, 3], dtype="int64", name="result")
+    pd.testing.assert_series_equal(result_pd, expected)
