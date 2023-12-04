@@ -8,7 +8,7 @@ from typing import Any
 from typing import Literal
 from typing import cast
 
-import pandas as pd
+import modin.pandas as pd
 
 from dataframe_api_compat.pandas_standard.column_object import Column
 from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame

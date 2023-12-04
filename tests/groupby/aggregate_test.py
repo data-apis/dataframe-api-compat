@@ -1,7 +1,10 @@
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_4
 
+import pytest
 
+
+@pytest.mark.xfail(reason="https://github.com/modin-project/modin/issues/3602")
 def test_aggregate(library: str) -> None:
     df = integer_dataframe_4(library)
     df = df.assign((df.col("b") > 0).rename("d"))
@@ -56,6 +59,7 @@ def test_aggregate(library: str) -> None:
     compare_dataframe_with_reference(result, expected, dtype=expected_dtype)  # type: ignore[arg-type]
 
 
+@pytest.mark.xfail(reason="https://github.com/modin-project/modin/issues/3602")
 def test_aggregate_only_size(library: str) -> None:
     df = integer_dataframe_4(library)
     ns = df.__dataframe_namespace__()

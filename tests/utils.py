@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from typing import Any
 from typing import Mapping
 
-import pandas as pd
+import modin.pandas as pd
 import polars as pl
 from packaging.version import parse
 

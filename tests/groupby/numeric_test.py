@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import pandas as pd
+import modin.pandas as pd
 import pytest
 from packaging.version import Version
 from packaging.version import parse

@@ -49,7 +49,7 @@ class TestPandas:
         Full testing is done at https://github.com/data-apis/dataframe-api-compat,
         this is just to check that the entry point works as expected.
         """
-        import pandas as pd
+        import modin.pandas as pd
 
         if parse(pd.__version__) < Version("2.1.0"):  # pragma: no cover
             # before consortium standard in pandas

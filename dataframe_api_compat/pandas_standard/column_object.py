@@ -8,7 +8,7 @@ from typing import Literal
 from typing import NoReturn
 
 import numpy as np
-import pandas as pd
+import modin.pandas as pd
 from pandas.api.types import is_extension_array_dtype
 
 import dataframe_api_compat.pandas_standard
