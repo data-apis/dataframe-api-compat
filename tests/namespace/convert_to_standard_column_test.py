@@ -5,12 +5,12 @@ import polars as pl
 import pytest
 from packaging.version import Version
 
-from tests.utils import PANDAS_VERSION
-from tests.utils import POLARS_VERSION
+from tests.utils import pandas_version
+from tests.utils import polars_version
 
 
 @pytest.mark.skipif(
-    Version("0.19.0") > POLARS_VERSION or Version("2.1.0") > PANDAS_VERSION,
+    Version("0.19.0") > polars_version() or Version("2.1.0") > pandas_version(),
     reason="before consortium standard in polars/pandas",
 )
 def test_convert_to_std_column() -> None:

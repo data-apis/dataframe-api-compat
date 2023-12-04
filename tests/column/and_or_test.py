@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from tests.utils import BaseHandler
 from tests.utils import bool_dataframe_1
 from tests.utils import compare_column_with_reference
 
 
-def test_column_and(library: str) -> None:
+def test_column_and(library: BaseHandler) -> None:
     df = bool_dataframe_1(library, api_version="2023.09-beta")
     ns = df.__dataframe_namespace__()
     ser = df.col("a")
@@ -14,7 +15,7 @@ def test_column_and(library: str) -> None:
     compare_column_with_reference(result.col("result"), expected, dtype=ns.Bool)
 
 
-def test_column_or(library: str) -> None:
+def test_column_or(library: BaseHandler) -> None:
     df = bool_dataframe_1(library)
     ns = df.__dataframe_namespace__()
     ser = df.col("a")
@@ -24,7 +25,7 @@ def test_column_or(library: str) -> None:
     compare_column_with_reference(result.col("result"), expected, dtype=ns.Bool)
 
 
-def test_column_and_with_scalar(library: str) -> None:
+def test_column_and_with_scalar(library: BaseHandler) -> None:
     df = bool_dataframe_1(library)
     ns = df.__dataframe_namespace__()
     ser = df.col("a")
@@ -34,7 +35,7 @@ def test_column_and_with_scalar(library: str) -> None:
     compare_column_with_reference(result.col("result"), expected, dtype=ns.Bool)
 
 
-def test_column_or_with_scalar(library: str) -> None:
+def test_column_or_with_scalar(library: BaseHandler) -> None:
     df = bool_dataframe_1(library)
     ns = df.__dataframe_namespace__()
     ser = df.col("a")

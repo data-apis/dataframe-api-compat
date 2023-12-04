@@ -5,6 +5,7 @@ from typing import Any
 
 import pytest
 
+from tests.utils import BaseHandler
 from tests.utils import compare_column_with_reference
 from tests.utils import float_dataframe_1
 from tests.utils import float_dataframe_2
@@ -24,8 +25,8 @@ if TYPE_CHECKING:
 )
 @pytest.mark.filterwarnings("ignore:np.find_common_type is deprecated")
 def test_is_in(
-    library: str,
-    df_factory: Callable[[str], Any],
+    library: BaseHandler,
+    df_factory: Callable[[BaseHandler], Any],
     expected_values: list[bool],
 ) -> None:
     df = df_factory(library)
@@ -46,8 +47,8 @@ def test_is_in(
 )
 @pytest.mark.filterwarnings("ignore:np.find_common_type is deprecated")
 def test_expr_is_in(
-    library: str,
-    df_factory: Callable[[str], Any],
+    library: BaseHandler,
+    df_factory: Callable[[BaseHandler], Any],
     expected_values: list[bool],
 ) -> None:
     df = df_factory(library)

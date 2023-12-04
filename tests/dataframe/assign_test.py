@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import pytest
 
+from tests.utils import BaseHandler
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_1
 
 
-def test_insert_columns(library: str) -> None:
+def test_insert_columns(library: BaseHandler) -> None:
     df = integer_dataframe_1(library, api_version="2023.09-beta")
     ns = df.__dataframe_namespace__()
     new_col = (df.col("b") + 3).rename("result")
@@ -18,7 +19,7 @@ def test_insert_columns(library: str) -> None:
     compare_dataframe_with_reference(df, expected, dtype=ns.Int64)
 
 
-def test_insert_multiple_columns(library: str) -> None:
+def test_insert_multiple_columns(library: BaseHandler) -> None:
     df = integer_dataframe_1(library, api_version="2023.09-beta")
     ns = df.__dataframe_namespace__()
     new_col = (df.col("b") + 3).rename("result")
@@ -30,7 +31,7 @@ def test_insert_multiple_columns(library: str) -> None:
     compare_dataframe_with_reference(df, expected, dtype=ns.Int64)
 
 
-def test_insert_multiple_columns_invalid(library: str) -> None:
+def test_insert_multiple_columns_invalid(library: BaseHandler) -> None:
     df = integer_dataframe_1(library, api_version="2023.09-beta")
     df.__dataframe_namespace__()
     new_col = (df.col("b") + 3).rename("result")
@@ -38,7 +39,7 @@ def test_insert_multiple_columns_invalid(library: str) -> None:
         _ = df.assign([new_col.rename("c"), new_col.rename("d")])  # type: ignore[arg-type]
 
 
-def test_insert_eager_columns(library: str) -> None:
+def test_insert_eager_columns(library: BaseHandler) -> None:
     df = integer_dataframe_1(library, api_version="2023.09-beta")
     ns = df.__dataframe_namespace__()
     new_col = (df.col("b") + 3).rename("result")

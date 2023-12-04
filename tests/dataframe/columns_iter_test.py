@@ -1,8 +1,9 @@
+from tests.utils import BaseHandler
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_1
 
 
-def test_iter_columns(library: str) -> None:
+def test_iter_columns(library: BaseHandler) -> None:
     df = integer_dataframe_1(library)
     ns = df.__dataframe_namespace__()
     result = df.assign(

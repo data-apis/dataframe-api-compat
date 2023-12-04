@@ -3,13 +3,16 @@ from __future__ import annotations
 import pytest
 from packaging.version import Version
 
-from tests.utils import PANDAS_VERSION
+from tests.utils import BaseHandler
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_1
 from tests.utils import integer_dataframe_2
+from tests.utils import pandas_version
 
 
-def test_join_left(library: str) -> None:
+def test_join_left(library: BaseHandler) -> None:
+    if library.name == "modin":
+        pytest.skip("TODO: enable for modin")
     left = integer_dataframe_1(library)
     right = integer_dataframe_2(library).rename({"b": "c"})
     result = left.join(right, left_on="a", right_on="a", how="left")
@@ -18,19 +21,21 @@ def test_join_left(library: str) -> None:
     expected_dtype = {
         "a": ns.Int64,
         "b": ns.Int64,
-        "c": ns.Int64 if library in ["pandas-nullable", "polars-lazy"] else ns.Float64,
+        "c": ns.Int64
+        if library.name in ["pandas-nullable", "polars-lazy"]
+        else ns.Float64,
     }
     compare_dataframe_with_reference(result, expected, dtype=expected_dtype)  # type: ignore[arg-type]
 
 
-def test_join_overlapping_names(library: str) -> None:
+def test_join_overlapping_names(library: BaseHandler) -> None:
     left = integer_dataframe_1(library)
     right = integer_dataframe_2(library)
     with pytest.raises(ValueError):
         _ = left.join(right, left_on="a", right_on="a", how="left")
 
 
-def test_join_inner(library: str) -> None:
+def test_join_inner(library: BaseHandler) -> None:
     left = integer_dataframe_1(library)
     right = integer_dataframe_2(library).rename({"b": "c"})
     result = left.join(right, left_on="a", right_on="a", how="inner")
@@ -40,13 +45,13 @@ def test_join_inner(library: str) -> None:
 
 
 @pytest.mark.skip(reason="outer join has changed in Polars recently, need to fixup")
-def test_join_outer(library: str) -> None:  # pragma: no cover
+def test_join_outer(library: BaseHandler) -> None:  # pragma: no cover
     left = integer_dataframe_1(library)
     right = integer_dataframe_2(library).rename({"b": "c"})
     result = left.join(right, left_on="a", right_on="a", how="outer").sort("a")
     ns = result.__dataframe_namespace__()
     if (
-        library == "pandas-nullable" and Version("2.0.0") > PANDAS_VERSION
+        library.name == "pandas-nullable" and Version("2.0.0") > pandas_version()
     ):  # pragma: no cover
         # upstream bug
         result = result.cast({"a": ns.Int64()})
@@ -57,13 +62,19 @@ def test_join_outer(library: str) -> None:  # pragma: no cover
     }
     expected_dtype = {
         "a": ns.Int64,
-        "b": ns.Int64 if library in ["pandas-nullable", "polars-lazy"] else ns.Float64,
-        "c": ns.Int64 if library in ["pandas-nullable", "polars-lazy"] else ns.Float64,
+        "b": ns.Int64
+        if library.name in ["pandas-nullable", "polars-lazy"]
+        else ns.Float64,
+        "c": ns.Int64
+        if library.name in ["pandas-nullable", "polars-lazy"]
+        else ns.Float64,
     }
     compare_dataframe_with_reference(result, expected, dtype=expected_dtype)  # type: ignore[arg-type]
 
 
-def test_join_two_keys(library: str) -> None:
+def test_join_two_keys(library: BaseHandler) -> None:
+    if library.name == "modin":
+        pytest.skip("TODO: enable for modin")
     left = integer_dataframe_1(library)
     right = integer_dataframe_2(library).rename({"b": "c"})
     result = left.join(right, left_on=["a", "b"], right_on=["a", "c"], how="left")
@@ -72,12 +83,14 @@ def test_join_two_keys(library: str) -> None:
     expected_dtype = {
         "a": ns.Int64,
         "b": ns.Int64,
-        "c": ns.Int64 if library in ["pandas-nullable", "polars-lazy"] else ns.Float64,
+        "c": ns.Int64
+        if library.name in ["pandas-nullable", "polars-lazy"]
+        else ns.Float64,
     }
     compare_dataframe_with_reference(result, expected, dtype=expected_dtype)  # type: ignore[arg-type]
 
 
-def test_join_invalid(library: str) -> None:
+def test_join_invalid(library: BaseHandler) -> None:
     left = integer_dataframe_1(library)
     right = integer_dataframe_2(library).rename({"b": "c"})
     with pytest.raises(ValueError):

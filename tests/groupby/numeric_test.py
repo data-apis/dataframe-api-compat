@@ -5,6 +5,7 @@ import pytest
 from packaging.version import Version
 from packaging.version import parse
 
+from tests.utils import BaseHandler
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_4
 
@@ -28,7 +29,7 @@ from tests.utils import integer_dataframe_4
     ],
 )
 def test_group_by_numeric(
-    library: str,
+    library: BaseHandler,
     aggregation: str,
     expected_b: list[float],
     expected_c: list[float],
@@ -41,7 +42,7 @@ def test_group_by_numeric(
     expected = {"key": [1, 2], "b": expected_b, "c": expected_c}
     dtype = getattr(ns, expected_dtype)
     expected_ns_dtype = {"key": ns.Int64, "b": dtype, "c": dtype}
-    if library == "pandas-nullable" and parse(pd.__version__) < Version(
+    if library.name == "pandas-nullable" and parse(pd.__version__) < Version(
         "2.0.0",
     ):  # pragma: no cover
         # upstream bug
