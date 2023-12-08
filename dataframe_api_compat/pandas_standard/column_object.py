@@ -144,7 +144,7 @@ class Column(ColumnT):
     def parent_dataframe(self) -> DataFrame | None:
         return self._df
 
-    def get_rows(self, indices: Column) -> Column:
+    def take(self, indices: Column) -> Column:
         return self._from_series(self.column.iloc[indices.column])
 
     def filter(self, mask: Column) -> Column:
@@ -340,7 +340,11 @@ class Column(ColumnT):
         ser = self._materialise()
         return len(ser)
 
-    def n_unique(self) -> Scalar:  # pragma: no cover (todo, still needs adding upstream)
+    def n_unique(
+        self,
+        *,
+        skip_nulls: bool = True,
+    ) -> Scalar:  # pragma: no cover (todo, still needs adding upstream)
         ser = self.column
         return self._to_scalar(
             ser.nunique(),
@@ -451,6 +455,15 @@ class Column(ColumnT):
         return ser.to_numpy(
             dtype=NUMPY_MAPPING.get(self.column.dtype.name, self.column.dtype.name),
         )
+
+    def cast(self, dtype: DType) -> Column:
+        ser = self.column
+        pandas_dtype = (
+            dataframe_api_compat.pandas_standard.map_standard_dtype_to_pandas_dtype(
+                dtype,
+            )
+        )
+        return self._from_series(ser.astype(pandas_dtype))
 
     # --- temporal methods ---
 

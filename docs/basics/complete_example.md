@@ -27,7 +27,7 @@ The general strategy will be:
 class StandardScalar:
     def transform(self, df):
         df = df.__dataframe_consortium_standard__(api_version='2023.11-beta')
-        new_columns = [(col - self.means[col.name])/self.std_devs[col_name] for col in df.columns_iter()]
+        new_columns = [(col - self.means[col.name])/self.std_devs[col_name] for col in df.iter_columns()]
         df = df.assign(*new_columns)
         return df.dataframe
 ```
@@ -50,14 +50,14 @@ class StandardScalar:
         df = df.__dataframe_consortium_standard__(api_version='2023.11-beta')
         ns = df.__dataframe_namespace__()
 
-        means = [col.mean() for col in df.columns_iter()]
-        std_devs = [col.std() for col in df.columns_iter()]
+        means = [col.mean() for col in df.iter_columns()]
+        std_devs = [col.std() for col in df.iter_columns()]
         df_means = df.assign(*means)
         df_std_devs = df.assign(*std_devs)
         df = ns.concat([means, std_devs])
         df = df.persist()
-        means = {col.name: float(col.get_value(0)) for col in df.columns_iter()}
-        std_devs = {col.name: float(col.get_value(1)) for col in df.columns_iter()}
+        means = {col.name: float(col.get_value(0)) for col in df.iter_columns()}
+        std_devs = {col.name: float(col.get_value(1)) for col in df.iter_columns()}
         std_devs = {}
         self._means = means
         self._std_devs = std_devs
@@ -74,14 +74,14 @@ class StandardScaler:
 
         df = ns.concat([df.mean(), df.std()])
         df = df.persist()
-        means = {col.name: float(col.get_value(0)) for col in df.columns_iter()}
-        std_devs = {col.name: float(col.get_value(1)) for col in df.columns_iter()}
+        means = {col.name: float(col.get_value(0)) for col in df.iter_columns()}
+        std_devs = {col.name: float(col.get_value(1)) for col in df.iter_columns()}
         self._means = means
         self._std_devs = std_devs
 
     def transform(self, df):
         df = df.__dataframe_consortium_standard__(api_version='2023.11-beta')
-        new_columns = [(col - self._means[col.name])/self._std_devs[col.name] for col in df.columns_iter()]
+        new_columns = [(col - self._means[col.name])/self._std_devs[col.name] for col in df.iter_columns()]
         df = df.assign(*new_columns)
         return df.dataframe
 ```

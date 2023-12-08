@@ -149,7 +149,7 @@ class Column(ColumnT):
     def parent_dataframe(self) -> DataFrame | None:
         return self._df
 
-    def get_rows(self, indices: Column) -> Column:
+    def take(self, indices: Column) -> Column:
         if POLARS_VERSION < (0, 19, 14):
             return self._from_expr(self._expr.take(indices._expr))
         return self._from_expr(self._expr.gather(indices._expr))
@@ -366,6 +366,9 @@ class Column(ColumnT):
         ser = self._materialise()
         return len(ser)
 
+    def n_unique(self, *, skip_nulls: bool = True) -> Scalar:
+        return self._to_scalar(self._expr.n_unique())
+
     # Transformations
 
     def is_null(self) -> Self:
@@ -448,6 +451,14 @@ class Column(ColumnT):
     def to_array(self) -> Any:
         ser = self._materialise()
         return ser.to_numpy()
+
+    def cast(self, dtype: DType) -> Column:
+        from dataframe_api_compat.polars_standard import _map_standard_to_polars_dtypes
+
+        polars_dtype = _map_standard_to_polars_dtypes(
+            dtype,
+        )
+        return self._from_expr(self._expr.cast(polars_dtype))
 
     # --- temporal methods ---
 

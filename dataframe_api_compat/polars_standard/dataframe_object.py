@@ -122,7 +122,7 @@ class DataFrame(DataFrameT):
             api_version=self._api_version,
         )
 
-    def columns_iter(self) -> Iterator[Column]:
+    def iter_columns(self) -> Iterator[Column]:
         return (self.col(col_name) for col_name in self.column_names)
 
     def col(self, value: str) -> Column:
@@ -160,7 +160,7 @@ class DataFrame(DataFrameT):
             self._df.select(cols),
         )
 
-    def get_rows(self, indices: Column) -> DataFrame:
+    def take(self, indices: Column) -> DataFrame:
         _indices = validate_comparand(self, indices)
         if POLARS_VERSION < (0, 19, 14):
             return self._from_dataframe(
