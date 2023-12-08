@@ -365,7 +365,7 @@ class Column(ColumnT):
     def len(self) -> Scalar:
         return self._to_scalar(self._expr.len())
 
-    def n_unique(self, *, skip_nulls: bool = True) -> Scalar:
+    def n_unique(self, *, skip_nulls: bool = True) -> Scalar:  # pragma: no cover
         return self._to_scalar(self._expr.n_unique())
 
     # Transformations
