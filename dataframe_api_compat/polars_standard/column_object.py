@@ -362,9 +362,8 @@ class Column(ColumnT):
     ) -> Scalar:
         return self._to_scalar(self._expr.var())
 
-    def __len__(self) -> int:
-        ser = self._materialise()
-        return len(ser)
+    def len(self) -> Scalar:
+        return self._to_scalar(self._expr.len())
 
     def n_unique(self, *, skip_nulls: bool = True) -> Scalar:
         return self._to_scalar(self._expr.n_unique())

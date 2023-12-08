@@ -336,9 +336,8 @@ class Column(ColumnT):
             ser.var(ddof=correction),
         )
 
-    def __len__(self) -> int:
-        ser = self._materialise()
-        return len(ser)
+    def len(self) -> Scalar:
+        return self._to_scalar(len(self._series))
 
     def n_unique(
         self,
