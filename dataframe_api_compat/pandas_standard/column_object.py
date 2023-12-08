@@ -343,7 +343,7 @@ class Column(ColumnT):
         self,
         *,
         skip_nulls: bool = True,
-    ) -> Scalar:  # pragma: no cover (todo, still needs adding upstream)
+    ) -> Scalar:
         ser = self.column
         return self._to_scalar(
             ser.nunique(),
