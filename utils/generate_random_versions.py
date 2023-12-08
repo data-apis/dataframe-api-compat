@@ -10,14 +10,14 @@ import re
 MIN_PANDAS_VERSION = (1, 2, 0)
 MIN_POLARS_VERSION = (0, 17, 0)  # todo: can we lower?
 
-with open("pandas_versions.txt") as fd:
+with open("utils/pandas_versions.txt") as fd:
     content = fd.readlines()[1]
 versions = re.findall(r", (\d+\.\d+\.\d+)", content)
 pandas_version = random.choice(
     [i for i in versions if tuple(int(v) for v in i.split(".")) >= MIN_PANDAS_VERSION],
 )
 
-with open("polars_versions.txt") as fd:
+with open("utils/polars_versions.txt") as fd:
     content = fd.readlines()[1]
 versions = re.findall(r", (\d+\.\d+\.\d+)", content)
 polars_version = random.choice(
