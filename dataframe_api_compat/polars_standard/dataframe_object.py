@@ -562,3 +562,16 @@ class DataFrame(DataFrameT):
     def to_array(self, dtype: DType | None = None) -> Any:
         df = self._validate_is_persisted()
         return df.to_numpy()
+
+    def cast(self, dtypes: Mapping[str, DType]) -> DataFrame:
+        from dataframe_api_compat.polars_standard import _map_standard_to_polars_dtypes
+
+        df = self._df
+        return self._from_dataframe(
+            df.with_columns(
+                [
+                    pl.col(col).cast(_map_standard_to_polars_dtypes(dtype))
+                    for col, dtype in dtypes.items()
+                ],
+            ),
+        )

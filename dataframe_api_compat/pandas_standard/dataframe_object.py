@@ -534,3 +534,18 @@ class DataFrame(DataFrameT):
     def to_array(self, dtype: DType | None = None) -> Any:
         self._validate_is_persisted()
         return self.dataframe.to_numpy()
+
+    def cast(self, dtypes: Mapping[str, DType]) -> DataFrame:
+        from dataframe_api_compat.pandas_standard import (
+            map_standard_dtype_to_pandas_dtype,
+        )
+
+        df = self._dataframe
+        return self._from_dataframe(
+            df.astype(
+                {
+                    col: map_standard_dtype_to_pandas_dtype(dtype)
+                    for col, dtype in dtypes.items()
+                },
+            ),
+        )
