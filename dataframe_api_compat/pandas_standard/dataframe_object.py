@@ -122,7 +122,7 @@ class DataFrame(DataFrameT):
             api_version=self._api_version,
         )
 
-    def columns_iter(self) -> Iterator[Column]:
+    def iter_columns(self) -> Iterator[Column]:
         return (self.col(col_name) for col_name in self.column_names)
 
     def col(self, name: str) -> Column:
@@ -157,7 +157,7 @@ class DataFrame(DataFrameT):
             self.dataframe.loc[:, list(columns)],
         )
 
-    def get_rows(
+    def take(
         self,
         indices: Column,
     ) -> DataFrame:
@@ -429,7 +429,7 @@ class DataFrame(DataFrameT):
         return self._from_dataframe(pd.concat(result, axis=1))
 
     def is_nan(self) -> DataFrame:
-        return self.assign(*[col.is_nan() for col in self.columns_iter()])
+        return self.assign(*[col.is_nan() for col in self.iter_columns()])
 
     def fill_nan(self, value: float | Scalar | NullType) -> DataFrame:
         _value = validate_comparand(self, value)
@@ -463,7 +463,7 @@ class DataFrame(DataFrameT):
         return self.assign(
             *[
                 col.fill_null(value)
-                for col in self.columns_iter()
+                for col in self.iter_columns()
                 if col.name in column_names
             ],
         )
@@ -534,3 +534,18 @@ class DataFrame(DataFrameT):
     def to_array(self, dtype: DType | None = None) -> Any:
         self._validate_is_persisted()
         return self.dataframe.to_numpy()
+
+    def cast(self, dtypes: Mapping[str, DType]) -> DataFrame:
+        from dataframe_api_compat.pandas_standard import (
+            map_standard_dtype_to_pandas_dtype,
+        )
+
+        df = self._dataframe
+        return self._from_dataframe(
+            df.astype(
+                {
+                    col: map_standard_dtype_to_pandas_dtype(dtype)
+                    for col, dtype in dtypes.items()
+                },
+            ),
+        )

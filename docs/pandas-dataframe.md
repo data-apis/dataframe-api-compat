@@ -67,7 +67,7 @@
       - fill_null
       - filter
       - get_column_names
-      - get_rows
+      - take
       - group_by
       - is_nan
       - is_null

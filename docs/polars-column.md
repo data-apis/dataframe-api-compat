@@ -69,7 +69,7 @@
       - fill_null
       - filter
       - floor
-      - get_rows
+      - take
       - get_value
       - hour
       - is_in

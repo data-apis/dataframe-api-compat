@@ -26,8 +26,6 @@ jobs:
             $RUNNER_TOOL_CACHE/Python/*
             ~\AppData\Local\pip\Cache
           key: ${{ runner.os }}-build-${{ matrix.python-version }}
-      - name: generate-random-versions
-        run: python generate_random_versions.py
       - name: install-earliest-versions
         run: python -m pip install pandas==1.2.0 polars==0.17.0
       - name: install-reqs

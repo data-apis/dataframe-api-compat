@@ -16,7 +16,7 @@ def test_column_filter(library: str) -> None:
     pd.testing.assert_series_equal(result_pd, expected)
 
 
-def test_column_get_rows_by_mask_noop(library: str) -> None:
+def test_column_take_by_mask_noop(library: str) -> None:
     df = integer_dataframe_1(library)
     df.__dataframe_namespace__()
     ser = df.col("a")
