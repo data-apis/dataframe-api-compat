@@ -15,8 +15,8 @@ def test_name(library: str) -> None:
 
 def test_pandas_name_if_0_named_column() -> None:
     df = convert_to_standard_compliant_dataframe(pd.DataFrame({0: [1, 2, 3]}))
-    assert df.column_names == [0]
-    assert [col.name for col in df.iter_columns()] == [0]
+    assert df.column_names == [0]  # type: ignore[comparison-overlap]
+    assert [col.name for col in df.iter_columns()] == [0]  # type: ignore[comparison-overlap]
 
 
 @pytest.mark.skipif(

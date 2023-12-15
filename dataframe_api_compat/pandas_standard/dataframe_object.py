@@ -150,8 +150,8 @@ class DataFrame(DataFrameT):
 
     def select(self, *columns: str) -> DataFrame:
         cols = list(columns)
-        if cols and not isinstance(cols[0], str):
-            msg = f"Expected iterable of str, but the first element is: {type(cols[0])}"
+        if cols and isinstance(cols[0], (list, tuple)):
+            msg = f"Expected iterable of column names, but the first element is: {type(cols[0])}"
             raise TypeError(msg)
         return self._from_dataframe(
             self.dataframe.loc[:, list(columns)],
