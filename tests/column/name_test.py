@@ -3,6 +3,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
+from tests.utils import convert_to_standard_compliant_dataframe
 from tests.utils import integer_dataframe_1
 
 
@@ -13,7 +14,7 @@ def test_name(library: str) -> None:
 
 
 def test_pandas_name_if_0_named_column() -> None:
-    df = pd.DataFrame({0: [1, 2, 3]}).__dataframe_consortium_standard__()
+    df = convert_to_standard_compliant_dataframe(pd.DataFrame({0: [1, 2, 3]}))
     assert df.column_names == [0]
     assert [col.name for col in df.iter_columns()] == [0]
 
