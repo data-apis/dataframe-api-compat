@@ -129,7 +129,7 @@ class Column(ColumnT):
 
     @property
     def name(self) -> str:
-        return self._name
+        return self._name  # type: ignore[no-any-return]
 
     @property
     def column(self) -> pd.Series[Any]:
