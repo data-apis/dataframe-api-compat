@@ -50,7 +50,7 @@ If you try running the code below
 ```python exec="1" source="above" session="persist-ex1"
 def my_func(df):
     df_s = df.__dataframe_consortium_standard__(api_version='2023.11-beta')
-    x_train = df_s.drop_columns('y').to_array()
+    x_train = df_s.drop('y').to_array()
     y_train = df_s.col('y').to_array()
     return x_train, y_train
 ```

@@ -200,10 +200,10 @@ class DataFrame(DataFrameT):
         df = self.dataframe.with_columns(new_columns)
         return self._from_dataframe(df)
 
-    def drop_columns(self, *labels: str) -> DataFrame:
+    def drop(self, *labels: str) -> DataFrame:
         return self._from_dataframe(self.dataframe.drop(labels))
 
-    def rename_columns(self, mapping: Mapping[str, str]) -> DataFrame:
+    def rename(self, mapping: Mapping[str, str]) -> DataFrame:
         if not isinstance(mapping, collections.abc.Mapping):
             msg = f"Expected Mapping, got: {type(mapping)}"
             raise TypeError(msg)

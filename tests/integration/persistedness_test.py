@@ -60,7 +60,7 @@ def test_cross_df_propagation(library: str) -> None:
     df1 = integer_dataframe_1(library)
     df2 = integer_dataframe_2(library)
     df1 = (df1 + 1).persist()
-    df2 = df2.rename_columns({"b": "c"}).persist()
+    df2 = df2.rename({"b": "c"}).persist()
     result = df1.join(df2, how="left", left_on="a", right_on="a")
     result_pd = convert_dataframe_to_pandas_numpy(interchange_to_pandas(result))
     expected = pd.DataFrame(

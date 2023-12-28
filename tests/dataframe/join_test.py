@@ -12,7 +12,7 @@ from tests.utils import interchange_to_pandas
 
 def test_join_left(library: str) -> None:
     left = integer_dataframe_1(library)
-    right = integer_dataframe_2(library).rename_columns({"b": "c"})
+    right = integer_dataframe_2(library).rename({"b": "c"})
     result = left.join(right, left_on="a", right_on="a", how="left")
     result_pd = interchange_to_pandas(result)
     expected = pd.DataFrame(
@@ -30,7 +30,7 @@ def test_join_overlapping_names(library: str) -> None:
 
 def test_join_inner(library: str) -> None:
     left = integer_dataframe_1(library)
-    right = integer_dataframe_2(library).rename_columns({"b": "c"})
+    right = integer_dataframe_2(library).rename({"b": "c"})
     result = left.join(right, left_on="a", right_on="a", how="inner")
     result_pd = interchange_to_pandas(result)
     expected = pd.DataFrame({"a": [1, 2], "b": [4, 5], "c": [4, 2]})
@@ -40,7 +40,7 @@ def test_join_inner(library: str) -> None:
 @pytest.mark.skip(reason="outer join has changed in Polars recently, need to fixup")
 def test_join_outer(library: str) -> None:  # pragma: no cover
     left = integer_dataframe_1(library)
-    right = integer_dataframe_2(library).rename_columns({"b": "c"})
+    right = integer_dataframe_2(library).rename({"b": "c"})
     result = left.join(right, left_on="a", right_on="a", how="outer").sort("a")
     result_pd = interchange_to_pandas(result)
     expected = pd.DataFrame(
@@ -60,7 +60,7 @@ def test_join_outer(library: str) -> None:  # pragma: no cover
 
 def test_join_two_keys(library: str) -> None:
     left = integer_dataframe_1(library)
-    right = integer_dataframe_2(library).rename_columns({"b": "c"})
+    right = integer_dataframe_2(library).rename({"b": "c"})
     result = left.join(right, left_on=["a", "b"], right_on=["a", "c"], how="left")
     result_pd = interchange_to_pandas(result)
     expected = pd.DataFrame(
@@ -71,6 +71,6 @@ def test_join_two_keys(library: str) -> None:
 
 def test_join_invalid(library: str) -> None:
     left = integer_dataframe_1(library)
-    right = integer_dataframe_2(library).rename_columns({"b": "c"})
+    right = integer_dataframe_2(library).rename({"b": "c"})
     with pytest.raises(ValueError):
         left.join(right, left_on=["a", "b"], right_on=["a", "c"], how="right")  # type: ignore  # noqa: PGH003

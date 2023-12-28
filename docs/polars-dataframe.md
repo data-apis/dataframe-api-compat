@@ -62,7 +62,7 @@
       - column_names
       - dataframe
       - df
-      - drop_columns
+      - drop
       - drop_nulls
       - fill_nan
       - fill_null
@@ -81,7 +81,7 @@
       - min
       - persist
       - prod
-      - rename_columns
+      - rename
       - schema
       - select
       - shape
