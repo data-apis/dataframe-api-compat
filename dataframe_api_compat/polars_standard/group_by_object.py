@@ -43,7 +43,7 @@ class GroupBy(GroupByT):
 
     def _validate_booleanness(self) -> None:
         if not all(
-            isinstance(self._df.schema[col], pl.Boolean)
+            self._df.schema[col] == pl.Boolean
             for col in self._df.columns
             if col not in self._keys
         ):
