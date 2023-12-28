@@ -17,7 +17,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-  'packaging; python<=3.8'
+  "packaging; python_version < '3.9'",
 ]
 
 [project.urls]
