@@ -9,6 +9,7 @@ from typing import cast
 
 import pandas as pd
 import polars as pl
+from packaging.version import parse
 
 import dataframe_api_compat.pandas_standard
 import dataframe_api_compat.polars_standard
@@ -18,8 +19,8 @@ DType = TypeVar("DType")
 if TYPE_CHECKING:
     from dataframe_api import DataFrame
 
-POLARS_VERSION = tuple(int(v) for v in pl.__version__.split("."))
-PANDAS_VERSION = tuple(int(v) for v in pd.__version__.split("."))
+POLARS_VERSION = parse(pl.__version__)
+PANDAS_VERSION = parse(pd.__version__)
 
 
 def convert_to_standard_compliant_dataframe(

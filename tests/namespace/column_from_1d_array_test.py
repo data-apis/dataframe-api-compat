@@ -7,6 +7,7 @@ from datetime import timedelta
 import numpy as np
 import pandas as pd
 import pytest
+from packaging.version import Version
 
 from tests.utils import PANDAS_VERSION
 from tests.utils import POLARS_VERSION
@@ -101,11 +102,11 @@ def test_datetime_from_1d_array(library: str) -> None:
 
 
 @pytest.mark.skipif(
-    POLARS_VERSION < (0, 19, 9),
+    Version("0.19.9") > POLARS_VERSION,
     reason="upstream bug",
 )
 @pytest.mark.skipif(
-    PANDAS_VERSION < (2, 0, 0),
+    Version("2.0.0") > PANDAS_VERSION,
     reason="pandas before non-nano",
 )
 def test_duration_from_1d_array(library: str) -> None:

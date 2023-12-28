@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 import pytest
+from packaging.version import Version
 
 from tests.utils import PANDAS_VERSION
 from tests.utils import integer_dataframe_1
@@ -48,7 +49,9 @@ def test_join_outer(library: str) -> None:
             "c": [4.0, 2.0, float("nan"), 6.0],
         },
     )
-    if library == "pandas-nullable" and PANDAS_VERSION < (2, 0, 0):  # pragma: no cover
+    if (
+        library == "pandas-nullable" and Version("2.0.0") > PANDAS_VERSION
+    ):  # pragma: no cover
         # upstream bug
         result_pd = result_pd.astype({"a": "int64"})
     pd.testing.assert_frame_equal(result_pd, expected)

@@ -10,6 +10,7 @@ from typing import Literal
 from typing import NoReturn
 
 import polars as pl
+from packaging.version import Version
 
 import dataframe_api_compat
 from dataframe_api_compat.utils import validate_comparand
@@ -31,7 +32,9 @@ if TYPE_CHECKING:
 else:
     DataFrameT = object
 
-POLARS_VERSION = tuple(int(v) for v in pl.__version__.split("."))
+from packaging.version import parse
+
+POLARS_VERSION = parse(pl.__version__)
 
 
 def generate_random_token(column_names: list[str]) -> str:
@@ -162,7 +165,7 @@ class DataFrame(DataFrameT):
 
     def take(self, indices: Column) -> DataFrame:
         _indices = validate_comparand(self, indices)
-        if POLARS_VERSION < (0, 19, 14):
+        if Version("0.19.14") > POLARS_VERSION:
             return self._from_dataframe(
                 self.dataframe.select(pl.all().take(_indices)),
             )
