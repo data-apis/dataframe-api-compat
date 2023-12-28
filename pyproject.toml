@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dataframe_api_compat"
-version = "0.2.4"
+version = "0.2.6"
 authors = [
   { name="Marco Gorelli", email="33491632+MarcoGorelli@users.noreply.github.com" },
 ]
@@ -15,6 +15,9 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
+]
+dependencies = [
+  "packaging; python_version < '3.9'",
 ]
 
 [project.urls]
@@ -84,6 +87,6 @@ plugins = ["covdefaults"]
 
 [tool.coverage.report]
 exclude_also = [
-  "if POLARS_VERSION < ",
+  "> POLARS_VERSION",
   "if sys.version_info() <",
 ]

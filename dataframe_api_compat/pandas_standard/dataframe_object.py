@@ -198,12 +198,12 @@ class DataFrame(DataFrameT):
             df[_series.name] = _series
         return self._from_dataframe(df)
 
-    def drop_columns(self, *labels: str) -> DataFrame:
+    def drop(self, *labels: str) -> DataFrame:
         return self._from_dataframe(
             self.dataframe.drop(list(labels), axis=1),
         )
 
-    def rename_columns(self, mapping: Mapping[str, str]) -> DataFrame:
+    def rename(self, mapping: Mapping[str, str]) -> DataFrame:
         if not isinstance(mapping, collections.abc.Mapping):
             msg = f"Expected Mapping, got: {type(mapping)}"
             raise TypeError(msg)

@@ -59,6 +59,8 @@ jobs:
             $RUNNER_TOOL_CACHE/Python/*
             ~\AppData\Local\pip\Cache
           key: ${{ runner.os }}-build-${{ matrix.python-version }}
+      - name: install package
+        run: pip install -e .
       - name: install-reqs
         run: python -m pip install --pre --upgrade tox virtualenv setuptools pip -r requirements-dev.txt
       - name: Run pytest

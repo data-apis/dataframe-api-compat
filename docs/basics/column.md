@@ -114,7 +114,7 @@ def my_func(df1, df2):
     df1_s = df1.__dataframe_consortium_standard__(api_version='2023.11-beta')
     df2_s = df2.__dataframe_consortium_standard__(api_version='2023.11-beta')
     df1_s = df1_s.join(
-        df2_s.rename_columns({'a': 'a_right'}),
+        df2_s.rename({'a': 'a_right'}),
         left_on='b',
         right_on='b',
         how='inner',

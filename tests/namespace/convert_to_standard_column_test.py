@@ -3,13 +3,14 @@ from __future__ import annotations
 import pandas as pd
 import polars as pl
 import pytest
+from packaging.version import Version
 
 from tests.utils import PANDAS_VERSION
 from tests.utils import POLARS_VERSION
 
 
 @pytest.mark.skipif(
-    POLARS_VERSION < (0, 19, 0) or PANDAS_VERSION < (2, 1, 0),
+    Version("0.19.0") > POLARS_VERSION or Version("2.1.0") > PANDAS_VERSION,
     reason="before consortium standard in polars/pandas",
 )
 def test_convert_to_std_column() -> None:
