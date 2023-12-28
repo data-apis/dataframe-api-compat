@@ -87,6 +87,6 @@ plugins = ["covdefaults"]
 
 [tool.coverage.report]
 exclude_also = [
-  "if POLARS_VERSION < ",
+  "> POLARS_VERSION",
   "if sys.version_info() <",
 ]

@@ -38,7 +38,7 @@ def test_join_inner(library: str) -> None:
 
 
 @pytest.mark.skip(reason="outer join has changed in Polars recently, need to fixup")
-def test_join_outer(library: str) -> None:
+def test_join_outer(library: str) -> None:  # pragma: no cover
     left = integer_dataframe_1(library)
     right = integer_dataframe_2(library).rename_columns({"b": "c"})
     result = left.join(right, left_on="a", right_on="a", how="outer").sort("a")

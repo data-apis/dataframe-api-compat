@@ -17,7 +17,6 @@ from tests.utils import interchange_to_pandas
         ("all", [False, True], [False, False]),
     ],
 )
-@pytest.mark.skip("TODO something changed in latest Polars")
 def test_groupby_boolean(
     library: str,
     aggregation: str,
