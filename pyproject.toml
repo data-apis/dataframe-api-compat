@@ -16,6 +16,9 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+dependencies = [
+  'packaging; python<=3.8'
+]
 
 [project.urls]
 "Homepage" = "https://github.com/data-apis/dataframe-api-compat"
