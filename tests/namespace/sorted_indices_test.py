@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import pandas as pd
 
-from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import integer_dataframe_6
 from tests.utils import interchange_to_pandas
 
@@ -12,7 +11,6 @@ def test_column_sorted_indices_ascending(library: str) -> None:
     sorted_indices = df.col("b").sorted_indices()
     result = df.assign(sorted_indices.rename("result"))
     result_pd = interchange_to_pandas(result)
-    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected_1 = pd.DataFrame(
         {
             "a": [1, 1, 1, 2, 2],
@@ -41,7 +39,6 @@ def test_column_sorted_indices_descending(library: str) -> None:
     sorted_indices = df.col("b").sorted_indices(ascending=False)
     result = df.assign(sorted_indices.rename("result"))
     result_pd = interchange_to_pandas(result)
-    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected_1 = pd.DataFrame(
         {
             "a": [1, 1, 1, 2, 2],
