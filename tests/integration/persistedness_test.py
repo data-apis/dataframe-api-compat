@@ -1,7 +1,6 @@
 import pandas as pd
 import pytest
 
-from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import integer_dataframe_1
 from tests.utils import integer_dataframe_2
 from tests.utils import interchange_to_pandas
@@ -62,7 +61,7 @@ def test_cross_df_propagation(library: str) -> None:
     df1 = (df1 + 1).persist()
     df2 = df2.rename({"b": "c"}).persist()
     result = df1.join(df2, how="left", left_on="a", right_on="a")
-    result_pd = convert_dataframe_to_pandas_numpy(interchange_to_pandas(result))
+    result_pd = interchange_to_pandas(result)
     expected = pd.DataFrame(
         {
             "a": [2, 3, 4],

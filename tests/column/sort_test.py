@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import pandas as pd
 
-from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import integer_dataframe_6
 from tests.utils import interchange_to_pandas
 
@@ -13,7 +12,6 @@ def test_expression_sort_ascending(library: str) -> None:
     s_sorted = df.col("b").sort().rename("c")
     result = df.assign(s_sorted)
     result_pd = interchange_to_pandas(result)
-    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame(
         {
             "a": [1, 1, 1, 2, 2],
@@ -30,7 +28,6 @@ def test_expression_sort_descending(library: str) -> None:
     s_sorted = df.col("b").sort(ascending=False).rename("c")
     result = df.assign(s_sorted)
     result_pd = interchange_to_pandas(result)
-    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame(
         {
             "a": [1, 1, 1, 2, 2],
@@ -46,7 +43,6 @@ def test_column_sort_ascending(library: str) -> None:
     s_sorted = df.col("b").sort().rename("c")
     result = df.assign(s_sorted)
     result_pd = interchange_to_pandas(result)
-    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame(
         {
             "a": [1, 1, 1, 2, 2],
@@ -62,7 +58,6 @@ def test_column_sort_descending(library: str) -> None:
     s_sorted = df.col("b").sort(ascending=False).rename("c")
     result = df.assign(s_sorted)
     result_pd = interchange_to_pandas(result)
-    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame(
         {
             "a": [1, 1, 1, 2, 2],

@@ -3,7 +3,6 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from tests.utils import convert_dataframe_to_pandas_numpy
 from tests.utils import integer_dataframe_4
 from tests.utils import interchange_to_pandas
 
@@ -35,7 +34,6 @@ def test_group_by_numeric(
     result = getattr(df.group_by("key"), aggregation)()
     result = result.sort("key")
     result_pd = interchange_to_pandas(result)
-    result_pd = convert_dataframe_to_pandas_numpy(result_pd)
     expected = pd.DataFrame({"key": [1, 2], "b": expected_b, "c": expected_c})
     if library == "pandas-nullable" and tuple(
         int(v) for v in pd.__version__.split(".")
