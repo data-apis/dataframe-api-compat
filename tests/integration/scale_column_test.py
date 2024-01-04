@@ -3,11 +3,14 @@ from __future__ import annotations
 import pandas as pd
 import polars as pl
 import pytest
+from packaging.version import parse
 from polars.testing import assert_series_equal
+
+from tests.utils import PANDAS_VERSION
 
 
 @pytest.mark.skipif(
-    tuple(int(v) for v in pd.__version__.split(".")) < (2, 1, 0),
+    parse("2.1.0") > PANDAS_VERSION,
     reason="pandas doesn't support 3.8",
 )
 def test_scale_column_pandas() -> None:

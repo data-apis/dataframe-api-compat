@@ -121,9 +121,9 @@ def test_duration_from_1d_array(library: str) -> None:
     )
     if library == "polars-lazy":
         # https://github.com/data-apis/dataframe-api/issues/329
-        result_pd = (
-            result.dataframe.collect().to_pandas()["result"].astype("timedelta64[ms]")  # type: ignore[attr-defined]
-        )
+        result_pd = interchange_to_pandas(result)["result"].astype(
+            "timedelta64[ms]",
+        )  # type: ignore[attr-defined]
     else:
         result_pd = result.dataframe["result"]  # type: ignore[index]
     expected = pd.Series(

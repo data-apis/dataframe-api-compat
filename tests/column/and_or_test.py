@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import pandas as pd
+import pytest
 
 from tests.utils import bool_dataframe_1
 from tests.utils import interchange_to_pandas
 
 
+@pytest.mark.filterwarnings("ignore:.*make_block is deprecated.*:DeprecationWarning")
 def test_column_and(library: str) -> None:
     df = bool_dataframe_1(library, api_version="2023.09-beta")
     ser = df.col("a")

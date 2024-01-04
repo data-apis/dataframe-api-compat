@@ -1,6 +1,9 @@
 import sys
 
 import pytest
+from packaging.version import parse
+
+from tests.utils import PANDAS_VERSION
 
 
 class TestPolars:
@@ -57,11 +60,7 @@ class TestPandas:
         """
         import pandas as pd
 
-        if tuple(int(v) for v in pd.__version__.split(".")) < (
-            2,
-            1,
-            0,
-        ):  # pragma: no cover
+        if parse("2.1.0") > PANDAS_VERSION:  # pragma: no cover
             # before consortium standard in pandas
             return
 

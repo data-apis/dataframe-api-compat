@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import pandas as pd
 import pytest
 from packaging.version import Version
+from packaging.version import parse
 
 from tests.utils import PANDAS_VERSION
 from tests.utils import mixed_dataframe_1
@@ -50,8 +50,7 @@ def test_schema(library: str) -> None:
     assert isinstance(result["m"], namespace.Datetime)
     assert isinstance(result["n"], namespace.Datetime)
     if not (
-        library.startswith("pandas")
-        and tuple(int(v) for v in pd.__version__.split(".")) < (2, 0, 0)
+        library.startswith("pandas") and parse("2.0.0") > PANDAS_VERSION
     ):  # pragma: no cover (coverage bug?)
         # pandas non-nanosecond support only came in 2.0
         assert result["n"].time_unit == "ms"
@@ -60,18 +59,14 @@ def test_schema(library: str) -> None:
     assert result["n"].time_zone is None
     assert isinstance(result["o"], namespace.Datetime)
     if not (
-        library.startswith("pandas")
-        and tuple(int(v) for v in pd.__version__.split(".")) < (2, 0, 0)
+        library.startswith("pandas") and parse("2.0.0") > PANDAS_VERSION
     ):  # pragma: no cover (coverage bug?)
         # pandas non-nanosecond support only came in 2.0
         assert result["o"].time_unit == "us"
     else:  # pragma: no cover
         pass
     assert result["o"].time_zone is None
-    if not (
-        library.startswith("pandas")
-        and tuple(int(v) for v in pd.__version__.split(".")) < (2, 0, 0)
-    ):
+    if not (library.startswith("pandas") and parse("2.0.0") > PANDAS_VERSION):
         # pandas non-nanosecond support only came in 2.0 - before that, these would be 'float'
         assert isinstance(result["p"], namespace.Duration)
         assert result["p"].time_unit == "ms"

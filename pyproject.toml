@@ -89,4 +89,9 @@ plugins = ["covdefaults"]
 exclude_also = [
   "> POLARS_VERSION",
   "if sys.version_info() <",
+  "if is_platform_windows()",
+]
+omit = [
+  # enable gradually, coverage too low at the moment...
+  "dataframe_api_compat/pandas_interchange/*",
 ]

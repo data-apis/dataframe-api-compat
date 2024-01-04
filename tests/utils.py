@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from datetime import datetime
 from datetime import timedelta
 from typing import TYPE_CHECKING
@@ -475,10 +476,16 @@ def temporal_dataframe_1(library: str) -> DataFrame:
 def interchange_to_pandas(result: Any) -> pd.DataFrame:
     if isinstance(result.dataframe, pl.LazyFrame):
         df = result.dataframe.collect()
-        df = df.to_pandas()
+        with warnings.catch_warnings():
+            # fix upstream
+            warnings.simplefilter("ignore", DeprecationWarning)
+            df = df.to_pandas()
     elif isinstance(result.dataframe, pl.DataFrame):
         df = result.dataframe
-        df = df.to_pandas()
+        with warnings.catch_warnings():
+            # fix upstream
+            warnings.simplefilter("ignore", DeprecationWarning)
+            df = df.to_pandas()
     else:
         df = result.dataframe
     df = convert_dataframe_to_pandas_numpy(df)

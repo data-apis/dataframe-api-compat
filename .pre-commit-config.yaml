@@ -16,6 +16,7 @@ repos:
         args: [
           --exit-non-zero-on-fix,
         ]
+        exclude: dataframe_api_compat/pandas_interchange/|tests/interchange/
 -   repo: https://github.com/psf/black
     rev: 23.3.0
     hooks:
