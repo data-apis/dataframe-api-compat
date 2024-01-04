@@ -4,7 +4,9 @@ import contextlib
 
 with contextlib.suppress(ModuleNotFoundError):
     from dataframe_api_compat import pandas_standard
-    from dataframe_api_compat.pandas_interchange import PandasDataFrameXchg
+    from dataframe_api_compat.pandas_interchange import (
+        PandasDataFrameXchg,  # type: ignore[attr-defined]
+    )
 
 with contextlib.suppress(ModuleNotFoundError):
     from dataframe_api_compat import polars_standard
