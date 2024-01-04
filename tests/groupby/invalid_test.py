@@ -8,7 +8,7 @@ from tests.utils import integer_dataframe_1
 def test_groupby_invalid(library: str) -> None:
     df = integer_dataframe_1(library).select("a")
     with pytest.raises((KeyError, TypeError)):
-        df.group_by(0)
+        df.group_by(0)  # type: ignore[arg-type]
     with pytest.raises((KeyError, TypeError)):
         df.group_by("0")
     with pytest.raises((KeyError, TypeError)):
