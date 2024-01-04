@@ -8,13 +8,15 @@ from typing import overload
 import numpy as np
 import pandas as pd
 from pandas.compat._optional import import_optional_dependency
-from pandas.core.interchange.dataframe_protocol import Buffer
-from pandas.core.interchange.dataframe_protocol import Column
-from pandas.core.interchange.dataframe_protocol import ColumnNullType
-from pandas.core.interchange.dataframe_protocol import DataFrame as DataFrameXchg
-from pandas.core.interchange.dataframe_protocol import DtypeKind
-from pandas.core.interchange.utils import ArrowCTypes
-from pandas.core.interchange.utils import Endianness
+from dataframe_api_compat.pandas_interchange.dataframe_protocol import Buffer
+from dataframe_api_compat.pandas_interchange.dataframe_protocol import Column
+from dataframe_api_compat.pandas_interchange.dataframe_protocol import ColumnNullType
+from dataframe_api_compat.pandas_interchange.dataframe_protocol import (
+    DataFrame as DataFrameXchg,
+)
+from dataframe_api_compat.pandas_interchange.dataframe_protocol import DtypeKind
+from dataframe_api_compat.pandas_interchange.utils import ArrowCTypes
+from dataframe_api_compat.pandas_interchange.utils import Endianness
 from pandas.errors import SettingWithCopyError
 
 _NP_DTYPES: dict[DtypeKind, dict[int, Any]] = {

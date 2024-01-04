@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import pytest
-from pandas.core.interchange.utils import dtype_to_arrow_c_fmt
+from dataframe_api_compat.pandas_interchange.utils import dtype_to_arrow_c_fmt
 
 # TODO: use ArrowSchema to get reference C-string.
 # At the time, there is no way to access ArrowSchema holding a type format string

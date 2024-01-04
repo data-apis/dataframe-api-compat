@@ -10,14 +10,14 @@ from pandas._libs.tslibs import iNaT
 from pandas.api.types import is_string_dtype
 from pandas.core.dtypes.dtypes import ArrowDtype
 from pandas.core.dtypes.dtypes import DatetimeTZDtype
-from pandas.core.interchange.buffer import PandasBuffer
-from pandas.core.interchange.dataframe_protocol import Column
-from pandas.core.interchange.dataframe_protocol import ColumnBuffers
-from pandas.core.interchange.dataframe_protocol import ColumnNullType
-from pandas.core.interchange.dataframe_protocol import DtypeKind
-from pandas.core.interchange.utils import ArrowCTypes
-from pandas.core.interchange.utils import Endianness
-from pandas.core.interchange.utils import dtype_to_arrow_c_fmt
+from dataframe_api_compat.pandas_interchange.buffer import PandasBuffer
+from dataframe_api_compat.pandas_interchange.dataframe_protocol import Column
+from dataframe_api_compat.pandas_interchange.dataframe_protocol import ColumnBuffers
+from dataframe_api_compat.pandas_interchange.dataframe_protocol import ColumnNullType
+from dataframe_api_compat.pandas_interchange.dataframe_protocol import DtypeKind
+from dataframe_api_compat.pandas_interchange.utils import ArrowCTypes
+from dataframe_api_compat.pandas_interchange.utils import Endianness
+from dataframe_api_compat.pandas_interchange.utils import dtype_to_arrow_c_fmt
 from pandas.errors import NoBufferPresent
 from pandas.util._decorators import cache_readonly
 

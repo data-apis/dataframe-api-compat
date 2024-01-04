@@ -1,4 +1,4 @@
-from dataframe_api_compat.pandas_interchange.dataframe_xchg import (
+from dataframe_api_compat.pandas_interchange.dataframe import (
     PandasDataFrameXchg,
 )  # noqa: F401
 

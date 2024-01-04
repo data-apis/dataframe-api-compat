@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing import Any
 
-from pandas.core.interchange.dataframe_protocol import Buffer
-from pandas.core.interchange.dataframe_protocol import DlpackDeviceType
+from dataframe_api_compat.pandas_interchange.dataframe_protocol import Buffer
+from dataframe_api_compat.pandas_interchange.dataframe_protocol import DlpackDeviceType
 
 if TYPE_CHECKING:
     import numpy as np

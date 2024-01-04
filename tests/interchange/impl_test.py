@@ -7,10 +7,11 @@ import pytest
 from pandas._libs.tslibs import iNaT
 from pandas.compat import is_ci_environment
 from pandas.compat import is_platform_windows
-from pandas.core.interchange.column import PandasColumn
-from pandas.core.interchange.dataframe_protocol import ColumnNullType
-from pandas.core.interchange.dataframe_protocol import DtypeKind
-from pandas.core.interchange.utils import ArrowCTypes
+from dataframe_api_compat.pandas_interchange.column import PandasColumn
+from dataframe_api_compat.pandas_interchange.dataframe_protocol import ColumnNullType
+from dataframe_api_compat.pandas_interchange.dataframe_protocol import DtypeKind
+from dataframe_api_compat.pandas_interchange.utils import ArrowCTypes
+from dataframe_api_compat.pandas_interchange.dataframe import PandasDataFrameXchg
 from pandas.errors import SettingWithCopyWarning
 
 from dataframe_api_compat.pandas_interchange.from_dataframe import from_dataframe
@@ -42,7 +43,7 @@ def string_data():
 def test_categorical_dtype(data, data_categorical):
     df = pd.DataFrame({"A": (data_categorical[data[0]])})
 
-    col = df.__dataframe__().get_column_by_name("A")
+    col = PandasDataFrameXchg(df).get_column_by_name("A")
     assert col.dtype[0] == DtypeKind.CATEGORICAL
     assert col.null_count == 0
     assert col.describe_null == (ColumnNullType.USE_SENTINEL, -1)
