@@ -35,9 +35,9 @@ jobs:
       - name: run mypy
         run: mypy dataframe_api_compat tests
       - name: run polars integration tests
-        run: pip uninstall pandas -y && pytest tests/integration/upstream_test.py::TestPolars && pip install -U pandas
+        run: pytest tests/integration/upstream_test.py::TestPolars
       - name: run pandas integration tests
-        run: pip uninstall polars -y && pytest tests/integration/upstream_test.py::TestPandas
+        run: pytest tests/integration/upstream_test.py::TestPandas
 
   tox-all-supported:
     strategy:
@@ -67,4 +67,4 @@ jobs:
         run: pytest tests --cov=dataframe_api_compat --cov=tests --cov-fail-under=50
       # todo: add mypy here too!
       - name: run polars integration tests
-        run: pip uninstall pandas -y && pytest tests/integration/upstream_test.py::TestPolars && pip install -U pandas && pip uninstall polars -y && pytest tests/integration/upstream_test.py::TestPandas
+        run: pytest tests/integration/upstream_test.py::TestPolars && pytest tests/integration/upstream_test.py::TestPandas
