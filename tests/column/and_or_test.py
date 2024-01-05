@@ -6,35 +6,39 @@ from tests.utils import compare_column_with_reference
 
 def test_column_and(library: str) -> None:
     df = bool_dataframe_1(library, api_version="2023.09-beta")
+    pdx = df.__dataframe_namespace__()
     ser = df.col("a")
     other = df.col("b")
     result = df.assign((ser & other).rename("result"))
     expected = [True, True, False]
-    compare_column_with_reference(result.col("result"), expected, dtype="bool")
+    compare_column_with_reference(result.col("result"), expected, dtype=pdx.Bool)
 
 
 def test_column_or(library: str) -> None:
     df = bool_dataframe_1(library)
+    pdx = df.__dataframe_namespace__()
     ser = df.col("a")
     other = df.col("b")
     result = df.assign((ser | other).rename("result"))
     expected = [True, True, True]
-    compare_column_with_reference(result.col("result"), expected, dtype="bool")
+    compare_column_with_reference(result.col("result"), expected, dtype=pdx.Bool)
 
 
 def test_column_and_with_scalar(library: str) -> None:
     df = bool_dataframe_1(library)
+    pdx = df.__dataframe_namespace__()
     ser = df.col("a")
     other = True
     result = df.assign((other & ser).rename("result"))
     expected = [True, True, False]
-    compare_column_with_reference(result.col("result"), expected, dtype="bool")
+    compare_column_with_reference(result.col("result"), expected, dtype=pdx.Bool)
 
 
 def test_column_or_with_scalar(library: str) -> None:
     df = bool_dataframe_1(library)
+    pdx = df.__dataframe_namespace__()
     ser = df.col("a")
     other = True
     result = df.assign((other | ser).rename("result"))
     expected = [True, True, True]
-    compare_column_with_reference(result.col("result"), expected, dtype="bool")
+    compare_column_with_reference(result.col("result"), expected, dtype=pdx.Bool)

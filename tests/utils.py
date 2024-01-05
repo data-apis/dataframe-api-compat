@@ -4,7 +4,6 @@ from datetime import datetime
 from datetime import timedelta
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import TypeVar
 from typing import cast
 
 import pandas as pd
@@ -14,11 +13,10 @@ from packaging.version import parse
 import dataframe_api_compat.pandas_standard
 import dataframe_api_compat.polars_standard
 
-DType = TypeVar("DType")
-
 if TYPE_CHECKING:
     from dataframe_api import Column
     from dataframe_api import DataFrame
+    from dataframe_api.typing import DType
 
 POLARS_VERSION = parse(pl.__version__)
 PANDAS_VERSION = parse(pd.__version__)
@@ -489,13 +487,12 @@ def interchange_to_pandas(result: Any) -> pd.DataFrame:
 def compare_column_with_reference(
     column: Column,
     reference: list[Any],
-    dtype: str | None,
+    dtype: DType,
 ) -> None:
     column = column.persist()
     col_len = column.len().scalar
     assert col_len == len(reference)
-    if dtype is not None:
-        assert column.__column_namespace__().is_dtype(column.dtype, dtype)
+    assert isinstance(column.dtype, dtype)
     for idx in range(col_len):
         assert reference[idx] == column.get_value(idx).scalar
 
