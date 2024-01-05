@@ -4,6 +4,7 @@ from datetime import datetime
 from datetime import timedelta
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Mapping
 from typing import cast
 
 import pandas as pd
@@ -491,9 +492,27 @@ def compare_column_with_reference(
     column = column.persist()
     col_len = column.len().scalar
     assert col_len == len(reference)
-    assert isinstance(column.dtype, dtype)
+    assert isinstance(
+        column.dtype,
+        dtype,
+    ), f"{column.dtype=} isn't a instance of {dtype=}"
     for idx in range(col_len):
         assert reference[idx] == column.get_value(idx).scalar
+
+
+def compare_dataframe_with_reference(
+    dataframe: DataFrame,
+    reference: Mapping[str, list[Any]],
+    dtype: Any | Mapping[str, Any],
+) -> None:
+    assert dataframe.column_names == list(reference.keys())
+    for col_name in dataframe.column_names:
+        col_dtype = dtype[col_name] if isinstance(dtype, dict) else dtype
+        compare_column_with_reference(
+            dataframe.col(col_name),
+            reference[col_name],
+            dtype=col_dtype,
+        )
 
 
 def mixed_dataframe_1(library: str) -> DataFrame:

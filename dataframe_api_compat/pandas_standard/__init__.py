@@ -111,12 +111,14 @@ def map_pandas_dtype_to_standard_dtype(dtype: Any) -> DType:
         return Namespace.String()
     if dtype == "string":
         return Namespace.String()
-    if hasattr(dtype, "startswith") and dtype.startswith("datetime64["):
+    if not hasattr(dtype, "startswith"):
+        dtype = str(dtype)
+    if dtype.startswith("datetime64["):
         match = re.search(r"datetime64\[(\w{1,2})", dtype)
         assert match is not None
         time_unit = cast(Literal["ms", "us"], match.group(1))
         return Namespace.Datetime(time_unit)
-    if hasattr(dtype, "startswith") and dtype.startswith("timedelta64["):
+    if dtype.startswith("timedelta64["):
         match = re.search(r"timedelta64\[(\w{1,2})", dtype)
         assert match is not None
         time_unit = cast(Literal["ms", "us"], match.group(1))
