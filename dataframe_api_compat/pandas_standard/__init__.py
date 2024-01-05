@@ -104,18 +104,19 @@ def map_pandas_dtype_to_standard_dtype(dtype: Any) -> DType:
         return Namespace.Float32()
     if dtype == "Float32":
         return Namespace.Float32()
-    if dtype == "bool":
+    if dtype in ("bool", "boolean"):
+        # Also for `pandas.core.arrays.boolean.BooleanDtype`
         return Namespace.Bool()
     if dtype == "object":
         return Namespace.String()
     if dtype == "string":
         return Namespace.String()
-    if dtype.startswith("datetime64["):
+    if hasattr(dtype, "startswith") and dtype.startswith("datetime64["):
         match = re.search(r"datetime64\[(\w{1,2})", dtype)
         assert match is not None
         time_unit = cast(Literal["ms", "us"], match.group(1))
         return Namespace.Datetime(time_unit)
-    if dtype.startswith("timedelta64["):
+    if hasattr(dtype, "startswith") and dtype.startswith("timedelta64["):
         match = re.search(r"timedelta64\[(\w{1,2})", dtype)
         assert match is not None
         time_unit = cast(Literal["ms", "us"], match.group(1))

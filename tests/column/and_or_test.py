@@ -10,7 +10,7 @@ def test_column_and(library: str) -> None:
     other = df.col("b")
     result = df.assign((ser & other).rename("result"))
     expected = [True, True, False]
-    compare_column_with_reference(result.col("result"), expected)
+    compare_column_with_reference(result.col("result"), expected, dtype="bool")
 
 
 def test_column_or(library: str) -> None:
@@ -19,7 +19,7 @@ def test_column_or(library: str) -> None:
     other = df.col("b")
     result = df.assign((ser | other).rename("result"))
     expected = [True, True, True]
-    compare_column_with_reference(result.col("result"), expected)
+    compare_column_with_reference(result.col("result"), expected, dtype="bool")
 
 
 def test_column_and_with_scalar(library: str) -> None:
@@ -28,7 +28,7 @@ def test_column_and_with_scalar(library: str) -> None:
     other = True
     result = df.assign((other & ser).rename("result"))
     expected = [True, True, False]
-    compare_column_with_reference(result.col("result"), expected)
+    compare_column_with_reference(result.col("result"), expected, dtype="bool")
 
 
 def test_column_or_with_scalar(library: str) -> None:
@@ -37,4 +37,4 @@ def test_column_or_with_scalar(library: str) -> None:
     other = True
     result = df.assign((other | ser).rename("result"))
     expected = [True, True, True]
-    compare_column_with_reference(result.col("result"), expected)
+    compare_column_with_reference(result.col("result"), expected, dtype="bool")

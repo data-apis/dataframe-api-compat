@@ -486,10 +486,16 @@ def interchange_to_pandas(result: Any) -> pd.DataFrame:
     return cast(pd.DataFrame, df)
 
 
-def compare_column_with_reference(column: Column, reference: list[Any]) -> None:
+def compare_column_with_reference(
+    column: Column,
+    reference: list[Any],
+    dtype: str | None,
+) -> None:
     column = column.persist()
     col_len = column.len().scalar
     assert col_len == len(reference)
+    if dtype is not None:
+        assert column.__column_namespace__().is_dtype(column.dtype, dtype)
     for idx in range(col_len):
         assert reference[idx] == column.get_value(idx).scalar
 
