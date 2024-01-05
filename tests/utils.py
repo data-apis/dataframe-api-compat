@@ -16,7 +16,6 @@ import dataframe_api_compat.polars_standard
 if TYPE_CHECKING:
     from dataframe_api import Column
     from dataframe_api import DataFrame
-    from dataframe_api.typing import DType
 
 POLARS_VERSION = parse(pl.__version__)
 PANDAS_VERSION = parse(pd.__version__)
@@ -487,7 +486,7 @@ def interchange_to_pandas(result: Any) -> pd.DataFrame:
 def compare_column_with_reference(
     column: Column,
     reference: list[Any],
-    dtype: DType,
+    dtype: Any,
 ) -> None:
     column = column.persist()
     col_len = column.len().scalar
