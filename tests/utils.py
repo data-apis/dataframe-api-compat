@@ -17,6 +17,7 @@ import dataframe_api_compat.polars_standard
 DType = TypeVar("DType")
 
 if TYPE_CHECKING:
+    from dataframe_api import Column
     from dataframe_api import DataFrame
 
 POLARS_VERSION = parse(pl.__version__)
@@ -483,6 +484,14 @@ def interchange_to_pandas(result: Any) -> pd.DataFrame:
         df = result.dataframe
     df = convert_dataframe_to_pandas_numpy(df)
     return cast(pd.DataFrame, df)
+
+
+def compare_column_with_reference(column: Column, reference: list[Any]) -> None:
+    column = column.persist()
+    col_len = column.len().scalar
+    assert col_len == len(reference)
+    for idx in range(col_len):
+        assert reference[idx] == column.get_value(idx).scalar
 
 
 def mixed_dataframe_1(library: str) -> DataFrame:
