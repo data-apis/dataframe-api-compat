@@ -1,36 +1,35 @@
 from __future__ import annotations
 
-import pandas as pd
 import pytest
 
+from tests.utils import compare_column_with_reference
 from tests.utils import integer_dataframe_1
-from tests.utils import interchange_to_pandas
 
 
 @pytest.mark.parametrize(
-    ("reduction", "expected"),
+    ("reduction", "expected", "expected_dtype"),
     [
-        ("min", 1),
-        ("max", 3),
-        ("sum", 6),
-        ("prod", 6),
-        ("median", 2.0),
-        ("mean", 2.0),
-        ("std", 1.0),
-        ("var", 1.0),
+        ("min", 1, "Int64"),
+        ("max", 3, "Int64"),
+        ("sum", 6, "Int64"),
+        ("prod", 6, "Int64"),
+        ("median", 2.0, "Float64"),
+        ("mean", 2.0, "Float64"),
+        ("std", 1.0, "Float64"),
+        ("var", 1.0, "Float64"),
     ],
 )
 def test_expression_reductions(
     library: str,
     reduction: str,
     expected: float,
+    expected_dtype: str,
 ) -> None:
     df = integer_dataframe_1(library)
-    df.__dataframe_namespace__()
+    pdx = df.__dataframe_namespace__()
     ser = df.col("a")
     ser = ser - getattr(ser, reduction)()
     result = df.assign(ser.rename("result"))
-    result_pd = interchange_to_pandas(result)["result"]
-    ser_pd = interchange_to_pandas(df)["a"].rename("result")
-    expected_pd = ser_pd - expected
-    pd.testing.assert_series_equal(result_pd, expected_pd)
+    reference = list((df.col("a") - expected).persist().to_array())
+    expected_pdx_dtype = getattr(pdx, expected_dtype)
+    compare_column_with_reference(result.col("result"), reference, expected_pdx_dtype)
