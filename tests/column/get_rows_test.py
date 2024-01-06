@@ -6,8 +6,8 @@ from tests.utils import integer_dataframe_1
 
 def test_expression_take(library: str) -> None:
     df = integer_dataframe_1(library)
-    pdx = df.__dataframe_namespace__()
+    ns = df.__dataframe_namespace__()
     ser = df.col("a")
     indices = df.col("a") - 1
     result = df.assign(ser.take(indices).rename("result")).select("result")
-    compare_column_with_reference(result.col("result"), [1, 2, 3], pdx.Int64)
+    compare_column_with_reference(result.col("result"), [1, 2, 3], ns.Int64)

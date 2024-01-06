@@ -6,7 +6,7 @@ from tests.utils import nan_dataframe_1
 
 def test_column_is_nan(library: str) -> None:
     df = nan_dataframe_1(library)
-    pdx = df.__dataframe_namespace__()
+    ns = df.__dataframe_namespace__()
     ser = df.col("a")
     result = df.assign(ser.is_nan().rename("result"))
-    compare_column_with_reference(result.col("result"), [False, False, True], pdx.Bool)
+    compare_column_with_reference(result.col("result"), [False, False, True], ns.Bool)

@@ -35,16 +35,16 @@ def test_column_comparisons(
 ) -> None:
     ser: Any
     df = integer_dataframe_7(library)
-    pdx = df.__dataframe_namespace__()
+    ns = df.__dataframe_namespace__()
     ser = df.col("a")
     other = df.col("b")
     result = df.assign(getattr(ser, comparison)(other).rename("result"))
-    expected_pdx_dtype = getattr(pdx, expected_dtype)
+    expected_ns_dtype = getattr(ns, expected_dtype)
     if comparison == "__pow__" and library in ("polars", "polars-lazy"):
         # TODO
-        result = result.cast({"result": pdx.Int64()})
-        expected_pdx_dtype = pdx.Int64
-    compare_column_with_reference(result.col("result"), expected_data, expected_pdx_dtype)
+        result = result.cast({"result": ns.Int64()})
+        expected_ns_dtype = ns.Int64
+    compare_column_with_reference(result.col("result"), expected_data, expected_ns_dtype)
 
 
 @pytest.mark.parametrize(
@@ -73,15 +73,15 @@ def test_column_comparisons_scalar(
 ) -> None:
     ser: Any
     df = integer_dataframe_1(library)
-    pdx = df.__dataframe_namespace__()
+    ns = df.__dataframe_namespace__()
     ser = df.col("a")
     other = 3
     result = df.assign(getattr(ser, comparison)(other).rename("result"))
-    expected_pdx_dtype = getattr(pdx, expected_dtype)
+    expected_ns_dtype = getattr(ns, expected_dtype)
     if comparison == "__pow__" and library in ("polars", "polars-lazy"):
-        result = result.cast({"result": pdx.Int64()})
-        expected_pdx_dtype = pdx.Int64
-    compare_column_with_reference(result.col("result"), expected_data, expected_pdx_dtype)
+        result = result.cast({"result": ns.Int64()})
+        expected_ns_dtype = ns.Int64
+    compare_column_with_reference(result.col("result"), expected_data, expected_ns_dtype)
 
 
 @pytest.mark.parametrize(
@@ -100,8 +100,8 @@ def test_right_column_comparisons(
     # 1,2,3
     ser: Any
     df = integer_dataframe_7(library)
-    pdx = df.__dataframe_namespace__()
+    ns = df.__dataframe_namespace__()
     ser = df.col("a")
     other = 2
     result = df.assign(getattr(ser, comparison)(other).rename("result"))
-    compare_column_with_reference(result.col("result"), expected_data, pdx.Int64)
+    compare_column_with_reference(result.col("result"), expected_data, ns.Int64)

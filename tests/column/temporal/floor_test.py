@@ -16,8 +16,8 @@ from tests.utils import temporal_dataframe_1
 )
 def test_floor(library: str, freq: str, expected: list[datetime]) -> None:
     df = temporal_dataframe_1(library)
-    pdx = df.__dataframe_namespace__()
+    ns = df.__dataframe_namespace__()
     col = df.col
     result = df.assign(col("a").floor(freq).rename("result")).select("result")  # type: ignore[attr-defined]
     # TODO check the resolution
-    compare_column_with_reference(result.col("result"), expected, pdx.Datetime)
+    compare_column_with_reference(result.col("result"), expected, ns.Datetime)

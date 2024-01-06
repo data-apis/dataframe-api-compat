@@ -29,11 +29,11 @@ def test_is_in(
     expected_values: list[bool],
 ) -> None:
     df = df_factory(library)
-    pdx = df.__dataframe_namespace__()
+    ns = df.__dataframe_namespace__()
     ser = df.col("a")
     other = ser + 1
     result = df.assign(ser.is_in(other).rename("result"))
-    compare_column_with_reference(result.col("result"), expected_values, pdx.Bool)
+    compare_column_with_reference(result.col("result"), expected_values, ns.Bool)
 
 
 @pytest.mark.parametrize(
@@ -51,9 +51,9 @@ def test_expr_is_in(
     expected_values: list[bool],
 ) -> None:
     df = df_factory(library)
-    pdx = df.__dataframe_namespace__()
+    ns = df.__dataframe_namespace__()
     col = df.col
     ser = col("a")
     other = ser + 1
     result = df.assign(ser.is_in(other).rename("result"))
-    compare_column_with_reference(result.col("result"), expected_values, pdx.Bool)
+    compare_column_with_reference(result.col("result"), expected_values, ns.Bool)

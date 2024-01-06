@@ -18,9 +18,9 @@ def test_column_filter(library: str) -> None:
 
 def test_column_take_by_mask_noop(library: str) -> None:
     df = integer_dataframe_1(library)
-    pdx = df.__dataframe_namespace__()
+    ns = df.__dataframe_namespace__()
     ser = df.col("a")
     mask = ser > 0
     ser = ser.filter(mask)
     result = df.assign(ser.rename("result"))
-    compare_column_with_reference(result.col("result"), [1, 2, 3], pdx.Int64)
+    compare_column_with_reference(result.col("result"), [1, 2, 3], ns.Int64)

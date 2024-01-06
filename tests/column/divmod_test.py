@@ -6,26 +6,26 @@ from tests.utils import integer_dataframe_1
 
 def test_expression_divmod(library: str) -> None:
     df = integer_dataframe_1(library)
-    pdx = df.__dataframe_namespace__()
+    ns = df.__dataframe_namespace__()
     ser = df.col("a")
     other = df.col("b")
     result_quotient, result_remainder = ser.__divmod__(other)
     # quotient
     result = df.assign(result_quotient.rename("result"))
-    compare_column_with_reference(result.col("result"), [0, 0, 0], pdx.Int64)
+    compare_column_with_reference(result.col("result"), [0, 0, 0], ns.Int64)
     # remainder
     result = df.assign(result_remainder.rename("result"))
-    compare_column_with_reference(result.col("result"), [1, 2, 3], pdx.Int64)
+    compare_column_with_reference(result.col("result"), [1, 2, 3], ns.Int64)
 
 
 def test_expression_divmod_with_scalar(library: str) -> None:
     df = integer_dataframe_1(library)
-    pdx = df.__dataframe_namespace__()
+    ns = df.__dataframe_namespace__()
     ser = df.col("a")
     result_quotient, result_remainder = ser.__divmod__(2)
     # quotient
     result = df.assign(result_quotient.rename("result"))
-    compare_column_with_reference(result.col("result"), [0, 1, 1], pdx.Int64)
+    compare_column_with_reference(result.col("result"), [0, 1, 1], ns.Int64)
     # remainder
     result = df.assign(result_remainder.rename("result"))
-    compare_column_with_reference(result.col("result"), [1, 0, 1], pdx.Int64)
+    compare_column_with_reference(result.col("result"), [1, 0, 1], ns.Int64)

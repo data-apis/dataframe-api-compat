@@ -22,7 +22,7 @@ def test_cumulative_functions_column(
     expected_data: list[float],
 ) -> None:
     df = integer_dataframe_1(library)
-    pdx = df.__dataframe_namespace__()
+    ns = df.__dataframe_namespace__()
     ser = df.col("a")
     expected = pd.Series(expected_data, name="result")
     result = df.assign(getattr(ser, func)().rename("result"))
@@ -32,6 +32,6 @@ def test_cumulative_functions_column(
         and library == "pandas-nullable"
     ):  # pragma: no cover
         # Upstream bug
-        result = result.cast({"result": pdx.Int64()})
+        result = result.cast({"result": ns.Int64()})
 
-    compare_column_with_reference(result.col("result"), expected, pdx.Int64)
+    compare_column_with_reference(result.col("result"), expected, ns.Int64)

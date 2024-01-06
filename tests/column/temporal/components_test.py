@@ -23,16 +23,16 @@ from tests.utils import temporal_dataframe_1
 )
 def test_col_components(library: str, attr: str, expected: list[int]) -> None:
     df = temporal_dataframe_1(library)
-    pdx = df.__dataframe_namespace__()
+    ns = df.__dataframe_namespace__()
     for col_name in ("a", "c", "e"):
         result = (
             df.assign(getattr(df.col(col_name), attr)().rename("result"))
             .select(
                 "result",
             )
-            .cast({"result": pdx.Int64()})
+            .cast({"result": ns.Int64()})
         )
-        compare_column_with_reference(result.col("result"), expected, dtype=pdx.Int64)
+        compare_column_with_reference(result.col("result"), expected, dtype=ns.Int64)
 
 
 @pytest.mark.parametrize(
@@ -45,15 +45,15 @@ def test_col_components(library: str, attr: str, expected: list[int]) -> None:
 )
 def test_col_microsecond(library: str, col_name: str, expected: list[int]) -> None:
     df = temporal_dataframe_1(library)
-    pdx = df.__dataframe_namespace__()
+    ns = df.__dataframe_namespace__()
     result = (
         df.assign(df.col(col_name).microsecond().rename("result"))
         .select(
             "result",
         )
-        .cast({"result": pdx.Int64()})
+        .cast({"result": ns.Int64()})
     )
-    compare_column_with_reference(result.col("result"), expected, dtype=pdx.Int64)
+    compare_column_with_reference(result.col("result"), expected, dtype=ns.Int64)
 
 
 @pytest.mark.parametrize(
@@ -66,15 +66,15 @@ def test_col_microsecond(library: str, col_name: str, expected: list[int]) -> No
 )
 def test_col_nanosecond(library: str, col_name: str, expected: list[int]) -> None:
     df = temporal_dataframe_1(library)
-    pdx = df.__dataframe_namespace__()
+    ns = df.__dataframe_namespace__()
     result = (
         df.assign(df.col(col_name).nanosecond().rename("result"))  # type: ignore[attr-defined]
         .select(
             "result",
         )
-        .cast({"result": pdx.Int64()})
+        .cast({"result": ns.Int64()})
     )
-    compare_column_with_reference(result.col("result"), expected, dtype=pdx.Int64)
+    compare_column_with_reference(result.col("result"), expected, dtype=ns.Int64)
 
 
 @pytest.mark.parametrize(
@@ -92,7 +92,7 @@ def test_col_unix_timestamp_time_units(
     expected: list[int],
 ) -> None:
     df = temporal_dataframe_1(library)
-    pdx = df.__dataframe_namespace__()
+    ns = df.__dataframe_namespace__()
     result = (
         df.assign(
             df.col("e").unix_timestamp(time_unit=time_unit).rename("result"),
@@ -100,6 +100,6 @@ def test_col_unix_timestamp_time_units(
         .select(
             "result",
         )
-        .cast({"result": pdx.Int64()})
+        .cast({"result": ns.Int64()})
     )
-    compare_column_with_reference(result.col("result"), expected, dtype=pdx.Int64)
+    compare_column_with_reference(result.col("result"), expected, dtype=ns.Int64)

@@ -26,10 +26,10 @@ def test_expression_reductions(
     expected_dtype: str,
 ) -> None:
     df = integer_dataframe_1(library)
-    pdx = df.__dataframe_namespace__()
+    ns = df.__dataframe_namespace__()
     ser = df.col("a")
     ser = ser - getattr(ser, reduction)()
     result = df.assign(ser.rename("result"))
     reference = list((df.col("a") - expected).persist().to_array())
-    expected_pdx_dtype = getattr(pdx, expected_dtype)
-    compare_column_with_reference(result.col("result"), reference, expected_pdx_dtype)
+    expected_ns_dtype = getattr(ns, expected_dtype)
+    compare_column_with_reference(result.col("result"), reference, expected_ns_dtype)
