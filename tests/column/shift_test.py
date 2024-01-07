@@ -42,4 +42,4 @@ def test_shift_with_fill_value_complicated(library: str) -> None:
         result = result.cast({"a": ns.Float64()})
     expected = {"a": [2.0, 1, 2], "b": [4, 5, 6]}
     expected_dtype = {"a": ns.Float64, "b": ns.Int64}
-    compare_dataframe_with_reference(result, expected, expected_dtype)
+    compare_dataframe_with_reference(result, expected, expected_dtype)  # type: ignore[arg-type]

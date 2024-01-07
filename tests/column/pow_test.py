@@ -12,7 +12,7 @@ def test_float_powers_column(library: str) -> None:
     result = df.assign(ser.__pow__(other).rename("result"))
     expected = {"a": [1, 2, 3], "b": [4, 5, 6], "result": [1.0, 32.0, 729.0]}
     expected_dtype = {"a": ns.Int64, "b": ns.Int64, "result": ns.Float64}
-    compare_dataframe_with_reference(result, expected, expected_dtype)
+    compare_dataframe_with_reference(result, expected, expected_dtype)  # type: ignore[arg-type]
 
 
 def test_float_powers_scalar_column(library: str) -> None:
@@ -23,7 +23,7 @@ def test_float_powers_scalar_column(library: str) -> None:
     result = df.assign(ser.__pow__(other).rename("result"))
     expected = {"a": [1, 2, 3], "b": [4, 5, 6], "result": [1.0, 2.0, 3.0]}
     expected_dtype = {"a": ns.Int64, "b": ns.Int64, "result": ns.Float64}
-    compare_dataframe_with_reference(result, expected, expected_dtype)
+    compare_dataframe_with_reference(result, expected, expected_dtype)  # type: ignore[arg-type]
 
 
 def test_int_powers_column(library: str) -> None:
