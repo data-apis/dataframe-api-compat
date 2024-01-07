@@ -20,4 +20,4 @@ def test_floor(library: str, freq: str, expected: list[datetime]) -> None:
     col = df.col
     result = df.assign(col("a").floor(freq).rename("result")).select("result")  # type: ignore[attr-defined]
     # TODO check the resolution
-    compare_column_with_reference(result.col("result"), expected, ns.Datetime)
+    compare_column_with_reference(result.col("result"), expected, dtype=ns.Datetime)

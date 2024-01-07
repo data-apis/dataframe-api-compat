@@ -14,7 +14,7 @@ def test_expression_sort_ascending(library: str) -> None:
         "b": [4, 4, 3, 1, 2],
         "c": [1, 2, 3, 4, 4],
     }
-    compare_dataframe_with_reference(result, expected, ns.Int64)
+    compare_dataframe_with_reference(result, expected, dtype=ns.Int64)
 
 
 def test_expression_sort_descending(library: str) -> None:
@@ -27,7 +27,7 @@ def test_expression_sort_descending(library: str) -> None:
         "b": [4, 4, 3, 1, 2],
         "c": [4, 4, 3, 2, 1],
     }
-    compare_dataframe_with_reference(result, expected, ns.Int64)
+    compare_dataframe_with_reference(result, expected, dtype=ns.Int64)
 
 
 def test_column_sort_ascending(library: str) -> None:
@@ -40,7 +40,7 @@ def test_column_sort_ascending(library: str) -> None:
         "b": [4, 4, 3, 1, 2],
         "c": [1, 2, 3, 4, 4],
     }
-    compare_dataframe_with_reference(result, expected, ns.Int64)
+    compare_dataframe_with_reference(result, expected, dtype=ns.Int64)
 
 
 def test_column_sort_descending(library: str) -> None:
@@ -53,4 +53,4 @@ def test_column_sort_descending(library: str) -> None:
         "b": [4, 4, 3, 1, 2],
         "c": [4, 4, 3, 2, 1],
     }
-    compare_dataframe_with_reference(result, expected, ns.Int64)
+    compare_dataframe_with_reference(result, expected, dtype=ns.Int64)

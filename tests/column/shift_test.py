@@ -13,11 +13,8 @@ def test_shift_with_fill_value(library: str) -> None:
     result = df.assign(df.col("a").shift(1).fill_null(999))
     if library == "pandas-numpy":
         result = result.cast({name: ns.Int64() for name in ("a", "b")})
-    compare_dataframe_with_reference(
-        result,
-        {"a": [999, 1, 2], "b": [4, 5, 6]},
-        ns.Int64,
-    )
+    expected = {"a": [999, 1, 2], "b": [4, 5, 6]}
+    compare_dataframe_with_reference(result, expected, dtype=ns.Int64)
 
 
 def test_shift_without_fill_value(library: str) -> None:
@@ -43,8 +40,6 @@ def test_shift_with_fill_value_complicated(library: str) -> None:
     result = df.assign(df.col("a").shift(1).fill_null(df.col("a").mean()))
     if library == "pandas-nullable":
         result = result.cast({"a": ns.Float64()})
-    compare_dataframe_with_reference(
-        result,
-        {"a": [2.0, 1, 2], "b": [4, 5, 6]},
-        {"a": ns.Float64, "b": ns.Int64},
-    )
+    expected = {"a": [2.0, 1, 2], "b": [4, 5, 6]}
+    expected_dtype = {"a": ns.Float64, "b": ns.Int64}
+    compare_dataframe_with_reference(result, expected, expected_dtype)

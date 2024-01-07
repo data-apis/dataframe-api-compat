@@ -104,4 +104,4 @@ def test_right_column_comparisons(
     ser = df.col("a")
     other = 2
     result = df.assign(getattr(ser, comparison)(other).rename("result"))
-    compare_column_with_reference(result.col("result"), expected_data, ns.Int64)
+    compare_column_with_reference(result.col("result"), expected_data, dtype=ns.Int64)

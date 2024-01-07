@@ -9,7 +9,8 @@ def test_expression_invert(library: str) -> None:
     ns = df.__dataframe_namespace__()
     ser = df.col("a")
     result = df.assign((~ser).rename("result"))
-    compare_column_with_reference(result.col("result"), [False, False, True], ns.Bool)
+    expected = [False, False, True]
+    compare_column_with_reference(result.col("result"), expected, dtype=ns.Bool)
 
 
 def test_column_invert(library: str) -> None:
@@ -17,4 +18,5 @@ def test_column_invert(library: str) -> None:
     ns = df.__dataframe_namespace__()
     ser = df.col("a")
     result = df.assign((~ser).rename("result"))
-    compare_column_with_reference(result.col("result"), [False, False, True], ns.Bool)
+    expected = [False, False, True]
+    compare_column_with_reference(result.col("result"), expected, dtype=ns.Bool)

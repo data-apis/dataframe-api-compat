@@ -23,4 +23,4 @@ def test_column_take_by_mask_noop(library: str) -> None:
     mask = ser > 0
     ser = ser.filter(mask)
     result = df.assign(ser.rename("result"))
-    compare_column_with_reference(result.col("result"), [1, 2, 3], ns.Int64)
+    compare_column_with_reference(result.col("result"), [1, 2, 3], dtype=ns.Int64)

@@ -10,4 +10,4 @@ def test_expression_take(library: str) -> None:
     ser = df.col("a")
     indices = df.col("a") - 1
     result = df.assign(ser.take(indices).rename("result")).select("result")
-    compare_column_with_reference(result.col("result"), [1, 2, 3], ns.Int64)
+    compare_column_with_reference(result.col("result"), [1, 2, 3], dtype=ns.Int64)

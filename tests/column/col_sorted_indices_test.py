@@ -10,11 +10,8 @@ def test_expression_sorted_indices_ascending(library: str) -> None:
     col = df.col
     sorted_indices = col("b").sorted_indices()
     result = df.take(sorted_indices)
-    compare_dataframe_with_reference(
-        result,
-        {"a": [2, 2, 1, 1, 1], "b": [1, 2, 3, 4, 4]},
-        dtype=ns.Int64,
-    )
+    expected = {"a": [2, 2, 1, 1, 1], "b": [1, 2, 3, 4, 4]}
+    compare_dataframe_with_reference(result, expected, dtype=ns.Int64)
 
 
 def test_expression_sorted_indices_descending(library: str) -> None:
@@ -23,11 +20,8 @@ def test_expression_sorted_indices_descending(library: str) -> None:
     col = df.col
     sorted_indices = col("b").sorted_indices(ascending=False)
     result = df.take(sorted_indices)
-    compare_dataframe_with_reference(
-        result,
-        {"a": [1, 1, 1, 2, 2], "b": [4, 4, 3, 2, 1]},
-        dtype=ns.Int64,
-    )
+    expected = {"a": [1, 1, 1, 2, 2], "b": [4, 4, 3, 2, 1]}
+    compare_dataframe_with_reference(result, expected, dtype=ns.Int64)
 
 
 def test_column_sorted_indices_ascending(library: str) -> None:
@@ -35,11 +29,8 @@ def test_column_sorted_indices_ascending(library: str) -> None:
     ns = df.__dataframe_namespace__()
     sorted_indices = df.col("b").sorted_indices()
     result = df.take(sorted_indices)
-    compare_dataframe_with_reference(
-        result,
-        {"a": [2, 2, 1, 1, 1], "b": [1, 2, 3, 4, 4]},
-        dtype=ns.Int64,
-    )
+    expected = {"a": [2, 2, 1, 1, 1], "b": [1, 2, 3, 4, 4]}
+    compare_dataframe_with_reference(result, expected, dtype=ns.Int64)
 
 
 def test_column_sorted_indices_descending(library: str) -> None:
@@ -47,8 +38,5 @@ def test_column_sorted_indices_descending(library: str) -> None:
     ns = df.__dataframe_namespace__()
     sorted_indices = df.col("b").sorted_indices(ascending=False)
     result = df.take(sorted_indices)
-    compare_dataframe_with_reference(
-        result,
-        {"a": [1, 1, 1, 2, 2], "b": [4, 4, 3, 2, 1]},
-        dtype=ns.Int64,
-    )
+    expected = {"a": [1, 1, 1, 2, 2], "b": [4, 4, 3, 2, 1]}
+    compare_dataframe_with_reference(result, expected, dtype=ns.Int64)
