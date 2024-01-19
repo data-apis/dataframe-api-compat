@@ -58,7 +58,8 @@ class GroupBy(GroupByT):
         )
 
     def size(self) -> DataFrame:
-        result = self._grouped.len().rename({"len": "size"})
+        method = "len" if hasattr(self._grouped, "len") else "count"
+        result = getattr(self._grouped, method)().rename({method: "size"})
         return self._to_dataframe(result)
 
     def any(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
@@ -127,7 +128,8 @@ class GroupBy(GroupByT):
 def resolve_aggregation(aggregation: AggregationT) -> pl.Expr:
     aggregation = cast(Namespace.Aggregation, aggregation)
     if aggregation.aggregation == "count":
-        return pl.len().alias(aggregation.output_name)
+        method = "len" if hasattr(pl, "len") else "count"
+        return getattr(pl, method)().alias(aggregation.output_name)
     return getattr(  # type: ignore[no-any-return]
         pl.col(aggregation.column_name),
         aggregation.aggregation,
