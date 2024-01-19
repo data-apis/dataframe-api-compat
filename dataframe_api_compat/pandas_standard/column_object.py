@@ -36,6 +36,7 @@ NUMPY_MAPPING = {
     "UInt8": "uint8",
     "boolean": "bool",
     "Float64": "float64",
+    "Float32": "float32",
 }
 
 
