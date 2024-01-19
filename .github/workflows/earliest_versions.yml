@@ -27,7 +27,7 @@ jobs:
             ~\AppData\Local\pip\Cache
           key: ${{ runner.os }}-build-${{ matrix.python-version }}
       - name: install-earliest-versions
-        run: python -m pip install pandas==1.2.0 polars==0.18.1
+        run: python -m pip install pandas==1.2.0 polars==0.19.0
       - name: install-reqs
         run: python -m pip install --upgrade tox virtualenv setuptools pip && python -m pip install -r requirements-dev.txt
       - name: Run pytest
