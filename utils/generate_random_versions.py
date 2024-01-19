@@ -8,7 +8,7 @@ import random
 import re
 
 MIN_PANDAS_VERSION = (1, 2, 0)
-MIN_POLARS_VERSION = (0, 20, 0)  # todo: can we lower?
+MIN_POLARS_VERSION = (0, 20, 5)  # todo: can we lower?
 
 with open("utils/pandas_versions.txt") as fd:
     content = fd.readlines()[1]
