@@ -16,6 +16,7 @@ POLARS_VERSION = parse(pl.__version__)
 
 if TYPE_CHECKING:
     from dataframe_api import Column as ColumnT
+    from dataframe_api.typing import AnyScalar
     from dataframe_api.typing import DType
     from dataframe_api.typing import Namespace
     from dataframe_api.typing import NullType
@@ -185,27 +186,27 @@ class Column(ColumnT):
 
     # Binary comparisons
 
-    def __eq__(self, other: Column | Any) -> Column:  # type: ignore[override]
+    def __eq__(self, other: Column | AnyScalar) -> Column:  # type: ignore[override]
         other = validate_comparand(self, other)
         return self._from_expr(self._expr == other)
 
-    def __ne__(self, other: Column | Any) -> Column:  # type: ignore[override]
+    def __ne__(self, other: Column | AnyScalar) -> Column:  # type: ignore[override]
         other = validate_comparand(self, other)
         return self._from_expr(self._expr != other)
 
-    def __ge__(self, other: Column | Any) -> Column:
+    def __ge__(self, other: Column | AnyScalar) -> Column:
         other = validate_comparand(self, other)
         return self._from_expr(self._expr >= other)
 
-    def __gt__(self, other: Column | Any) -> Column:
+    def __gt__(self, other: Column | AnyScalar) -> Column:
         other = validate_comparand(self, other)
         return self._from_expr(self._expr > other)
 
-    def __le__(self, other: Column | Any) -> Column:
+    def __le__(self, other: Column | AnyScalar) -> Column:
         other = validate_comparand(self, other)
         return self._from_expr(self._expr <= other)
 
-    def __lt__(self, other: Column | Any) -> Column:
+    def __lt__(self, other: Column | AnyScalar) -> Column:
         other = validate_comparand(self, other)
         return self._from_expr(self._expr < other)
 
