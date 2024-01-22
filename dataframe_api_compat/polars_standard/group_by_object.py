@@ -129,7 +129,7 @@ def resolve_aggregation(aggregation: AggregationT) -> pl.Expr:
     aggregation = cast(Namespace.Aggregation, aggregation)
     if aggregation.aggregation == "count":
         method = "len" if hasattr(pl, "len") else "count"
-        return getattr(pl, method)().alias(aggregation.output_name)
+        return getattr(pl, method)().alias(aggregation.output_name)  # type: ignore[no-any-return]
     return getattr(  # type: ignore[no-any-return]
         pl.col(aggregation.column_name),
         aggregation.aggregation,
