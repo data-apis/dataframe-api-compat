@@ -237,7 +237,7 @@ class DataFrame(DataFrameT):
         other: AnyScalar,
     ) -> DataFrame:
         return self._from_dataframe(
-            self.dataframe.with_columns(pl.col("*").__eq__(other)),
+            self.dataframe.with_columns(pl.col("*").__eq__(other)),  # type: ignore[operator]
         )
 
     def __ne__(  # type: ignore[override]
@@ -245,27 +245,27 @@ class DataFrame(DataFrameT):
         other: AnyScalar,
     ) -> DataFrame:
         return self._from_dataframe(
-            self.dataframe.with_columns(pl.col("*").__ne__(other)),
+            self.dataframe.with_columns(pl.col("*").__ne__(other)),  # type: ignore[operator]
         )
 
     def __ge__(self, other: AnyScalar) -> DataFrame:
         return self._from_dataframe(
-            self.dataframe.with_columns(pl.col("*").__ge__(other)),
+            self.dataframe.with_columns(pl.col("*").__ge__(other)),  # type: ignore[operator]
         )
 
     def __gt__(self, other: AnyScalar) -> DataFrame:
         return self._from_dataframe(
-            self.dataframe.with_columns(pl.col("*").__gt__(other)),
+            self.dataframe.with_columns(pl.col("*").__gt__(other)),  # type: ignore[operator]
         )
 
     def __le__(self, other: AnyScalar) -> DataFrame:
         return self._from_dataframe(
-            self.dataframe.with_columns(pl.col("*").__le__(other)),
+            self.dataframe.with_columns(pl.col("*").__le__(other)),  # type: ignore[operator]
         )
 
     def __lt__(self, other: AnyScalar) -> DataFrame:
         return self._from_dataframe(
-            self.dataframe.with_columns(pl.col("*").__lt__(other)),
+            self.dataframe.with_columns(pl.col("*").__lt__(other)),  # type: ignore[operator]
         )
 
     def __and__(self, other: AnyScalar) -> DataFrame:
