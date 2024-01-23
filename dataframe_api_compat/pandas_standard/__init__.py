@@ -543,8 +543,17 @@ class Expr:
 
         return func
 
-    def __add__(self, other: Expr) -> Expr:
-        return Expr(lambda df: self.call(df) + other.call(df))
+    def __add__(self, other: Expr | Any) -> Expr:
+        if isinstance(other, Expr):
+            return Expr(lambda df: self.call(df) + other.call(df))
+        return Expr(lambda df: self.call(df) + other)
 
-    def __truediv__(self, other: Expr) -> Expr:
-        return Expr(lambda df: self.call(df) / other.call(df))
+    def __gt__(self, other: Expr | Any) -> Expr:
+        if isinstance(other, Expr):
+            return Expr(lambda df: self.call(df) > other.call(df))
+        return Expr(lambda df: self.call(df) > other)
+
+    def __truediv__(self, other: Expr | Any) -> Expr:
+        if isinstance(other, Expr):
+            return Expr(lambda df: self.call(df) / other.call(df))
+        return Expr(lambda df: self.call(df) / other)
