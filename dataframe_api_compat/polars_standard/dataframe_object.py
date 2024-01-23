@@ -159,6 +159,8 @@ class DataFrame(DataFrameT):
         if cols and not isinstance(cols[0], str):
             msg = f"Expected iterable of str, but the first element is: {type(cols[0])}"
             raise TypeError(msg)
+        if not cols:
+            raise ValueError("Can't select no columns")
         return self._from_dataframe(
             self._df.select(cols),
         )

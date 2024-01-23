@@ -32,5 +32,5 @@ def test_select_list_of_str_invalid(library: str) -> None:
 @pytest.mark.filterwarnings("ignore:np.find_common_type is deprecated")
 def test_select_empty(library: str) -> None:
     df = integer_dataframe_1(library)
-    result = df.select()
-    assert result.column_names == []
+    with pytest.raises(ValueError, match="Can't select no columns"):
+        df.select()

@@ -501,3 +501,55 @@ class Namespace(NamespaceT):
             cls: AggregationT,
         ) -> AggregationT:
             return Namespace.Aggregation("__placeholder__", "size", "size")
+
+    def col(self, column_name: str) -> Expr:
+        return Expr.from_column_name(column_name)
+
+
+class Expr:
+    def __init__(self, call) -> None:
+        self.call = call
+
+    @classmethod
+    def from_column_name(cls, column_name: str) -> Expr:
+        def call(df):
+            return Column(
+                df.dataframe.loc[:, column_name],
+                df=df,
+                api_version=df._api_version,
+                is_persisted=df._is_persisted,
+            )
+
+        return cls(call)
+
+    def __getattribute__(self, attr):
+        if attr == "call":
+            return super().__getattribute__("call")
+
+        def func(*args, **kwargs):
+            def call(df):
+                return getattr(self.call(df), attr)(
+                    *[(arg.call(df) if isinstance(arg, Expr) else arg) for arg in args],
+                    **{
+                        arg_name: (
+                            arg_value if isinstance(arg_value, Expr) else arg_value
+                        )
+                        for arg_name, arg_value in kwargs.items()
+                    },
+                )
+
+            return Expr(call=call)
+
+        return func
+
+    def __add__(self, other):
+        def call(df):
+            return self.call(df) + other.call(df)
+
+        return Expr(call=call)
+
+    def __truediv__(self, other):
+        def call(df):
+            return self.call(df) / other.call(df)
+
+        return Expr(call=call)

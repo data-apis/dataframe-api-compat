@@ -149,13 +149,20 @@ class DataFrame(DataFrameT):
         return GroupBy(self, keys, api_version=self._api_version)
 
     def select(self, *columns: str) -> DataFrame:
+        from dataframe_api_compat.pandas_standard import Expr
+
         cols = list(columns)
         if cols and isinstance(cols[0], (list, tuple)):
             msg = f"Expected iterable of column names, but the first element is: {type(cols[0])}"
             raise TypeError(msg)
-        return self._from_dataframe(
-            self.dataframe.loc[:, list(columns)],
-        )
+        if not cols:
+            raise ValueError("Can't select no columns")
+        new_cols = [
+            col.call(self).column if isinstance(col, Expr) else self.dataframe.loc[:, col]
+            for col in columns
+        ]
+        df = pd.concat(new_cols, axis=1, copy=False)
+        return self._from_dataframe(df)
 
     def take(
         self,
@@ -187,10 +194,13 @@ class DataFrame(DataFrameT):
         self,
         *columns: Column,
     ) -> DataFrame:
+        from dataframe_api_compat.pandas_standard import Expr
         from dataframe_api_compat.pandas_standard.column_object import Column
 
         df = self.dataframe.copy()  # TODO: remove defensive copy with CoW?
         for column in columns:
+            if isinstance(column, Expr):
+                column = column.call(self)
             if not isinstance(column, Column):
                 msg = f"Expected iterable of Column, but the first element is: {type(column)}"
                 raise TypeError(msg)
