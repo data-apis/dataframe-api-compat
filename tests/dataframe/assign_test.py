@@ -1,40 +1,33 @@
 from __future__ import annotations
 
-import pandas as pd
 import pytest
 
+from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_1
-from tests.utils import interchange_to_pandas
 
 
 def test_insert_columns(library: str) -> None:
     df = integer_dataframe_1(library, api_version="2023.09-beta")
-    df.__dataframe_namespace__()
+    ns = df.__dataframe_namespace__()
     new_col = (df.col("b") + 3).rename("result")
     result = df.assign(new_col.rename("c"))
-    result_pd = interchange_to_pandas(result)
-    expected = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6], "c": [7, 8, 9]})
-    pd.testing.assert_frame_equal(result_pd, expected)
+    expected = {"a": [1, 2, 3], "b": [4, 5, 6], "c": [7, 8, 9]}
+    compare_dataframe_with_reference(result, expected, dtype=ns.Int64)
     # check original df didn't change
-    df_pd = interchange_to_pandas(df)
-    expected = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
-    pd.testing.assert_frame_equal(df_pd, expected)
+    expected = {"a": [1, 2, 3], "b": [4, 5, 6]}
+    compare_dataframe_with_reference(df, expected, dtype=ns.Int64)
 
 
 def test_insert_multiple_columns(library: str) -> None:
     df = integer_dataframe_1(library, api_version="2023.09-beta")
-    df.__dataframe_namespace__()
+    ns = df.__dataframe_namespace__()
     new_col = (df.col("b") + 3).rename("result")
     result = df.assign(new_col.rename("c"), new_col.rename("d"))
-    result_pd = interchange_to_pandas(result)
-    expected = pd.DataFrame(
-        {"a": [1, 2, 3], "b": [4, 5, 6], "c": [7, 8, 9], "d": [7, 8, 9]},
-    )
-    pd.testing.assert_frame_equal(result_pd, expected)
+    expected = {"a": [1, 2, 3], "b": [4, 5, 6], "c": [7, 8, 9], "d": [7, 8, 9]}
+    compare_dataframe_with_reference(result, expected, dtype=ns.Int64)
     # check original df didn't change
-    df_pd = interchange_to_pandas(df)
-    expected = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
-    pd.testing.assert_frame_equal(df_pd, expected)
+    expected = {"a": [1, 2, 3], "b": [4, 5, 6]}
+    compare_dataframe_with_reference(df, expected, dtype=ns.Int64)
 
 
 def test_insert_multiple_columns_invalid(library: str) -> None:
@@ -47,14 +40,11 @@ def test_insert_multiple_columns_invalid(library: str) -> None:
 
 def test_insert_eager_columns(library: str) -> None:
     df = integer_dataframe_1(library, api_version="2023.09-beta")
+    ns = df.__dataframe_namespace__()
     new_col = (df.col("b") + 3).rename("result")
     result = df.assign(new_col.rename("c"), new_col.rename("d"))
-    result_pd = interchange_to_pandas(result)
-    expected = pd.DataFrame(
-        {"a": [1, 2, 3], "b": [4, 5, 6], "c": [7, 8, 9], "d": [7, 8, 9]},
-    )
-    pd.testing.assert_frame_equal(result_pd, expected)
+    expected = {"a": [1, 2, 3], "b": [4, 5, 6], "c": [7, 8, 9], "d": [7, 8, 9]}
+    compare_dataframe_with_reference(result, expected, dtype=ns.Int64)
     # check original df didn't change
-    df_pd = interchange_to_pandas(df)
-    expected = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
-    pd.testing.assert_frame_equal(df_pd, expected)
+    expected = {"a": [1, 2, 3], "b": [4, 5, 6]}
+    compare_dataframe_with_reference(df, expected, dtype=ns.Int64)

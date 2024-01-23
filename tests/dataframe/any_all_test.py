@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-import pandas as pd
 import pytest
 
 from tests.utils import bool_dataframe_1
 from tests.utils import bool_dataframe_3
-from tests.utils import interchange_to_pandas
+from tests.utils import compare_dataframe_with_reference
 
 
 @pytest.mark.parametrize(
@@ -21,23 +20,22 @@ def test_reductions(
     expected_data: dict[str, object],
 ) -> None:
     df = bool_dataframe_1(library)
+    ns = df.__dataframe_namespace__()
     result = getattr(df, reduction)()
-    result_pd = interchange_to_pandas(result)
-    expected = pd.DataFrame(expected_data)
-    pd.testing.assert_frame_equal(result_pd, expected)
+    compare_dataframe_with_reference(result, expected_data, dtype=ns.Bool)
 
 
 def test_any(library: str) -> None:
     df = bool_dataframe_3(library)
+    ns = df.__dataframe_namespace__()
     result = df.any()
-    result_pd = interchange_to_pandas(result)
-    expected = pd.DataFrame({"a": [False], "b": [True], "c": [True]})
-    pd.testing.assert_frame_equal(result_pd, expected)
+    expected = {"a": [False], "b": [True], "c": [True]}
+    compare_dataframe_with_reference(result, expected, dtype=ns.Bool)
 
 
 def test_all(library: str) -> None:
     df = bool_dataframe_3(library)
+    ns = df.__dataframe_namespace__()
     result = df.all()
-    result_pd = interchange_to_pandas(result)
-    expected = pd.DataFrame({"a": [False], "b": [False], "c": [True]})
-    pd.testing.assert_frame_equal(result_pd, expected)
+    expected = {"a": [False], "b": [False], "c": [True]}
+    compare_dataframe_with_reference(result, expected, dtype=ns.Bool)

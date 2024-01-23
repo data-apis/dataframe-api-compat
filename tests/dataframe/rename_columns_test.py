@@ -1,18 +1,17 @@
 from __future__ import annotations
 
-import pandas as pd
 import pytest
 
+from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_1
-from tests.utils import interchange_to_pandas
 
 
 def test_rename(library: str) -> None:
     df = integer_dataframe_1(library)
+    ns = df.__dataframe_namespace__()
     result = df.rename({"a": "c", "b": "e"})
-    result_pd = interchange_to_pandas(result)
-    expected = pd.DataFrame({"c": [1, 2, 3], "e": [4, 5, 6]})
-    pd.testing.assert_frame_equal(result_pd, expected)
+    expected = {"c": [1, 2, 3], "e": [4, 5, 6]}
+    compare_dataframe_with_reference(result, expected, dtype=ns.Int64)
 
 
 def test_rename_invalid(library: str) -> None:

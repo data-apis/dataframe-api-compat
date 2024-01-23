@@ -7,8 +7,8 @@ from packaging.version import parse
 from polars.exceptions import SchemaError
 
 from tests.utils import bool_dataframe_2
+from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_4
-from tests.utils import interchange_to_pandas
 
 
 @pytest.mark.parametrize(
@@ -25,20 +25,18 @@ def test_groupby_boolean(
     expected_c: list[bool],
 ) -> None:
     df = bool_dataframe_2(library)
-    df.__dataframe_namespace__()
+    ns = df.__dataframe_namespace__()
     result = getattr(df.group_by("key"), aggregation)()
     # need to sort
     result = result.sort("key")
-    result_pd = interchange_to_pandas(result)
     if library == "pandas-nullable" and parse(pd.__version__) < Version(
         "2.0.0",
     ):  # pragma: no cover
         # upstream bug
-        result_pd = result_pd.astype({"key": "int64"})
-    else:
-        pass
-    expected = pd.DataFrame({"key": [1, 2], "b": expected_b, "c": expected_c})
-    pd.testing.assert_frame_equal(result_pd, expected)
+        result = result.cast({"key": ns.Int64()})
+    expected = {"key": [1, 2], "b": expected_b, "c": expected_c}
+    expected_dtype = {"key": ns.Int64, "b": ns.Bool, "c": ns.Bool}
+    compare_dataframe_with_reference(result, expected, dtype=expected_dtype)
 
 
 def test_group_by_invalid_any_all(library: str) -> None:

@@ -1,7 +1,5 @@
-import pandas as pd
-
+from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_4
-from tests.utils import interchange_to_pandas
 
 
 def test_aggregate(library: str) -> None:
@@ -25,26 +23,37 @@ def test_aggregate(library: str) -> None:
         )
         .sort("key")
     )
-    result_pd = interchange_to_pandas(result)
-    expected = pd.DataFrame(
-        {
-            "key": [1, 2],
-            "b_sum": [3, 7],
-            "b_prod": [2, 12],
-            "b_mean": [1.5, 3.5],
-            "b_median": [1.5, 3.5],
-            "b_min": [1, 3],
-            "b_max": [2, 4],
-            "b_std": [0.707107, 0.707107],
-            "b_var": [0.5, 0.5],
-            "b_count": [2, 2],
-            "d_any": [True, True],
-            "d_all": [True, True],
-        },
-    )
+    expected = {
+        "key": [1, 2],
+        "b_sum": [3, 7],
+        "b_prod": [2, 12],
+        "b_mean": [1.5, 3.5],
+        "b_median": [1.5, 3.5],
+        "b_min": [1, 3],
+        "b_max": [2, 4],
+        "b_std": [0.707107, 0.707107],
+        "b_var": [0.5, 0.5],
+        "b_count": [2, 2],
+        "d_any": [True, True],
+        "d_all": [True, True],
+    }
+    expected_dtype = {
+        "key": ns.Int64,
+        "b_sum": ns.Int64,
+        "b_prod": ns.Int64,
+        "b_mean": ns.Float64,
+        "b_median": ns.Float64,
+        "b_min": ns.Int64,
+        "b_max": ns.Int64,
+        "b_std": ns.Float64,
+        "b_var": ns.Float64,
+        "b_count": ns.Int64,
+        "d_any": ns.Bool,
+        "d_all": ns.Bool,
+    }
     if library == "polars-lazy":
-        result_pd = result_pd.astype({"b_count": "int64"})
-    pd.testing.assert_frame_equal(result_pd, expected)
+        result = result.cast({"b_count": ns.Int64()})
+    compare_dataframe_with_reference(result, expected, dtype=expected_dtype)
 
 
 def test_aggregate_only_size(library: str) -> None:
@@ -57,16 +66,13 @@ def test_aggregate_only_size(library: str) -> None:
         )
         .sort("key")
     )
-    result_pd = interchange_to_pandas(result)
-    expected = pd.DataFrame(
-        {
-            "key": [1, 2],
-            "b_count": [2, 2],
-        },
-    )
+    expected = {
+        "key": [1, 2],
+        "b_count": [2, 2],
+    }
     if library == "polars-lazy":
-        result_pd = result_pd.astype({"b_count": "int64"})
-    pd.testing.assert_frame_equal(result_pd, expected)
+        result = result.cast({"b_count": ns.Int64()})
+    compare_dataframe_with_reference(result, expected, dtype=ns.Int64)
 
 
 def test_aggregate_no_size(library: str) -> None:
@@ -84,16 +90,22 @@ def test_aggregate_no_size(library: str) -> None:
         )
         .sort("key")
     )
-    result_pd = interchange_to_pandas(result)
-    expected = pd.DataFrame(
-        {
-            "key": [1, 2],
-            "b_sum": [3, 7],
-            "b_mean": [1.5, 3.5],
-            "b_min": [1, 3],
-            "b_max": [2, 4],
-            "b_std": [0.707107, 0.707107],
-            "b_var": [0.5, 0.5],
-        },
-    )
-    pd.testing.assert_frame_equal(result_pd, expected)
+    expected = {
+        "key": [1, 2],
+        "b_sum": [3, 7],
+        "b_mean": [1.5, 3.5],
+        "b_min": [1, 3],
+        "b_max": [2, 4],
+        "b_std": [0.707107, 0.707107],
+        "b_var": [0.5, 0.5],
+    }
+    expected_dtype = {
+        "key": ns.Int64,
+        "b_sum": ns.Int64,
+        "b_mean": ns.Float64,
+        "b_min": ns.Int64,
+        "b_max": ns.Int64,
+        "b_std": ns.Float64,
+        "b_var": ns.Float64,
+    }
+    compare_dataframe_with_reference(result, expected, dtype=expected_dtype)
