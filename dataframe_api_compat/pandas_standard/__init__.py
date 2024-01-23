@@ -5,6 +5,7 @@ import re
 from functools import reduce
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Callable
 from typing import Literal
 from typing import cast
 
@@ -507,12 +508,12 @@ class Namespace(NamespaceT):
 
 
 class Expr:
-    def __init__(self, call) -> None:
+    def __init__(self, call: Callable[[DataFrame], Column]) -> None:
         self.call = call
 
     @classmethod
-    def from_column_name(cls, column_name: str) -> Expr:
-        def call(df):
+    def from_column_name(cls: type[Expr], column_name: str) -> Expr:
+        def call(df: DataFrame) -> Column:
             return Column(
                 df.dataframe.loc[:, column_name],
                 df=df,
@@ -522,12 +523,12 @@ class Expr:
 
         return cls(call)
 
-    def __getattribute__(self, attr):
+    def __getattribute__(self, attr: str) -> Any:
         if attr == "call":
             return super().__getattribute__("call")
 
-        def func(*args, **kwargs):
-            def call(df):
+        def func(*args: Any, **kwargs: Any) -> Expr:
+            def call(df: DataFrame) -> Column:
                 return getattr(self.call(df), attr)(
                     *[(arg.call(df) if isinstance(arg, Expr) else arg) for arg in args],
                     **{
@@ -542,14 +543,8 @@ class Expr:
 
         return func
 
-    def __add__(self, other):
-        def call(df):
-            return self.call(df) + other.call(df)
+    def __add__(self, other: DataFrame) -> Expr:
+        return Expr(lambda df: self.call(df) + other.call(df))
 
-        return Expr(call=call)
-
-    def __truediv__(self, other):
-        def call(df):
-            return self.call(df) / other.call(df)
-
-        return Expr(call=call)
+    def __truediv__(self, other: DataFrame) -> Expr:
+        return Expr(lambda df: self.call(df) / other.call(df))
