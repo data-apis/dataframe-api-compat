@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING
 from typing import cast
 
 import polars as pl
+from packaging.version import Version
+from packaging.version import parse
 
 from dataframe_api_compat.polars_standard import Namespace
 from dataframe_api_compat.polars_standard.dataframe_object import DataFrame
@@ -18,6 +20,8 @@ if TYPE_CHECKING:
 
 else:
     GroupByT = object
+
+POLARS_VERSION = parse(pl.__version__)
 
 
 class GroupBy(GroupByT):
@@ -58,7 +62,10 @@ class GroupBy(GroupByT):
         )
 
     def size(self) -> DataFrame:
-        result = self._grouped.count().rename({"count": "size"})
+        if Version("0.20.5") > POLARS_VERSION:
+            result = self._grouped.count().rename({"count": "size"})
+        else:
+            result = self._grouped.len().rename({"len": "size"})
         return self._to_dataframe(result)
 
     def any(self, *, skip_nulls: bool | Scalar = True) -> DataFrame:
@@ -127,7 +134,8 @@ class GroupBy(GroupByT):
 def resolve_aggregation(aggregation: AggregationT) -> pl.Expr:
     aggregation = cast(Namespace.Aggregation, aggregation)
     if aggregation.aggregation == "count":
-        return pl.count().alias(aggregation.output_name)
+        result = pl.len() if Version("0.20.5") <= POLARS_VERSION else pl.count()
+        return result.alias(aggregation.output_name)
     return getattr(  # type: ignore[no-any-return]
         pl.col(aggregation.column_name),
         aggregation.aggregation,
