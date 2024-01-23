@@ -22,7 +22,7 @@ def test_reductions(
     df = bool_dataframe_1(library)
     ns = df.__dataframe_namespace__()
     result = getattr(df, reduction)()
-    compare_dataframe_with_reference(result, expected_data, dtype=ns.Bool)
+    compare_dataframe_with_reference(result, expected_data, dtype=ns.Bool)  # type: ignore[arg-type]
 
 
 def test_any(library: str) -> None:

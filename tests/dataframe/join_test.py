@@ -20,7 +20,7 @@ def test_join_left(library: str) -> None:
         "b": ns.Int64,
         "c": ns.Int64 if library in ["pandas-nullable", "polars-lazy"] else ns.Float64,
     }
-    compare_dataframe_with_reference(result, expected, dtype=expected_dtype)
+    compare_dataframe_with_reference(result, expected, dtype=expected_dtype)  # type: ignore[arg-type]
 
 
 def test_join_overlapping_names(library: str) -> None:
@@ -60,7 +60,7 @@ def test_join_outer(library: str) -> None:  # pragma: no cover
         "b": ns.Int64 if library in ["pandas-nullable", "polars-lazy"] else ns.Float64,
         "c": ns.Int64 if library in ["pandas-nullable", "polars-lazy"] else ns.Float64,
     }
-    compare_dataframe_with_reference(result, expected, dtype=expected_dtype)
+    compare_dataframe_with_reference(result, expected, dtype=expected_dtype)  # type: ignore[arg-type]
 
 
 def test_join_two_keys(library: str) -> None:
@@ -74,7 +74,7 @@ def test_join_two_keys(library: str) -> None:
         "b": ns.Int64,
         "c": ns.Int64 if library in ["pandas-nullable", "polars-lazy"] else ns.Float64,
     }
-    compare_dataframe_with_reference(result, expected, dtype=expected_dtype)
+    compare_dataframe_with_reference(result, expected, dtype=expected_dtype)  # type: ignore[arg-type]
 
 
 def test_join_invalid(library: str) -> None:

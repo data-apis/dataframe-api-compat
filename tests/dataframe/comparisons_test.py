@@ -35,7 +35,7 @@ def test_comparisons_with_scalar(
     other = 2
     result = getattr(df, comparison)(other)
     expected_ns_dtype = getattr(ns, expected_dtype)
-    compare_dataframe_with_reference(result, expected_data, dtype=expected_ns_dtype)
+    compare_dataframe_with_reference(result, expected_data, dtype=expected_ns_dtype)  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(
@@ -55,4 +55,4 @@ def test_rcomparisons_with_scalar(
     ns = df.__dataframe_namespace__()
     other = 2
     result = getattr(df, comparison)(other)
-    compare_dataframe_with_reference(result, expected_data, dtype=ns.Int64)
+    compare_dataframe_with_reference(result, expected_data, dtype=ns.Int64)  # type: ignore[arg-type]

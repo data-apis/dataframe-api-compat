@@ -39,6 +39,6 @@ def test_fill_nan_with_null(library: str) -> None:
     result = n_nans.col("a").persist().get_value(0).scalar
     if library == "pandas-numpy":
         # null is nan for pandas-numpy
-        assert result == 1  # type: ignore[index]
+        assert result == 1
     else:
-        assert result == 0  # type: ignore[index]
+        assert result == 0

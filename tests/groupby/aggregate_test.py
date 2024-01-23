@@ -53,7 +53,7 @@ def test_aggregate(library: str) -> None:
     }
     if library == "polars-lazy":
         result = result.cast({"b_count": ns.Int64()})
-    compare_dataframe_with_reference(result, expected, dtype=expected_dtype)
+    compare_dataframe_with_reference(result, expected, dtype=expected_dtype)  # type: ignore[arg-type]
 
 
 def test_aggregate_only_size(library: str) -> None:
@@ -108,4 +108,4 @@ def test_aggregate_no_size(library: str) -> None:
         "b_std": ns.Float64,
         "b_var": ns.Float64,
     }
-    compare_dataframe_with_reference(result, expected, dtype=expected_dtype)
+    compare_dataframe_with_reference(result, expected, dtype=expected_dtype)  # type: ignore[arg-type]

@@ -36,7 +36,7 @@ def test_groupby_boolean(
         result = result.cast({"key": ns.Int64()})
     expected = {"key": [1, 2], "b": expected_b, "c": expected_c}
     expected_dtype = {"key": ns.Int64, "b": ns.Bool, "c": ns.Bool}
-    compare_dataframe_with_reference(result, expected, dtype=expected_dtype)
+    compare_dataframe_with_reference(result, expected, dtype=expected_dtype)  # type: ignore[arg-type]
 
 
 def test_group_by_invalid_any_all(library: str) -> None:

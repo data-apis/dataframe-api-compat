@@ -46,4 +46,4 @@ def test_group_by_numeric(
     ):  # pragma: no cover
         # upstream bug
         result = result.cast({"key": ns.Int64()})
-    compare_dataframe_with_reference(result, expected, dtype=expected_ns_dtype)
+    compare_dataframe_with_reference(result, expected, dtype=expected_ns_dtype)  # type: ignore[arg-type]
