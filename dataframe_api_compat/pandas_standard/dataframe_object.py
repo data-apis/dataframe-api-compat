@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from dataframe_api.typing import NullType
     from dataframe_api.typing import Scalar
 
+    from dataframe_api_compat.pandas_standard import Expr
     from dataframe_api_compat.pandas_standard.group_by_object import GroupBy
 else:
     DataFrameT = object
@@ -148,7 +149,7 @@ class DataFrame(DataFrameT):
                 raise KeyError(msg)
         return GroupBy(self, keys, api_version=self._api_version)
 
-    def select(self, *columns: str) -> DataFrame:
+    def select(self, *columns: str | Expr) -> DataFrame:
         from dataframe_api_compat.pandas_standard import Expr
 
         cols = list(columns)
@@ -156,7 +157,8 @@ class DataFrame(DataFrameT):
             msg = f"Expected iterable of column names, but the first element is: {type(cols[0])}"
             raise TypeError(msg)
         if not cols:
-            raise ValueError("Can't select no columns")
+            msg = "Can't select no columns"
+            raise ValueError(msg)
         new_cols = [
             col.call(self).column if isinstance(col, Expr) else self.dataframe.loc[:, col]
             for col in columns
@@ -199,12 +201,11 @@ class DataFrame(DataFrameT):
 
         df = self.dataframe.copy()  # TODO: remove defensive copy with CoW?
         for column in columns:
-            if isinstance(column, Expr):
-                column = column.call(self)
-            if not isinstance(column, Column):
-                msg = f"Expected iterable of Column, but the first element is: {type(column)}"
+            new_column = column.call(self) if isinstance(column, Expr) else column
+            if not isinstance(new_column, Column):
+                msg = f"Expected iterable of Column, but the first element is: {type(new_column)}"
                 raise TypeError(msg)
-            _series = validate_comparand(self, column)
+            _series = validate_comparand(self, new_column)
             df[_series.name] = _series
         return self._from_dataframe(df)
 

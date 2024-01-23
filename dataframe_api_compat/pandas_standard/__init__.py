@@ -529,7 +529,7 @@ class Expr:
 
         def func(*args: Any, **kwargs: Any) -> Expr:
             def call(df: DataFrame) -> Column:
-                return getattr(self.call(df), attr)(
+                return getattr(self.call(df), attr)(  # type: ignore[no-any-return]
                     *[(arg.call(df) if isinstance(arg, Expr) else arg) for arg in args],
                     **{
                         arg_name: (
@@ -543,8 +543,8 @@ class Expr:
 
         return func
 
-    def __add__(self, other: DataFrame) -> Expr:
+    def __add__(self, other: Expr) -> Expr:
         return Expr(lambda df: self.call(df) + other.call(df))
 
-    def __truediv__(self, other: DataFrame) -> Expr:
+    def __truediv__(self, other: Expr) -> Expr:
         return Expr(lambda df: self.call(df) / other.call(df))
