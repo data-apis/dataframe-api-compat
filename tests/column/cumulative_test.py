@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import pandas as pd
 import pytest
+from packaging.version import Version
+from packaging.version import parse
 
 from tests.utils import compare_column_with_reference
 from tests.utils import integer_dataframe_1
@@ -28,8 +30,7 @@ def test_cumulative_functions_column(
     result = df.assign(getattr(ser, func)().rename("result"))
 
     if (
-        tuple(int(v) for v in pd.__version__.split(".")) < (2, 0, 0)
-        and library == "pandas-nullable"
+        parse(pd.__version__) < Version("2.0.0") and library == "pandas-nullable"
     ):  # pragma: no cover
         # Upstream bug
         result = result.cast({"result": ns.Int64()})
