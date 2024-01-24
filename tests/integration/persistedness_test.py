@@ -1,14 +1,12 @@
-import pandas as pd
 import pytest
 
+from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_1
 from tests.utils import integer_dataframe_2
-from tests.utils import interchange_to_pandas
 
 
 def test_within_df_propagation(library: str) -> None:
     df1 = integer_dataframe_1(library)
-    df1 = df1
     df1 = df1 + 1
     with pytest.raises(RuntimeError):
         _ = int(df1.col("a").get_value(0))  # type: ignore[call-overload]
@@ -58,18 +56,22 @@ def test_within_df_within_col_propagation(library: str) -> None:
 def test_cross_df_propagation(library: str) -> None:
     df1 = integer_dataframe_1(library)
     df2 = integer_dataframe_2(library)
-    df1 = (df1 + 1).persist()
-    df2 = df2.rename({"b": "c"}).persist()
+    ns = df1.__dataframe_namespace__()
+    df1 = df1 + 1
+    df2 = df2.rename({"b": "c"})
     result = df1.join(df2, how="left", left_on="a", right_on="a")
-    result_pd = interchange_to_pandas(result)
-    expected = pd.DataFrame(
-        {
-            "a": [2, 3, 4],
-            "b": [5, 6, 7],
-            "c": [2.0, float("nan"), 6.0],
-        },
-    )
-    pd.testing.assert_frame_equal(result_pd, expected)
+    ns = result.__dataframe_namespace__()
+    expected = {
+        "a": [2, 3, 4],
+        "b": [5, 6, 7],
+        "c": [2.0, float("nan"), 6.0],
+    }
+    expected_dtype = {
+        "a": ns.Int64,
+        "b": ns.Int64,
+        "c": ns.Int64 if library in ["pandas-nullable", "polars-lazy"] else ns.Float64,
+    }
+    compare_dataframe_with_reference(result, expected, dtype=expected_dtype)  # type: ignore[arg-type]
 
 
 def test_multiple_propagations(library: str) -> None:

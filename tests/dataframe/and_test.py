@@ -1,24 +1,22 @@
 from __future__ import annotations
 
-import pandas as pd
-
 from tests.utils import bool_dataframe_1
-from tests.utils import interchange_to_pandas
+from tests.utils import compare_dataframe_with_reference
 
 
 def test_and_with_scalar(library: str) -> None:
     df = bool_dataframe_1(library)
+    ns = df.__dataframe_namespace__()
     other = True
     result = df & other
-    result_pd = interchange_to_pandas(result)
-    expected = pd.DataFrame({"a": [True, True, False], "b": [True, True, True]})
-    pd.testing.assert_frame_equal(result_pd, expected)
+    expected = {"a": [True, True, False], "b": [True, True, True]}
+    compare_dataframe_with_reference(result, expected, ns.Bool)
 
 
 def test_rand_with_scalar(library: str) -> None:
     df = bool_dataframe_1(library)
+    ns = df.__dataframe_namespace__()
     other = True
     result = other & df
-    result_pd = interchange_to_pandas(result)
-    expected = pd.DataFrame({"a": [True, True, False], "b": [True, True, True]})
-    pd.testing.assert_frame_equal(result_pd, expected)
+    expected = {"a": [True, True, False], "b": [True, True, True]}
+    compare_dataframe_with_reference(result, expected, ns.Bool)
