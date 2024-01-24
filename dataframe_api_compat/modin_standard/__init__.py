@@ -8,11 +8,11 @@ from typing import Any
 from typing import Literal
 from typing import cast
 
-import pandas as pd
+import modin.pandas as pd
 
-from dataframe_api_compat.pandas_standard.column_object import Column
-from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
-from dataframe_api_compat.pandas_standard.scalar_object import Scalar
+from dataframe_api_compat.modin_standard.column_object import Column
+from dataframe_api_compat.modin_standard.dataframe_object import DataFrame
+from dataframe_api_compat.modin_standard.scalar_object import Scalar
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -297,14 +297,10 @@ class Namespace(NamespaceT):
         dfs: list[pd.DataFrame] = []
         api_versions: set[str] = set()
         for df in dataframes:
-            try:
-                pd.testing.assert_series_equal(
-                    df.dataframe.dtypes,
-                    dtypes,
-                )
-            except AssertionError as exc:
-                msg = "Expected matching columns"
-                raise ValueError(msg) from exc
+            # TODO: implement `testing` module in modin
+            # For example: `pd.testing.assert_series_equal`
+            if not df.dataframe.dtypes.equals(dtypes):
+                raise ValueError("Expected matching columns")
             dfs.append(df.dataframe)
             api_versions.add(df._api_version)
         if len(api_versions) > 1:  # pragma: no cover

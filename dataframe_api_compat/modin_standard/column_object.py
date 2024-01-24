@@ -8,10 +8,10 @@ from typing import Literal
 from typing import NoReturn
 
 import numpy as np
-import pandas as pd
+import modin.pandas as pd
 from pandas.api.types import is_extension_array_dtype
 
-import dataframe_api_compat.pandas_standard
+import dataframe_api_compat.modin_standard
 from dataframe_api_compat.utils import validate_comparand
 
 if TYPE_CHECKING:
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from dataframe_api.typing import NullType
     from dataframe_api.typing import Scalar
 
-    from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
+    from dataframe_api_compat.modin_standard.dataframe_object import DataFrame
 else:
     ColumnT = object
 
@@ -64,7 +64,7 @@ class Column(ColumnT):
         assert is_persisted ^ (df is not None)
 
     def _to_scalar(self, value: Any) -> Scalar:
-        from dataframe_api_compat.pandas_standard.scalar_object import Scalar
+        from dataframe_api_compat.modin_standard.scalar_object import Scalar
 
         return Scalar(
             value,
@@ -110,8 +110,8 @@ class Column(ColumnT):
     # In the standard
     def __column_namespace__(
         self,
-    ) -> dataframe_api_compat.pandas_standard.Namespace:
-        return dataframe_api_compat.pandas_standard.Namespace(
+    ) -> dataframe_api_compat.modin_standard.Namespace:
+        return dataframe_api_compat.modin_standard.Namespace(
             api_version=self._api_version,
         )
 
@@ -139,7 +139,7 @@ class Column(ColumnT):
 
     @property
     def dtype(self) -> DType:
-        return dataframe_api_compat.pandas_standard.map_pandas_dtype_to_standard_dtype(
+        return dataframe_api_compat.modin_standard.map_pandas_dtype_to_standard_dtype(
             self._series.dtype,
         )
 
@@ -461,7 +461,7 @@ class Column(ColumnT):
     def cast(self, dtype: DType) -> Column:
         ser = self.column
         pandas_dtype = (
-            dataframe_api_compat.pandas_standard.map_standard_dtype_to_pandas_dtype(
+            dataframe_api_compat.modin_standard.map_standard_dtype_to_pandas_dtype(
                 dtype,
             )
         )

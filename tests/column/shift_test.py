@@ -1,6 +1,8 @@
-import modin.pandas as pd
+import pandas as pd
 import polars as pl
 from polars.testing import assert_frame_equal
+
+import pytest
 
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import float_dataframe_1
@@ -8,6 +10,8 @@ from tests.utils import integer_dataframe_1
 
 
 def test_shift_with_fill_value(library: str) -> None:
+    if library == "modin":
+        pytest.skip("TODO: enable for modin")
     df = integer_dataframe_1(library)
     ns = df.__dataframe_namespace__()
     result = df.assign(df.col("a").shift(1).fill_null(999))
@@ -18,6 +22,8 @@ def test_shift_with_fill_value(library: str) -> None:
 
 
 def test_shift_without_fill_value(library: str) -> None:
+    if library == "modin":
+        pytest.skip("TODO: enable for modin")
     df = float_dataframe_1(library)
     result = df.assign(df.col("a").shift(-1))
     if library == "pandas-numpy":

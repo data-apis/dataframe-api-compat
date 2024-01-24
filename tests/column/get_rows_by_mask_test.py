@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import modin.pandas as pd
+import pandas as pd
 
 from tests.utils import compare_column_with_reference
 from tests.utils import integer_dataframe_1

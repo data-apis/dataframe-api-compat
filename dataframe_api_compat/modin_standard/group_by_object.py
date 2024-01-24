@@ -3,10 +3,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing import cast
 
-import pandas as pd
+import modin.pandas as pd
 
-from dataframe_api_compat.pandas_standard import Namespace
-from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
+from dataframe_api_compat.modin_standard import Namespace
+from dataframe_api_compat.modin_standard.dataframe_object import DataFrame
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

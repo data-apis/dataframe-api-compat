@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import modin.pandas as pd
+import pandas as pd
 import pytest
 from packaging.version import Version
 from packaging.version import parse
@@ -14,6 +14,10 @@ from tests.utils import mixed_dataframe_1
     reason="no pyarrow support",
 )
 def test_schema(library: str) -> None:
+    if library == "modin":
+        pytest.skip(
+            reason="similar to https://github.com/modin-project/modin/issues/6881"
+        )
     df = mixed_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
     result = df.schema
@@ -51,7 +55,8 @@ def test_schema(library: str) -> None:
     assert isinstance(result["m"], namespace.Datetime)
     assert isinstance(result["n"], namespace.Datetime)
     if not (
-        library.startswith("pandas") and parse(pd.__version__) < Version("2.0.0")
+        library in ("pandas-numpy", "pandas-nullable")
+        and parse(pd.__version__) < Version("2.0.0")
     ):  # pragma: no cover (coverage bug?)
         # pandas non-nanosecond support only came in 2.0
         assert result["n"].time_unit == "ms"
@@ -60,14 +65,18 @@ def test_schema(library: str) -> None:
     assert result["n"].time_zone is None
     assert isinstance(result["o"], namespace.Datetime)
     if not (
-        library.startswith("pandas") and parse(pd.__version__) < Version("2.0.0")
+        library in ("pandas-numpy", "pandas-nullable")
+        and parse(pd.__version__) < Version("2.0.0")
     ):  # pragma: no cover (coverage bug?)
         # pandas non-nanosecond support only came in 2.0
         assert result["o"].time_unit == "us"
     else:  # pragma: no cover
         pass
     assert result["o"].time_zone is None
-    if not (library.startswith("pandas") and parse(pd.__version__) < Version("2.0.0")):
+    if not (
+        library in ("pandas-numpy", "pandas-nullable")
+        and parse(pd.__version__) < Version("2.0.0")
+    ):
         # pandas non-nanosecond support only came in 2.0 - before that, these would be 'float'
         assert isinstance(result["p"], namespace.Duration)
         assert result["p"].time_unit == "ms"

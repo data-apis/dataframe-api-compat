@@ -9,7 +9,7 @@ from typing import Literal
 from typing import NoReturn
 
 import numpy as np
-import pandas as pd
+import modin.pandas as pd
 from pandas.api.types import is_extension_array_dtype
 
 import dataframe_api_compat
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from dataframe_api.typing import NullType
     from dataframe_api.typing import Scalar
 
-    from dataframe_api_compat.pandas_standard.group_by_object import GroupBy
+    from dataframe_api_compat.modin_standard.group_by_object import GroupBy
 else:
     DataFrameT = object
 
@@ -99,7 +99,7 @@ class DataFrame(DataFrameT):
     @property
     def schema(self) -> dict[str, DType]:
         return {
-            column_name: dataframe_api_compat.pandas_standard.map_pandas_dtype_to_standard_dtype(
+            column_name: dataframe_api_compat.modin_standard.map_pandas_dtype_to_standard_dtype(
                 dtype.name,
             )
             for column_name, dtype in self.dataframe.dtypes.items()
@@ -117,8 +117,8 @@ class DataFrame(DataFrameT):
 
     def __dataframe_namespace__(
         self,
-    ) -> dataframe_api_compat.pandas_standard.Namespace:
-        return dataframe_api_compat.pandas_standard.Namespace(
+    ) -> dataframe_api_compat.modin_standard.Namespace:
+        return dataframe_api_compat.modin_standard.Namespace(
             api_version=self._api_version,
         )
 
@@ -126,7 +126,7 @@ class DataFrame(DataFrameT):
         return (self.col(col_name) for col_name in self.column_names)
 
     def col(self, name: str) -> Column:
-        from dataframe_api_compat.pandas_standard.column_object import Column
+        from dataframe_api_compat.modin_standard.column_object import Column
 
         return Column(
             self.dataframe.loc[:, name],
@@ -140,7 +140,7 @@ class DataFrame(DataFrameT):
         return df.shape  # type: ignore[no-any-return]
 
     def group_by(self, *keys: str) -> GroupBy:
-        from dataframe_api_compat.pandas_standard.group_by_object import GroupBy
+        from dataframe_api_compat.modin_standard.group_by_object import GroupBy
 
         for key in keys:
             if key not in self.column_names:
@@ -187,7 +187,7 @@ class DataFrame(DataFrameT):
         self,
         *columns: Column,
     ) -> DataFrame:
-        from dataframe_api_compat.pandas_standard.column_object import Column
+        from dataframe_api_compat.modin_standard.column_object import Column
 
         df = self.dataframe.copy()  # TODO: remove defensive copy with CoW?
         for column in columns:
@@ -536,7 +536,7 @@ class DataFrame(DataFrameT):
         return self.dataframe.to_numpy()
 
     def cast(self, dtypes: Mapping[str, DType]) -> DataFrame:
-        from dataframe_api_compat.pandas_standard import (
+        from dataframe_api_compat.modin_standard import (
             map_standard_dtype_to_pandas_dtype,
         )
 

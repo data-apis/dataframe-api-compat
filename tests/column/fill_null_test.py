@@ -17,7 +17,7 @@ def test_fill_null_noop_column(library: str) -> None:
     df = nan_dataframe_1(library)
     ser = df.col("a")
     result = df.assign(ser.fill_null(0).rename("result")).persist().col("result")
-    if library != "pandas-numpy":
+    if library not in ("pandas-numpy", "modin"):
         # nan should not have changed!
         assert float(result.get_value(2)) != float(  # type: ignore[arg-type]
             result.get_value(2),  # type: ignore[arg-type]

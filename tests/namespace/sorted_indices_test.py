@@ -4,7 +4,7 @@ from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_6
 
 
-def test_column_sorted_indices_ascending(library: str) -> None:
+def test_column_sorted_indices_ascending(library) -> None:
     df = integer_dataframe_6(library)
     ns = df.__dataframe_namespace__()
     sorted_indices = df.col("b").sorted_indices()
@@ -28,7 +28,7 @@ def test_column_sorted_indices_ascending(library: str) -> None:
         compare_dataframe_with_reference(result, expected_2, dtype=ns.Int64)
 
 
-def test_column_sorted_indices_descending(library: str) -> None:
+def test_column_sorted_indices_descending(library) -> None:
     df = integer_dataframe_6(library)
     ns = df.__dataframe_namespace__()
     sorted_indices = df.col("b").sorted_indices(ascending=False)

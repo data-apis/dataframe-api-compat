@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import modin.pandas as pd
+import pandas as pd
 import polars as pl
 import pytest
 from packaging.version import Version
