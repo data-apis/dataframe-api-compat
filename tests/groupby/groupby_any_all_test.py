@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import pandas as pd
 import pytest
+from packaging.version import Version
+from packaging.version import parse
 from polars.exceptions import SchemaError
 
 from tests.utils import bool_dataframe_2
@@ -28,12 +30,8 @@ def test_groupby_boolean(
     # need to sort
     result = result.sort("key")
     result_pd = interchange_to_pandas(result)
-    if library == "pandas-nullable" and tuple(
-        int(v) for v in pd.__version__.split(".")
-    ) < (
-        2,
-        0,
-        0,
+    if library == "pandas-nullable" and parse(pd.__version__) < Version(
+        "2.0.0",
     ):  # pragma: no cover
         # upstream bug
         result_pd = result_pd.astype({"key": "int64"})

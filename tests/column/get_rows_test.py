@@ -1,16 +1,13 @@
 from __future__ import annotations
 
-import pandas as pd
-
+from tests.utils import compare_column_with_reference
 from tests.utils import integer_dataframe_1
-from tests.utils import interchange_to_pandas
 
 
 def test_expression_take(library: str) -> None:
     df = integer_dataframe_1(library)
+    ns = df.__dataframe_namespace__()
     ser = df.col("a")
     indices = df.col("a") - 1
     result = df.assign(ser.take(indices).rename("result")).select("result")
-    result_pd = interchange_to_pandas(result)["result"]
-    expected = pd.Series([1, 2, 3], name="result")
-    pd.testing.assert_series_equal(result_pd, expected)
+    compare_column_with_reference(result.col("result"), [1, 2, 3], dtype=ns.Int64)

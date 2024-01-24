@@ -1,17 +1,15 @@
 import sys
 
 import pytest
+from packaging.version import Version
+from packaging.version import parse
 
 
 class TestPolars:
     def test_dataframe(self) -> None:
         import polars as pl
 
-        if tuple(int(v) for v in pl.__version__.split(".")) < (
-            0,
-            19,
-            0,
-        ):  # pragma: no cover
+        if parse(pl.__version__) < Version("0.19.0"):  # pragma: no cover
             # before consortium standard in polars
             return
 
@@ -24,11 +22,7 @@ class TestPolars:
     def test_lazyframe(self) -> None:
         import polars as pl
 
-        if tuple(int(v) for v in pl.__version__.split(".")) < (
-            0,
-            19,
-            0,
-        ):  # pragma: no cover
+        if parse(pl.__version__) < Version("0.19.0"):  # pragma: no cover
             # before consortium standard in polars
             return
 
@@ -57,11 +51,7 @@ class TestPandas:
         """
         import pandas as pd
 
-        if tuple(int(v) for v in pd.__version__.split(".")) < (
-            2,
-            1,
-            0,
-        ):  # pragma: no cover
+        if parse(pd.__version__) < Version("2.1.0"):  # pragma: no cover
             # before consortium standard in pandas
             return
 

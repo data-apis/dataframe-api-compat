@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import pandas as pd
 import pytest
+from packaging.version import Version
+from packaging.version import parse
 
 from tests.utils import convert_to_standard_compliant_dataframe
 from tests.utils import integer_dataframe_1
@@ -20,7 +22,7 @@ def test_pandas_name_if_0_named_column() -> None:
 
 
 @pytest.mark.skipif(
-    tuple(int(v) for v in pd.__version__.split(".")) < (2, 1, 0),
+    parse(pd.__version__) < Version("2.1.0"),
     reason="before consoritum standard",
 )
 def test_invalid_name_pandas() -> None:

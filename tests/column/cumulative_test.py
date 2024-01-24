@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import pandas as pd
 import pytest
+from packaging.version import Version
+from packaging.version import parse
 
+from tests.utils import compare_column_with_reference
 from tests.utils import integer_dataframe_1
-from tests.utils import interchange_to_pandas
 
 
 @pytest.mark.parametrize(
@@ -21,17 +23,16 @@ def test_cumulative_functions_column(
     func: str,
     expected_data: list[float],
 ) -> None:
-    df = integer_dataframe_1(library).persist()
+    df = integer_dataframe_1(library)
+    ns = df.__dataframe_namespace__()
     ser = df.col("a")
     expected = pd.Series(expected_data, name="result")
     result = df.assign(getattr(ser, func)().rename("result"))
-    result_pd = interchange_to_pandas(result)["result"]
 
     if (
-        tuple(int(v) for v in pd.__version__.split(".")) < (2, 0, 0)
-        and library == "pandas-nullable"
+        parse(pd.__version__) < Version("2.0.0") and library == "pandas-nullable"
     ):  # pragma: no cover
         # Upstream bug
-        result_pd = result_pd.astype("int64")
+        result = result.cast({"result": ns.Int64()})
 
-    pd.testing.assert_series_equal(result_pd, expected)
+    compare_column_with_reference(result.col("result"), expected, dtype=ns.Int64)

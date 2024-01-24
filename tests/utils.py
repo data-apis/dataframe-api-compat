@@ -4,7 +4,7 @@ from datetime import datetime
 from datetime import timedelta
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import TypeVar
+from typing import Mapping
 from typing import cast
 
 import pandas as pd
@@ -14,9 +14,8 @@ from packaging.version import parse
 import dataframe_api_compat.pandas_standard
 import dataframe_api_compat.polars_standard
 
-DType = TypeVar("DType")
-
 if TYPE_CHECKING:
+    from dataframe_api import Column
     from dataframe_api import DataFrame
 
 POLARS_VERSION = parse(pl.__version__)
@@ -483,6 +482,41 @@ def interchange_to_pandas(result: Any) -> pd.DataFrame:
         df = result.dataframe
     df = convert_dataframe_to_pandas_numpy(df)
     return cast(pd.DataFrame, df)
+
+
+def compare_column_with_reference(
+    column: Column,
+    reference: list[Any],
+    dtype: Any,
+) -> None:
+    column = column.persist()
+    col_len = column.len().scalar
+    assert col_len == len(reference), f"column length: {col_len} != {len(reference)}"
+    assert isinstance(
+        column.dtype,
+        dtype,
+    ), f"column dtype: {column.dtype} isn't a instance of {dtype}"
+    for idx in range(col_len):
+        assert (
+            reference[idx] == column.get_value(idx).scalar
+        ), f"{reference[idx]} != {column.get_value(idx).scalar}"
+
+
+def compare_dataframe_with_reference(
+    dataframe: DataFrame,
+    reference: Mapping[str, list[Any]],
+    dtype: Any | Mapping[str, Any],
+) -> None:
+    assert dataframe.column_names == list(
+        reference.keys(),
+    ), f"dataframe column names: '{dataframe.column_names}' != '{list(reference.keys())}'"
+    for col_name in dataframe.column_names:
+        col_dtype = dtype[col_name] if isinstance(dtype, dict) else dtype
+        compare_column_with_reference(
+            dataframe.col(col_name),
+            reference[col_name],
+            dtype=col_dtype,
+        )
 
 
 def mixed_dataframe_1(library: str) -> DataFrame:

@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from datetime import datetime
 
-import pandas as pd
 import pytest
 
-from tests.utils import interchange_to_pandas
+from tests.utils import compare_column_with_reference
 from tests.utils import temporal_dataframe_1
 
 
@@ -17,9 +16,8 @@ from tests.utils import temporal_dataframe_1
 )
 def test_floor(library: str, freq: str, expected: list[datetime]) -> None:
     df = temporal_dataframe_1(library)
+    ns = df.__dataframe_namespace__()
     col = df.col
-    result = df.assign(col("a").floor(freq).rename("result")).select("result").persist()  # type: ignore[attr-defined]
+    result = df.assign(col("a").floor(freq).rename("result")).select("result")  # type: ignore[attr-defined]
     # TODO check the resolution
-    result = interchange_to_pandas(result)["result"].astype("datetime64[ns]")
-    expected = pd.Series(expected, name="result")
-    pd.testing.assert_series_equal(result, expected)
+    compare_column_with_reference(result.col("result"), expected, dtype=ns.Datetime)

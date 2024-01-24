@@ -104,12 +104,16 @@ def map_pandas_dtype_to_standard_dtype(dtype: Any) -> DType:
         return Namespace.Float32()
     if dtype == "Float32":
         return Namespace.Float32()
-    if dtype == "bool":
+    if dtype in ("bool", "boolean"):
+        # Also for `pandas.core.arrays.boolean.BooleanDtype`
         return Namespace.Bool()
     if dtype == "object":
         return Namespace.String()
     if dtype == "string":
         return Namespace.String()
+    if hasattr(dtype, "name"):
+        # For types like `numpy.dtypes.DateTime64DType`
+        dtype = dtype.name
     if dtype.startswith("datetime64["):
         match = re.search(r"datetime64\[(\w{1,2})", dtype)
         assert match is not None

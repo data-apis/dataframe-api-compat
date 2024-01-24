@@ -1,25 +1,22 @@
 from __future__ import annotations
 
-import pandas as pd
-
 from tests.utils import bool_dataframe_1
-from tests.utils import interchange_to_pandas
+from tests.utils import compare_column_with_reference
 
 
 def test_expression_invert(library: str) -> None:
     df = bool_dataframe_1(library)
-    df.__dataframe_namespace__()
+    ns = df.__dataframe_namespace__()
     ser = df.col("a")
     result = df.assign((~ser).rename("result"))
-    result_pd = interchange_to_pandas(result)["result"]
-    expected = pd.Series([False, False, True], name="result")
-    pd.testing.assert_series_equal(result_pd, expected)
+    expected = [False, False, True]
+    compare_column_with_reference(result.col("result"), expected, dtype=ns.Bool)
 
 
 def test_column_invert(library: str) -> None:
-    df = bool_dataframe_1(library).persist()
+    df = bool_dataframe_1(library)
+    ns = df.__dataframe_namespace__()
     ser = df.col("a")
     result = df.assign((~ser).rename("result"))
-    result_pd = interchange_to_pandas(result)["result"]
-    expected = pd.Series([False, False, True], name="result")
-    pd.testing.assert_series_equal(result_pd, expected)
+    expected = [False, False, True]
+    compare_column_with_reference(result.col("result"), expected, dtype=ns.Bool)
