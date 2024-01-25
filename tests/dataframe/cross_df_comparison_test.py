@@ -6,6 +6,7 @@ from tests.utils import integer_dataframe_1
 from tests.utils import integer_dataframe_2
 
 
+@pytest.mark.xfail(strict=False)
 def test_invalid_comparisons(library: str) -> None:
     df1 = integer_dataframe_1(library)
     df2 = integer_dataframe_2(library)

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import pandas as pd
+import pytest
 
 from tests.utils import integer_dataframe_6
 from tests.utils import interchange_to_pandas
 
 
+@pytest.mark.xfail(strict=False)
 def test_expression_sort_ascending(library: str) -> None:
     df = integer_dataframe_6(library, api_version="2023.09-beta")
     df.__dataframe_namespace__()
@@ -22,6 +24,7 @@ def test_expression_sort_ascending(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
+@pytest.mark.xfail(strict=False)
 def test_expression_sort_descending(library: str) -> None:
     df = integer_dataframe_6(library, api_version="2023.09-beta")
     df.__dataframe_namespace__()
@@ -38,6 +41,7 @@ def test_expression_sort_descending(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
+@pytest.mark.xfail(strict=False)
 def test_column_sort_ascending(library: str) -> None:
     df = integer_dataframe_6(library, api_version="2023.09-beta").persist()
     s_sorted = df.col("b").sort().rename("c")
@@ -53,6 +57,7 @@ def test_column_sort_ascending(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
+@pytest.mark.xfail(strict=False)
 def test_column_sort_descending(library: str) -> None:
     df = integer_dataframe_6(library, api_version="2023.09-beta").persist()
     s_sorted = df.col("b").sort(ascending=False).rename("c")

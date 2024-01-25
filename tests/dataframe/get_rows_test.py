@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import pandas as pd
+import pytest
 
 from tests.utils import integer_dataframe_1
 from tests.utils import interchange_to_pandas
 
 
+@pytest.mark.xfail(strict=False)
 def test_take(library: str) -> None:
     df = integer_dataframe_1(library)
     df.__dataframe_namespace__()

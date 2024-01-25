@@ -91,7 +91,7 @@ class Column(ColumnT):
 
     def _from_series(self, series: pd.Series) -> Column:
         return Column(
-            series.reset_index(drop=True).rename(series.name),
+            series.rename(series.name, copy=False),
             api_version=self._api_version,
             df=self._df,
             is_persisted=self._is_persisted,
@@ -171,37 +171,37 @@ class Column(ColumnT):
     def __eq__(self, other: Column | Any) -> Column:  # type: ignore[override]
         other = validate_comparand(self, other)
         ser = self.column
-        return self._from_series((ser == other).rename(ser.name))
+        return self._from_series((ser == other).rename(ser.name, copy=False))
 
     def __ne__(self, other: Column | Any) -> Column:  # type: ignore[override]
         other = validate_comparand(self, other)
         ser = self.column
-        return self._from_series((ser != other).rename(ser.name))
+        return self._from_series((ser != other).rename(ser.name, copy=False))
 
     def __ge__(self, other: Column | Any) -> Column:
         other = validate_comparand(self, other)
         ser = self.column
-        return self._from_series((ser >= other).rename(ser.name))
+        return self._from_series((ser >= other).rename(ser.name, copy=False))
 
     def __gt__(self, other: Column | Any) -> Column:
         other = validate_comparand(self, other)
         ser = self.column
-        return self._from_series((ser > other).rename(ser.name))
+        return self._from_series((ser > other).rename(ser.name, copy=False))
 
     def __le__(self, other: Column | Any) -> Column:
         other = validate_comparand(self, other)
         ser = self.column
-        return self._from_series((ser <= other).rename(ser.name))
+        return self._from_series((ser <= other).rename(ser.name, copy=False))
 
     def __lt__(self, other: Column | Any) -> Column:
         other = validate_comparand(self, other)
         ser = self.column
-        return self._from_series((ser < other).rename(ser.name))
+        return self._from_series((ser < other).rename(ser.name, copy=False))
 
     def __and__(self, other: Column | bool | Scalar) -> Column:
         ser = self.column
         other = validate_comparand(self, other)
-        return self._from_series((ser & other).rename(ser.name))
+        return self._from_series((ser & other).rename(ser.name, copy=False))
 
     def __rand__(self, other: Column | Any) -> Column:
         return self.__and__(other)
@@ -209,7 +209,7 @@ class Column(ColumnT):
     def __or__(self, other: Column | bool | Scalar) -> Column:
         ser = self.column
         other = validate_comparand(self, other)
-        return self._from_series((ser | other).rename(ser.name))
+        return self._from_series((ser | other).rename(ser.name, copy=False))
 
     def __ror__(self, other: Column | Any) -> Column:
         return self.__or__(other)
@@ -217,7 +217,7 @@ class Column(ColumnT):
     def __add__(self, other: Column | Any) -> Column:
         ser = self.column
         other = validate_comparand(self, other)
-        return self._from_series((ser + other).rename(ser.name))
+        return self._from_series((ser + other).rename(ser.name, copy=False))
 
     def __radd__(self, other: Column | Any) -> Column:
         return self.__add__(other)
@@ -225,7 +225,7 @@ class Column(ColumnT):
     def __sub__(self, other: Column | Any) -> Column:
         ser = self.column
         other = validate_comparand(self, other)
-        return self._from_series((ser - other).rename(ser.name))
+        return self._from_series((ser - other).rename(ser.name, copy=False))
 
     def __rsub__(self, other: Column | Any) -> Column:
         return -1 * self.__sub__(other)
@@ -233,7 +233,7 @@ class Column(ColumnT):
     def __mul__(self, other: Column | Any) -> Column:
         ser = self.column
         other = validate_comparand(self, other)
-        return self._from_series((ser * other).rename(ser.name))
+        return self._from_series((ser * other).rename(ser.name, copy=False))
 
     def __rmul__(self, other: Column | Any) -> Column:
         return self.__mul__(other)
@@ -241,7 +241,7 @@ class Column(ColumnT):
     def __truediv__(self, other: Column | Any) -> Column:
         ser = self.column
         other = validate_comparand(self, other)
-        return self._from_series((ser / other).rename(ser.name))
+        return self._from_series((ser / other).rename(ser.name, copy=False))
 
     def __rtruediv__(self, other: Column | Any) -> Column:
         raise NotImplementedError
@@ -249,7 +249,7 @@ class Column(ColumnT):
     def __floordiv__(self, other: Column | Any) -> Column:
         ser = self.column
         other = validate_comparand(self, other)
-        return self._from_series((ser // other).rename(ser.name))
+        return self._from_series((ser // other).rename(ser.name, copy=False))
 
     def __rfloordiv__(self, other: Column | Any) -> Column:
         raise NotImplementedError
@@ -257,7 +257,7 @@ class Column(ColumnT):
     def __pow__(self, other: Column | Any) -> Column:
         ser = self.column
         other = validate_comparand(self, other)
-        return self._from_series((ser**other).rename(ser.name))
+        return self._from_series((ser**other).rename(ser.name, copy=False))
 
     def __rpow__(self, other: Column | Any) -> Column:  # pragma: no cover
         raise NotImplementedError
@@ -265,7 +265,7 @@ class Column(ColumnT):
     def __mod__(self, other: Column | Any) -> Column:
         ser = self.column
         other = validate_comparand(self, other)
-        return self._from_series((ser % other).rename(ser.name))
+        return self._from_series((ser % other).rename(ser.name, copy=False))
 
     def __rmod__(self, other: Column | Any) -> Column:  # pragma: no cover
         raise NotImplementedError
@@ -415,6 +415,7 @@ class Column(ColumnT):
         value: Any,
     ) -> Column:
         value = validate_comparand(self, value)
+        idx = self.column.index
         ser = self.column.copy()
         if is_extension_array_dtype(ser.dtype):
             # Mask should include NA values, but not NaN ones
@@ -422,7 +423,8 @@ class Column(ColumnT):
             ser = ser.where(~mask, value)
         else:
             ser = ser.fillna(value)
-        return self._from_series(ser.rename(self.name))
+        ser.index = idx
+        return self._from_series(ser.rename(self.name, copy=False))
 
     def cumulative_sum(self, *, skip_nulls: bool | Scalar = True) -> Column:
         ser = self.column
@@ -442,7 +444,7 @@ class Column(ColumnT):
 
     def rename(self, name: str | Scalar) -> Column:
         ser = self.column
-        return self._from_series(ser.rename(name))
+        return self._from_series(ser.rename(name, copy=False))
 
     def shift(self, offset: int | Scalar) -> Column:
         ser = self.column

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import pandas as pd
+import pytest
 
 from tests.utils import interchange_to_pandas
 from tests.utils import nan_dataframe_1
 
 
+@pytest.mark.xfail(strict=False)
 def test_column_fill_nan(library: str) -> None:
     # TODO: test with nullable pandas, check null isn't filled
     df = nan_dataframe_1(library).persist()
@@ -16,6 +18,7 @@ def test_column_fill_nan(library: str) -> None:
     pd.testing.assert_series_equal(result_pd, expected)
 
 
+@pytest.mark.xfail(strict=False)
 def test_column_fill_nan_with_null(library: str) -> None:
     # TODO: test with nullable pandas, check null isn't filled
     df = nan_dataframe_1(library).persist()

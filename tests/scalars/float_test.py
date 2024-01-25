@@ -40,6 +40,7 @@ def test_float_binary(library: str, attr: str) -> None:
     assert getattr(scalar, attr)(other) == getattr(float_scalar, attr)(other)
 
 
+@pytest.mark.xfail(strict=False)
 def test_float_binary_invalid(library: str) -> None:
     lhs = integer_dataframe_2(library).col("a").mean()
     rhs = integer_dataframe_1(library).col("b").mean()

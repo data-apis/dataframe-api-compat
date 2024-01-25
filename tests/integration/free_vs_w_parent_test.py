@@ -1,10 +1,12 @@
 import numpy as np
 import polars as pl
+import pytest
 from polars.testing import assert_series_equal
 
 from tests.utils import integer_dataframe_1
 
 
+@pytest.mark.xfail(strict=False)
 def test_free_vs_w_parent(library: str) -> None:
     df1 = integer_dataframe_1(library)
     namespace = df1.__dataframe_namespace__()

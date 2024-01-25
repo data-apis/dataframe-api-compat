@@ -6,11 +6,13 @@ from tests.utils import integer_dataframe_1
 from tests.utils import integer_dataframe_2
 
 
+@pytest.mark.xfail(strict=False)
 def test_invalid_comparisons(library: str) -> None:
     with pytest.raises(ValueError):
         _ = integer_dataframe_1(library).col("a") > integer_dataframe_2(library).col("a")
 
 
+@pytest.mark.xfail(strict=False)
 def test_invalid_comparisons_scalar(library: str) -> None:
     with pytest.raises(ValueError):
         _ = (

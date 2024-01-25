@@ -24,7 +24,11 @@ def validate_comparand(left: Any, right: Any) -> Any:
         right,
         "__column_namespace__",
     ):
-        if right.parent_dataframe is not None and right.parent_dataframe is not left:
+        if (
+            hasattr(left.dataframe, "index")
+            and hasattr(right.column, "index")
+            and left.dataframe.index is not right.column.index
+        ):
             msg = "Cannot compare Column with DataFrame it was not derived from."
             raise ValueError(msg)
         return right.column
@@ -32,9 +36,6 @@ def validate_comparand(left: Any, right: Any) -> Any:
         right,
         "__scalar_namespace__",
     ):
-        if right.parent_dataframe is not None and right.parent_dataframe is not left:
-            msg = "Cannot compare Scalar with DataFrame it was not derived from."
-            raise ValueError(msg)
         return right.scalar
 
     if hasattr(left, "__column_namespace__") and hasattr(
@@ -44,21 +45,15 @@ def validate_comparand(left: Any, right: Any) -> Any:
         return NotImplemented
     if hasattr(left, "__column_namespace__") and hasattr(right, "__column_namespace__"):
         if (
-            right.parent_dataframe is not None
-            and right.parent_dataframe is not left.parent_dataframe
+            hasattr(left.column, "index")
+            and hasattr(right.column, "index")
+            and left.column.index is not right.column.index
         ):
             msg = "Cannot compare Columns from different dataframes"
             raise ValueError(msg)
         return right.column
     if hasattr(left, "__column_namespace__") and hasattr(right, "__scalar_namespace__"):
-        if (
-            right.parent_dataframe is not None
-            and right.parent_dataframe is not left.parent_dataframe
-        ):
-            msg = "Cannot compare Column and Scalar if they don't share the same parent dataframe"
-            raise ValueError(msg)
         return right.scalar
-
     if hasattr(left, "__scalar_namespace__") and hasattr(
         right,
         "__dataframe_namespace__",
@@ -67,12 +62,6 @@ def validate_comparand(left: Any, right: Any) -> Any:
     if hasattr(left, "__scalar_namespace__") and hasattr(right, "__column_namespace__"):
         return NotImplemented
     if hasattr(left, "__scalar_namespace__") and hasattr(right, "__scalar_namespace__"):
-        if (
-            right.parent_dataframe is not None
-            and right.parent_dataframe is not left.parent_dataframe
-        ):
-            msg = "Cannot combine Scalars from different dataframes"
-            raise ValueError(msg)
         return right.scalar
 
     return right

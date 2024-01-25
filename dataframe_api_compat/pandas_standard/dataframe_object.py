@@ -199,14 +199,15 @@ class DataFrame(DataFrameT):
         from dataframe_api_compat.pandas_standard import Expr
         from dataframe_api_compat.pandas_standard.column_object import Column
 
-        df = self.dataframe.copy()  # TODO: remove defensive copy with CoW?
+        new_cols = {}
         for column in columns:
             new_column = column.call(self) if isinstance(column, Expr) else column
             if not isinstance(new_column, Column):
                 msg = f"Expected iterable of Column, but the first element is: {type(new_column)}"
                 raise TypeError(msg)
             _series = validate_comparand(self, new_column)
-            df[_series.name] = _series
+            new_cols[_series.name] = _series
+        df = self.dataframe.assign(**new_cols)
         return self._from_dataframe(df)
 
     def drop(self, *labels: str) -> DataFrame:

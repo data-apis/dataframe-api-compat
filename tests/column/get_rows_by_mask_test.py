@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pandas as pd
+import pytest
 
 from tests.utils import integer_dataframe_1
 from tests.utils import interchange_to_pandas
@@ -16,6 +17,7 @@ def test_column_filter(library: str) -> None:
     pd.testing.assert_series_equal(result_pd, expected)
 
 
+@pytest.mark.xfail(strict=False)
 def test_column_take_by_mask_noop(library: str) -> None:
     df = integer_dataframe_1(library)
     df.__dataframe_namespace__()

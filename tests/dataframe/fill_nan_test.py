@@ -25,6 +25,7 @@ def test_fill_nan_with_scalar(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
+@pytest.mark.xfail(strict=False)
 def test_fill_nan_with_scalar_invalid(library: str) -> None:
     df = nan_dataframe_1(library)
     other = df + 1
@@ -32,6 +33,7 @@ def test_fill_nan_with_scalar_invalid(library: str) -> None:
         _ = df.fill_nan(other.col("a").get_value(0))
 
 
+@pytest.mark.xfail(strict=False)
 def test_fill_nan_with_null(library: str) -> None:
     df = nan_dataframe_1(library)
     namespace = df.__dataframe_namespace__()

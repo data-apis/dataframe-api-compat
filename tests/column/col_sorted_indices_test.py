@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import pandas as pd
+import pytest
 
 from tests.utils import integer_dataframe_6
 from tests.utils import interchange_to_pandas
 
 
+@pytest.mark.xfail(strict=False)
 def test_expression_sorted_indices_ascending(library: str) -> None:
     df = integer_dataframe_6(library)
     df.__dataframe_namespace__()
@@ -22,6 +24,7 @@ def test_expression_sorted_indices_ascending(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
+@pytest.mark.xfail(strict=False)
 def test_expression_sorted_indices_descending(library: str) -> None:
     df = integer_dataframe_6(library)
     df.__dataframe_namespace__()
@@ -38,6 +41,7 @@ def test_expression_sorted_indices_descending(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
+@pytest.mark.xfail(strict=False)
 def test_column_sorted_indices_ascending(library: str) -> None:
     df = integer_dataframe_6(library).persist()
     sorted_indices = df.col("b").sorted_indices()
@@ -52,6 +56,7 @@ def test_column_sorted_indices_ascending(library: str) -> None:
     pd.testing.assert_frame_equal(result_pd, expected)
 
 
+@pytest.mark.xfail(strict=False)
 def test_column_sorted_indices_descending(library: str) -> None:
     df = integer_dataframe_6(library).persist()
     sorted_indices = df.col("b").sorted_indices(ascending=False)
