@@ -9,6 +9,7 @@ from tests.utils import interchange_to_pandas
 
 def test_shift_with_fill_value(library: str) -> None:
     df = integer_dataframe_1(library)
+    pdx = df.__dataframe_namespace__()
     result = df.assign(pdx.col("a").shift(1).fill_null(999))
     expected = pd.DataFrame(
         {
@@ -24,6 +25,7 @@ def test_shift_with_fill_value(library: str) -> None:
 
 def test_shift_without_fill_value(library: str) -> None:
     df = float_dataframe_1(library)
+    pdx = df.__dataframe_namespace__()
     result = df.assign(pdx.col("a").shift(-1))
     if library == "pandas-numpy":
         expected = pd.DataFrame({"a": [3.0, float("nan")]})
@@ -41,6 +43,7 @@ def test_shift_without_fill_value(library: str) -> None:
 
 def test_shift_with_fill_value_complicated(library: str) -> None:
     df = integer_dataframe_1(library)
+    pdx = df.__dataframe_namespace__()
     result = df.assign(pdx.col("a").shift(1).fill_null(pdx.col("a").mean()))
     expected = pd.DataFrame(
         {

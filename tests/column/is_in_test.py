@@ -30,6 +30,7 @@ def test_is_in(
     expected_values: list[bool],
 ) -> None:
     df = df_factory(library).persist()
+    pdx = df.__dataframe_namespace__()
     ser = pdx.col("a")
     other = ser + 1
     result = df.assign(ser.is_in(other).rename("result"))
@@ -53,7 +54,8 @@ def test_expr_is_in(
     expected_values: list[bool],
 ) -> None:
     df = df_factory(library)
-    col = df.col
+    pdx = df.__dataframe_namespace__()
+    col = pdx.col
     ser = col("a")
     other = ser + 1
     result = df.assign(ser.is_in(other).rename("result"))

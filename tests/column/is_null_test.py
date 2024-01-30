@@ -9,6 +9,7 @@ from tests.utils import null_dataframe_1
 
 def test_column_is_null_1(library: str) -> None:
     df = nan_dataframe_1(library).persist()
+    pdx = df.__dataframe_namespace__()
     ser = pdx.col("a")
     result = df.assign(ser.is_null().rename("result"))
     result_pd = interchange_to_pandas(result)["result"]
@@ -21,6 +22,7 @@ def test_column_is_null_1(library: str) -> None:
 
 def test_column_is_null_2(library: str) -> None:
     df = null_dataframe_1(library).persist()
+    pdx = df.__dataframe_namespace__()
     ser = pdx.col("a")
     result = df.assign(ser.is_null().rename("result"))
     result_pd = interchange_to_pandas(result)["result"]

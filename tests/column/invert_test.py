@@ -9,6 +9,7 @@ from tests.utils import interchange_to_pandas
 def test_expression_invert(library: str) -> None:
     df = bool_dataframe_1(library)
     df.__dataframe_namespace__()
+    pdx = df.__dataframe_namespace__()
     ser = pdx.col("a")
     result = df.assign((~ser).rename("result"))
     result_pd = interchange_to_pandas(result)["result"]
@@ -18,6 +19,7 @@ def test_expression_invert(library: str) -> None:
 
 def test_column_invert(library: str) -> None:
     df = bool_dataframe_1(library).persist()
+    pdx = df.__dataframe_namespace__()
     ser = pdx.col("a")
     result = df.assign((~ser).rename("result"))
     result_pd = interchange_to_pandas(result)["result"]

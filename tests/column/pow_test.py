@@ -9,6 +9,7 @@ from tests.utils import interchange_to_pandas
 def test_float_powers_column(library: str) -> None:
     df = integer_dataframe_1(library)
     df.__dataframe_namespace__()
+    pdx = df.__dataframe_namespace__()
     ser = pdx.col("a")
     other = pdx.col("b") * 1.0
     result = df.assign(ser.__pow__(other).rename("result"))
@@ -22,6 +23,7 @@ def test_float_powers_column(library: str) -> None:
 def test_float_powers_scalar_column(library: str) -> None:
     df = integer_dataframe_1(library)
     df.__dataframe_namespace__()
+    pdx = df.__dataframe_namespace__()
     ser = pdx.col("a")
     other = 1.0
     result = df.assign(ser.__pow__(other).rename("result"))
@@ -33,6 +35,7 @@ def test_float_powers_scalar_column(library: str) -> None:
 def test_int_powers_column(library: str) -> None:
     df = integer_dataframe_1(library)
     df.__dataframe_namespace__()
+    pdx = df.__dataframe_namespace__()
     ser = pdx.col("a")
     other = pdx.col("b") * 1
     result = df.assign(ser.__pow__(other).rename("result"))
@@ -46,6 +49,7 @@ def test_int_powers_column(library: str) -> None:
 def test_int_powers_scalar_column(library: str) -> None:
     df = integer_dataframe_1(library)
     df.__dataframe_namespace__()
+    pdx = df.__dataframe_namespace__()
     ser = pdx.col("a")
     other = 1
     result = df.assign(ser.__pow__(other).rename("result"))

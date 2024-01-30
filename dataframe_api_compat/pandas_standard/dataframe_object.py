@@ -124,7 +124,7 @@ class DataFrame(DataFrameT):
         )
 
     def iter_columns(self) -> Iterator[Column]:
-        return (self.col(col_name) for col_name in self.column_names)
+        return (self.get_column(col_name) for col_name in self.column_names)
 
     def get_column(self, name: str) -> Column:
         if not self._is_persisted:

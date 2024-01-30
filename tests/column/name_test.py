@@ -8,13 +8,13 @@ from tests.utils import integer_dataframe_1
 
 
 def test_name(library: str) -> None:
-    integer_dataframe_1(library).persist()
-    name = pdx.col("a").name
+    df = integer_dataframe_1(library).persist()
+    name = df.get_column("a").name
     assert name == "a"
 
 
 def test_pandas_name_if_0_named_column() -> None:
-    df = convert_to_standard_compliant_dataframe(pd.DataFrame({0: [1, 2, 3]}))
+    df = convert_to_standard_compliant_dataframe(pd.DataFrame({0: [1, 2, 3]})).persist()
     assert df.column_names == [0]  # type: ignore[comparison-overlap]
     assert [col.name for col in df.iter_columns()] == [0]  # type: ignore[comparison-overlap]
 

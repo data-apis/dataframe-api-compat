@@ -25,7 +25,9 @@ from tests.utils import temporal_dataframe_1
 def test_col_components(library: str, attr: str, expected: list[int]) -> None:
     df = temporal_dataframe_1(library).persist()
     for col_name in ("a", "c", "e"):
-        result = df.assign(getattr(df.col(col_name), attr)().rename("result")).select(
+        result = df.assign(
+            getattr(df.get_column(col_name), attr)().rename("result")
+        ).select(
             "result",
         )
         result = interchange_to_pandas(result)["result"].astype("int64")
@@ -43,7 +45,7 @@ def test_col_components(library: str, attr: str, expected: list[int]) -> None:
 )
 def test_col_microsecond(library: str, col_name: str, expected: list[int]) -> None:
     df = temporal_dataframe_1(library).persist()
-    result = df.assign(df.col(col_name).microsecond().rename("result")).select(
+    result = df.assign(df.get_column(col_name).microsecond().rename("result")).select(
         "result",
     )
     result = interchange_to_pandas(result)["result"].astype("int64")
@@ -61,7 +63,7 @@ def test_col_microsecond(library: str, col_name: str, expected: list[int]) -> No
 )
 def test_col_nanosecond(library: str, col_name: str, expected: list[int]) -> None:
     df = temporal_dataframe_1(library).persist()
-    result = df.assign(df.col(col_name).nanosecond().rename("result")).select(  # type: ignore[attr-defined]
+    result = df.assign(df.get_column(col_name).nanosecond().rename("result")).select(  # type: ignore[attr-defined]
         "result",
     )
     result = interchange_to_pandas(result)["result"].astype("int64")

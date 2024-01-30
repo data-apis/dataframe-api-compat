@@ -656,5 +656,4 @@ class Expr:
     # Unary
 
     def __invert__(self: Column) -> Column:
-        ser = self.column
-        return self._from_series(~ser)
+        return Expr(lambda df: self.call(df).__invert__())

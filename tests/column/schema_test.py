@@ -12,7 +12,7 @@ from tests.utils import mixed_dataframe_1
     reason="no pyarrow support",
 )
 def test_schema(library: str) -> None:
-    df = mixed_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    result = pdx.col("a").dtype
-    assert isinstance(result, namespace.Int64)
+    df = mixed_dataframe_1(library).persist()
+    pdx = df.__dataframe_namespace__()
+    result = df.get_column("a").dtype
+    assert isinstance(result, pdx.Int64)

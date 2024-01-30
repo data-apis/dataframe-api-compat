@@ -16,8 +16,9 @@ def test_fill_null_column(library: str) -> None:
 
 def test_fill_null_noop_column(library: str) -> None:
     df = nan_dataframe_1(library)
+    pdx = df.__dataframe_namespace__()
     ser = pdx.col("a")
-    result = df.assign(ser.fill_null(0).rename("result")).persist().col("result")
+    result = df.assign(ser.fill_null(0).rename("result")).persist().get_column("result")
     if library != "pandas-numpy":
         # nan should not have changed!
         assert float(result.get_value(2)) != float(  # type: ignore[arg-type]

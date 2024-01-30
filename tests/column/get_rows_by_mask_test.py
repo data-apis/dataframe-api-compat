@@ -8,10 +8,10 @@ from tests.utils import interchange_to_pandas
 
 
 def test_column_filter(library: str) -> None:
-    integer_dataframe_1(library)
-    ser = pdx.col("a")
+    df = integer_dataframe_1(library).persist()
+    ser = df.get_column("a")
     mask = ser > 1
-    ser = ser.filter(mask).persist()
+    ser = ser.filter(mask)
     result_pd = pd.Series(ser.to_array(), name="result")
     expected = pd.Series([2, 3], name="result")
     pd.testing.assert_series_equal(result_pd, expected)

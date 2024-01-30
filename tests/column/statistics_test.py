@@ -9,6 +9,7 @@ from tests.utils import interchange_to_pandas
 def test_mean(library: str) -> None:
     df = integer_dataframe_1(library)
     df.__dataframe_namespace__()
+    pdx = df.__dataframe_namespace__()
     result = df.assign((pdx.col("a") - pdx.col("a").mean()).rename("result"))
     result_pd = interchange_to_pandas(result)["result"]
     expected = pd.Series([-1, 0, 1.0], name="result")

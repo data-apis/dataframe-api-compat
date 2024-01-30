@@ -4,5 +4,5 @@ from tests.utils import integer_dataframe_1
 
 
 def test_column_len(library: str) -> None:
-    result = integer_dataframe_1(library).col("a").len().persist().scalar
+    result = integer_dataframe_1(library).persist().get_column("a").len().scalar
     assert result == 3
