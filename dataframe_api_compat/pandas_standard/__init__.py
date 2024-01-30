@@ -359,8 +359,6 @@ class Namespace(NamespaceT):
         return Scalar(
             pd.Timestamp(dt.date(year, month, day)),
             api_version=self._api_version,
-            df=None,
-            is_persisted=True,
         )
 
     # --- horizontal reductions
@@ -540,11 +538,6 @@ class Expr:
             return Expr(call=call)
 
         return func
-
-    def __add__(self, other: Expr | Any) -> Expr:
-        if isinstance(other, Expr):
-            return Expr(lambda df: self.call(df) + other.call(df))
-        return Expr(lambda df: self.call(df) + other)
 
     def __eq__(self, other: Expr | Any) -> Expr:  # type: ignore[override]
         if isinstance(other, Expr):

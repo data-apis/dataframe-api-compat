@@ -26,7 +26,7 @@ def test_col_components(library: str, attr: str, expected: list[int]) -> None:
     df = temporal_dataframe_1(library).persist()
     for col_name in ("a", "c", "e"):
         result = df.assign(
-            getattr(df.get_column(col_name), attr)().rename("result")
+            getattr(df.get_column(col_name), attr)().rename("result"),
         ).select(
             "result",
         )
@@ -85,9 +85,9 @@ def test_col_unix_timestamp_time_units(
     time_unit: Literal["s", "ms", "us", "ns"],
     expected: list[int],
 ) -> None:
-    df = temporal_dataframe_1(library)
+    df = temporal_dataframe_1(library).persist()
     result = df.assign(
-        df.col("e").unix_timestamp(time_unit=time_unit).rename("result"),
+        df.get_column("e").unix_timestamp(time_unit=time_unit).rename("result"),
     ).select(
         "result",
     )
