@@ -473,12 +473,9 @@ class DataFrame(DataFrameT):
         if column_names is None:
             column_names = self.dataframe.columns.tolist()
         assert isinstance(column_names, list)  # help type checkers
+        pdx = self.__dataframe_namespace__()
         return self.assign(
-            *[
-                col.fill_null(value)
-                for col in self.iter_columns()
-                if col.name in column_names
-            ],
+            *[pdx.col(col).fill_null(value) for col in column_names],
         )
 
     def drop_nulls(
@@ -486,10 +483,10 @@ class DataFrame(DataFrameT):
         *,
         column_names: list[str] | None = None,
     ) -> DataFrame:
-        namespace = self.__dataframe_namespace__()
-        mask = ~namespace.any_horizontal(
+        pdx = self.__dataframe_namespace__()
+        mask = ~pdx.any_horizontal(
             *[
-                self.col(col_name).is_null()
+                pdx.col(col_name).is_null()
                 for col_name in column_names or self.column_names
             ],
         )

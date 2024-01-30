@@ -17,7 +17,8 @@ def test_fill_nan(library: str) -> None:
 
 
 def test_fill_nan_with_scalar(library: str) -> None:
-    df = nan_dataframe_1(library)
+    df = nan_dataframe_1(library).persist()
+    pdx = df.__dataframe_namespace__()
     result = df.fill_nan(pdx.col("a").get_value(0))
     result_pd = interchange_to_pandas(result)
     result_pd = result_pd.astype("float64")

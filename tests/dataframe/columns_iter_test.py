@@ -5,7 +5,7 @@ from tests.utils import interchange_to_pandas
 
 
 def test_iter_columns(library: str) -> None:
-    df = integer_dataframe_1(library)
+    df = integer_dataframe_1(library).persist()
     result = df.assign(
         *[col / col.mean() for col in df.iter_columns()],
     )

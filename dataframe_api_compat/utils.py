@@ -16,7 +16,10 @@ def validate_comparand(left: Any, right: Any) -> Any:
         left,
         "__dataframe_namespace__",
     ):
-        return right.call(left).column
+        result = right.call(left)
+        if hasattr(result, "__column_namespace__"):
+            return result.column
+        return result.scalar
     if hasattr(left, "__dataframe_namespace__") and hasattr(
         right,
         "__dataframe_namespace__",

@@ -9,7 +9,7 @@ from tests.utils import interchange_to_pandas
 
 def test_insert_columns(library: str) -> None:
     df = integer_dataframe_1(library, api_version="2023.09-beta")
-    df.__dataframe_namespace__()
+    pdx = df.__dataframe_namespace__()
     new_col = (pdx.col("b") + 3).rename("result")
     result = df.assign(new_col.rename("c"))
     result_pd = interchange_to_pandas(result)
@@ -23,7 +23,7 @@ def test_insert_columns(library: str) -> None:
 
 def test_insert_multiple_columns(library: str) -> None:
     df = integer_dataframe_1(library, api_version="2023.09-beta")
-    df.__dataframe_namespace__()
+    pdx = df.__dataframe_namespace__()
     new_col = (pdx.col("b") + 3).rename("result")
     result = df.assign(new_col.rename("c"), new_col.rename("d"))
     result_pd = interchange_to_pandas(result)
@@ -39,7 +39,7 @@ def test_insert_multiple_columns(library: str) -> None:
 
 def test_insert_multiple_columns_invalid(library: str) -> None:
     df = integer_dataframe_1(library, api_version="2023.09-beta")
-    df.__dataframe_namespace__()
+    pdx = df.__dataframe_namespace__()
     new_col = (pdx.col("b") + 3).rename("result")
     with pytest.raises(TypeError):
         _ = df.assign([new_col.rename("c"), new_col.rename("d")])  # type: ignore[arg-type]
@@ -47,6 +47,7 @@ def test_insert_multiple_columns_invalid(library: str) -> None:
 
 def test_insert_eager_columns(library: str) -> None:
     df = integer_dataframe_1(library, api_version="2023.09-beta")
+    pdx = df.__dataframe_namespace__()
     new_col = (pdx.col("b") + 3).rename("result")
     result = df.assign(new_col.rename("c"), new_col.rename("d"))
     result_pd = interchange_to_pandas(result)

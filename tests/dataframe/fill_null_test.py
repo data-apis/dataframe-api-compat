@@ -19,16 +19,16 @@ from tests.utils import null_dataframe_2
 def test_fill_null(library: str, column_names: list[str] | None) -> None:
     df = null_dataframe_2(library)
     df.__dataframe_namespace__()
-    result = df.fill_null(0, column_names=column_names)
+    result = df.fill_null(0, column_names=column_names).persist()
 
     if column_names is None or "a" in column_names:
-        res1 = result.filter(result.col("a").is_null()).persist()
+        res1 = result.filter(result.get_column("a").is_null())
         # check there no nulls left in the column
         assert res1.shape()[0] == 0
         # check the last element was filled with 0
         assert interchange_to_pandas(result)["a"].iloc[2] == 0
     if column_names is None or "b" in column_names:
-        res1 = result.filter(result.col("b").is_null()).persist()
+        res1 = result.filter(result.get_column("b").is_null())
         assert res1.shape()[0] == 0
         assert interchange_to_pandas(result)["b"].iloc[2] == 0
 

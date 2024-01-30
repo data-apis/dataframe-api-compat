@@ -9,8 +9,8 @@ from tests.utils import interchange_to_pandas
 
 def test_all_horizontal(library: str) -> None:
     df = bool_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    mask = namespace.all_horizontal(*[df.col(col_name) for col_name in df.column_names])
+    pdx = df.__dataframe_namespace__()
+    mask = pdx.all_horizontal(*[pdx.col(col_name) for col_name in df.column_names])
     result = df.filter(mask)
     result_pd = interchange_to_pandas(result)
     expected = pd.DataFrame({"a": [True, True], "b": [True, True]})
@@ -20,6 +20,6 @@ def test_all_horizontal(library: str) -> None:
 @pytest.mark.xfail(strict=False)
 def test_all_horizontal_invalid(library: str) -> None:
     df = bool_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
+    pdx = df.__dataframe_namespace__()
     with pytest.raises(ValueError):
-        _ = namespace.all_horizontal(pdx.col("a"), (df + 1).col("b"))
+        _ = pdx.all_horizontal(pdx.col("a"), (df + 1).col("b"))
