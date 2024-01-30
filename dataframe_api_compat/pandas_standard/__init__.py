@@ -511,13 +511,12 @@ class Expr:
 
     @classmethod
     def from_column_name(cls: type[Expr], column_name: str) -> Expr:
-        def call(df: DataFrame) -> Column:
-            return Column(
+        return cls(
+            lambda df: Column(
                 df.dataframe.loc[:, column_name],
                 api_version=df._api_version,
-            )
-
-        return cls(call)
+            ),
+        )
 
     def __expression_namespace__(self) -> Namespace:
         return Namespace(api_version="2023.11-beta")
