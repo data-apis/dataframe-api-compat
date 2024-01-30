@@ -12,6 +12,11 @@ def validate_comparand(left: Any, right: Any) -> Any:
     If the comparison isn't supported, return `NotImplemented` so that the
     "right-hand-side" operation (e.g. `__radd__`) can be tried.
     """
+    if hasattr(right, "__expression_namespace__") and hasattr(
+        left,
+        "__dataframe_namespace__",
+    ):
+        return right.call(left).column
     if hasattr(left, "__dataframe_namespace__") and hasattr(
         right,
         "__dataframe_namespace__",

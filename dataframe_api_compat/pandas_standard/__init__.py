@@ -519,9 +519,19 @@ class Expr:
 
         return cls(call)
 
+    def __expression_namespace__(self) -> Namespace:
+        return Namespace(api_version="2023.11-beta")
+
     def __getattribute__(self, attr: str) -> Any:
         if attr == "call":
             return super().__getattribute__("call")
+        if attr in (
+            "dtype",
+            "__dataframe_namespace__",
+            "__column_namespace__",
+            "__scalar_namespace__",
+        ):
+            raise AttributeError
 
         def func(*args: Any, **kwargs: Any) -> Expr:
             def call(df: DataFrame) -> Column:
