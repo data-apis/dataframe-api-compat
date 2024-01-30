@@ -22,4 +22,4 @@ def test_any_horizontal_invalid(library: str) -> None:
     df = bool_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
     with pytest.raises(ValueError):
-        _ = namespace.any_horizontal(df.col("a"), (df + 1).col("b"))
+        _ = namespace.any_horizontal(pdx.col("a"), (df + 1).col("b"))

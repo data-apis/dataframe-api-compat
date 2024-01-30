@@ -516,9 +516,7 @@ class Expr:
         def call(df: DataFrame) -> Column:
             return Column(
                 df.dataframe.loc[:, column_name],
-                df=df,
                 api_version=df._api_version,
-                is_persisted=df._is_persisted,
             )
 
         return cls(call)
@@ -548,12 +546,115 @@ class Expr:
             return Expr(lambda df: self.call(df) + other.call(df))
         return Expr(lambda df: self.call(df) + other)
 
+    def __eq__(self, other: Expr | Any) -> Expr:  # type: ignore[override]
+        if isinstance(other, Expr):
+            return Expr(lambda df: self.call(df).__eq__(other.call(df)))
+        return Expr(lambda df: self.call(df).__eq__(other))
+
+    def __ne__(self, other: Expr | Any) -> Expr:  # type: ignore[override]
+        if isinstance(other, Expr):
+            return Expr(lambda df: self.call(df).__ne__(other.call(df)))
+        return Expr(lambda df: self.call(df).__ne__(other))
+
+    def __ge__(self, other: Expr | Any) -> Expr:
+        if isinstance(other, Expr):
+            return Expr(lambda df: self.call(df).__ge__(other.call(df)))
+        return Expr(lambda df: self.call(df).__ge__(other))
+
     def __gt__(self, other: Expr | Any) -> Expr:
         if isinstance(other, Expr):
-            return Expr(lambda df: self.call(df) > other.call(df))
-        return Expr(lambda df: self.call(df) > other)
+            return Expr(lambda df: self.call(df).__gt__(other.call(df)))
+        return Expr(lambda df: self.call(df).__gt__(other))
+
+    def __le__(self, other: Expr | Any) -> Expr:
+        if isinstance(other, Expr):
+            return Expr(lambda df: self.call(df).__le__(other.call(df)))
+        return Expr(lambda df: self.call(df).__le__(other))
+
+    def __lt__(self, other: Expr | Any) -> Expr:
+        if isinstance(other, Expr):
+            return Expr(lambda df: self.call(df).__lt__(other.call(df)))
+        return Expr(lambda df: self.call(df).__lt__(other))
+
+    def __and__(self, other: Expr | bool | Scalar) -> Expr:
+        if isinstance(other, Expr):
+            return Expr(lambda df: self.call(df).__and__(other.call(df)))
+        return Expr(lambda df: self.call(df).__and__(other))
+
+    def __rand__(self, other: Column | Any) -> Column:
+        return self.__and__(other)
+
+    def __or__(self, other: Expr | bool | Scalar) -> Expr:
+        if isinstance(other, Expr):
+            return Expr(lambda df: self.call(df).__or__(other.call(df)))
+        return Expr(lambda df: self.call(df).__or__(other))
+
+    def __ror__(self, other: Column | Any) -> Column:
+        return self.__or__(other)
+
+    def __add__(self, other: Expr | Any) -> Expr:
+        if isinstance(other, Expr):
+            return Expr(lambda df: self.call(df).__add__(other.call(df)))
+        return Expr(lambda df: self.call(df).__add__(other))
+
+    def __radd__(self, other: Column | Any) -> Column:
+        return self.__add__(other)
+
+    def __sub__(self, other: Expr | Any) -> Expr:
+        if isinstance(other, Expr):
+            return Expr(lambda df: self.call(df).__sub__(other.call(df)))
+        return Expr(lambda df: self.call(df).__sub__(other))
+
+    def __rsub__(self, other: Column | Any) -> Column:
+        return -1 * self.__sub__(other)
+
+    def __mul__(self, other: Expr | Any) -> Expr:
+        if isinstance(other, Expr):
+            return Expr(lambda df: self.call(df).__mul__(other.call(df)))
+        return Expr(lambda df: self.call(df).__mul__(other))
+
+    def __rmul__(self, other: Column | Any) -> Column:
+        return self.__mul__(other)
 
     def __truediv__(self, other: Expr | Any) -> Expr:
         if isinstance(other, Expr):
-            return Expr(lambda df: self.call(df) / other.call(df))
-        return Expr(lambda df: self.call(df) / other)
+            return Expr(lambda df: self.call(df).__truediv__(other.call(df)))
+        return Expr(lambda df: self.call(df).__truediv__(other))
+
+    def __rtruediv__(self, other: Column | Any) -> Column:
+        raise NotImplementedError
+
+    def __floordiv__(self, other: Expr | Any) -> Expr:
+        if isinstance(other, Expr):
+            return Expr(lambda df: self.call(df).__floordiv__(other.call(df)))
+        return Expr(lambda df: self.call(df).__floordiv__(other))
+
+    def __rfloordiv__(self, other: Column | Any) -> Column:
+        raise NotImplementedError
+
+    def __pow__(self, other: Expr | Any) -> Expr:
+        if isinstance(other, Expr):
+            return Expr(lambda df: self.call(df).__pow__(other.call(df)))
+        return Expr(lambda df: self.call(df).__pow__(other))
+
+    def __rpow__(self, other: Column | Any) -> Column:  # pragma: no cover
+        raise NotImplementedError
+
+    def __mod__(self, other: Expr | Any) -> Expr:
+        if isinstance(other, Expr):
+            return Expr(lambda df: self.call(df).__mod__(other.call(df)))
+        return Expr(lambda df: self.call(df).__mod__(other))
+
+    def __rmod__(self, other: Column | Any) -> Column:  # pragma: no cover
+        raise NotImplementedError
+
+    def __divmod__(self, other: Expr | Any) -> tuple[Expr, Column]:
+        if isinstance(other, Expr):
+            return Expr(lambda df: self.call(df).__divmod__(other.call(df)))
+        return Expr(lambda df: self.call(df).__divmod__(other))
+
+    # Unary
+
+    def __invert__(self: Column) -> Column:
+        ser = self.column
+        return self._from_series(~ser)

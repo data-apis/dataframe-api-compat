@@ -22,7 +22,8 @@ def test_cumulative_functions_column(
     expected_data: list[float],
 ) -> None:
     df = integer_dataframe_1(library).persist()
-    ser = df.col("a")
+    pdx = df.__dataframe_namespace__()
+    ser = pdx.col("a")
     expected = pd.Series(expected_data, name="result")
     result = df.assign(getattr(ser, func)().rename("result"))
     result_pd = interchange_to_pandas(result)["result"]

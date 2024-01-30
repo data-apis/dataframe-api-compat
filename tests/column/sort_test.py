@@ -11,7 +11,7 @@ from tests.utils import interchange_to_pandas
 def test_expression_sort_ascending(library: str) -> None:
     df = integer_dataframe_6(library, api_version="2023.09-beta")
     df.__dataframe_namespace__()
-    s_sorted = df.col("b").sort().rename("c")
+    s_sorted = pdx.col("b").sort().rename("c")
     result = df.assign(s_sorted)
     result_pd = interchange_to_pandas(result)
     expected = pd.DataFrame(
@@ -28,7 +28,7 @@ def test_expression_sort_ascending(library: str) -> None:
 def test_expression_sort_descending(library: str) -> None:
     df = integer_dataframe_6(library, api_version="2023.09-beta")
     df.__dataframe_namespace__()
-    s_sorted = df.col("b").sort(ascending=False).rename("c")
+    s_sorted = pdx.col("b").sort(ascending=False).rename("c")
     result = df.assign(s_sorted)
     result_pd = interchange_to_pandas(result)
     expected = pd.DataFrame(
@@ -44,7 +44,7 @@ def test_expression_sort_descending(library: str) -> None:
 @pytest.mark.xfail(strict=False)
 def test_column_sort_ascending(library: str) -> None:
     df = integer_dataframe_6(library, api_version="2023.09-beta").persist()
-    s_sorted = df.col("b").sort().rename("c")
+    s_sorted = pdx.col("b").sort().rename("c")
     result = df.assign(s_sorted)
     result_pd = interchange_to_pandas(result)
     expected = pd.DataFrame(
@@ -60,7 +60,7 @@ def test_column_sort_ascending(library: str) -> None:
 @pytest.mark.xfail(strict=False)
 def test_column_sort_descending(library: str) -> None:
     df = integer_dataframe_6(library, api_version="2023.09-beta").persist()
-    s_sorted = df.col("b").sort(ascending=False).rename("c")
+    s_sorted = pdx.col("b").sort(ascending=False).rename("c")
     result = df.assign(s_sorted)
     result_pd = interchange_to_pandas(result)
     expected = pd.DataFrame(

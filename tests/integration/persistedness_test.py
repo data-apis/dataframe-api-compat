@@ -78,16 +78,16 @@ def test_multiple_propagations(library: str) -> None:
     df = integer_dataframe_1(library)
     df = df.persist()
     with pytest.warns(UserWarning):
-        df1 = df.filter(df.col("a") > 1).persist()
-        df2 = df.filter(df.col("a") <= 1).persist()
+        df1 = df.filter(pdx.col("a") > 1).persist()
+        df2 = df.filter(pdx.col("a") <= 1).persist()
     assert int(df1.col("a").mean()) == 2  # type: ignore[call-overload]
     assert int(df2.col("a").mean()) == 1  # type: ignore[call-overload]
 
     # But what if I want to do this
     df = integer_dataframe_1(library)
     df = df.persist()
-    df1 = df.filter(df.col("a") > 1)
-    df2 = df.filter(df.col("a") <= 1)
+    df1 = df.filter(pdx.col("a") > 1)
+    df2 = df.filter(pdx.col("a") <= 1)
 
     df1 = df1 + 1
     # without this persist, `df1 + 1` will be computed twice
@@ -106,8 +106,8 @@ def test_parent_propagations(library: str) -> None:
     # df again. If df2 wasn't persisted, then df would be recomputed.
     # So, we need to persist df2 as well.
     df = integer_dataframe_1(library)
-    df1 = df.filter(df.col("a") > 1)
-    df2 = df.filter(df.col("a") <= 1)
+    df1 = df.filter(pdx.col("a") > 1)
+    df2 = df.filter(pdx.col("a") <= 1)
 
     df1 = df1.persist()
     with pytest.raises(RuntimeError):

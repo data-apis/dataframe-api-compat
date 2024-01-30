@@ -10,8 +10,8 @@ from tests.utils import interchange_to_pandas
 @pytest.mark.xfail(strict=False)
 def test_expression_take(library: str) -> None:
     df = integer_dataframe_1(library)
-    ser = df.col("a")
-    indices = df.col("a") - 1
+    ser = pdx.col("a")
+    indices = pdx.col("a") - 1
     result = df.assign(ser.take(indices).rename("result")).select("result")
     result_pd = interchange_to_pandas(result)["result"]
     expected = pd.Series([1, 2, 3], name="result")

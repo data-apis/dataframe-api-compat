@@ -30,7 +30,7 @@ def test_is_in(
     expected_values: list[bool],
 ) -> None:
     df = df_factory(library).persist()
-    ser = df.col("a")
+    ser = pdx.col("a")
     other = ser + 1
     result = df.assign(ser.is_in(other).rename("result"))
     result_pd = interchange_to_pandas(result)["result"]

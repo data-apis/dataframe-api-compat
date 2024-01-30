@@ -35,8 +35,9 @@ def test_column_comparisons(
 ) -> None:
     ser: Any
     df = integer_dataframe_7(library).persist()
-    ser = df.col("a")
-    other = df.col("b")
+    pdx = df.__dataframe_namespace__()
+    ser = pdx.col("a")
+    other = pdx.col("b")
     result = df.assign(getattr(ser, comparison)(other).rename("result"))
     result_pd = interchange_to_pandas(result)["result"]
     expected = pd.Series(expected_data, name="result")
@@ -71,7 +72,8 @@ def test_column_comparisons_scalar(
 ) -> None:
     ser: Any
     df = integer_dataframe_1(library).persist()
-    ser = df.col("a")
+    pdx = df.__dataframe_namespace__()
+    ser = pdx.col("a")
     other = 3
     result = df.assign(getattr(ser, comparison)(other).rename("result"))
     result_pd = interchange_to_pandas(result)["result"]
@@ -97,7 +99,8 @@ def test_right_column_comparisons(
     # 1,2,3
     ser: Any
     df = integer_dataframe_7(library).persist()
-    ser = df.col("a")
+    pdx = df.__dataframe_namespace__()
+    ser = pdx.col("a")
     other = 2
     result = df.assign(getattr(ser, comparison)(other).rename("result"))
     result_pd = interchange_to_pandas(result)["result"]

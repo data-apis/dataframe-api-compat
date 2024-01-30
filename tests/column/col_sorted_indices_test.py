@@ -44,7 +44,7 @@ def test_expression_sorted_indices_descending(library: str) -> None:
 @pytest.mark.xfail(strict=False)
 def test_column_sorted_indices_ascending(library: str) -> None:
     df = integer_dataframe_6(library).persist()
-    sorted_indices = df.col("b").sorted_indices()
+    sorted_indices = pdx.col("b").sorted_indices()
     result = df.take(sorted_indices)
     result_pd = interchange_to_pandas(result)
     expected = pd.DataFrame(
@@ -59,7 +59,7 @@ def test_column_sorted_indices_ascending(library: str) -> None:
 @pytest.mark.xfail(strict=False)
 def test_column_sorted_indices_descending(library: str) -> None:
     df = integer_dataframe_6(library).persist()
-    sorted_indices = df.col("b").sorted_indices(ascending=False)
+    sorted_indices = pdx.col("b").sorted_indices(ascending=False)
     result = df.take(sorted_indices)
     result_pd = interchange_to_pandas(result)
     expected = pd.DataFrame(

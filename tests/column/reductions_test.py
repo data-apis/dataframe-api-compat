@@ -27,7 +27,7 @@ def test_expression_reductions(
 ) -> None:
     df = integer_dataframe_1(library)
     df.__dataframe_namespace__()
-    ser = df.col("a")
+    ser = pdx.col("a")
     ser = ser - getattr(ser, reduction)()
     result = df.assign(ser.rename("result"))
     result_pd = interchange_to_pandas(result)["result"]

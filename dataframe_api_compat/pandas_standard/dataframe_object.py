@@ -126,14 +126,15 @@ class DataFrame(DataFrameT):
     def iter_columns(self) -> Iterator[Column]:
         return (self.col(col_name) for col_name in self.column_names)
 
-    def col(self, name: str) -> Column:
+    def get_column(self, name: str) -> Column:
+        if not self._is_persisted:
+            msg = "`get_column` can only be called on persisted DataFrame."
+            raise ValueError(msg)
         from dataframe_api_compat.pandas_standard.column_object import Column
 
         return Column(
             self.dataframe.loc[:, name],
-            df=None if self._is_persisted else self,
             api_version=self._api_version,
-            is_persisted=self._is_persisted,
         )
 
     def shape(self) -> tuple[int, int]:

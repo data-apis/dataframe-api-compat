@@ -77,7 +77,7 @@ def test_column_from_sequence(
 ) -> None:
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
-    ser = df.col("a")
+    ser = pdx.col("a")
     namespace = ser.__column_namespace__()
     result = namespace.dataframe_from_columns(
         namespace.column_from_sequence(

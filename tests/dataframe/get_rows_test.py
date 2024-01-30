@@ -11,7 +11,7 @@ from tests.utils import interchange_to_pandas
 def test_take(library: str) -> None:
     df = integer_dataframe_1(library)
     df.__dataframe_namespace__()
-    df = df.assign((df.col("a") - 1).sort(ascending=False).rename("result"))
+    df = df.assign((pdx.col("a") - 1).sort(ascending=False).rename("result"))
     df.__dataframe_namespace__()
     result = df.take(df.col("result"))
     result_pd = interchange_to_pandas(result)

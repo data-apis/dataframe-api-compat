@@ -7,7 +7,7 @@ from tests.utils import interchange_to_pandas
 def test_cast_integers(library: str) -> None:
     df = integer_dataframe_1(library)
     pdx = df.__dataframe_namespace__()
-    result = df.assign(df.col("a").cast(pdx.Int32()))
+    result = df.assign(pdx.col("a").cast(pdx.Int32()))
     expected = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}).astype(
         {"a": "int32", "b": "int64"},
     )

@@ -6,7 +6,7 @@ from tests.utils import interchange_to_pandas
 
 def test_aggregate(library: str) -> None:
     df = integer_dataframe_4(library)
-    df = df.assign((df.col("b") > 0).rename("d"))
+    df = df.assign((pdx.col("b") > 0).rename("d"))
     ns = df.__dataframe_namespace__()
     result = (
         df.group_by("key")

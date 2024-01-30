@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from typing import TYPE_CHECKING
 from typing import Any
 
@@ -11,7 +10,6 @@ if TYPE_CHECKING:
     from dataframe_api.typing import Namespace
     from dataframe_api.typing import Scalar as ScalarT
 
-    from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
 else:
     ScalarT = object
 
@@ -21,15 +19,9 @@ class Scalar(ScalarT):
         self,
         value: Any,
         api_version: str,
-        df: DataFrame | None,
-        *,
-        is_persisted: bool = False,
     ) -> None:
         self._value = value
         self._api_version = api_version
-        self._df = df
-        self._is_persisted = is_persisted
-        assert is_persisted ^ (df is not None)
 
     def __scalar_namespace__(self) -> Namespace:
         from dataframe_api_compat.pandas_standard import Namespace
@@ -39,9 +31,7 @@ class Scalar(ScalarT):
     def _from_scalar(self, scalar: Scalar) -> Scalar:
         return Scalar(
             scalar,
-            df=self._df,
             api_version=self._api_version,
-            is_persisted=self._is_persisted,
         )
 
     @property
@@ -58,24 +48,7 @@ class Scalar(ScalarT):
         return self._df
 
     def _materialise(self) -> Any:
-        if not self._is_persisted:
-            msg = "Can't call __bool__ on Scalar. Please use .persist() first."
-            raise RuntimeError(msg)
         return self._value
-
-    def persist(self) -> Scalar:
-        if self._is_persisted:
-            warnings.warn(
-                "Calling `.persist` on Scalar that was already persisted",
-                UserWarning,
-                stacklevel=2,
-            )
-        return Scalar(
-            self._value,
-            df=None,
-            api_version=self._api_version,
-            is_persisted=True,
-        )
 
     def __lt__(self, other: Any) -> Scalar:
         other = validate_comparand(self, other)

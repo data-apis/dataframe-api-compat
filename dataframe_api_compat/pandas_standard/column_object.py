@@ -43,9 +43,7 @@ class Column(ColumnT):
         self,
         series: pd.Series[Any],
         *,
-        df: DataFrame | None,
         api_version: str,
-        is_persisted: bool = False,
     ) -> None:
         """Parameters
         ----------
@@ -57,9 +55,6 @@ class Column(ColumnT):
         assert self._name is not None
         self._series = series
         self._api_version = api_version
-        self._df = df
-        self._is_persisted = is_persisted
-        assert is_persisted ^ (df is not None)
 
     def _to_scalar(self, value: Any) -> Scalar:
         from dataframe_api_compat.pandas_standard.scalar_object import Scalar
@@ -67,8 +62,6 @@ class Column(ColumnT):
         return Scalar(
             value,
             api_version=self._api_version,
-            df=self._df,
-            is_persisted=self._is_persisted,
         )
 
     def __repr__(self) -> str:  # pragma: no cover
@@ -93,17 +86,7 @@ class Column(ColumnT):
         return Column(
             series.rename(series.name, copy=False),
             api_version=self._api_version,
-            df=self._df,
-            is_persisted=self._is_persisted,
         )
-
-    def _materialise(self) -> pd.Series:
-        if not self._is_persisted:
-            msg = "Column is not persisted, please call `.persist()` first.\nNote: `persist` forces computation, use it with care, only when you need to,\nand as late and little as possible."
-            raise RuntimeError(
-                msg,
-            )
-        return self.column
 
     # In the standard
     def __column_namespace__(
@@ -453,7 +436,7 @@ class Column(ColumnT):
     # Conversions
 
     def to_array(self) -> Any:
-        ser = self._materialise()
+        ser = self.column
         return ser.to_numpy(
             dtype=NUMPY_MAPPING.get(self.column.dtype.name, self.column.dtype.name),
         )

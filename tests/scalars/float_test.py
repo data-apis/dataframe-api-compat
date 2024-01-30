@@ -34,8 +34,8 @@ from tests.utils import interchange_to_pandas
 )
 def test_float_binary(library: str, attr: str) -> None:
     other = 0.5
-    df = integer_dataframe_2(library).persist()
-    scalar = df.col("a").mean()
+    integer_dataframe_2(library).persist()
+    scalar = pdx.col("a").mean()
     float_scalar = float(scalar)  # type: ignore[arg-type]
     assert getattr(scalar, attr)(other) == getattr(float_scalar, attr)(other)
 
@@ -49,9 +49,9 @@ def test_float_binary_invalid(library: str) -> None:
 
 
 def test_float_binary_lazy_valid(library: str) -> None:
-    df = integer_dataframe_2(library).persist()
-    lhs = df.col("a").mean()
-    rhs = df.col("b").mean()
+    integer_dataframe_2(library).persist()
+    lhs = pdx.col("a").mean()
+    rhs = pdx.col("b").mean()
     result = lhs > rhs
     assert not bool(result)
 
@@ -64,9 +64,9 @@ def test_float_binary_lazy_valid(library: str) -> None:
     ],
 )
 def test_float_unary(library: str, attr: str) -> None:
-    df = integer_dataframe_2(library).persist()
+    integer_dataframe_2(library).persist()
     with pytest.warns(UserWarning):
-        scalar = df.col("a").persist().mean()
+        scalar = pdx.col("a").persist().mean()
     float_scalar = float(scalar)  # type: ignore[arg-type]
     assert getattr(scalar, attr)() == getattr(float_scalar, attr)()
 
@@ -80,8 +80,8 @@ def test_float_unary(library: str, attr: str) -> None:
     ],
 )
 def test_float_unary_invalid(library: str, attr: str) -> None:
-    df = integer_dataframe_2(library)
-    scalar = df.col("a").mean()
+    integer_dataframe_2(library)
+    scalar = pdx.col("a").mean()
     float_scalar = float(scalar.persist())  # type: ignore[arg-type]
     with pytest.raises(RuntimeError):
         assert getattr(scalar, attr)() == getattr(float_scalar, attr)()
@@ -100,8 +100,8 @@ def test_free_standing(library: str) -> None:
 
 def test_right_comparand(library: str) -> None:
     df = integer_dataframe_1(library)
-    col = df.col("a")  # [1, 2, 3]
-    scalar = df.col("b").get_value(0)  # 4
+    col = pdx.col("a")  # [1, 2, 3]
+    scalar = pdx.col("b").get_value(0)  # 4
     result = df.assign((scalar - col).rename("c"))
     result_pd = interchange_to_pandas(result)
     expected = pd.DataFrame(

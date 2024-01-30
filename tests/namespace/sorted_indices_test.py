@@ -10,7 +10,7 @@ from tests.utils import interchange_to_pandas
 @pytest.mark.xfail(strict=False)
 def test_column_sorted_indices_ascending(library: str) -> None:
     df = integer_dataframe_6(library)
-    sorted_indices = df.col("b").sorted_indices()
+    sorted_indices = pdx.col("b").sorted_indices()
     result = df.assign(sorted_indices.rename("result"))
     result_pd = interchange_to_pandas(result)
     expected_1 = pd.DataFrame(
@@ -39,7 +39,7 @@ def test_column_sorted_indices_ascending(library: str) -> None:
 @pytest.mark.xfail(strict=False)
 def test_column_sorted_indices_descending(library: str) -> None:
     df = integer_dataframe_6(library)
-    sorted_indices = df.col("b").sorted_indices(ascending=False)
+    sorted_indices = pdx.col("b").sorted_indices(ascending=False)
     result = df.assign(sorted_indices.rename("result"))
     result_pd = interchange_to_pandas(result)
     expected_1 = pd.DataFrame(

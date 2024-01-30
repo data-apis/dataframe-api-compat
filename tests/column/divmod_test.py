@@ -6,11 +6,11 @@ from tests.utils import integer_dataframe_1
 from tests.utils import interchange_to_pandas
 
 
-def test_expression_divmod(library: str) -> None:
-    df = integer_dataframe_1(library)
+def test_column_divmod(library: str) -> None:
+    df = integer_dataframe_1(library).persist()
     df.__dataframe_namespace__()
-    ser = df.col("a")
-    other = df.col("b")
+    ser = df.get_column("a")
+    other = df.get_column("b")
     result_quotient, result_remainder = ser.__divmod__(other)
     # quotient
     result = df.assign(result_quotient.rename("result"))
@@ -25,9 +25,8 @@ def test_expression_divmod(library: str) -> None:
 
 
 def test_expression_divmod_with_scalar(library: str) -> None:
-    df = integer_dataframe_1(library)
-    df.__dataframe_namespace__()
-    ser = df.col("a")
+    df = integer_dataframe_1(library).persist()
+    ser = df.get_column("a")
     result_quotient, result_remainder = ser.__divmod__(2)
     # quotient
     result = df.assign(result_quotient.rename("result"))
