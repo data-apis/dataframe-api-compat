@@ -116,7 +116,7 @@ class Column(ColumnT):
         return self._df
 
     def take(self, indices: Column) -> Column:
-        return self._from_series(self.column.iloc[indices.column])
+        return self._from_series(self.column.iloc[validate_comparand(self, indices)])
 
     def filter(self, mask: Column) -> Column:
         ser = self.column
