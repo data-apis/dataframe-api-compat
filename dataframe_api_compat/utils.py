@@ -6,9 +6,6 @@ from typing import Any
 def validate_comparand(left: Any, right: Any) -> Any:
     """Validate comparand, raising if it can't be compared with `left`.
 
-    If `left` and `right` are derived from the same dataframe, then return
-    the underlying object of `right`.
-
     If the comparison isn't supported, return `NotImplemented` so that the
     "right-hand-side" operation (e.g. `__radd__`) can be tried.
     """
@@ -39,7 +36,12 @@ def validate_comparand(left: Any, right: Any) -> Any:
             and hasattr(right.column, "index")
             and left.dataframe.index is not right.column.index
         ):
-            msg = "Cannot compare Column with DataFrame with different indices."
+            msg = (
+                "Left index is not right index. "
+                "You were probably trying to compare different dataframes "
+                "without first having joined them. Either join them, or "
+                "consider using expressions."
+            )
             raise ValueError(msg)
         return right.column
     if hasattr(left, "__dataframe_namespace__") and hasattr(
@@ -59,7 +61,12 @@ def validate_comparand(left: Any, right: Any) -> Any:
             and hasattr(right.column, "index")
             and left.column.index is not right.column.index
         ):
-            msg = "Cannot compare Columns with different indices."
+            msg = (
+                "Left index is not right index. "
+                "You were probably trying to compare different dataframes "
+                "without first having joined them. Either join them, or "
+                "consider using expressions."
+            )
             raise ValueError(msg)
         return right.column
     if hasattr(left, "__column_namespace__") and hasattr(right, "__scalar_namespace__"):
