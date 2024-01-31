@@ -6,6 +6,7 @@ from tests.utils import interchange_to_pandas
 
 def test_aggregate(library: str) -> None:
     df = integer_dataframe_4(library)
+    pdx = df.__dataframe_namespace__()
     df = df.assign((pdx.col("b") > 0).rename("d"))
     ns = df.__dataframe_namespace__()
     result = (

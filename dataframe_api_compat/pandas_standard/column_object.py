@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from datetime import datetime
 from typing import TYPE_CHECKING
 from typing import Any
@@ -94,20 +93,6 @@ class Column(ColumnT):
     ) -> dataframe_api_compat.pandas_standard.Namespace:
         return dataframe_api_compat.pandas_standard.Namespace(
             api_version=self._api_version,
-        )
-
-    def persist(self) -> Column:
-        if self._is_persisted:
-            warnings.warn(
-                "Calling `.persist` on Column that was already persisted",
-                UserWarning,
-                stacklevel=2,
-            )
-        return Column(
-            self.column,
-            df=None,
-            api_version=self._api_version,
-            is_persisted=True,
         )
 
     @property

@@ -172,8 +172,6 @@ def convert_to_standard_compliant_column(
     return Column(
         ser,
         api_version=api_version or "2023.11-beta",
-        df=None,
-        is_persisted=True,
     )
 
 
@@ -254,7 +252,7 @@ class Namespace(NamespaceT):
         data = {}
         api_versions: set[str] = set()
         for col in columns:
-            ser = col._materialise()  # type: ignore[attr-defined]
+            ser = col.column  # type: ignore[attr-defined]
             data[ser.name] = ser
             api_versions.add(col._api_version)  # type: ignore[attr-defined]
         return DataFrame(pd.DataFrame(data), api_version=list(api_versions)[0])
@@ -266,7 +264,7 @@ class Namespace(NamespaceT):
         name: str | None = None,
     ) -> Column:
         ser = pd.Series(data, name=name)
-        return Column(ser, api_version=self._api_version, df=None, is_persisted=True)
+        return Column(ser, api_version=self._api_version)
 
     def column_from_sequence(
         self,
@@ -283,7 +281,7 @@ class Namespace(NamespaceT):
             )
         else:
             ser = pd.Series(sequence, name=name)
-        return Column(ser, api_version=self._api_version, df=None, is_persisted=True)
+        return Column(ser, api_version=self._api_version)
 
     def concat(
         self,
@@ -608,7 +606,9 @@ class Expr:
         return Expr(lambda df: self.call(df).__sub__(other))
 
     def __rsub__(self, other: Column | Any) -> Column:
-        return -1 * self.__sub__(other)
+        if isinstance(other, Expr):
+            return Expr(lambda df: self.call(df).__rsub__(other.call(df)))
+        return Expr(lambda df: self.call(df).__rsub__(other))
 
     def __mul__(self, other: Expr | Any) -> Expr:
         if isinstance(other, Expr):

@@ -8,7 +8,7 @@ from tests.utils import interchange_to_pandas
 
 def test_update_column(library: str) -> None:
     df = integer_dataframe_1(library, api_version="2023.09-beta")
-    df.__dataframe_namespace__()
+    pdx = df.__dataframe_namespace__()
     new_col = pdx.col("b") + 3
     result = df.assign(new_col)
     result_pd = interchange_to_pandas(result)
@@ -22,7 +22,7 @@ def test_update_column(library: str) -> None:
 
 def test_update_columns(library: str) -> None:
     df = integer_dataframe_1(library, api_version="2023.09-beta")
-    df.__dataframe_namespace__()
+    pdx = df.__dataframe_namespace__()
     new_col_a = pdx.col("a") + 1
     new_col_b = pdx.col("b") + 3
     result = df.assign(new_col_a, new_col_b)

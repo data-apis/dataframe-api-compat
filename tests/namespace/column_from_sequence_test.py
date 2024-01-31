@@ -75,14 +75,13 @@ def test_column_from_sequence(
     kwargs: dict[str, Any],
     expected: pd.Series[Any],
 ) -> None:
-    df = integer_dataframe_1(library)
-    namespace = df.__dataframe_namespace__()
-    ser = pdx.col("a")
-    namespace = ser.__column_namespace__()
-    result = namespace.dataframe_from_columns(
-        namespace.column_from_sequence(
+    df = integer_dataframe_1(library).persist()
+    ser = df.get_column("a")
+    pdx = ser.__column_namespace__()
+    result = pdx.dataframe_from_columns(
+        pdx.column_from_sequence(
             values,
-            dtype=getattr(namespace, dtype)(**kwargs),
+            dtype=getattr(pdx, dtype)(**kwargs),
             name="result",
         ),
     )

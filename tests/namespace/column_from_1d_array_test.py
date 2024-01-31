@@ -34,7 +34,7 @@ def test_column_from_1d_array(
     library: str,
     pandas_dtype: str,
 ) -> None:
-    ser = integer_dataframe_1(library).col("a").persist()
+    ser = integer_dataframe_1(library).persist().get_column("a")
     namespace = ser.__column_namespace__()
     arr = np.array([1, 2, 3], dtype=pandas_dtype)
     result = namespace.dataframe_from_columns(
@@ -51,7 +51,7 @@ def test_column_from_1d_array(
 def test_column_from_1d_array_string(
     library: str,
 ) -> None:
-    ser = integer_dataframe_1(library).persist().col("a")
+    ser = integer_dataframe_1(library).persist().get_column("a")
     namespace = ser.__column_namespace__()
     arr = np.array(["a", "b", "c"])
     result = namespace.dataframe_from_columns(
@@ -68,7 +68,7 @@ def test_column_from_1d_array_string(
 def test_column_from_1d_array_bool(
     library: str,
 ) -> None:
-    ser = integer_dataframe_1(library).persist().col("a")
+    ser = integer_dataframe_1(library).persist().get_column("a")
     namespace = ser.__column_namespace__()
     arr = np.array([True, False, True])
     result = namespace.dataframe_from_columns(
@@ -83,7 +83,7 @@ def test_column_from_1d_array_bool(
 
 
 def test_datetime_from_1d_array(library: str) -> None:
-    ser = integer_dataframe_1(library).persist().col("a")
+    ser = integer_dataframe_1(library).persist().get_column("a")
     namespace = ser.__column_namespace__()
     arr = np.array([date(2020, 1, 1), date(2020, 1, 2)], dtype="datetime64[ms]")
     result = namespace.dataframe_from_columns(
@@ -110,7 +110,7 @@ def test_datetime_from_1d_array(library: str) -> None:
     reason="pandas before non-nano",
 )
 def test_duration_from_1d_array(library: str) -> None:
-    ser = integer_dataframe_1(library).persist().col("a")
+    ser = integer_dataframe_1(library).persist().get_column("a")
     namespace = ser.__column_namespace__()
     arr = np.array([timedelta(1), timedelta(2)], dtype="timedelta64[ms]")
     result = namespace.dataframe_from_columns(

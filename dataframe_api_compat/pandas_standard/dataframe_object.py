@@ -442,7 +442,8 @@ class DataFrame(DataFrameT):
         return self._from_dataframe(pd.concat(result, axis=1))
 
     def is_nan(self) -> DataFrame:
-        return self.assign(*[col.is_nan() for col in self.iter_columns()])
+        pdx = self.__dataframe_namespace__()
+        return self.assign(*[pdx.col(col).is_nan() for col in self.column_names])
 
     def fill_nan(self, value: float | Scalar | NullType) -> DataFrame:
         _value = validate_comparand(self, value)
