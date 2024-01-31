@@ -12,13 +12,17 @@ def validate_comparand(left: Any, right: Any) -> Any:
     If the comparison isn't supported, return `NotImplemented` so that the
     "right-hand-side" operation (e.g. `__radd__`) can be tried.
     """
-    if hasattr(right, "__expression_namespace__") and hasattr(
-        left,
-        "__dataframe_namespace__",
+    if hasattr(left, "__dataframe_namespace__") and hasattr(
+        right,
+        "__column_expr_namespace__",
     ):
         result = right.call(left)
-        if hasattr(result, "__column_namespace__"):
-            return result.column
+        return result.column
+    if hasattr(left, "__dataframe_namespace__") and hasattr(
+        right,
+        "__scalar_expr_namespace__",
+    ):
+        result = right.call(left)
         return result.scalar
     if hasattr(left, "__dataframe_namespace__") and hasattr(
         right,
@@ -37,7 +41,7 @@ def validate_comparand(left: Any, right: Any) -> Any:
             and hasattr(right.column, "index")
             and left.dataframe.index is not right.column.index
         ):
-            msg = "Cannot compare Column with DataFrame it was not derived from."
+            msg = "Cannot compare Column with DataFrame with different indices."
             raise ValueError(msg)
         return right.column
     if hasattr(left, "__dataframe_namespace__") and hasattr(
@@ -57,7 +61,7 @@ def validate_comparand(left: Any, right: Any) -> Any:
             and hasattr(right.column, "index")
             and left.column.index is not right.column.index
         ):
-            msg = "Cannot compare Columns from different dataframes"
+            msg = "Cannot compare Columns with different indices."
             raise ValueError(msg)
         return right.column
     if hasattr(left, "__column_namespace__") and hasattr(right, "__scalar_namespace__"):

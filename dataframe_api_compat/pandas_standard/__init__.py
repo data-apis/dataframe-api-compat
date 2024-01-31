@@ -522,7 +522,7 @@ class ColumnExpr:
             ),
         )
 
-    def __expression_namespace__(self) -> Namespace:
+    def __column_expr_namespace____(self) -> Namespace:
         return Namespace(api_version="2023.11-beta")
 
     def __getattribute__(self, attr: str) -> Any:
