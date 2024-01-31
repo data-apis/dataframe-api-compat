@@ -45,7 +45,7 @@ def test_column_from_1d_array(
     )
     expected = [1, 2, 3]
     compare_column_with_reference(
-        result.col("result"),
+        result.persist().get_column("result"),
         expected,
         dtype=getattr(pdx, column_dtype),
     )
@@ -64,7 +64,11 @@ def test_column_from_1d_array_string(
         ),
     )
     expected = ["a", "b", "c"]
-    compare_column_with_reference(result.col("result"), expected, dtype=pdx.String)
+    compare_column_with_reference(
+        result.persist().get_column("result"),
+        expected,
+        dtype=pdx.String,
+    )
 
 
 def test_column_from_1d_array_bool(
@@ -80,7 +84,11 @@ def test_column_from_1d_array_bool(
         ),
     )
     expected = [True, False, True]
-    compare_column_with_reference(result.col("result"), expected, dtype=pdx.Bool)
+    compare_column_with_reference(
+        result.persist().get_column("result"),
+        expected,
+        dtype=pdx.Bool,
+    )
 
 
 def test_datetime_from_1d_array(library: str) -> None:
@@ -94,7 +102,11 @@ def test_datetime_from_1d_array(library: str) -> None:
         ),
     )
     expected = [datetime(2020, 1, 1), datetime(2020, 1, 2)]
-    compare_column_with_reference(result.col("result"), expected, dtype=pdx.Datetime)
+    compare_column_with_reference(
+        result.persist().get_column("result"),
+        expected,
+        dtype=pdx.Datetime,
+    )
 
 
 @pytest.mark.skipif(
@@ -119,4 +131,8 @@ def test_duration_from_1d_array(library: str) -> None:
         # https://github.com/data-apis/dataframe-api/issues/329
         result = result.cast({"result": pdx.Duration("ms")})
     expected = [timedelta(1), timedelta(2)]
-    compare_column_with_reference(result.col("result"), expected, dtype=pdx.Duration)
+    compare_column_with_reference(
+        result.persist().get_column("result"),
+        expected,
+        dtype=pdx.Duration,
+    )

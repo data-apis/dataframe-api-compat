@@ -44,7 +44,11 @@ def test_column_comparisons(
         # TODO
         result = result.cast({"result": pdx.Int64()})
         expected_ns_dtype = pdx.Int64
-    compare_column_with_reference(result.col("result"), expected_data, expected_ns_dtype)
+    compare_column_with_reference(
+        result.get_column("result"),
+        expected_data,
+        expected_ns_dtype,
+    )
 
 
 @pytest.mark.parametrize(
@@ -81,7 +85,11 @@ def test_column_comparisons_scalar(
     if comparison == "__pow__" and library in ("polars", "polars-lazy"):
         result = result.cast({"result": pdx.Int64()})
         expected_ns_dtype = pdx.Int64
-    compare_column_with_reference(result.col("result"), expected_data, expected_ns_dtype)
+    compare_column_with_reference(
+        result.get_column("result"),
+        expected_data,
+        expected_ns_dtype,
+    )
 
 
 @pytest.mark.parametrize(
@@ -104,4 +112,8 @@ def test_right_column_comparisons(
     ser = pdx.col("a")
     other = 2
     result = df.assign(getattr(ser, comparison)(other).rename("result"))
-    compare_column_with_reference(result.col("result"), expected_data, dtype=pdx.Int64)
+    compare_column_with_reference(
+        result.get_column("result"),
+        expected_data,
+        dtype=pdx.Int64,
+    )

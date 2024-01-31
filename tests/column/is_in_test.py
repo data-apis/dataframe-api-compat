@@ -33,7 +33,11 @@ def test_is_in(
     ser = pdx.col("a")
     other = ser + 1
     result = df.assign(ser.is_in(other).rename("result"))
-    compare_column_with_reference(result.col("result"), expected_values, dtype=pdx.Bool)
+    compare_column_with_reference(
+        result.get_column("result"),
+        expected_values,
+        dtype=pdx.Bool,
+    )
 
 
 @pytest.mark.parametrize(
@@ -56,4 +60,8 @@ def test_expr_is_in(
     ser = col("a")
     other = ser + 1
     result = df.assign(ser.is_in(other).rename("result"))
-    compare_column_with_reference(result.col("result"), expected_values, dtype=pdx.Bool)
+    compare_column_with_reference(
+        result.persist().get_column("result"),
+        expected_values,
+        dtype=pdx.Bool,
+    )

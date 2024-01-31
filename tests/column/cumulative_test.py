@@ -35,4 +35,4 @@ def test_cumulative_functions_column(
         # Upstream bug
         result = result.cast({"result": pdx.Int64()})
 
-    compare_column_with_reference(result.col("result"), expected, dtype=pdx.Int64)
+    compare_column_with_reference(result.get_column("result"), expected, dtype=pdx.Int64)

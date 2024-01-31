@@ -11,7 +11,11 @@ def test_expression_invert(library: str) -> None:
     ser = pdx.col("a")
     result = df.assign((~ser).rename("result"))
     expected = [False, False, True]
-    compare_column_with_reference(result.col("result"), expected, dtype=pdx.Bool)
+    compare_column_with_reference(
+        result.persist().get_column("result"),
+        expected,
+        dtype=pdx.Bool,
+    )
 
 
 def test_column_invert(library: str) -> None:
@@ -20,4 +24,4 @@ def test_column_invert(library: str) -> None:
     ser = pdx.col("a")
     result = df.assign((~ser).rename("result"))
     expected = [False, False, True]
-    compare_column_with_reference(result.col("result"), expected, dtype=pdx.Bool)
+    compare_column_with_reference(result.get_column("result"), expected, dtype=pdx.Bool)

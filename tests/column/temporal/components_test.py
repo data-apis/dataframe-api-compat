@@ -26,11 +26,15 @@ def test_col_components(library: str, attr: str, expected: list[int]) -> None:
     pdx = df.__dataframe_namespace__()
     for col_name in ("a", "c", "e"):
         result = df.assign(
-            getattr(df.get_column(col_name), attr)().rename("result"),
+            getattr(pdx.col(col_name), attr)().rename("result"),
         ).select(
             "result",
         )
-        compare_column_with_reference(result.col("result"), expected, dtype=pdx.Int64)
+        compare_column_with_reference(
+            result.persist().get_column("result").cast(pdx.Int32()),
+            expected,
+            dtype=pdx.Int32,
+        )
 
 
 @pytest.mark.parametrize(
@@ -51,7 +55,11 @@ def test_col_microsecond(library: str, col_name: str, expected: list[int]) -> No
         )
         .cast({"result": pdx.Int64()})
     )
-    compare_column_with_reference(result.col("result"), expected, dtype=pdx.Int64)
+    compare_column_with_reference(
+        result.persist().get_column("result"),
+        expected,
+        dtype=pdx.Int64,
+    )
 
 
 @pytest.mark.parametrize(
@@ -72,7 +80,11 @@ def test_col_nanosecond(library: str, col_name: str, expected: list[int]) -> Non
         )
         .cast({"result": pdx.Int64()})
     )
-    compare_column_with_reference(result.col("result"), expected, dtype=pdx.Int64)
+    compare_column_with_reference(
+        result.persist().get_column("result"),
+        expected,
+        dtype=pdx.Int64,
+    )
 
 
 @pytest.mark.parametrize(
@@ -100,4 +112,8 @@ def test_col_unix_timestamp_time_units(
         )
         .cast({"result": pdx.Int64()})
     )
-    compare_column_with_reference(result.col("result"), expected, dtype=pdx.Int64)
+    compare_column_with_reference(
+        result.persist().get_column("result"),
+        expected,
+        dtype=pdx.Int64,
+    )

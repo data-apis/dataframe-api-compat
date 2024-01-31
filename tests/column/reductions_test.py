@@ -31,6 +31,10 @@ def test_expression_reductions(
     ser = pdx.col("a")
     ser = ser - getattr(ser, reduction)()
     result = df.assign(ser.rename("result"))
-    reference = list((df.col("a") - expected).persist().to_array())
+    reference = list((df.persist().get_column("a") - expected).to_array())
     expected_ns_dtype = getattr(pdx, expected_dtype)
-    compare_column_with_reference(result.col("result"), reference, expected_ns_dtype)
+    compare_column_with_reference(
+        result.persist().get_column("result"),
+        reference,
+        expected_ns_dtype,
+    )

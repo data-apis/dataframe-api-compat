@@ -38,15 +38,19 @@ def test_column_from_sequence(
     df = integer_dataframe_1(library).persist()
     ser = df.get_column("a")
     pdx = ser.__column_namespace__()
-    expected_dtype = getattr(pdx, dtype)(**kwargs)
+    expected_dtype = getattr(pdx, dtype)
     result = pdx.dataframe_from_columns(
         pdx.column_from_sequence(
             values,
-            dtype=expected_dtype,
+            dtype=expected_dtype(**kwargs),
             name="result",
         ),
     )
-    compare_column_with_reference(result.col("result"), values, dtype=expected_dtype)
+    compare_column_with_reference(
+        result.persist().get_column("result"),
+        values,
+        dtype=expected_dtype,
+    )
 
 
 def test_column_from_sequence_no_dtype(
@@ -57,4 +61,8 @@ def test_column_from_sequence_no_dtype(
     pdx = df.__dataframe_namespace__()
     result = pdx.dataframe_from_columns(pdx.column_from_sequence([1, 2, 3], name="result"))  # type: ignore[call-arg]
     expected = [1, 2, 3]
-    compare_column_with_reference(result.col("result"), expected, dtype=pdx.Int64)
+    compare_column_with_reference(
+        result.persist().get_column("result"),
+        expected,
+        dtype=pdx.Int64,
+    )

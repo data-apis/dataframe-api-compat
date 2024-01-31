@@ -13,4 +13,8 @@ def test_expression_take(library: str) -> None:
     ser = pdx.col("a")
     indices = pdx.col("a") - 1
     result = df.assign(ser.take(indices).rename("result")).select("result")
-    compare_column_with_reference(result.col("result"), [1, 2, 3], dtype=pdx.Int64)
+    compare_column_with_reference(
+        result.persist().get_column("result"),
+        [1, 2, 3],
+        dtype=pdx.Int64,
+    )

@@ -455,7 +455,6 @@ def compare_column_with_reference(
     reference: list[Any],
     dtype: Any,
 ) -> None:
-    column = column.persist()
     col_len = column.len().scalar
     assert col_len == len(reference), f"column length: {col_len} != {len(reference)}"
     assert isinstance(
@@ -482,13 +481,15 @@ def compare_dataframe_with_reference(
     reference: Mapping[str, list[Any]],
     dtype: Any | Mapping[str, Any],
 ) -> None:
+    if not dataframe._is_persisted:
+        dataframe = dataframe.persist()
     assert dataframe.column_names == list(
         reference.keys(),
     ), f"dataframe column names: '{dataframe.column_names}' != '{list(reference.keys())}'"
     for col_name in dataframe.column_names:
         col_dtype = dtype[col_name] if isinstance(dtype, dict) else dtype
         compare_column_with_reference(
-            dataframe.col(col_name),
+            dataframe.get_column(col_name),
             reference[col_name],
             dtype=col_dtype,
         )

@@ -19,4 +19,8 @@ def test_floor(library: str, freq: str, expected: list[datetime]) -> None:
     pdx = df.__dataframe_namespace__()
     result = df.assign(pdx.col("a").floor(freq).rename("result")).select("result").persist()  # type: ignore[attr-defined]
     # TODO check the resolution
-    compare_column_with_reference(result.col("result"), expected, dtype=pdx.Datetime)
+    compare_column_with_reference(
+        result.get_column("result"),
+        expected,
+        dtype=pdx.Datetime,
+    )

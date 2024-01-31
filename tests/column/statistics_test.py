@@ -8,4 +8,8 @@ def test_mean(library: str) -> None:
     df = integer_dataframe_1(library)
     pdx = df.__dataframe_namespace__()
     result = df.assign((pdx.col("a") - pdx.col("a").mean()).rename("result"))
-    compare_column_with_reference(result.col("result"), [-1, 0, 1.0], dtype=pdx.Float64)
+    compare_column_with_reference(
+        result.persist().get_column("result"),
+        [-1, 0, 1.0],
+        dtype=pdx.Float64,
+    )
