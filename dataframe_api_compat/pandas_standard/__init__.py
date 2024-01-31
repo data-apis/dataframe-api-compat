@@ -679,57 +679,91 @@ class ScalarExpr:
     #     if isinstance(other, Scalar):
 
     def __ne__(self, other: ColumnExpr | Any) -> ColumnExpr:  # type: ignore[override]
+        if isinstance(other, ColumnExpr):
+            return NotImplemented
         return ScalarExpr(lambda df: self.call(df).__ne__(validate_comparand(other)))
 
     def __ge__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return NotImplemented
         return ScalarExpr(lambda df: self.call(df).__ge__(validate_comparand(other)))
 
     def __gt__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return NotImplemented
         return ScalarExpr(lambda df: self.call(df).__gt__(validate_comparand(other)))
 
     def __le__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return NotImplemented
         return ScalarExpr(lambda df: self.call(df).__le__(validate_comparand(other)))
 
     def __lt__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return NotImplemented
         return ScalarExpr(lambda df: self.call(df).__lt__(validate_comparand(other)))
 
     def __and__(self, other: ColumnExpr | bool | Scalar) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return NotImplemented
         return ScalarExpr(lambda df: self.call(df).__and__(validate_comparand(other)))
 
     def __rand__(self, other: Column | Any) -> Column:
+        if isinstance(other, ColumnExpr):
+            return NotImplemented
         return self.__and__(other)
 
     def __or__(self, other: ColumnExpr | bool | Scalar) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return NotImplemented
         return ScalarExpr(lambda df: self.call(df).__or__(validate_comparand(other)))
 
     def __ror__(self, other: Column | Any) -> Column:
+        if isinstance(other, ColumnExpr):
+            return NotImplemented
         return self.__or__(other)
 
     def __add__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return NotImplemented
         return ScalarExpr(lambda df: self.call(df).__add__(validate_comparand(other)))
 
     def __radd__(self, other: Column | Any) -> Column:
+        if isinstance(other, ColumnExpr):
+            return NotImplemented
         return self.__add__(other)
 
     def __sub__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return NotImplemented
         return ScalarExpr(lambda df: self.call(df).__sub__(validate_comparand(other)))
 
     def __rsub__(self, other: Column | Any) -> Column:
+        if isinstance(other, ColumnExpr):
+            return NotImplemented
         return ScalarExpr(lambda df: self.call(df).__rsub__(validate_comparand(other)))
 
     def __mul__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return NotImplemented
         return ScalarExpr(lambda df: self.call(df).__mul__(validate_comparand(other)))
 
     def __rmul__(self, other: Column | Any) -> Column:
+        if isinstance(other, ColumnExpr):
+            return NotImplemented
         return self.__mul__(other)
 
     def __truediv__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return NotImplemented
         return ScalarExpr(lambda df: self.call(df).__truediv__(validate_comparand(other)))
 
     def __rtruediv__(self, other: Column | Any) -> Column:
         raise NotImplementedError
 
     def __floordiv__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return NotImplemented
         return ScalarExpr(
             lambda df: self.call(df).__floordiv(validate_comparand(other)),
         )
@@ -738,18 +772,24 @@ class ScalarExpr:
         raise NotImplementedError
 
     def __pow__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return NotImplemented
         return ScalarExpr(lambda df: self.call(df).__pow(validate_comparand(other)))
 
     def __rpow__(self, other: Column | Any) -> Column:  # pragma: no cover
         raise NotImplementedError
 
     def __mod__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return NotImplemented
         return ScalarExpr(lambda df: self.call(df).__mod__(validate_comparand(other)))
 
     def __rmod__(self, other: Column | Any) -> Column:  # pragma: no cover
         raise NotImplementedError
 
     def __divmod__(self, other: ColumnExpr | Any) -> tuple[ColumnExpr, Column]:
+        if isinstance(other, ColumnExpr):
+            return NotImplemented
         return ScalarExpr(lambda df: self.call(df).__divmod__(validate_comparand(other)))
 
     # Unary

@@ -39,14 +39,6 @@ def test_float_binary(library: str, attr: str) -> None:
     assert getattr(scalar, attr)(other) == getattr(float_scalar, attr)(other)
 
 
-@pytest.mark.xfail(strict=False)
-def test_float_binary_invalid(library: str) -> None:
-    lhs = integer_dataframe_2(library).col("a").mean()
-    rhs = integer_dataframe_1(library).col("b").mean()
-    with pytest.raises(ValueError):
-        _ = lhs > rhs
-
-
 def test_float_binary_lazy_valid(library: str) -> None:
     df = integer_dataframe_2(library).persist()
     lhs = df.get_column("a").mean()
@@ -95,8 +87,6 @@ def test_free_standing(library: str) -> None:
     assert result == 3.0
 
 
-# todo
-@pytest.mark.xfail()
 def test_right_comparand(library: str) -> None:
     df = integer_dataframe_1(library)
     pdx = df.__dataframe_namespace__()
