@@ -1,10 +1,9 @@
 import numpy as np
-import pandas as pd
 import pytest
 
+from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_1
 from tests.utils import integer_dataframe_2
-from tests.utils import interchange_to_pandas
 
 
 @pytest.mark.parametrize(
@@ -104,12 +103,9 @@ def test_right_comparand(library: str) -> None:
     col = pdx.col("a")  # [1, 2, 3]
     scalar = pdx.col("b").get_value(0)  # 4
     result = df.assign((scalar - col).rename("c"))
-    result_pd = interchange_to_pandas(result)
-    expected = pd.DataFrame(
-        {
-            "a": [1, 2, 3],
-            "b": [4, 5, 6],
-            "c": [3, 2, 1],
-        },
-    )
-    pd.testing.assert_frame_equal(result_pd, expected)
+    expected = {
+        "a": [1, 2, 3],
+        "b": [4, 5, 6],
+        "c": [3, 2, 1],
+    }
+    compare_dataframe_with_reference(result, expected, pdx.Int64)

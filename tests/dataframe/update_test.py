@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import pandas as pd
-
+from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_1
-from tests.utils import interchange_to_pandas
 
 
 def test_update_column(library: str) -> None:
@@ -11,13 +9,11 @@ def test_update_column(library: str) -> None:
     pdx = df.__dataframe_namespace__()
     new_col = pdx.col("b") + 3
     result = df.assign(new_col)
-    result_pd = interchange_to_pandas(result)
-    expected = pd.DataFrame({"a": [1, 2, 3], "b": [7, 8, 9]})
-    pd.testing.assert_frame_equal(result_pd, expected)
+    expected = {"a": [1, 2, 3], "b": [7, 8, 9]}
+    compare_dataframe_with_reference(result, expected, dtype=pdx.Int64)
     # check original df didn't change
-    df_pd = interchange_to_pandas(df)
-    expected = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
-    pd.testing.assert_frame_equal(df_pd, expected)
+    expected = {"a": [1, 2, 3], "b": [4, 5, 6]}
+    compare_dataframe_with_reference(df, expected, dtype=pdx.Int64)
 
 
 def test_update_columns(library: str) -> None:
@@ -26,10 +22,8 @@ def test_update_columns(library: str) -> None:
     new_col_a = pdx.col("a") + 1
     new_col_b = pdx.col("b") + 3
     result = df.assign(new_col_a, new_col_b)
-    result_pd = interchange_to_pandas(result)
-    expected = pd.DataFrame({"a": [2, 3, 4], "b": [7, 8, 9]})
-    pd.testing.assert_frame_equal(result_pd, expected)
+    expected = {"a": [2, 3, 4], "b": [7, 8, 9]}
+    compare_dataframe_with_reference(result, expected, dtype=pdx.Int64)
     # check original df didn't change
-    df_pd = interchange_to_pandas(df)
-    expected = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
-    pd.testing.assert_frame_equal(df_pd, expected)
+    expected = {"a": [1, 2, 3], "b": [4, 5, 6]}
+    compare_dataframe_with_reference(df, expected, dtype=pdx.Int64)

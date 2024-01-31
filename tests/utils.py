@@ -1,11 +1,11 @@
 from __future__ import annotations
 
+import math
 from datetime import datetime
 from datetime import timedelta
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import TypeVar
-from typing import cast
+from typing import Mapping
 
 import pandas as pd
 import polars as pl
@@ -14,9 +14,8 @@ from packaging.version import parse
 import dataframe_api_compat.pandas_standard
 import dataframe_api_compat.polars_standard
 
-DType = TypeVar("DType")
-
 if TYPE_CHECKING:
+    from dataframe_api import Column
     from dataframe_api import DataFrame
 
 POLARS_VERSION = parse(pl.__version__)
@@ -46,27 +45,6 @@ def convert_to_standard_compliant_dataframe(
     else:  # pragma: no cover
         msg = f"Got unexpected type: {type(df)}"
         raise AssertionError(msg)
-
-
-def convert_dataframe_to_pandas_numpy(df: pd.DataFrame) -> pd.DataFrame:
-    conversions = {
-        "boolean": "bool",
-        "Int64": "int64",
-        "Float64": "float64",
-    }
-    for column in df.columns:
-        dtype = str(df.dtypes[column])
-        if dtype in conversions:
-            try:
-                df[column] = df[column].to_numpy(
-                    conversions[dtype],
-                    na_value=float("nan"),
-                )
-            except ValueError:
-                # cannot convert float NaN to integer
-                assert dtype == "Int64"
-                df[column] = df[column].to_numpy("float64", na_value=float("nan"))
-    return df
 
 
 def integer_dataframe_1(library: str, api_version: str | None = None) -> DataFrame:
@@ -472,17 +450,48 @@ def temporal_dataframe_1(library: str) -> DataFrame:
     raise AssertionError(msg)
 
 
-def interchange_to_pandas(result: Any) -> pd.DataFrame:
-    if isinstance(result.dataframe, pl.LazyFrame):
-        df = result.dataframe.collect()
-        df = df.to_pandas()
-    elif isinstance(result.dataframe, pl.DataFrame):
-        df = result.dataframe
-        df = df.to_pandas()
-    else:
-        df = result.dataframe
-    df = convert_dataframe_to_pandas_numpy(df)
-    return cast(pd.DataFrame, df)
+def compare_column_with_reference(
+    column: Column,
+    reference: list[Any],
+    dtype: Any,
+) -> None:
+    column = column.persist()
+    col_len = column.len().scalar
+    assert col_len == len(reference), f"column length: {col_len} != {len(reference)}"
+    assert isinstance(
+        column.dtype,
+        dtype,
+    ), f"column dtype: {column.dtype} isn't a instance of {dtype}"
+    for idx in range(col_len):
+        a, b = reference[idx], column.get_value(idx).scalar
+        if a == b:
+            return
+
+        # copied from pandas
+        rtol, atol = 1e-5, 1e-8
+        assert math.isclose(
+            a,
+            b,
+            rel_tol=rtol,
+            abs_tol=atol,
+        ), f"expected {a:.5f} but got {b:.5f}, with rtol={rtol}, atol={atol}"
+
+
+def compare_dataframe_with_reference(
+    dataframe: DataFrame,
+    reference: Mapping[str, list[Any]],
+    dtype: Any | Mapping[str, Any],
+) -> None:
+    assert dataframe.column_names == list(
+        reference.keys(),
+    ), f"dataframe column names: '{dataframe.column_names}' != '{list(reference.keys())}'"
+    for col_name in dataframe.column_names:
+        col_dtype = dtype[col_name] if isinstance(dtype, dict) else dtype
+        compare_column_with_reference(
+            dataframe.col(col_name),
+            reference[col_name],
+            dtype=col_dtype,
+        )
 
 
 def mixed_dataframe_1(library: str) -> DataFrame:

@@ -1,19 +1,18 @@
 from __future__ import annotations
 
-import pandas as pd
 import pytest
 
 from tests.utils import bool_dataframe_1
+from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_1
-from tests.utils import interchange_to_pandas
 
 
 def test_invert(library: str) -> None:
     df = bool_dataframe_1(library)
+    pdx = df.__dataframe_namespace__()
     result = ~df
-    result_pd = interchange_to_pandas(result)
-    expected = pd.DataFrame({"a": [False, False, True], "b": [False, False, False]})
-    pd.testing.assert_frame_equal(result_pd, expected)
+    expected = {"a": [False, False, True], "b": [False, False, False]}
+    compare_dataframe_with_reference(result, expected, dtype=pdx.Bool)
 
 
 def test_invert_invalid(library: str) -> None:

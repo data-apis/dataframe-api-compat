@@ -1,29 +1,28 @@
 from __future__ import annotations
 
-import pandas as pd
 import polars as pl
 import pytest
 
+from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_1
 from tests.utils import integer_dataframe_2
 from tests.utils import integer_dataframe_4
-from tests.utils import interchange_to_pandas
 
 
 def test_concat(library: str) -> None:
     df1 = integer_dataframe_1(library)
+    pdx = df1.__dataframe_namespace__()
     df2 = integer_dataframe_2(library)
-    namespace = df1.__dataframe_namespace__()
-    result = namespace.concat([df1, df2])
-    result_pd = interchange_to_pandas(result)
-    expected = pd.DataFrame({"a": [1, 2, 3, 1, 2, 4], "b": [4, 5, 6, 4, 2, 6]})
-    pd.testing.assert_frame_equal(result_pd, expected)
+    ns = df1.__dataframe_namespace__()
+    result = ns.concat([df1, df2])
+    expected = {"a": [1, 2, 3, 1, 2, 4], "b": [4, 5, 6, 4, 2, 6]}
+    compare_dataframe_with_reference(result, expected, dtype=pdx.Int64)
 
 
 def test_concat_mismatch(library: str) -> None:
     df1 = integer_dataframe_1(library).persist()
     df2 = integer_dataframe_4(library).persist()
-    namespace = df1.__dataframe_namespace__()
+    ns = df1.__dataframe_namespace__()
     # TODO check the error
     with pytest.raises((ValueError, pl.exceptions.ShapeError)):
-        _ = namespace.concat([df1, df2]).persist()
+        _ = ns.concat([df1, df2]).persist()

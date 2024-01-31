@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import pytest
 
-from tests.utils import interchange_to_pandas
 from tests.utils import nan_dataframe_1
 from tests.utils import null_dataframe_2
 
@@ -26,11 +25,11 @@ def test_fill_null(library: str, column_names: list[str] | None) -> None:
         # check there no nulls left in the column
         assert res1.shape()[0] == 0
         # check the last element was filled with 0
-        assert interchange_to_pandas(result)["a"].iloc[2] == 0
+        assert result.col("a").persist().get_value(2).scalar == 0
     if column_names is None or "b" in column_names:
         res1 = result.filter(result.get_column("b").is_null())
         assert res1.shape()[0] == 0
-        assert interchange_to_pandas(result)["b"].iloc[2] == 0
+        assert result.col("b").persist().get_value(2).scalar == 0
 
 
 def test_fill_null_noop(library: str) -> None:

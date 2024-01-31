@@ -3,8 +3,8 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
+from tests.utils import compare_column_with_reference
 from tests.utils import integer_dataframe_1
-from tests.utils import interchange_to_pandas
 
 
 def test_column_filter(library: str) -> None:
@@ -20,11 +20,9 @@ def test_column_filter(library: str) -> None:
 @pytest.mark.xfail(strict=False)
 def test_column_take_by_mask_noop(library: str) -> None:
     df = integer_dataframe_1(library)
-    df.__dataframe_namespace__()
+    pdx = df.__dataframe_namespace__()
     ser = pdx.col("a")
     mask = ser > 0
     ser = ser.filter(mask)
     result = df.assign(ser.rename("result"))
-    result_pd = interchange_to_pandas(result)["result"]
-    expected = pd.Series([1, 2, 3], name="result")
-    pd.testing.assert_series_equal(result_pd, expected)
+    compare_column_with_reference(result.col("result"), [1, 2, 3], dtype=pdx.Int64)

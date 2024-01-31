@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import pandas as pd
 import pytest
 
 from tests.utils import bool_dataframe_1
-from tests.utils import interchange_to_pandas
+from tests.utils import compare_dataframe_with_reference
 
 
 def test_all_horizontal(library: str) -> None:
@@ -12,9 +11,8 @@ def test_all_horizontal(library: str) -> None:
     pdx = df.__dataframe_namespace__()
     mask = pdx.all_horizontal(*[pdx.col(col_name) for col_name in df.column_names])
     result = df.filter(mask)
-    result_pd = interchange_to_pandas(result)
-    expected = pd.DataFrame({"a": [True, True], "b": [True, True]})
-    pd.testing.assert_frame_equal(result_pd, expected)
+    expected = {"a": [True, True], "b": [True, True]}
+    compare_dataframe_with_reference(result, expected, dtype=pdx.Bool)
 
 
 @pytest.mark.xfail(strict=False)
