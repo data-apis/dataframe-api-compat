@@ -536,7 +536,18 @@ class ColumnExpr:
         ):
             raise AttributeError
 
-        if attr in ("mean",):
+        if attr in (
+            "mean",
+            "sum",
+            "min",
+            "max",
+            "std",
+            "var",
+            "median",
+            "sum",
+            "prod",
+            "get_value",
+        ):
 
             def func(*args: Any, **kwargs: Any) -> ScalarExpr:
                 def call(df: DataFrame) -> Scalar:

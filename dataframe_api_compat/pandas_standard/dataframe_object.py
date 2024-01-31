@@ -199,7 +199,10 @@ class DataFrame(DataFrameT):
         self,
         *columns: Column,
     ) -> DataFrame:
-        if isinstance(columns, list):
+        if not columns:
+            msg = "Can't assign no columns"
+            raise ValueError(msg)
+        if isinstance(columns[0], list):
             msg = "Expected iterable of Column or ColumnExpr, but got list"
             raise TypeError(msg)
 
