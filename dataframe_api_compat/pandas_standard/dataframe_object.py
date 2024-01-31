@@ -199,16 +199,13 @@ class DataFrame(DataFrameT):
         self,
         *columns: Column,
     ) -> DataFrame:
-        from dataframe_api_compat.pandas_standard import ColumnExpr
-        from dataframe_api_compat.pandas_standard.column_object import Column
+        if isinstance(columns, list):
+            msg = "Expected iterable of Column or ColumnExpr, but got list"
+            raise TypeError(msg)
 
         new_cols = {}
         for column in columns:
-            new_column = column.call(self) if isinstance(column, ColumnExpr) else column
-            if not isinstance(new_column, Column):
-                msg = f"Expected iterable of Column, but the first element is: {type(new_column)}"
-                raise TypeError(msg)
-            _series = validate_comparand(self, new_column)
+            _series = validate_comparand(self, column)
             new_cols[_series.name] = _series
         df = self.dataframe.assign(**new_cols)
         return self._from_dataframe(df)

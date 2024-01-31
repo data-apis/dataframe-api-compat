@@ -536,6 +536,22 @@ class ColumnExpr:
         ):
             raise AttributeError
 
+        if attr in ("mean",):
+
+            def func(*args: Any, **kwargs: Any) -> ScalarExpr:
+                def call(df: DataFrame) -> Scalar:
+                    return getattr(self.call(df), attr)(  # type: ignore[no-any-return]
+                        *[validate_comparand(df, arg) for arg in args],
+                        **{
+                            arg_name: validate_comparand(df, arg_value)
+                            for arg_name, arg_value in kwargs.items()
+                        },
+                    )
+
+                return ScalarExpr(call=call)
+
+            return func
+
         def func(*args: Any, **kwargs: Any) -> ColumnExpr:
             def call(df: DataFrame) -> Column:
                 return getattr(self.call(df), attr)(  # type: ignore[no-any-return]
@@ -642,6 +658,9 @@ class ColumnExpr:
 class ScalarExpr:
     def __init__(self, call: Callable[[DataFrame], AnyScalar]) -> None:
         self.call = call
+
+    def __scalar_expr_namespace__(self) -> Namespace:
+        return Namespace(api_version="2023.11-beta")
 
     # def __eq__(self, other: ColumnExpr | ScalarExpr | AnyScalar) -> ColumnExpr:  # type: ignore[override]
     #     if isinstance(other, ColumnExpr):
