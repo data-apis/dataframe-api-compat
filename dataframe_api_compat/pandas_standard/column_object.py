@@ -120,7 +120,7 @@ class Column(ColumnT):
 
     def filter(self, mask: Column) -> Column:
         ser = self.column
-        return self._from_series(ser.loc[mask.column])
+        return self._from_series(ser.loc[validate_comparand(self, mask)])
 
     def get_value(self, row_number: int) -> Any:
         ser = self.column
