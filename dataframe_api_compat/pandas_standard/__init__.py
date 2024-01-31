@@ -551,34 +551,22 @@ class ColumnExpr:
         return func
 
     def __eq__(self, other: ColumnExpr | Any) -> ColumnExpr:  # type: ignore[override]
-        if isinstance(other, ColumnExpr):
-            return ColumnExpr(lambda df: self.call(df).__eq__(other.call(df)))
-        return ColumnExpr(lambda df: self.call(df).__eq__(other))
+        return ColumnExpr(lambda df: self.call(df).__eq__(validate_comparand(df, other)))
 
     def __ne__(self, other: ColumnExpr | Any) -> ColumnExpr:  # type: ignore[override]
-        if isinstance(other, ColumnExpr):
-            return ColumnExpr(lambda df: self.call(df).__ne__(other.call(df)))
-        return ColumnExpr(lambda df: self.call(df).__ne__(other))
+        return ColumnExpr(lambda df: self.call(df).__ne__(validate_comparand(df, other)))
 
     def __ge__(self, other: ColumnExpr | Any) -> ColumnExpr:
-        if isinstance(other, ColumnExpr):
-            return ColumnExpr(lambda df: self.call(df).__ge__(other.call(df)))
-        return ColumnExpr(lambda df: self.call(df).__ge__(other))
+        return ColumnExpr(lambda df: self.call(df).__ge__(validate_comparand(df, other)))
 
     def __gt__(self, other: ColumnExpr | Any) -> ColumnExpr:
-        if isinstance(other, ColumnExpr):
-            return ColumnExpr(lambda df: self.call(df).__gt__(other.call(df)))
-        return ColumnExpr(lambda df: self.call(df).__gt__(other))
+        return ColumnExpr(lambda df: self.call(df).__gt__(validate_comparand(df, other)))
 
     def __le__(self, other: ColumnExpr | Any) -> ColumnExpr:
-        if isinstance(other, ColumnExpr):
-            return ColumnExpr(lambda df: self.call(df).__le__(other.call(df)))
-        return ColumnExpr(lambda df: self.call(df).__le__(other))
+        return ColumnExpr(lambda df: self.call(df).__le__(validate_comparand(df, other)))
 
     def __lt__(self, other: ColumnExpr | Any) -> ColumnExpr:
-        if isinstance(other, ColumnExpr):
-            return ColumnExpr(lambda df: self.call(df).__lt__(other.call(df)))
-        return ColumnExpr(lambda df: self.call(df).__lt__(other))
+        return ColumnExpr(lambda df: self.call(df).__lt__(validate_comparand(df, other)))
 
     def __and__(self, other: ColumnExpr | bool | Scalar) -> ColumnExpr:
         return ColumnExpr(lambda df: self.call(df).__and__(validate_comparand(df, other)))
@@ -587,9 +575,7 @@ class ColumnExpr:
         return self.__and__(other)
 
     def __or__(self, other: ColumnExpr | bool | Scalar) -> ColumnExpr:
-        if isinstance(other, ColumnExpr):
-            return ColumnExpr(lambda df: self.call(df).__or__(other.call(df)))
-        return ColumnExpr(lambda df: self.call(df).__or__(other))
+        return ColumnExpr(lambda df: self.call(df).__or__(validate_comparand(df, other)))
 
     def __ror__(self, other: Column | Any) -> Column:
         return self.__or__(other)
@@ -601,59 +587,51 @@ class ColumnExpr:
         return self.__add__(other)
 
     def __sub__(self, other: ColumnExpr | Any) -> ColumnExpr:
-        if isinstance(other, ColumnExpr):
-            return ColumnExpr(lambda df: self.call(df).__sub__(other.call(df)))
-        return ColumnExpr(lambda df: self.call(df).__sub__(other))
+        return ColumnExpr(lambda df: self.call(df).__sub__(validate_comparand(df, other)))
 
     def __rsub__(self, other: Column | Any) -> Column:
-        if isinstance(other, ColumnExpr):
-            return ColumnExpr(lambda df: self.call(df).__rsub__(other.call(df)))
-        return ColumnExpr(lambda df: self.call(df).__rsub__(other))
+        return ColumnExpr(
+            lambda df: self.call(df).__rsub__(validate_comparand(df, other)),
+        )
 
     def __mul__(self, other: ColumnExpr | Any) -> ColumnExpr:
-        if isinstance(other, ColumnExpr):
-            return ColumnExpr(lambda df: self.call(df).__mul__(other.call(df)))
-        return ColumnExpr(lambda df: self.call(df).__mul__(other))
+        return ColumnExpr(lambda df: self.call(df).__mul__(validate_comparand(df, other)))
 
     def __rmul__(self, other: Column | Any) -> Column:
         return self.__mul__(other)
 
     def __truediv__(self, other: ColumnExpr | Any) -> ColumnExpr:
-        if isinstance(other, ColumnExpr):
-            return ColumnExpr(lambda df: self.call(df).__truediv__(other.call(df)))
-        return ColumnExpr(lambda df: self.call(df).__truediv__(other))
+        return ColumnExpr(
+            lambda df: self.call(df).__truediv__(validate_comparand(df, other)),
+        )
 
     def __rtruediv__(self, other: Column | Any) -> Column:
         raise NotImplementedError
 
     def __floordiv__(self, other: ColumnExpr | Any) -> ColumnExpr:
-        if isinstance(other, ColumnExpr):
-            return ColumnExpr(lambda df: self.call(df).__floordiv__(other.call(df)))
-        return ColumnExpr(lambda df: self.call(df).__floordiv__(other))
+        return ColumnExpr(
+            lambda df: self.call(df).__floordiv__(validate_comparand(df, other)),
+        )
 
     def __rfloordiv__(self, other: Column | Any) -> Column:
         raise NotImplementedError
 
     def __pow__(self, other: ColumnExpr | Any) -> ColumnExpr:
-        if isinstance(other, ColumnExpr):
-            return ColumnExpr(lambda df: self.call(df).__pow__(other.call(df)))
-        return ColumnExpr(lambda df: self.call(df).__pow__(other))
+        return ColumnExpr(lambda df: self.call(df).__pow__(validate_comparand(df, other)))
 
     def __rpow__(self, other: Column | Any) -> Column:  # pragma: no cover
         raise NotImplementedError
 
     def __mod__(self, other: ColumnExpr | Any) -> ColumnExpr:
-        if isinstance(other, ColumnExpr):
-            return ColumnExpr(lambda df: self.call(df).__mod__(other.call(df)))
-        return ColumnExpr(lambda df: self.call(df).__mod__(other))
+        return ColumnExpr(lambda df: self.call(df).__mod__(validate_comparand(df, other)))
 
     def __rmod__(self, other: Column | Any) -> Column:  # pragma: no cover
         raise NotImplementedError
 
     def __divmod__(self, other: ColumnExpr | Any) -> tuple[ColumnExpr, Column]:
-        if isinstance(other, ColumnExpr):
-            return ColumnExpr(lambda df: self.call(df).__divmod__(other.call(df)))
-        return ColumnExpr(lambda df: self.call(df).__divmod__(other))
+        return ColumnExpr(
+            lambda df: self.call(df).__divmod__(validate_comparand(df, other)),
+        )
 
     # Unary
 
