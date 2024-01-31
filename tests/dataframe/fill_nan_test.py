@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import pytest
-
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import nan_dataframe_1
 
@@ -23,21 +21,12 @@ def test_fill_nan_with_scalar(library: str) -> None:
     compare_dataframe_with_reference(result, expected, dtype=pdx.Float64)
 
 
-@pytest.mark.xfail(strict=False)
-def test_fill_nan_with_scalar_invalid(library: str) -> None:
-    df = nan_dataframe_1(library)
-    other = df + 1
-    with pytest.raises(ValueError):
-        _ = df.fill_nan(other.col("a").get_value(0))
-
-
-@pytest.mark.xfail(strict=False)
 def test_fill_nan_with_null(library: str) -> None:
     df = nan_dataframe_1(library).persist()
     pdx = df.__dataframe_namespace__()
     result = df.fill_nan(pdx.null)
-    result.is_nan().sum()
-    result = df.get_column("a").get_value(0).scalar
+    result = result.is_nan().sum()
+    result = result.get_column("a").get_value(0).scalar
     if library == "pandas-numpy":
         # null is nan for pandas-numpy
         assert result == 1
