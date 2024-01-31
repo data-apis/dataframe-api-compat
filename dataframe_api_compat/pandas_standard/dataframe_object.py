@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from dataframe_api.typing import NullType
     from dataframe_api.typing import Scalar
 
-    from dataframe_api_compat.pandas_standard import Expr
+    from dataframe_api_compat.pandas_standard import ColumnExpr
     from dataframe_api_compat.pandas_standard.group_by_object import GroupBy
 else:
     DataFrameT = object
@@ -150,8 +150,8 @@ class DataFrame(DataFrameT):
                 raise KeyError(msg)
         return GroupBy(self, keys, api_version=self._api_version)
 
-    def select(self, *columns: str | Expr) -> DataFrame:
-        from dataframe_api_compat.pandas_standard import Expr
+    def select(self, *columns: str | ColumnExpr) -> DataFrame:
+        from dataframe_api_compat.pandas_standard import ColumnExpr
 
         cols = list(columns)
         if cols and isinstance(cols[0], (list, tuple)):
@@ -161,7 +161,9 @@ class DataFrame(DataFrameT):
             msg = "Can't select no columns"
             raise ValueError(msg)
         new_cols = [
-            col.call(self).column if isinstance(col, Expr) else self.dataframe.loc[:, col]
+            col.call(self).column
+            if isinstance(col, ColumnExpr)
+            else self.dataframe.loc[:, col]
             for col in columns
         ]
         df = pd.concat(new_cols, axis=1, copy=False)
@@ -197,12 +199,12 @@ class DataFrame(DataFrameT):
         self,
         *columns: Column,
     ) -> DataFrame:
-        from dataframe_api_compat.pandas_standard import Expr
+        from dataframe_api_compat.pandas_standard import ColumnExpr
         from dataframe_api_compat.pandas_standard.column_object import Column
 
         new_cols = {}
         for column in columns:
-            new_column = column.call(self) if isinstance(column, Expr) else column
+            new_column = column.call(self) if isinstance(column, ColumnExpr) else column
             if not isinstance(new_column, Column):
                 msg = f"Expected iterable of Column, but the first element is: {type(new_column)}"
                 raise TypeError(msg)

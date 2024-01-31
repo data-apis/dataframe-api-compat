@@ -345,7 +345,7 @@ class Column(ColumnT):
 
     def is_in(self, values: Column) -> Column:
         ser = self.column
-        return self._from_series(ser.isin(values.column))
+        return self._from_series(ser.isin(validate_comparand(self, values)))
 
     def sorted_indices(
         self,

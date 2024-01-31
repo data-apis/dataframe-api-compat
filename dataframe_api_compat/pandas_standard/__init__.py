@@ -14,11 +14,13 @@ import pandas as pd
 from dataframe_api_compat.pandas_standard.column_object import Column
 from dataframe_api_compat.pandas_standard.dataframe_object import DataFrame
 from dataframe_api_compat.pandas_standard.scalar_object import Scalar
+from dataframe_api_compat.utils import validate_comparand
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from dataframe_api.groupby_object import Aggregation as AggregationT
+    from dataframe_api.typing import AnyScalar
     from dataframe_api.typing import Column as ColumnT
     from dataframe_api.typing import DataFrame as DataFrameT
     from dataframe_api.typing import DType
@@ -503,16 +505,16 @@ class Namespace(NamespaceT):
         ) -> AggregationT:
             return Namespace.Aggregation("__placeholder__", "size", "size")
 
-    def col(self, column_name: str) -> Expr:
-        return Expr.from_column_name(column_name)
+    def col(self, column_name: str) -> ColumnExpr:
+        return ColumnExpr.from_column_name(column_name)
 
 
-class Expr:
+class ColumnExpr:
     def __init__(self, call: Callable[[DataFrame], Column]) -> None:
         self.call = call
 
     @classmethod
-    def from_column_name(cls: type[Expr], column_name: str) -> Expr:
+    def from_column_name(cls: type[ColumnExpr], column_name: str) -> ColumnExpr:
         return cls(
             lambda df: Column(
                 df.dataframe.loc[:, column_name],
@@ -534,132 +536,245 @@ class Expr:
         ):
             raise AttributeError
 
-        def func(*args: Any, **kwargs: Any) -> Expr:
+        def func(*args: Any, **kwargs: Any) -> ColumnExpr:
             def call(df: DataFrame) -> Column:
                 return getattr(self.call(df), attr)(  # type: ignore[no-any-return]
-                    *[(arg.call(df) if isinstance(arg, Expr) else arg) for arg in args],
+                    *[validate_comparand(df, arg) for arg in args],
                     **{
-                        arg_name: (
-                            arg_value if isinstance(arg_value, Expr) else arg_value
-                        )
+                        arg_name: validate_comparand(df, arg_value)
                         for arg_name, arg_value in kwargs.items()
                     },
                 )
 
-            return Expr(call=call)
+            return ColumnExpr(call=call)
 
         return func
 
-    def __eq__(self, other: Expr | Any) -> Expr:  # type: ignore[override]
-        if isinstance(other, Expr):
-            return Expr(lambda df: self.call(df).__eq__(other.call(df)))
-        return Expr(lambda df: self.call(df).__eq__(other))
+    def __eq__(self, other: ColumnExpr | Any) -> ColumnExpr:  # type: ignore[override]
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__eq__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__eq__(other))
 
-    def __ne__(self, other: Expr | Any) -> Expr:  # type: ignore[override]
-        if isinstance(other, Expr):
-            return Expr(lambda df: self.call(df).__ne__(other.call(df)))
-        return Expr(lambda df: self.call(df).__ne__(other))
+    def __ne__(self, other: ColumnExpr | Any) -> ColumnExpr:  # type: ignore[override]
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__ne__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__ne__(other))
 
-    def __ge__(self, other: Expr | Any) -> Expr:
-        if isinstance(other, Expr):
-            return Expr(lambda df: self.call(df).__ge__(other.call(df)))
-        return Expr(lambda df: self.call(df).__ge__(other))
+    def __ge__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__ge__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__ge__(other))
 
-    def __gt__(self, other: Expr | Any) -> Expr:
-        if isinstance(other, Expr):
-            return Expr(lambda df: self.call(df).__gt__(other.call(df)))
-        return Expr(lambda df: self.call(df).__gt__(other))
+    def __gt__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__gt__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__gt__(other))
 
-    def __le__(self, other: Expr | Any) -> Expr:
-        if isinstance(other, Expr):
-            return Expr(lambda df: self.call(df).__le__(other.call(df)))
-        return Expr(lambda df: self.call(df).__le__(other))
+    def __le__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__le__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__le__(other))
 
-    def __lt__(self, other: Expr | Any) -> Expr:
-        if isinstance(other, Expr):
-            return Expr(lambda df: self.call(df).__lt__(other.call(df)))
-        return Expr(lambda df: self.call(df).__lt__(other))
+    def __lt__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__lt__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__lt__(other))
 
-    def __and__(self, other: Expr | bool | Scalar) -> Expr:
-        if isinstance(other, Expr):
-            return Expr(lambda df: self.call(df).__and__(other.call(df)))
-        return Expr(lambda df: self.call(df).__and__(other))
+    def __and__(self, other: ColumnExpr | bool | Scalar) -> ColumnExpr:
+        return ColumnExpr(lambda df: self.call(df).__and__(validate_comparand(df, other)))
 
     def __rand__(self, other: Column | Any) -> Column:
         return self.__and__(other)
 
-    def __or__(self, other: Expr | bool | Scalar) -> Expr:
-        if isinstance(other, Expr):
-            return Expr(lambda df: self.call(df).__or__(other.call(df)))
-        return Expr(lambda df: self.call(df).__or__(other))
+    def __or__(self, other: ColumnExpr | bool | Scalar) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__or__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__or__(other))
 
     def __ror__(self, other: Column | Any) -> Column:
         return self.__or__(other)
 
-    def __add__(self, other: Expr | Any) -> Expr:
-        if isinstance(other, Expr):
-            return Expr(lambda df: self.call(df).__add__(other.call(df)))
-        return Expr(lambda df: self.call(df).__add__(other))
+    def __add__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        return ColumnExpr(lambda df: self.call(df).__add__(validate_comparand(df, other)))
 
     def __radd__(self, other: Column | Any) -> Column:
         return self.__add__(other)
 
-    def __sub__(self, other: Expr | Any) -> Expr:
-        if isinstance(other, Expr):
-            return Expr(lambda df: self.call(df).__sub__(other.call(df)))
-        return Expr(lambda df: self.call(df).__sub__(other))
+    def __sub__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__sub__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__sub__(other))
 
     def __rsub__(self, other: Column | Any) -> Column:
-        if isinstance(other, Expr):
-            return Expr(lambda df: self.call(df).__rsub__(other.call(df)))
-        return Expr(lambda df: self.call(df).__rsub__(other))
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__rsub__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__rsub__(other))
 
-    def __mul__(self, other: Expr | Any) -> Expr:
-        if isinstance(other, Expr):
-            return Expr(lambda df: self.call(df).__mul__(other.call(df)))
-        return Expr(lambda df: self.call(df).__mul__(other))
+    def __mul__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__mul__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__mul__(other))
 
     def __rmul__(self, other: Column | Any) -> Column:
         return self.__mul__(other)
 
-    def __truediv__(self, other: Expr | Any) -> Expr:
-        if isinstance(other, Expr):
-            return Expr(lambda df: self.call(df).__truediv__(other.call(df)))
-        return Expr(lambda df: self.call(df).__truediv__(other))
+    def __truediv__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__truediv__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__truediv__(other))
 
     def __rtruediv__(self, other: Column | Any) -> Column:
         raise NotImplementedError
 
-    def __floordiv__(self, other: Expr | Any) -> Expr:
-        if isinstance(other, Expr):
-            return Expr(lambda df: self.call(df).__floordiv__(other.call(df)))
-        return Expr(lambda df: self.call(df).__floordiv__(other))
+    def __floordiv__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__floordiv__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__floordiv__(other))
 
     def __rfloordiv__(self, other: Column | Any) -> Column:
         raise NotImplementedError
 
-    def __pow__(self, other: Expr | Any) -> Expr:
-        if isinstance(other, Expr):
-            return Expr(lambda df: self.call(df).__pow__(other.call(df)))
-        return Expr(lambda df: self.call(df).__pow__(other))
+    def __pow__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__pow__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__pow__(other))
 
     def __rpow__(self, other: Column | Any) -> Column:  # pragma: no cover
         raise NotImplementedError
 
-    def __mod__(self, other: Expr | Any) -> Expr:
-        if isinstance(other, Expr):
-            return Expr(lambda df: self.call(df).__mod__(other.call(df)))
-        return Expr(lambda df: self.call(df).__mod__(other))
+    def __mod__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__mod__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__mod__(other))
 
     def __rmod__(self, other: Column | Any) -> Column:  # pragma: no cover
         raise NotImplementedError
 
-    def __divmod__(self, other: Expr | Any) -> tuple[Expr, Column]:
-        if isinstance(other, Expr):
-            return Expr(lambda df: self.call(df).__divmod__(other.call(df)))
-        return Expr(lambda df: self.call(df).__divmod__(other))
+    def __divmod__(self, other: ColumnExpr | Any) -> tuple[ColumnExpr, Column]:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__divmod__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__divmod__(other))
 
     # Unary
 
     def __invert__(self: Column) -> Column:
-        return Expr(lambda df: self.call(df).__invert__())
+        return ColumnExpr(lambda df: self.call(df).__invert__())
+
+
+class ScalarExpr:
+    def __init__(self, call: Callable[[DataFrame], AnyScalar]) -> None:
+        self.call = call
+
+    # def __eq__(self, other: ColumnExpr | ScalarExpr | AnyScalar) -> ColumnExpr:  # type: ignore[override]
+    #     if isinstance(other, ColumnExpr):
+    #     if isinstance(other, ScalarExpr):
+    #     if isinstance(other, Scalar):
+
+    def __ne__(self, other: ColumnExpr | Any) -> ColumnExpr:  # type: ignore[override]
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__ne__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__ne__(other))
+
+    def __ge__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__ge__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__ge__(other))
+
+    def __gt__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__gt__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__gt__(other))
+
+    def __le__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__le__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__le__(other))
+
+    def __lt__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__lt__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__lt__(other))
+
+    def __and__(self, other: ColumnExpr | bool | Scalar) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__and__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__and__(other))
+
+    def __rand__(self, other: Column | Any) -> Column:
+        return self.__and__(other)
+
+    def __or__(self, other: ColumnExpr | bool | Scalar) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__or__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__or__(other))
+
+    def __ror__(self, other: Column | Any) -> Column:
+        return self.__or__(other)
+
+    def __add__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__add__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__add__(other))
+
+    def __radd__(self, other: Column | Any) -> Column:
+        return self.__add__(other)
+
+    def __sub__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__sub__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__sub__(other))
+
+    def __rsub__(self, other: Column | Any) -> Column:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__rsub__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__rsub__(other))
+
+    def __mul__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__mul__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__mul__(other))
+
+    def __rmul__(self, other: Column | Any) -> Column:
+        return self.__mul__(other)
+
+    def __truediv__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__truediv__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__truediv__(other))
+
+    def __rtruediv__(self, other: Column | Any) -> Column:
+        raise NotImplementedError
+
+    def __floordiv__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__floordiv__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__floordiv__(other))
+
+    def __rfloordiv__(self, other: Column | Any) -> Column:
+        raise NotImplementedError
+
+    def __pow__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__pow__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__pow__(other))
+
+    def __rpow__(self, other: Column | Any) -> Column:  # pragma: no cover
+        raise NotImplementedError
+
+    def __mod__(self, other: ColumnExpr | Any) -> ColumnExpr:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__mod__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__mod__(other))
+
+    def __rmod__(self, other: Column | Any) -> Column:  # pragma: no cover
+        raise NotImplementedError
+
+    def __divmod__(self, other: ColumnExpr | Any) -> tuple[ColumnExpr, Column]:
+        if isinstance(other, ColumnExpr):
+            return ColumnExpr(lambda df: self.call(df).__divmod__(other.call(df)))
+        return ColumnExpr(lambda df: self.call(df).__divmod__(other))
+
+    # Unary
+
+    def __invert__(self: Column) -> Column:
+        return ColumnExpr(lambda df: self.call(df).__invert__())
