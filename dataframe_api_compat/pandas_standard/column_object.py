@@ -367,6 +367,7 @@ class Column(ColumnT):
         raise NotImplementedError(msg)
 
     def fill_nan(self, value: float | NullType | Scalar) -> Column:
+        idx = self.column.index
         ser = self.column.copy()
         if is_extension_array_dtype(ser.dtype):
             if self.__column_namespace__().is_null(value):
@@ -378,6 +379,7 @@ class Column(ColumnT):
                 ser[np.isnan(ser).fillna(False).to_numpy(bool)] = np.nan
             else:
                 ser[np.isnan(ser).fillna(False).to_numpy(bool)] = value
+        ser.index = idx
         return self._from_series(ser)
 
     def fill_null(
