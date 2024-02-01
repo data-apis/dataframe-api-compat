@@ -14,10 +14,6 @@ from tests.utils import mixed_dataframe_1
     reason="no pyarrow support",
 )
 def test_schema(library: str) -> None:
-    if library == "modin":
-        pytest.skip(
-            reason="similar to https://github.com/modin-project/modin/issues/6881"
-        )
     df = mixed_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
     result = df.schema

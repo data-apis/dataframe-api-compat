@@ -5,8 +5,6 @@ from tests.utils import integer_dataframe_1
 
 
 def test_cast_integers(library: str) -> None:
-    if library == "modin":
-        pytest.skip(reason="https://github.com/modin-project/modin/issues/6881")
     df = integer_dataframe_1(library)
     ns = df.__dataframe_namespace__()
     result = df.cast({"a": ns.Int32()})
