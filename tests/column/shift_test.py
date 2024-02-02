@@ -1,8 +1,7 @@
 import pandas as pd
 import polars as pl
-from polars.testing import assert_frame_equal
-
 import pytest
+from polars.testing import assert_frame_equal
 
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import float_dataframe_1

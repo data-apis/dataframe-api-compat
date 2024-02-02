@@ -5,7 +5,7 @@ from typing import Any
 
 
 class PandasHandler:
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         assert name in ("pandas-numpy", "pandas-nullable")
         self.name = name
 
@@ -22,6 +22,7 @@ class PandasHandler:
 
     def dataframe(self, data, api_version=None, **kwargs):
         import pandas as pd
+
         import dataframe_api_compat.pandas_standard
 
         if self.name == "pandas-nullable" and "dtype" in kwargs:
@@ -42,7 +43,7 @@ class PandasHandler:
 
 
 class PolarsHandler:
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         assert name == "polars-lazy"
         self.name = name
 
@@ -55,6 +56,7 @@ class PolarsHandler:
     def dataframe(self, data, api_version=None, **kwargs):
         # TODO: should we ignore kwargs? For example, dtype
         import polars as pl
+
         import dataframe_api_compat.polars_standard
 
         df = pl.DataFrame(data)
@@ -68,7 +70,7 @@ class PolarsHandler:
 
 
 class ModinHandler:
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         assert name == "modin"
         self.name = name
 
@@ -80,6 +82,7 @@ class ModinHandler:
 
     def dataframe(self, data, api_version=None, **kwargs):
         import modin.pandas as pd
+
         import dataframe_api_compat.modin_standard
 
         cast_dtypes = None
@@ -141,10 +144,8 @@ def pytest_configure(config):
             (3, 12): [library],
         }
 
-    # TODO: potential way to add filterwarnings for different librariess
-    # config.addinivalue_line(
-    #    "filterwarnings", "ignore:Ray execution environment not yet initialized:UserWarning",
-    # )
+    # TODO: potential way to add filterwarnings for different librariess: config.addinivalue_line
+    # for "filterwarnings", "ignore:Ray execution environment not yet initialized:UserWarning"
 
 
 def pytest_generate_tests(metafunc: Any) -> None:

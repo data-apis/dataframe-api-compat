@@ -300,7 +300,8 @@ class Namespace(NamespaceT):
             # TODO: implement `testing` module in modin
             # For example: `pd.testing.assert_series_equal`
             if not df.dataframe.dtypes.equals(dtypes):
-                raise ValueError("Expected matching columns")
+                msg = "Expected matching columns"
+                raise ValueError(msg)
             dfs.append(df.dataframe)
             api_versions.add(df._api_version)
         if len(api_versions) > 1:  # pragma: no cover

@@ -1,5 +1,6 @@
 covdefaults
+modin[ray] @ git+https://github.com/modin-project/modin.git@abbbd03023f55d4ee9592c4c695308e10a97cb4c
+polars
 pre-commit
 pytest
 pytest-cov
-modin[ray] @ git+https://github.com/modin-project/modin.git@abbbd03023f55d4ee9592c4c695308e10a97cb4c

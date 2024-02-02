@@ -125,7 +125,8 @@ def null_dataframe_2(library) -> DataFrame:
         df = pl.DataFrame({"a": [1.0, float("nan"), None], "b": [1.0, 1.0, None]})
         return convert_to_standard_compliant_dataframe(df)
     return library.dataframe(
-        {"a": [1.0, -1.0, float("nan")], "b": [1.0, -1.0, float("nan")]}, dtype="float64"
+        {"a": [1.0, -1.0, float("nan")], "b": [1.0, -1.0, float("nan")]},
+        dtype="float64",
     )
 
 
@@ -307,7 +308,7 @@ def temporal_dataframe_1(library: str) -> DataFrame:
                 timedelta(3, milliseconds=5),
             ],
             "index": [0, 1, 2],
-        }
+        },
     )
 
 

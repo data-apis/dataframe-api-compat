@@ -1,7 +1,7 @@
+import pytest
+
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_4
-
-import pytest
 
 
 def test_aggregate(library: str) -> None:

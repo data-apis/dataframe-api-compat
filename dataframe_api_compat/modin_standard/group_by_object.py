@@ -143,9 +143,11 @@ def validate_aggregations(
     keys: Sequence[str],
 ) -> tuple[AggregationT, ...]:
     return tuple(
-        aggregation
-        if aggregation.aggregation != "size"  # type: ignore[attr-defined]
-        else aggregation._replace(column_name=keys[0])  # type: ignore[attr-defined]
+        (
+            aggregation
+            if aggregation.aggregation != "size"  # type: ignore[attr-defined]
+            else aggregation._replace(column_name=keys[0])
+        )  # type: ignore[attr-defined]
         for aggregation in aggregations
     )
 

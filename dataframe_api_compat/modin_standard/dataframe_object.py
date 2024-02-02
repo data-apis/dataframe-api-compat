@@ -8,8 +8,8 @@ from typing import Iterator
 from typing import Literal
 from typing import NoReturn
 
-import numpy as np
 import modin.pandas as pd
+import numpy as np
 from pandas.api.types import is_extension_array_dtype
 
 import dataframe_api_compat
@@ -536,9 +536,7 @@ class DataFrame(DataFrameT):
         return self.dataframe.to_numpy()
 
     def cast(self, dtypes: Mapping[str, DType]) -> DataFrame:
-        from dataframe_api_compat.modin_standard import (
-            map_standard_dtype_to_pandas_dtype,
-        )
+        from dataframe_api_compat.modin_standard import map_standard_dtype_to_pandas_dtype
 
         df = self._dataframe
         return self._from_dataframe(

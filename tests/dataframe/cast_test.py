@@ -1,5 +1,3 @@
-import pytest
-
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_1
 
