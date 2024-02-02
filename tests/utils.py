@@ -9,7 +9,6 @@ from typing import Mapping
 
 import pandas as pd
 import polars as pl
-import modin.pandas
 from packaging.version import parse
 
 import dataframe_api_compat.pandas_standard
@@ -40,13 +39,6 @@ def convert_to_standard_compliant_dataframe(
         return (
             dataframe_api_compat.polars_standard.convert_to_standard_compliant_dataframe(
                 df_lazy,
-                api_version=api_version,
-            )
-        )
-    elif isinstance(df, modin.pandas.DataFrame):
-        return (
-            dataframe_api_compat.modin_standard.convert_to_standard_compliant_dataframe(
-                df,
                 api_version=api_version,
             )
         )
