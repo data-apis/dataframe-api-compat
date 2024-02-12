@@ -136,7 +136,7 @@ class ModinHandler(BaseHandler):
         api_version: str | None = None,
         **kwargs: str,
     ) -> DataFrame:
-        import modin.pandas as pd  # type: ignore[import-untyped]
+        import modin.pandas as pd
 
         import dataframe_api_compat.modin_standard
 

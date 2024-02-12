@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing import cast
 
-import modin.pandas as pd  # type: ignore[import-untyped]
+import modin.pandas as pd
 
 from dataframe_api_compat.modin_standard import Namespace
 from dataframe_api_compat.modin_standard.dataframe_object import DataFrame

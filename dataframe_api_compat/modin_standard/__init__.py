@@ -8,7 +8,7 @@ from typing import Any
 from typing import Literal
 from typing import cast
 
-import modin.pandas as pd  # type: ignore[import-untyped]
+import modin.pandas as pd
 
 from dataframe_api_compat.modin_standard.column_object import Column
 from dataframe_api_compat.modin_standard.dataframe_object import DataFrame
