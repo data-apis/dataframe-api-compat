@@ -18,8 +18,121 @@ if TYPE_CHECKING:
     from dataframe_api import Column
     from dataframe_api import DataFrame
 
+
 POLARS_VERSION = parse(pl.__version__)
 PANDAS_VERSION = parse(pd.__version__)
+
+
+class BaseHandler:
+    pass
+
+
+class PandasHandler(BaseHandler):
+    def __init__(self, name: str) -> None:
+        assert name in ("pandas-numpy", "pandas-nullable")
+        self.name = name
+
+    def __eq__(self, other: str) -> bool:
+        return self.name == other
+
+    def __str__(self) -> str:
+        return self.name
+
+    def dataframe(
+        self,
+        data: Any,
+        api_version: str | None = None,
+        **kwargs: dict,
+    ) -> DataFrame:
+        import pandas as pd
+
+        import dataframe_api_compat.pandas_standard
+
+        if self.name == "pandas-nullable" and "dtype" in kwargs:
+            if kwargs["dtype"] == "bool":
+                kwargs["dtype"] = "boolean"
+            elif kwargs["dtype"] == "int64":
+                kwargs["dtype"] = "Int64"
+            elif kwargs["dtype"] == "float64":
+                kwargs["dtype"] = "Float64"
+        df = pd.DataFrame(data, **kwargs)
+
+        return (
+            dataframe_api_compat.pandas_standard.convert_to_standard_compliant_dataframe(
+                df,
+                api_version=api_version or "2023.11-beta",
+            )
+        )
+
+
+class PolarsHandler(BaseHandler):
+    def __init__(self, name: str) -> None:
+        assert name == "polars-lazy"
+        self.name = name
+
+    def __eq__(self, other: str) -> bool:
+        return self.name == other
+
+    def __str__(self) -> str:
+        return self.name
+
+    def dataframe(
+        self,
+        data: Any,
+        api_version: str | None = None,
+        **kwargs: dict,
+    ) -> DataFrame:
+        # TODO: should we ignore kwargs? For example, dtype
+        import polars as pl
+
+        import dataframe_api_compat.polars_standard
+
+        df = pl.DataFrame(data)
+
+        return (
+            dataframe_api_compat.polars_standard.convert_to_standard_compliant_dataframe(
+                df,
+                api_version=api_version or "2023.11-beta",
+            )
+        )
+
+
+class ModinHandler(BaseHandler):
+    def __init__(self, name: str) -> None:
+        assert name == "modin"
+        self.name = name
+
+    def __eq__(self, other: str) -> bool:
+        return self.name == other
+
+    def __str__(self) -> str:
+        return self.name
+
+    def dataframe(
+        self,
+        data: Any,
+        api_version: str | None = None,
+        **kwargs: dict,
+    ) -> DataFrame:
+        import modin.pandas as pd
+
+        import dataframe_api_compat.modin_standard
+
+        cast_dtypes = None
+        if "dtype" in kwargs and isinstance(kwargs["dtype"], dict):
+            cast_dtypes = kwargs.pop("dtype")
+
+        df = pd.DataFrame(data, **kwargs)
+
+        if cast_dtypes:
+            df = df.astype(cast_dtypes)
+
+        return (
+            dataframe_api_compat.modin_standard.convert_to_standard_compliant_dataframe(
+                df,
+                api_version=api_version or "2023.11-beta",
+            )
+        )
 
 
 def convert_to_standard_compliant_dataframe(
@@ -47,7 +160,10 @@ def convert_to_standard_compliant_dataframe(
         raise AssertionError(msg)
 
 
-def integer_dataframe_1(library, api_version: str | None = None) -> DataFrame:
+def integer_dataframe_1(
+    library: BaseHandler,
+    api_version: str | None = None,
+) -> DataFrame:
     return library.dataframe(
         {"a": [1, 2, 3], "b": [4, 5, 6]},
         dtype="int64",
@@ -55,40 +171,54 @@ def integer_dataframe_1(library, api_version: str | None = None) -> DataFrame:
     )
 
 
-def integer_dataframe_2(library) -> DataFrame:
+def integer_dataframe_2(library: BaseHandler) -> DataFrame:
     return library.dataframe(
         {"a": [1, 2, 4], "b": [4, 2, 6]},
         dtype="int64",
     )
 
 
-def integer_dataframe_3(library) -> DataFrame:
+def integer_dataframe_3(library: BaseHandler) -> DataFrame:
     return library.dataframe(
         {"a": [1, 2, 3, 4, 5, 6, 7], "b": [7, 6, 5, 4, 3, 2, 1]},
         dtype="int64",
     )
 
 
-def integer_dataframe_4(library) -> DataFrame:
+def integer_dataframe_4(library: BaseHandler) -> DataFrame:
     return library.dataframe(
         {"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]},
         dtype="int64",
     )
 
 
-def integer_dataframe_5(library, api_version: str | None = None) -> DataFrame:
-    return library.dataframe({"a": [1, 1], "b": [4, 3]}, dtype="int64")
+def integer_dataframe_5(
+    library: BaseHandler,
+    api_version: str | None = None,
+) -> DataFrame:
+    return library.dataframe(
+        {"a": [1, 1], "b": [4, 3]},
+        dtype="int64",
+        api_version=api_version,
+    )
 
 
-def integer_dataframe_6(library, api_version: str | None = None) -> DataFrame:
-    return library.dataframe({"a": [1, 1, 1, 2, 2], "b": [4, 4, 3, 1, 2]}, dtype="int64")
+def integer_dataframe_6(
+    library: BaseHandler,
+    api_version: str | None = None,
+) -> DataFrame:
+    return library.dataframe(
+        {"a": [1, 1, 1, 2, 2], "b": [4, 4, 3, 1, 2]},
+        dtype="int64",
+        api_version=api_version,
+    )
 
 
-def integer_dataframe_7(library) -> DataFrame:
+def integer_dataframe_7(library: BaseHandler) -> DataFrame:
     return library.dataframe({"a": [1, 2, 3], "b": [1, 2, 4]}, dtype="int64")
 
 
-def nan_dataframe_1(library) -> DataFrame:
+def nan_dataframe_1(library: BaseHandler) -> DataFrame:
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1.0, 2.0, 0.0]}, dtype="Float64")
         other = pd.DataFrame({"a": [1.0, 1.0, 0.0]}, dtype="Float64")
@@ -96,7 +226,7 @@ def nan_dataframe_1(library) -> DataFrame:
     return library.dataframe({"a": [1.0, 2.0, float("nan")]}, dtype="float64")
 
 
-def nan_dataframe_2(library) -> DataFrame:
+def nan_dataframe_2(library: BaseHandler) -> DataFrame:
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [0.0, 1.0, 0.0]}, dtype="Float64")
         other = pd.DataFrame({"a": [1.0, 1.0, 0.0]}, dtype="Float64")
@@ -104,7 +234,7 @@ def nan_dataframe_2(library) -> DataFrame:
     return library.dataframe({"a": [0.0, 1.0, float("nan")]}, dtype="float64")
 
 
-def null_dataframe_1(library) -> DataFrame:
+def null_dataframe_1(library: BaseHandler) -> DataFrame:
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [1.0, 2.0, pd.NA]}, dtype="Float64")
         return convert_to_standard_compliant_dataframe(df)
@@ -114,7 +244,7 @@ def null_dataframe_1(library) -> DataFrame:
     return library.dataframe({"a": [1.0, 2.0, float("nan")]}, dtype="float64")
 
 
-def null_dataframe_2(library) -> DataFrame:
+def null_dataframe_2(library: BaseHandler) -> DataFrame:
     if library == "pandas-nullable":
         df = pd.DataFrame(
             {"a": [1.0, 0.0, pd.NA], "b": [1.0, 1.0, pd.NA]},
@@ -130,7 +260,10 @@ def null_dataframe_2(library) -> DataFrame:
     )
 
 
-def bool_dataframe_1(library, api_version: str = "2023.09-beta") -> DataFrame:
+def bool_dataframe_1(
+    library: BaseHandler,
+    api_version: str = "2023.09-beta",
+) -> DataFrame:
     return library.dataframe(
         {"a": [True, True, False], "b": [True, True, True]},
         dtype="bool",
@@ -138,7 +271,7 @@ def bool_dataframe_1(library, api_version: str = "2023.09-beta") -> DataFrame:
     )
 
 
-def bool_dataframe_2(library) -> DataFrame:
+def bool_dataframe_2(library: BaseHandler) -> DataFrame:
     if library == "pandas-nullable":
         # TODO: allow library.dataframe to work with dtype like dict
         df = pd.DataFrame(
@@ -158,22 +291,22 @@ def bool_dataframe_2(library) -> DataFrame:
     )
 
 
-def bool_dataframe_3(library: str) -> DataFrame:
+def bool_dataframe_3(library: BaseHandler) -> DataFrame:
     return library.dataframe(
         {"a": [False, False], "b": [False, True], "c": [True, True]},
         dtype="bool",
     )
 
 
-def float_dataframe_1(library: str) -> DataFrame:
+def float_dataframe_1(library: BaseHandler) -> DataFrame:
     return library.dataframe({"a": [2.0, 3.0]}, dtype="float64")
 
 
-def float_dataframe_2(library: str) -> DataFrame:
+def float_dataframe_2(library: BaseHandler) -> DataFrame:
     return library.dataframe({"a": [2.0, 1.0]}, dtype="float64")
 
 
-def float_dataframe_3(library: str) -> DataFrame:
+def float_dataframe_3(library: BaseHandler) -> DataFrame:
     if library == "pandas-nullable":
         df = pd.DataFrame({"a": [0.0, 2.0]}, dtype="Float64")
         other = pd.DataFrame({"a": [0.0, 1.0]}, dtype="Float64")
@@ -181,7 +314,7 @@ def float_dataframe_3(library: str) -> DataFrame:
     return library.dataframe({"a": [float("nan"), 2.0]}, dtype="float64")
 
 
-def temporal_dataframe_1(library: str) -> DataFrame:
+def temporal_dataframe_1(library: BaseHandler) -> DataFrame:
     if library in ["pandas-numpy", "pandas-nullable"]:
         df = pd.DataFrame(
             {
@@ -356,7 +489,7 @@ def compare_dataframe_with_reference(
         )
 
 
-def mixed_dataframe_1(library: str) -> DataFrame:
+def mixed_dataframe_1(library: BaseHandler) -> DataFrame:
     df: Any
     data = {
         "a": [1, 2, 3],

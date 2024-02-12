@@ -3,104 +3,9 @@ from __future__ import annotations
 import sys
 from typing import Any
 
-
-class PandasHandler:
-    def __init__(self, name: str) -> None:
-        assert name in ("pandas-numpy", "pandas-nullable")
-        self.name = name
-
-    def __eq__(self, other: str):
-        return self.name == other
-
-    def __str__(self) -> str:
-        return self.name
-
-    def namespace(self, api_version):
-        from dataframe_api_compat.pandas_standard import Namespace
-
-        return Namespace(api_version=api_version)
-
-    def dataframe(self, data, api_version=None, **kwargs):
-        import pandas as pd
-
-        import dataframe_api_compat.pandas_standard
-
-        if self.name == "pandas-nullable" and "dtype" in kwargs:
-            if kwargs["dtype"] == "bool":
-                kwargs["dtype"] = "boolean"
-            elif kwargs["dtype"] == "int64":
-                kwargs["dtype"] = "Int64"
-            elif kwargs["dtype"] == "float64":
-                kwargs["dtype"] = "Float64"
-        df = pd.DataFrame(data, **kwargs)
-
-        return (
-            dataframe_api_compat.pandas_standard.convert_to_standard_compliant_dataframe(
-                df,
-                api_version=api_version or "2023.11-beta",
-            )
-        )
-
-
-class PolarsHandler:
-    def __init__(self, name: str) -> None:
-        assert name == "polars-lazy"
-        self.name = name
-
-    def __eq__(self, other: str):
-        return self.name == other
-
-    def __str__(self) -> str:
-        return self.name
-
-    def dataframe(self, data, api_version=None, **kwargs):
-        # TODO: should we ignore kwargs? For example, dtype
-        import polars as pl
-
-        import dataframe_api_compat.polars_standard
-
-        df = pl.DataFrame(data)
-
-        return (
-            dataframe_api_compat.polars_standard.convert_to_standard_compliant_dataframe(
-                df,
-                api_version=api_version or "2023.11-beta",
-            )
-        )
-
-
-class ModinHandler:
-    def __init__(self, name: str) -> None:
-        assert name == "modin"
-        self.name = name
-
-    def __eq__(self, other: str):
-        return self.name == other
-
-    def __str__(self) -> str:
-        return self.name
-
-    def dataframe(self, data, api_version=None, **kwargs):
-        import modin.pandas as pd
-
-        import dataframe_api_compat.modin_standard
-
-        cast_dtypes = None
-        if "dtype" in kwargs and isinstance(kwargs["dtype"], dict):
-            cast_dtypes = kwargs.pop("dtype")
-
-        df = pd.DataFrame(data, **kwargs)
-
-        if cast_dtypes:
-            df = df.astype(cast_dtypes)
-
-        return (
-            dataframe_api_compat.modin_standard.convert_to_standard_compliant_dataframe(
-                df,
-                api_version=api_version or "2023.11-beta",
-            )
-        )
-
+from tests.utils import ModinHandler
+from tests.utils import PandasHandler
+from tests.utils import PolarsHandler
 
 LIBRARIES = {
     (3, 8): ["pandas-numpy", "pandas-nullable", "polars-lazy"],
@@ -118,7 +23,7 @@ LIBRARIES_HANDLERS = {
 }
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser: Any) -> None:
     parser.addoption(
         "--library",
         action="store",
@@ -128,14 +33,14 @@ def pytest_addoption(parser):
     )
 
 
-def pytest_configure(config):
+def pytest_configure(config: Any) -> None:
     library = config.option.library
     if library is None:
         # `LIBRARIES` is already initialized
         return
     else:
         assert library in ("pandas-numpy", "pandas-nullable", "polars-lazy", "modin")
-        global LIBRARIES
+        global LIBRARIES  # noqa: PLW0603
         LIBRARIES = {
             (3, 8): [library],
             (3, 9): [library],
