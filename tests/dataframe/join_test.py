@@ -3,10 +3,10 @@ from __future__ import annotations
 import pytest
 from packaging.version import Version
 
-from tests.utils import PANDAS_VERSION
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_1
 from tests.utils import integer_dataframe_2
+from tests.utils import pandas_version
 
 
 def test_join_left(library: str) -> None:
@@ -48,7 +48,7 @@ def test_join_outer(library: str) -> None:  # pragma: no cover
     result = left.join(right, left_on="a", right_on="a", how="outer").sort("a")
     ns = result.__dataframe_namespace__()
     if (
-        library == "pandas-nullable" and Version("2.0.0") > PANDAS_VERSION
+        library == "pandas-nullable" and Version("2.0.0") > pandas_version()
     ):  # pragma: no cover
         # upstream bug
         result = result.cast({"a": ns.Int64()})

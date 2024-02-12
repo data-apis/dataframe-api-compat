@@ -5,12 +5,12 @@ import pytest
 from packaging.version import Version
 from packaging.version import parse
 
-from tests.utils import PANDAS_VERSION
 from tests.utils import mixed_dataframe_1
+from tests.utils import pandas_version
 
 
 @pytest.mark.skipif(
-    Version("2.0.0") > PANDAS_VERSION,
+    Version("2.0.0") > pandas_version(),
     reason="no pyarrow support",
 )
 def test_schema(library: str) -> None:

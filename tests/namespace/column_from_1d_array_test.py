@@ -8,10 +8,10 @@ import numpy as np
 import pytest
 from packaging.version import Version
 
-from tests.utils import PANDAS_VERSION
-from tests.utils import POLARS_VERSION
 from tests.utils import compare_column_with_reference
 from tests.utils import integer_dataframe_1
+from tests.utils import pandas_version
+from tests.utils import polars_version
 
 
 @pytest.mark.parametrize(
@@ -98,11 +98,11 @@ def test_datetime_from_1d_array(library: str) -> None:
 
 
 @pytest.mark.skipif(
-    Version("0.19.9") > POLARS_VERSION,
+    Version("0.19.9") > polars_version(),
     reason="upstream bug",
 )
 @pytest.mark.skipif(
-    Version("2.0.0") > PANDAS_VERSION,
+    Version("2.0.0") > pandas_version(),
     reason="pandas before non-nano",
 )
 def test_duration_from_1d_array(library: str) -> None:

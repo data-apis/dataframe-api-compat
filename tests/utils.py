@@ -7,20 +7,26 @@ from typing import TYPE_CHECKING
 from typing import Any
 from typing import Mapping
 
-import pandas as pd
-import polars as pl
+from packaging.version import Version
 from packaging.version import parse
 
-import dataframe_api_compat.pandas_standard
-import dataframe_api_compat.polars_standard
-
 if TYPE_CHECKING:
+    import pandas as pd
+    import polars as pl
     from dataframe_api import Column
     from dataframe_api import DataFrame
 
 
-POLARS_VERSION = parse(pl.__version__)
-PANDAS_VERSION = parse(pd.__version__)
+def pandas_version() -> Version:
+    import pandas as pd
+
+    return parse(pd.__version__)
+
+
+def polars_version() -> Version:
+    import polars as pl
+
+    return parse(pl.__version__)
 
 
 class BaseHandler:
@@ -140,7 +146,12 @@ def convert_to_standard_compliant_dataframe(
     api_version: str | None = None,
 ) -> DataFrame:
     # TODO: type return
+    import pandas as pd
+    import polars as pl
+
     if isinstance(df, pd.DataFrame):
+        import dataframe_api_compat.pandas_standard
+
         return (
             dataframe_api_compat.pandas_standard.convert_to_standard_compliant_dataframe(
                 df,
@@ -148,6 +159,8 @@ def convert_to_standard_compliant_dataframe(
             )
         )
     elif isinstance(df, (pl.DataFrame, pl.LazyFrame)):
+        import dataframe_api_compat.polars_standard
+
         df_lazy = df.lazy() if isinstance(df, pl.DataFrame) else df
         return (
             dataframe_api_compat.polars_standard.convert_to_standard_compliant_dataframe(
@@ -220,6 +233,8 @@ def integer_dataframe_7(library: BaseHandler) -> DataFrame:
 
 def nan_dataframe_1(library: BaseHandler) -> DataFrame:
     if library == "pandas-nullable":
+        import pandas as pd
+
         df = pd.DataFrame({"a": [1.0, 2.0, 0.0]}, dtype="Float64")
         other = pd.DataFrame({"a": [1.0, 1.0, 0.0]}, dtype="Float64")
         return convert_to_standard_compliant_dataframe(df / other)
@@ -228,6 +243,8 @@ def nan_dataframe_1(library: BaseHandler) -> DataFrame:
 
 def nan_dataframe_2(library: BaseHandler) -> DataFrame:
     if library == "pandas-nullable":
+        import pandas as pd
+
         df = pd.DataFrame({"a": [0.0, 1.0, 0.0]}, dtype="Float64")
         other = pd.DataFrame({"a": [1.0, 1.0, 0.0]}, dtype="Float64")
         return convert_to_standard_compliant_dataframe(df / other)
@@ -236,9 +253,13 @@ def nan_dataframe_2(library: BaseHandler) -> DataFrame:
 
 def null_dataframe_1(library: BaseHandler) -> DataFrame:
     if library == "pandas-nullable":
+        import pandas as pd
+
         df = pd.DataFrame({"a": [1.0, 2.0, pd.NA]}, dtype="Float64")
         return convert_to_standard_compliant_dataframe(df)
     if library == "polars-lazy":
+        import polars as pl
+
         df = pl.DataFrame({"a": [1.0, 2.0, None]})
         return convert_to_standard_compliant_dataframe(df)
     return library.dataframe({"a": [1.0, 2.0, float("nan")]}, dtype="float64")
@@ -246,12 +267,16 @@ def null_dataframe_1(library: BaseHandler) -> DataFrame:
 
 def null_dataframe_2(library: BaseHandler) -> DataFrame:
     if library == "pandas-nullable":
+        import pandas as pd
+
         df = pd.DataFrame(
             {"a": [1.0, 0.0, pd.NA], "b": [1.0, 1.0, pd.NA]},
             dtype="Float64",
         )
         return convert_to_standard_compliant_dataframe(df / df)
     if library == "polars-lazy":
+        import polars as pl
+
         df = pl.DataFrame({"a": [1.0, float("nan"), None], "b": [1.0, 1.0, None]})
         return convert_to_standard_compliant_dataframe(df)
     return library.dataframe(
@@ -273,6 +298,8 @@ def bool_dataframe_1(
 
 def bool_dataframe_2(library: BaseHandler) -> DataFrame:
     if library == "pandas-nullable":
+        import pandas as pd
+
         # TODO: allow library.dataframe to work with dtype like dict
         df = pd.DataFrame(
             {
@@ -308,6 +335,8 @@ def float_dataframe_2(library: BaseHandler) -> DataFrame:
 
 def float_dataframe_3(library: BaseHandler) -> DataFrame:
     if library == "pandas-nullable":
+        import pandas as pd
+
         df = pd.DataFrame({"a": [0.0, 2.0]}, dtype="Float64")
         other = pd.DataFrame({"a": [0.0, 1.0]}, dtype="Float64")
         return convert_to_standard_compliant_dataframe(df / other)
@@ -316,6 +345,8 @@ def float_dataframe_3(library: BaseHandler) -> DataFrame:
 
 def temporal_dataframe_1(library: BaseHandler) -> DataFrame:
     if library in ["pandas-numpy", "pandas-nullable"]:
+        import pandas as pd
+
         df = pd.DataFrame(
             {
                 "a": [
@@ -362,6 +393,8 @@ def temporal_dataframe_1(library: BaseHandler) -> DataFrame:
         )
         return convert_to_standard_compliant_dataframe(df)
     if library == "polars-lazy":
+        import polars as pl
+
         df = pl.DataFrame(
             {
                 "a": [
@@ -511,6 +544,8 @@ def mixed_dataframe_1(library: BaseHandler) -> DataFrame:
         "q": [timedelta(days=1), timedelta(days=2), timedelta(days=3)],
     }
     if library == "pandas-numpy":
+        import pandas as pd
+
         df = pd.DataFrame(data).astype(
             {
                 "a": "int64",
@@ -534,6 +569,8 @@ def mixed_dataframe_1(library: BaseHandler) -> DataFrame:
         )
         return convert_to_standard_compliant_dataframe(df)
     if library == "pandas-nullable":
+        import pandas as pd
+
         df = pd.DataFrame(data).astype(
             {
                 "a": "Int64",
@@ -557,6 +594,8 @@ def mixed_dataframe_1(library: BaseHandler) -> DataFrame:
         )
         return convert_to_standard_compliant_dataframe(df)
     if library == "polars-lazy":
+        import polars as pl
+
         df = pl.DataFrame(
             data,
             schema={
