@@ -3,12 +3,13 @@ import polars as pl
 import pytest
 from polars.testing import assert_frame_equal
 
+from tests.utils import BaseHandler
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import float_dataframe_1
 from tests.utils import integer_dataframe_1
 
 
-def test_shift_with_fill_value(library: str) -> None:
+def test_shift_with_fill_value(library: BaseHandler) -> None:
     if library == "modin":
         pytest.skip("TODO: enable for modin")
     df = integer_dataframe_1(library)
@@ -20,7 +21,7 @@ def test_shift_with_fill_value(library: str) -> None:
     compare_dataframe_with_reference(result, expected, dtype=ns.Int64)
 
 
-def test_shift_without_fill_value(library: str) -> None:
+def test_shift_without_fill_value(library: BaseHandler) -> None:
     if library == "modin":
         pytest.skip("TODO: enable for modin")
     df = float_dataframe_1(library)
@@ -39,7 +40,7 @@ def test_shift_without_fill_value(library: str) -> None:
         raise AssertionError(msg)
 
 
-def test_shift_with_fill_value_complicated(library: str) -> None:
+def test_shift_with_fill_value_complicated(library: BaseHandler) -> None:
     df = integer_dataframe_1(library)
     ns = df.__dataframe_namespace__()
     result = df.assign(df.col("a").shift(1).fill_null(df.col("a").mean()))

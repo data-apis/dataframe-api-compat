@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 from packaging.version import Version
 
+from tests.utils import BaseHandler
 from tests.utils import mixed_dataframe_1
 from tests.utils import pandas_version
 
@@ -24,7 +25,7 @@ from tests.utils import pandas_version
     Version("2.0.0") > pandas_version(),
     reason="before pandas got non-nano support",
 )
-def test_is_dtype(library: str, dtype: str, expected: list[str]) -> None:
+def test_is_dtype(library: BaseHandler, dtype: str, expected: list[str]) -> None:
     df = mixed_dataframe_1(library).persist()
     namespace = df.__dataframe_namespace__()
     result = [i for i in df.column_names if namespace.is_dtype(df.schema[i], dtype)]

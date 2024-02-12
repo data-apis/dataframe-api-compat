@@ -5,6 +5,7 @@ import pytest
 from packaging.version import Version
 from packaging.version import parse
 
+from tests.utils import BaseHandler
 from tests.utils import mixed_dataframe_1
 from tests.utils import pandas_version
 
@@ -13,7 +14,7 @@ from tests.utils import pandas_version
     Version("2.0.0") > pandas_version(),
     reason="no pyarrow support",
 )
-def test_schema(library: str) -> None:
+def test_schema(library: BaseHandler) -> None:
     df = mixed_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
     result = df.schema

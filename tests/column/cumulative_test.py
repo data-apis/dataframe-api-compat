@@ -5,6 +5,7 @@ import pytest
 from packaging.version import Version
 from packaging.version import parse
 
+from tests.utils import BaseHandler
 from tests.utils import compare_column_with_reference
 from tests.utils import integer_dataframe_1
 
@@ -19,7 +20,7 @@ from tests.utils import integer_dataframe_1
     ],
 )
 def test_cumulative_functions_column(
-    library: str,
+    library: BaseHandler,
     func: str,
     expected_data: list[float],
 ) -> None:

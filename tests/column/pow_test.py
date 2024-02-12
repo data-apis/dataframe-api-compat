@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from tests.utils import BaseHandler
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_1
 
 
-def test_float_powers_column(library: str) -> None:
+def test_float_powers_column(library: BaseHandler) -> None:
     df = integer_dataframe_1(library)
     ns = df.__dataframe_namespace__()
     ser = df.col("a")
@@ -15,7 +16,7 @@ def test_float_powers_column(library: str) -> None:
     compare_dataframe_with_reference(result, expected, expected_dtype)  # type: ignore[arg-type]
 
 
-def test_float_powers_scalar_column(library: str) -> None:
+def test_float_powers_scalar_column(library: BaseHandler) -> None:
     df = integer_dataframe_1(library)
     ns = df.__dataframe_namespace__()
     ser = df.col("a")
@@ -26,7 +27,7 @@ def test_float_powers_scalar_column(library: str) -> None:
     compare_dataframe_with_reference(result, expected, expected_dtype)  # type: ignore[arg-type]
 
 
-def test_int_powers_column(library: str) -> None:
+def test_int_powers_column(library: BaseHandler) -> None:
     df = integer_dataframe_1(library)
     ns = df.__dataframe_namespace__()
     ser = df.col("a")
@@ -39,7 +40,7 @@ def test_int_powers_column(library: str) -> None:
     compare_dataframe_with_reference(result, expected, expected_dtype)
 
 
-def test_int_powers_scalar_column(library: str) -> None:
+def test_int_powers_scalar_column(library: BaseHandler) -> None:
     df = integer_dataframe_1(library)
     ns = df.__dataframe_namespace__()
     ser = df.col("a")

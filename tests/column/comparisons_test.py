@@ -4,6 +4,7 @@ from typing import Any
 
 import pytest
 
+from tests.utils import BaseHandler
 from tests.utils import compare_column_with_reference
 from tests.utils import integer_dataframe_1
 from tests.utils import integer_dataframe_7
@@ -28,7 +29,7 @@ from tests.utils import integer_dataframe_7
     ],
 )
 def test_column_comparisons(
-    library: str,
+    library: BaseHandler,
     comparison: str,
     expected_data: list[object],
     expected_dtype: str,
@@ -66,7 +67,7 @@ def test_column_comparisons(
     ],
 )
 def test_column_comparisons_scalar(
-    library: str,
+    library: BaseHandler,
     comparison: str,
     expected_data: list[object],
     expected_dtype: str,
@@ -93,7 +94,7 @@ def test_column_comparisons_scalar(
     ],
 )
 def test_right_column_comparisons(
-    library: str,
+    library: BaseHandler,
     comparison: str,
     expected_data: list[object],
 ) -> None:

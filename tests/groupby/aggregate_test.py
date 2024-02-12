@@ -1,10 +1,11 @@
 import pytest
 
+from tests.utils import BaseHandler
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_4
 
 
-def test_aggregate(library: str) -> None:
+def test_aggregate(library: BaseHandler) -> None:
     if library == "modin":
         pytest.skip("https://github.com/modin-project/modin/issues/3602")
     df = integer_dataframe_4(library)
@@ -60,7 +61,7 @@ def test_aggregate(library: str) -> None:
     compare_dataframe_with_reference(result, expected, dtype=expected_dtype)  # type: ignore[arg-type]
 
 
-def test_aggregate_only_size(library: str) -> None:
+def test_aggregate_only_size(library: BaseHandler) -> None:
     if library == "modin":
         pytest.skip("https://github.com/modin-project/modin/issues/3602")
     df = integer_dataframe_4(library)
@@ -81,7 +82,7 @@ def test_aggregate_only_size(library: str) -> None:
     compare_dataframe_with_reference(result, expected, dtype=ns.Int64)
 
 
-def test_aggregate_no_size(library: str) -> None:
+def test_aggregate_no_size(library: BaseHandler) -> None:
     df = integer_dataframe_4(library)
     ns = df.__dataframe_namespace__()
     result = (

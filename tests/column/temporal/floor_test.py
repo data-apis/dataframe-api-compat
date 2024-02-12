@@ -4,6 +4,7 @@ from datetime import datetime
 
 import pytest
 
+from tests.utils import BaseHandler
 from tests.utils import compare_column_with_reference
 from tests.utils import temporal_dataframe_1
 
@@ -14,7 +15,7 @@ from tests.utils import temporal_dataframe_1
         ("1day", [datetime(2020, 1, 1), datetime(2020, 1, 2), datetime(2020, 1, 3)]),
     ],
 )
-def test_floor(library: str, freq: str, expected: list[datetime]) -> None:
+def test_floor(library: BaseHandler, freq: str, expected: list[datetime]) -> None:
     df = temporal_dataframe_1(library)
     ns = df.__dataframe_namespace__()
     col = df.col

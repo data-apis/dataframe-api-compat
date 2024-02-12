@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from tests.utils import BaseHandler
 from tests.utils import nan_dataframe_1
 from tests.utils import null_dataframe_2
 
@@ -15,7 +16,7 @@ from tests.utils import null_dataframe_2
         ["b"],
     ],
 )
-def test_fill_null(library: str, column_names: list[str] | None) -> None:
+def test_fill_null(library: BaseHandler, column_names: list[str] | None) -> None:
     df = null_dataframe_2(library)
     df.__dataframe_namespace__()
     result = df.fill_null(0, column_names=column_names)
@@ -32,7 +33,7 @@ def test_fill_null(library: str, column_names: list[str] | None) -> None:
         assert result.col("b").persist().get_value(2).scalar == 0
 
 
-def test_fill_null_noop(library: str) -> None:
+def test_fill_null_noop(library: BaseHandler) -> None:
     df = nan_dataframe_1(library)
     result_raw = df.fill_null(0)
     if hasattr(result_raw.dataframe, "collect"):

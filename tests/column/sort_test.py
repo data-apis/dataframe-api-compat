@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from tests.utils import BaseHandler
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_6
 
 
-def test_expression_sort_ascending(library: str) -> None:
+def test_expression_sort_ascending(library: BaseHandler) -> None:
     df = integer_dataframe_6(library, api_version="2023.09-beta")
     ns = df.__dataframe_namespace__()
     s_sorted = df.col("b").sort().rename("c")
@@ -17,7 +18,7 @@ def test_expression_sort_ascending(library: str) -> None:
     compare_dataframe_with_reference(result, expected, dtype=ns.Int64)
 
 
-def test_expression_sort_descending(library: str) -> None:
+def test_expression_sort_descending(library: BaseHandler) -> None:
     df = integer_dataframe_6(library, api_version="2023.09-beta")
     ns = df.__dataframe_namespace__()
     s_sorted = df.col("b").sort(ascending=False).rename("c")
@@ -30,7 +31,7 @@ def test_expression_sort_descending(library: str) -> None:
     compare_dataframe_with_reference(result, expected, dtype=ns.Int64)
 
 
-def test_column_sort_ascending(library: str) -> None:
+def test_column_sort_ascending(library: BaseHandler) -> None:
     df = integer_dataframe_6(library, api_version="2023.09-beta")
     ns = df.__dataframe_namespace__()
     s_sorted = df.col("b").sort().rename("c")
@@ -43,7 +44,7 @@ def test_column_sort_ascending(library: str) -> None:
     compare_dataframe_with_reference(result, expected, dtype=ns.Int64)
 
 
-def test_column_sort_descending(library: str) -> None:
+def test_column_sort_descending(library: BaseHandler) -> None:
     df = integer_dataframe_6(library, api_version="2023.09-beta")
     ns = df.__dataframe_namespace__()
     s_sorted = df.col("b").sort(ascending=False).rename("c")

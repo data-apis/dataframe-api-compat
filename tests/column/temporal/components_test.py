@@ -4,6 +4,7 @@ from typing import Literal
 
 import pytest
 
+from tests.utils import BaseHandler
 from tests.utils import compare_column_with_reference
 from tests.utils import temporal_dataframe_1
 
@@ -21,7 +22,7 @@ from tests.utils import temporal_dataframe_1
         ("unix_timestamp", [1577840521, 1577934062, 1578027849]),
     ],
 )
-def test_col_components(library: str, attr: str, expected: list[int]) -> None:
+def test_col_components(library: BaseHandler, attr: str, expected: list[int]) -> None:
     df = temporal_dataframe_1(library)
     ns = df.__dataframe_namespace__()
     for col_name in ("a", "c", "e"):
@@ -43,7 +44,9 @@ def test_col_components(library: str, attr: str, expected: list[int]) -> None:
         ("e", [123543, 321654, 987321]),
     ],
 )
-def test_col_microsecond(library: str, col_name: str, expected: list[int]) -> None:
+def test_col_microsecond(
+    library: BaseHandler, col_name: str, expected: list[int],
+) -> None:
     df = temporal_dataframe_1(library)
     ns = df.__dataframe_namespace__()
     result = (
@@ -64,7 +67,7 @@ def test_col_microsecond(library: str, col_name: str, expected: list[int]) -> No
         ("e", [123543000, 321654000, 987321000]),
     ],
 )
-def test_col_nanosecond(library: str, col_name: str, expected: list[int]) -> None:
+def test_col_nanosecond(library: BaseHandler, col_name: str, expected: list[int]) -> None:
     df = temporal_dataframe_1(library)
     ns = df.__dataframe_namespace__()
     result = (
@@ -87,7 +90,7 @@ def test_col_nanosecond(library: str, col_name: str, expected: list[int]) -> Non
     ],
 )
 def test_col_unix_timestamp_time_units(
-    library: str,
+    library: BaseHandler,
     time_unit: Literal["s", "ms", "us", "ns"],
     expected: list[int],
 ) -> None:
