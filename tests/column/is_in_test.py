@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 @pytest.mark.filterwarnings("ignore:np.find_common_type is deprecated")
 def test_is_in(
     library: BaseHandler,
-    df_factory: Callable[[str], Any],
+    df_factory: Callable[[BaseHandler], Any],
     expected_values: list[bool],
 ) -> None:
     df = df_factory(library)
@@ -48,7 +48,7 @@ def test_is_in(
 @pytest.mark.filterwarnings("ignore:np.find_common_type is deprecated")
 def test_expr_is_in(
     library: BaseHandler,
-    df_factory: Callable[[str], Any],
+    df_factory: Callable[[BaseHandler], Any],
     expected_values: list[bool],
 ) -> None:
     df = df_factory(library)

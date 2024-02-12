@@ -6,7 +6,7 @@ from tests.utils import integer_dataframe_4
 
 
 def test_aggregate(library: BaseHandler) -> None:
-    if library == "modin":
+    if library.name == "modin":
         pytest.skip("https://github.com/modin-project/modin/issues/3602")
     df = integer_dataframe_4(library)
     df = df.assign((df.col("b") > 0).rename("d"))
@@ -56,13 +56,13 @@ def test_aggregate(library: BaseHandler) -> None:
         "d_any": ns.Bool,
         "d_all": ns.Bool,
     }
-    if library == "polars-lazy":
+    if library.name == "polars-lazy":
         result = result.cast({"b_count": ns.Int64()})
     compare_dataframe_with_reference(result, expected, dtype=expected_dtype)  # type: ignore[arg-type]
 
 
 def test_aggregate_only_size(library: BaseHandler) -> None:
-    if library == "modin":
+    if library.name == "modin":
         pytest.skip("https://github.com/modin-project/modin/issues/3602")
     df = integer_dataframe_4(library)
     ns = df.__dataframe_namespace__()
@@ -77,7 +77,7 @@ def test_aggregate_only_size(library: BaseHandler) -> None:
         "key": [1, 2],
         "b_count": [2, 2],
     }
-    if library == "polars-lazy":
+    if library.name == "polars-lazy":
         result = result.cast({"b_count": ns.Int64()})
     compare_dataframe_with_reference(result, expected, dtype=ns.Int64)
 

@@ -7,7 +7,7 @@ from typing import Any
 from typing import Literal
 from typing import NoReturn
 
-import modin.pandas as pd
+import modin.pandas as pd  # type: ignore[import-untyped]
 import numpy as np
 from pandas.api.types import is_extension_array_dtype
 

@@ -45,7 +45,9 @@ def test_col_components(library: BaseHandler, attr: str, expected: list[int]) ->
     ],
 )
 def test_col_microsecond(
-    library: BaseHandler, col_name: str, expected: list[int],
+    library: BaseHandler,
+    col_name: str,
+    expected: list[int],
 ) -> None:
     df = temporal_dataframe_1(library)
     ns = df.__dataframe_namespace__()

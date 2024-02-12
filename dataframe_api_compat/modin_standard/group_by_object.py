@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing import cast
 
-import modin.pandas as pd
+import modin.pandas as pd  # type: ignore[import-untyped]
 
 from dataframe_api_compat.modin_standard import Namespace
 from dataframe_api_compat.modin_standard.dataframe_object import DataFrame
@@ -146,8 +146,8 @@ def validate_aggregations(
         (
             aggregation
             if aggregation.aggregation != "size"  # type: ignore[attr-defined]
-            else aggregation._replace(column_name=keys[0])
-        )  # type: ignore[attr-defined]
+            else aggregation._replace(column_name=keys[0])  # type: ignore[attr-defined]
+        )
         for aggregation in aggregations
     )
 

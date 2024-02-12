@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from abc import abstractmethod
 from datetime import datetime
 from datetime import timedelta
 from typing import TYPE_CHECKING
@@ -30,16 +31,29 @@ def polars_version() -> Version:
 
 
 class BaseHandler:
-    pass
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        ...
+
+    @abstractmethod
+    def dataframe(
+        self,
+        data: Any,
+        api_version: str | None = None,
+        **kwargs: Any,
+    ) -> DataFrame:
+        ...
 
 
 class PandasHandler(BaseHandler):
     def __init__(self, name: str) -> None:
         assert name in ("pandas-numpy", "pandas-nullable")
-        self.name = name
+        self._name = name
 
-    def __eq__(self, other: str) -> bool:
-        return self.name == other
+    @property
+    def name(self) -> str:
+        return self._name
 
     def __str__(self) -> str:
         return self.name
@@ -48,7 +62,7 @@ class PandasHandler(BaseHandler):
         self,
         data: Any,
         api_version: str | None = None,
-        **kwargs: dict,
+        **kwargs: Any,
     ) -> DataFrame:
         import pandas as pd
 
@@ -74,10 +88,11 @@ class PandasHandler(BaseHandler):
 class PolarsHandler(BaseHandler):
     def __init__(self, name: str) -> None:
         assert name == "polars-lazy"
-        self.name = name
+        self._name = name
 
-    def __eq__(self, other: str) -> bool:
-        return self.name == other
+    @property
+    def name(self) -> str:
+        return self._name
 
     def __str__(self) -> str:
         return self.name
@@ -86,7 +101,7 @@ class PolarsHandler(BaseHandler):
         self,
         data: Any,
         api_version: str | None = None,
-        **kwargs: dict,
+        **kwargs: Any,
     ) -> DataFrame:
         # TODO: should we ignore kwargs? For example, dtype
         import polars as pl
@@ -106,10 +121,11 @@ class PolarsHandler(BaseHandler):
 class ModinHandler(BaseHandler):
     def __init__(self, name: str) -> None:
         assert name == "modin"
-        self.name = name
+        self._name = name
 
-    def __eq__(self, other: str) -> bool:
-        return self.name == other
+    @property
+    def name(self) -> str:
+        return self._name
 
     def __str__(self) -> str:
         return self.name
@@ -118,9 +134,9 @@ class ModinHandler(BaseHandler):
         self,
         data: Any,
         api_version: str | None = None,
-        **kwargs: dict,
+        **kwargs: str,
     ) -> DataFrame:
-        import modin.pandas as pd
+        import modin.pandas as pd  # type: ignore[import-untyped]
 
         import dataframe_api_compat.modin_standard
 
@@ -232,7 +248,7 @@ def integer_dataframe_7(library: BaseHandler) -> DataFrame:
 
 
 def nan_dataframe_1(library: BaseHandler) -> DataFrame:
-    if library == "pandas-nullable":
+    if library.name == "pandas-nullable":
         import pandas as pd
 
         df = pd.DataFrame({"a": [1.0, 2.0, 0.0]}, dtype="Float64")
@@ -242,7 +258,7 @@ def nan_dataframe_1(library: BaseHandler) -> DataFrame:
 
 
 def nan_dataframe_2(library: BaseHandler) -> DataFrame:
-    if library == "pandas-nullable":
+    if library.name == "pandas-nullable":
         import pandas as pd
 
         df = pd.DataFrame({"a": [0.0, 1.0, 0.0]}, dtype="Float64")
@@ -252,12 +268,12 @@ def nan_dataframe_2(library: BaseHandler) -> DataFrame:
 
 
 def null_dataframe_1(library: BaseHandler) -> DataFrame:
-    if library == "pandas-nullable":
+    if library.name == "pandas-nullable":
         import pandas as pd
 
         df = pd.DataFrame({"a": [1.0, 2.0, pd.NA]}, dtype="Float64")
         return convert_to_standard_compliant_dataframe(df)
-    if library == "polars-lazy":
+    if library.name == "polars-lazy":
         import polars as pl
 
         df = pl.DataFrame({"a": [1.0, 2.0, None]})
@@ -266,7 +282,7 @@ def null_dataframe_1(library: BaseHandler) -> DataFrame:
 
 
 def null_dataframe_2(library: BaseHandler) -> DataFrame:
-    if library == "pandas-nullable":
+    if library.name == "pandas-nullable":
         import pandas as pd
 
         df = pd.DataFrame(
@@ -274,7 +290,7 @@ def null_dataframe_2(library: BaseHandler) -> DataFrame:
             dtype="Float64",
         )
         return convert_to_standard_compliant_dataframe(df / df)
-    if library == "polars-lazy":
+    if library.name == "polars-lazy":
         import polars as pl
 
         df = pl.DataFrame({"a": [1.0, float("nan"), None], "b": [1.0, 1.0, None]})
@@ -297,7 +313,7 @@ def bool_dataframe_1(
 
 
 def bool_dataframe_2(library: BaseHandler) -> DataFrame:
-    if library == "pandas-nullable":
+    if library.name == "pandas-nullable":
         import pandas as pd
 
         # TODO: allow library.dataframe to work with dtype like dict
@@ -334,7 +350,7 @@ def float_dataframe_2(library: BaseHandler) -> DataFrame:
 
 
 def float_dataframe_3(library: BaseHandler) -> DataFrame:
-    if library == "pandas-nullable":
+    if library.name == "pandas-nullable":
         import pandas as pd
 
         df = pd.DataFrame({"a": [0.0, 2.0]}, dtype="Float64")
@@ -344,7 +360,7 @@ def float_dataframe_3(library: BaseHandler) -> DataFrame:
 
 
 def temporal_dataframe_1(library: BaseHandler) -> DataFrame:
-    if library in ["pandas-numpy", "pandas-nullable"]:
+    if library.name in ["pandas-numpy", "pandas-nullable"]:
         import pandas as pd
 
         df = pd.DataFrame(
@@ -392,7 +408,7 @@ def temporal_dataframe_1(library: BaseHandler) -> DataFrame:
             },
         )
         return convert_to_standard_compliant_dataframe(df)
-    if library == "polars-lazy":
+    if library.name == "polars-lazy":
         import polars as pl
 
         df = pl.DataFrame(
@@ -543,7 +559,7 @@ def mixed_dataframe_1(library: BaseHandler) -> DataFrame:
         "p": [timedelta(days=1), timedelta(days=2), timedelta(days=3)],
         "q": [timedelta(days=1), timedelta(days=2), timedelta(days=3)],
     }
-    if library == "pandas-numpy":
+    if library.name == "pandas-numpy":
         import pandas as pd
 
         df = pd.DataFrame(data).astype(
@@ -568,7 +584,7 @@ def mixed_dataframe_1(library: BaseHandler) -> DataFrame:
             },
         )
         return convert_to_standard_compliant_dataframe(df)
-    if library == "pandas-nullable":
+    if library.name == "pandas-nullable":
         import pandas as pd
 
         df = pd.DataFrame(data).astype(
@@ -593,7 +609,7 @@ def mixed_dataframe_1(library: BaseHandler) -> DataFrame:
             },
         )
         return convert_to_standard_compliant_dataframe(df)
-    if library == "polars-lazy":
+    if library.name == "polars-lazy":
         import polars as pl
 
         df = pl.DataFrame(

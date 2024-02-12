@@ -30,7 +30,7 @@ def test_groupby_boolean(
     result = getattr(df.group_by("key"), aggregation)()
     # need to sort
     result = result.sort("key")
-    if library == "pandas-nullable" and parse(pd.__version__) < Version(
+    if library.name == "pandas-nullable" and parse(pd.__version__) < Version(
         "2.0.0",
     ):  # pragma: no cover
         # upstream bug

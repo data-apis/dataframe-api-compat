@@ -116,7 +116,7 @@ def test_duration_from_1d_array(library: BaseHandler) -> None:
             name="result",
         ),
     )
-    if library == "polars-lazy":
+    if library.name == "polars-lazy":
         # https://github.com/data-apis/dataframe-api/issues/329
         result = result.cast({"result": ns.Duration("ms")})
     expected = [timedelta(1), timedelta(2)]

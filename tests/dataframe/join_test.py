@@ -11,7 +11,7 @@ from tests.utils import pandas_version
 
 
 def test_join_left(library: BaseHandler) -> None:
-    if library == "modin":
+    if library.name == "modin":
         pytest.skip("TODO: enable for modin")
     left = integer_dataframe_1(library)
     right = integer_dataframe_2(library).rename({"b": "c"})
@@ -21,7 +21,9 @@ def test_join_left(library: BaseHandler) -> None:
     expected_dtype = {
         "a": ns.Int64,
         "b": ns.Int64,
-        "c": ns.Int64 if library in ["pandas-nullable", "polars-lazy"] else ns.Float64,
+        "c": ns.Int64
+        if library.name in ["pandas-nullable", "polars-lazy"]
+        else ns.Float64,
     }
     compare_dataframe_with_reference(result, expected, dtype=expected_dtype)  # type: ignore[arg-type]
 
@@ -49,7 +51,7 @@ def test_join_outer(library: BaseHandler) -> None:  # pragma: no cover
     result = left.join(right, left_on="a", right_on="a", how="outer").sort("a")
     ns = result.__dataframe_namespace__()
     if (
-        library == "pandas-nullable" and Version("2.0.0") > pandas_version()
+        library.name == "pandas-nullable" and Version("2.0.0") > pandas_version()
     ):  # pragma: no cover
         # upstream bug
         result = result.cast({"a": ns.Int64()})
@@ -60,14 +62,18 @@ def test_join_outer(library: BaseHandler) -> None:  # pragma: no cover
     }
     expected_dtype = {
         "a": ns.Int64,
-        "b": ns.Int64 if library in ["pandas-nullable", "polars-lazy"] else ns.Float64,
-        "c": ns.Int64 if library in ["pandas-nullable", "polars-lazy"] else ns.Float64,
+        "b": ns.Int64
+        if library.name in ["pandas-nullable", "polars-lazy"]
+        else ns.Float64,
+        "c": ns.Int64
+        if library.name in ["pandas-nullable", "polars-lazy"]
+        else ns.Float64,
     }
     compare_dataframe_with_reference(result, expected, dtype=expected_dtype)  # type: ignore[arg-type]
 
 
 def test_join_two_keys(library: BaseHandler) -> None:
-    if library == "modin":
+    if library.name == "modin":
         pytest.skip("TODO: enable for modin")
     left = integer_dataframe_1(library)
     right = integer_dataframe_2(library).rename({"b": "c"})
@@ -77,7 +83,9 @@ def test_join_two_keys(library: BaseHandler) -> None:
     expected_dtype = {
         "a": ns.Int64,
         "b": ns.Int64,
-        "c": ns.Int64 if library in ["pandas-nullable", "polars-lazy"] else ns.Float64,
+        "c": ns.Int64
+        if library.name in ["pandas-nullable", "polars-lazy"]
+        else ns.Float64,
     }
     compare_dataframe_with_reference(result, expected, dtype=expected_dtype)  # type: ignore[arg-type]
 

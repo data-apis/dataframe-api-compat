@@ -40,7 +40,7 @@ def test_fill_null_noop(library: BaseHandler) -> None:
         result = result_raw.dataframe.collect()
     else:
         result = result_raw.dataframe
-    if library not in ("pandas-numpy", "modin"):
+    if library.name not in ("pandas-numpy", "modin"):
         # nan should not have changed!
         assert result["a"][2] != result["a"][2]
     else:

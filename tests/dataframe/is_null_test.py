@@ -10,7 +10,7 @@ def test_is_null_1(library: BaseHandler) -> None:
     df = nan_dataframe_2(library)
     ns = df.__dataframe_namespace__()
     result = df.is_null()
-    if library == "pandas-numpy":
+    if library.name == "pandas-numpy":
         # nan and null are the same in pandas-numpy
         expected = {"a": [False, False, True]}
     else:

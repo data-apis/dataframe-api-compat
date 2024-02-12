@@ -31,7 +31,7 @@ def test_cumulative_functions_column(
     result = df.assign(getattr(ser, func)().rename("result"))
 
     if (
-        parse(pd.__version__) < Version("2.0.0") and library == "pandas-nullable"
+        parse(pd.__version__) < Version("2.0.0") and library.name == "pandas-nullable"
     ):  # pragma: no cover
         # Upstream bug
         result = result.cast({"result": ns.Int64()})

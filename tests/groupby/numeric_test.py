@@ -42,7 +42,7 @@ def test_group_by_numeric(
     expected = {"key": [1, 2], "b": expected_b, "c": expected_c}
     dtype = getattr(ns, expected_dtype)
     expected_ns_dtype = {"key": ns.Int64, "b": dtype, "c": dtype}
-    if library == "pandas-nullable" and parse(pd.__version__) < Version(
+    if library.name == "pandas-nullable" and parse(pd.__version__) < Version(
         "2.0.0",
     ):  # pragma: no cover
         # upstream bug

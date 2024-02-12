@@ -19,7 +19,7 @@ def test_free_vs_w_parent(library: BaseHandler) -> None:
     )
 
     result = free_ser1 + free_ser2
-    if library == "polars-lazy":
+    if library.name == "polars-lazy":
         assert_series_equal(
             pl.select(result.column)["preds"],
             pl.Series("preds", [5, 7, 9], dtype=pl.Int64()),

@@ -11,7 +11,7 @@ def test_column_is_null_1(library: BaseHandler) -> None:
     ns = df.__dataframe_namespace__()
     ser = df.col("a")
     result = df.assign(ser.is_null().rename("result"))
-    if library == "pandas-numpy":
+    if library.name == "pandas-numpy":
         expected = [False, False, True]
     else:
         expected = [False, False, False]
