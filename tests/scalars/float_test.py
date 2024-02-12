@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+from tests.utils import BaseHandler
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_1
 from tests.utils import integer_dataframe_2
@@ -31,7 +32,7 @@ from tests.utils import integer_dataframe_2
         "__rtruediv__",
     ],
 )
-def test_float_binary(library: str, attr: str) -> None:
+def test_float_binary(library: BaseHandler, attr: str) -> None:
     other = 0.5
     df = integer_dataframe_2(library).persist()
     scalar = df.col("a").mean()
@@ -39,14 +40,14 @@ def test_float_binary(library: str, attr: str) -> None:
     assert getattr(scalar, attr)(other) == getattr(float_scalar, attr)(other)
 
 
-def test_float_binary_invalid(library: str) -> None:
+def test_float_binary_invalid(library: BaseHandler) -> None:
     lhs = integer_dataframe_2(library).col("a").mean()
     rhs = integer_dataframe_1(library).col("b").mean()
     with pytest.raises(ValueError):
         _ = lhs > rhs
 
 
-def test_float_binary_lazy_valid(library: str) -> None:
+def test_float_binary_lazy_valid(library: BaseHandler) -> None:
     df = integer_dataframe_2(library).persist()
     lhs = df.col("a").mean()
     rhs = df.col("b").mean()
@@ -61,7 +62,7 @@ def test_float_binary_lazy_valid(library: str) -> None:
         "__neg__",
     ],
 )
-def test_float_unary(library: str, attr: str) -> None:
+def test_float_unary(library: BaseHandler, attr: str) -> None:
     df = integer_dataframe_2(library).persist()
     with pytest.warns(UserWarning):
         scalar = df.col("a").persist().mean()
@@ -77,7 +78,7 @@ def test_float_unary(library: str, attr: str) -> None:
         "__bool__",
     ],
 )
-def test_float_unary_invalid(library: str, attr: str) -> None:
+def test_float_unary_invalid(library: BaseHandler, attr: str) -> None:
     df = integer_dataframe_2(library)
     scalar = df.col("a").mean()
     float_scalar = float(scalar.persist())  # type: ignore[arg-type]
@@ -85,7 +86,7 @@ def test_float_unary_invalid(library: str, attr: str) -> None:
         assert getattr(scalar, attr)() == getattr(float_scalar, attr)()
 
 
-def test_free_standing(library: str) -> None:
+def test_free_standing(library: BaseHandler) -> None:
     df = integer_dataframe_1(library)
     namespace = df.__dataframe_namespace__()
     ser = namespace.column_from_1d_array(  # type: ignore[call-arg]
@@ -96,7 +97,7 @@ def test_free_standing(library: str) -> None:
     assert result == 3.0
 
 
-def test_right_comparand(library: str) -> None:
+def test_right_comparand(library: BaseHandler) -> None:
     df = integer_dataframe_1(library)
     ns = df.__dataframe_namespace__()
     col = df.col("a")  # [1, 2, 3]

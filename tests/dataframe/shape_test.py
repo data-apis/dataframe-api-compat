@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import pytest
 
+from tests.utils import BaseHandler
 from tests.utils import integer_dataframe_1
 
 
-def test_shape(library: str) -> None:
+def test_shape(library: BaseHandler) -> None:
     df = integer_dataframe_1(library).persist()
     assert df.shape() == (3, 2)
 

@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import pytest
 
+from tests.utils import BaseHandler
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_1
 
 
-def test_rename(library: str) -> None:
+def test_rename(library: BaseHandler) -> None:
     df = integer_dataframe_1(library)
     ns = df.__dataframe_namespace__()
     result = df.rename({"a": "c", "b": "e"})
@@ -14,7 +15,7 @@ def test_rename(library: str) -> None:
     compare_dataframe_with_reference(result, expected, dtype=ns.Int64)
 
 
-def test_rename_invalid(library: str) -> None:
+def test_rename_invalid(library: BaseHandler) -> None:
     df = integer_dataframe_1(library)
     with pytest.raises(
         TypeError,

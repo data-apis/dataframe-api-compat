@@ -5,6 +5,7 @@ from typing import Any
 import pandas as pd
 import pytest
 
+from tests.utils import BaseHandler
 from tests.utils import integer_dataframe_3
 
 
@@ -18,7 +19,7 @@ from tests.utils import integer_dataframe_3
     ],
 )
 def test_column_slice_rows(
-    library: str,
+    library: BaseHandler,
     start: int | None,
     stop: int | None,
     step: int | None,

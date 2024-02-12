@@ -4,6 +4,7 @@ from typing import Any
 
 import pytest
 
+from tests.utils import BaseHandler
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_1
 
@@ -22,7 +23,7 @@ from tests.utils import integer_dataframe_1
     ],
 )
 def test_dataframe_reductions(
-    library: str,
+    library: BaseHandler,
     reduction: str,
     expected: dict[str, Any],
     expected_dtype: str,

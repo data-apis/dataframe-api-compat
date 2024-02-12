@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from tests.utils import BaseHandler
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_1
 
 
-def test_take(library: str) -> None:
+def test_take(library: BaseHandler) -> None:
     df = integer_dataframe_1(library)
     ns = df.__dataframe_namespace__()
     df = df.assign((df.col("a") - 1).sort(ascending=False).rename("result"))

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from tests.utils import BaseHandler
 from tests.utils import compare_column_with_reference
 from tests.utils import integer_dataframe_1
 
@@ -20,7 +21,7 @@ from tests.utils import integer_dataframe_1
     ],
 )
 def test_expression_reductions(
-    library: str,
+    library: BaseHandler,
     reduction: str,
     expected: float,
     expected_dtype: str,

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from tests.utils import BaseHandler
 from tests.utils import bool_dataframe_1
 from tests.utils import bool_dataframe_3
 from tests.utils import compare_dataframe_with_reference
@@ -15,7 +16,7 @@ from tests.utils import compare_dataframe_with_reference
     ],
 )
 def test_reductions(
-    library: str,
+    library: BaseHandler,
     reduction: str,
     expected_data: dict[str, object],
 ) -> None:
@@ -25,7 +26,7 @@ def test_reductions(
     compare_dataframe_with_reference(result, expected_data, dtype=ns.Bool)  # type: ignore[arg-type]
 
 
-def test_any(library: str) -> None:
+def test_any(library: BaseHandler) -> None:
     df = bool_dataframe_3(library)
     ns = df.__dataframe_namespace__()
     result = df.any()
@@ -33,7 +34,7 @@ def test_any(library: str) -> None:
     compare_dataframe_with_reference(result, expected, dtype=ns.Bool)
 
 
-def test_all(library: str) -> None:
+def test_all(library: BaseHandler) -> None:
     df = bool_dataframe_3(library)
     ns = df.__dataframe_namespace__()
     result = df.all()

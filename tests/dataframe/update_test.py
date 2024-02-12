@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from tests.utils import BaseHandler
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_1
 
 
-def test_update_column(library: str) -> None:
+def test_update_column(library: BaseHandler) -> None:
     df = integer_dataframe_1(library, api_version="2023.09-beta")
     ns = df.__dataframe_namespace__()
     new_col = df.col("b") + 3
@@ -16,7 +17,7 @@ def test_update_column(library: str) -> None:
     compare_dataframe_with_reference(df, expected, dtype=ns.Int64)
 
 
-def test_update_columns(library: str) -> None:
+def test_update_columns(library: BaseHandler) -> None:
     df = integer_dataframe_1(library, api_version="2023.09-beta")
     ns = df.__dataframe_namespace__()
     new_col_a = df.col("a") + 1

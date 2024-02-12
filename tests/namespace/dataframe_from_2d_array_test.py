@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import numpy as np
 
+from tests.utils import BaseHandler
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_1
 
 
-def test_dataframe_from_2d_array(library: str) -> None:
+def test_dataframe_from_2d_array(library: BaseHandler) -> None:
     df = integer_dataframe_1(library)
     ns = df.__dataframe_namespace__()
     arr = np.array([[1, 4], [2, 5], [3, 6]])

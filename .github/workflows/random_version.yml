@@ -35,4 +35,4 @@ jobs:
       - name: install-reqs
         run: python -m pip install --upgrade tox virtualenv setuptools pip && python -m pip install -r requirements-dev.txt
       - name: Run pytest
-        run: pytest tests --cov=dataframe_api_compat --cov=tests --cov-fail-under=80
+        run: pytest tests --cov=dataframe_api_compat/pandas_standard --cov=dataframe_api_compat/polars_standard --cov=tests --cov-fail-under=80

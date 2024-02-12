@@ -8,10 +8,11 @@ import numpy as np
 import pytest
 from packaging.version import Version
 
-from tests.utils import PANDAS_VERSION
-from tests.utils import POLARS_VERSION
+from tests.utils import BaseHandler
 from tests.utils import compare_column_with_reference
 from tests.utils import integer_dataframe_1
+from tests.utils import pandas_version
+from tests.utils import polars_version
 
 
 @pytest.mark.parametrize(
@@ -30,7 +31,7 @@ from tests.utils import integer_dataframe_1
     ],
 )
 def test_column_from_1d_array(
-    library: str,
+    library: BaseHandler,
     pandas_dtype: str,
     column_dtype: str,
 ) -> None:
@@ -52,7 +53,7 @@ def test_column_from_1d_array(
 
 
 def test_column_from_1d_array_string(
-    library: str,
+    library: BaseHandler,
 ) -> None:
     ser = integer_dataframe_1(library).persist().col("a")
     ns = ser.__column_namespace__()
@@ -68,7 +69,7 @@ def test_column_from_1d_array_string(
 
 
 def test_column_from_1d_array_bool(
-    library: str,
+    library: BaseHandler,
 ) -> None:
     ser = integer_dataframe_1(library).persist().col("a")
     ns = ser.__column_namespace__()
@@ -83,7 +84,7 @@ def test_column_from_1d_array_bool(
     compare_column_with_reference(result.col("result"), expected, dtype=ns.Bool)
 
 
-def test_datetime_from_1d_array(library: str) -> None:
+def test_datetime_from_1d_array(library: BaseHandler) -> None:
     ser = integer_dataframe_1(library).persist().col("a")
     ns = ser.__column_namespace__()
     arr = np.array([date(2020, 1, 1), date(2020, 1, 2)], dtype="datetime64[ms]")
@@ -98,14 +99,14 @@ def test_datetime_from_1d_array(library: str) -> None:
 
 
 @pytest.mark.skipif(
-    Version("0.19.9") > POLARS_VERSION,
+    Version("0.19.9") > polars_version(),
     reason="upstream bug",
 )
 @pytest.mark.skipif(
-    Version("2.0.0") > PANDAS_VERSION,
+    Version("2.0.0") > pandas_version(),
     reason="pandas before non-nano",
 )
-def test_duration_from_1d_array(library: str) -> None:
+def test_duration_from_1d_array(library: BaseHandler) -> None:
     ser = integer_dataframe_1(library).persist().col("a")
     ns = ser.__column_namespace__()
     arr = np.array([timedelta(1), timedelta(2)], dtype="timedelta64[ms]")
@@ -115,7 +116,7 @@ def test_duration_from_1d_array(library: str) -> None:
             name="result",
         ),
     )
-    if library == "polars-lazy":
+    if library.name == "polars-lazy":
         # https://github.com/data-apis/dataframe-api/issues/329
         result = result.cast({"result": ns.Duration("ms")})
     expected = [timedelta(1), timedelta(2)]

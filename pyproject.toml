@@ -82,6 +82,12 @@ line-length = 90
 filterwarnings = [
   "error",
   'ignore:distutils Version classes are deprecated:DeprecationWarning',
+  'ignore:.*pkg_resources:DeprecationWarning',
+  'ignore:Ray execution environment not yet initialized:UserWarning',
+  "ignore:Distributing <class '.*'> object.:UserWarning",
+  'ignore:.*ray:ResourceWarning',
+  'ignore:.*is not currently supported by PandasOnRay:UserWarning',
+  'ignore:.*implementation has mismatches with pandas:UserWarning',
 ]
 xfail_strict = true
 

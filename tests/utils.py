@@ -1,25 +1,160 @@
 from __future__ import annotations
 
 import math
+from abc import abstractmethod
 from datetime import datetime
 from datetime import timedelta
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Mapping
 
-import pandas as pd
-import polars as pl
+from packaging.version import Version
 from packaging.version import parse
 
-import dataframe_api_compat.pandas_standard
-import dataframe_api_compat.polars_standard
-
 if TYPE_CHECKING:
+    import pandas as pd
+    import polars as pl
     from dataframe_api import Column
     from dataframe_api import DataFrame
 
-POLARS_VERSION = parse(pl.__version__)
-PANDAS_VERSION = parse(pd.__version__)
+
+def pandas_version() -> Version:
+    import pandas as pd
+
+    return parse(pd.__version__)
+
+
+def polars_version() -> Version:
+    import polars as pl
+
+    return parse(pl.__version__)
+
+
+class BaseHandler:
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        ...
+
+    @abstractmethod
+    def dataframe(
+        self,
+        data: Any,
+        api_version: str | None = None,
+        **kwargs: Any,
+    ) -> DataFrame:
+        ...
+
+
+class PandasHandler(BaseHandler):
+    def __init__(self, name: str) -> None:
+        assert name in ("pandas-numpy", "pandas-nullable")
+        self._name = name
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    def __str__(self) -> str:
+        return self.name
+
+    def dataframe(
+        self,
+        data: Any,
+        api_version: str | None = None,
+        **kwargs: Any,
+    ) -> DataFrame:
+        import pandas as pd
+
+        import dataframe_api_compat.pandas_standard
+
+        if self.name == "pandas-nullable" and "dtype" in kwargs:
+            if kwargs["dtype"] == "bool":
+                kwargs["dtype"] = "boolean"
+            elif kwargs["dtype"] == "int64":
+                kwargs["dtype"] = "Int64"
+            elif kwargs["dtype"] == "float64":
+                kwargs["dtype"] = "Float64"
+        df = pd.DataFrame(data, **kwargs)
+
+        return (
+            dataframe_api_compat.pandas_standard.convert_to_standard_compliant_dataframe(
+                df,
+                api_version=api_version or "2023.11-beta",
+            )
+        )
+
+
+class PolarsHandler(BaseHandler):
+    def __init__(self, name: str) -> None:
+        assert name == "polars-lazy"
+        self._name = name
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    def __str__(self) -> str:
+        return self.name
+
+    def dataframe(
+        self,
+        data: Any,
+        api_version: str | None = None,
+        **kwargs: Any,
+    ) -> DataFrame:
+        # TODO: should we ignore kwargs? For example, dtype
+        import polars as pl
+
+        import dataframe_api_compat.polars_standard
+
+        df = pl.DataFrame(data)
+
+        return (
+            dataframe_api_compat.polars_standard.convert_to_standard_compliant_dataframe(
+                df,
+                api_version=api_version or "2023.11-beta",
+            )
+        )
+
+
+class ModinHandler(BaseHandler):
+    def __init__(self, name: str) -> None:
+        assert name == "modin"
+        self._name = name
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    def __str__(self) -> str:
+        return self.name
+
+    def dataframe(
+        self,
+        data: Any,
+        api_version: str | None = None,
+        **kwargs: str,
+    ) -> DataFrame:
+        import modin.pandas as pd
+
+        import dataframe_api_compat.modin_standard
+
+        cast_dtypes = None
+        if "dtype" in kwargs and isinstance(kwargs["dtype"], dict):
+            cast_dtypes = kwargs.pop("dtype")
+
+        df = pd.DataFrame(data, **kwargs)
+
+        if cast_dtypes:
+            df = df.astype(cast_dtypes)
+
+        return (
+            dataframe_api_compat.modin_standard.convert_to_standard_compliant_dataframe(
+                df,
+                api_version=api_version or "2023.11-beta",
+            )
+        )
 
 
 def convert_to_standard_compliant_dataframe(
@@ -27,7 +162,12 @@ def convert_to_standard_compliant_dataframe(
     api_version: str | None = None,
 ) -> DataFrame:
     # TODO: type return
+    import pandas as pd
+    import polars as pl
+
     if isinstance(df, pd.DataFrame):
+        import dataframe_api_compat.pandas_standard
+
         return (
             dataframe_api_compat.pandas_standard.convert_to_standard_compliant_dataframe(
                 df,
@@ -35,6 +175,8 @@ def convert_to_standard_compliant_dataframe(
             )
         )
     elif isinstance(df, (pl.DataFrame, pl.LazyFrame)):
+        import dataframe_api_compat.polars_standard
+
         df_lazy = df.lazy() if isinstance(df, pl.DataFrame) else df
         return (
             dataframe_api_compat.polars_standard.convert_to_standard_compliant_dataframe(
@@ -47,224 +189,134 @@ def convert_to_standard_compliant_dataframe(
         raise AssertionError(msg)
 
 
-def integer_dataframe_1(library: str, api_version: str | None = None) -> DataFrame:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}, dtype="int64")
-        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
-    if library == "pandas-nullable":
-        df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}, dtype="Int64")
-        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
-    if library == "polars-lazy":
-        df = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
-        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
-    msg = f"Got unexpected library: {library}"  # pragma: no cover
-    raise AssertionError(msg)
+def integer_dataframe_1(
+    library: BaseHandler,
+    api_version: str | None = None,
+) -> DataFrame:
+    return library.dataframe(
+        {"a": [1, 2, 3], "b": [4, 5, 6]},
+        dtype="int64",
+        api_version=api_version,
+    )
 
 
-def integer_dataframe_2(library: str) -> DataFrame:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame({"a": [1, 2, 4], "b": [4, 2, 6]}, dtype="int64")
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "pandas-nullable":
-        df = pd.DataFrame({"a": [1, 2, 4], "b": [4, 2, 6]}, dtype="Int64")
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "polars-lazy":
-        df = pl.DataFrame({"a": [1, 2, 4], "b": [4, 2, 6]})
-        return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"  # pragma: no cover
-    raise AssertionError(msg)
+def integer_dataframe_2(library: BaseHandler) -> DataFrame:
+    return library.dataframe(
+        {"a": [1, 2, 4], "b": [4, 2, 6]},
+        dtype="int64",
+    )
 
 
-def integer_dataframe_3(library: str) -> DataFrame:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame(
-            {"a": [1, 2, 3, 4, 5, 6, 7], "b": [7, 6, 5, 4, 3, 2, 1]},
-            dtype="int64",
-        )
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "pandas-nullable":
-        df = pd.DataFrame(
-            {"a": [1, 2, 3, 4, 5, 6, 7], "b": [7, 6, 5, 4, 3, 2, 1]},
-            dtype="Int64",
-        )
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "polars-lazy":
-        df = pl.DataFrame({"a": [1, 2, 3, 4, 5, 6, 7], "b": [7, 6, 5, 4, 3, 2, 1]})
-        return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"  # pragma: no cover
-    raise AssertionError(msg)
+def integer_dataframe_3(library: BaseHandler) -> DataFrame:
+    return library.dataframe(
+        {"a": [1, 2, 3, 4, 5, 6, 7], "b": [7, 6, 5, 4, 3, 2, 1]},
+        dtype="int64",
+    )
 
 
-def integer_dataframe_4(library: str) -> DataFrame:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame(
-            {"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]},
-            dtype="int64",
-        )
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "pandas-nullable":
-        df = pd.DataFrame(
-            {"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]},
-            dtype="Int64",
-        )
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "polars-lazy":
-        df = pl.DataFrame({"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]})
-        return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"  # pragma: no cover
-    raise AssertionError(msg)
+def integer_dataframe_4(library: BaseHandler) -> DataFrame:
+    return library.dataframe(
+        {"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]},
+        dtype="int64",
+    )
 
 
-def integer_dataframe_5(library: str, api_version: str | None = None) -> DataFrame:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame({"a": [1, 1], "b": [4, 3]}, dtype="int64")
-        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
-    if library == "pandas-nullable":
-        df = pd.DataFrame({"a": [1, 1], "b": [4, 3]}, dtype="Int64")
-        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
-    if library == "polars-lazy":
-        df = pl.DataFrame({"a": [1, 1], "b": [4, 3]})
-        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
-    msg = f"Got unexpected library: {library}"  # pragma: no cover
-    raise AssertionError(msg)
+def integer_dataframe_5(
+    library: BaseHandler,
+    api_version: str | None = None,
+) -> DataFrame:
+    return library.dataframe(
+        {"a": [1, 1], "b": [4, 3]},
+        dtype="int64",
+        api_version=api_version,
+    )
 
 
-def integer_dataframe_6(library: str, api_version: str | None = None) -> DataFrame:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame({"a": [1, 1, 1, 2, 2], "b": [4, 4, 3, 1, 2]}, dtype="int64")
-        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
-    if library == "pandas-nullable":
-        df = pd.DataFrame({"a": [1, 1, 1, 2, 2], "b": [4, 4, 3, 1, 2]}, dtype="Int64")
-        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
-    if library == "polars-lazy":
-        df = pl.DataFrame({"a": [1, 1, 1, 2, 2], "b": [4, 4, 3, 1, 2]})
-        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
-    msg = f"Got unexpected library: {library}"  # pragma: no cover
-    raise AssertionError(msg)
+def integer_dataframe_6(
+    library: BaseHandler,
+    api_version: str | None = None,
+) -> DataFrame:
+    return library.dataframe(
+        {"a": [1, 1, 1, 2, 2], "b": [4, 4, 3, 1, 2]},
+        dtype="int64",
+        api_version=api_version,
+    )
 
 
-def integer_dataframe_7(library: str) -> DataFrame:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame({"a": [1, 2, 3], "b": [1, 2, 4]}, dtype="int64")
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "pandas-nullable":
-        df = pd.DataFrame({"a": [1, 2, 3], "b": [1, 2, 4]}, dtype="Int64")
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "polars-lazy":
-        df = pl.DataFrame({"a": [1, 2, 3], "b": [1, 2, 4]})
-        return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"  # pragma: no cover
-    raise AssertionError(msg)
+def integer_dataframe_7(library: BaseHandler) -> DataFrame:
+    return library.dataframe({"a": [1, 2, 3], "b": [1, 2, 4]}, dtype="int64")
 
 
-def nan_dataframe_1(library: str) -> DataFrame:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame({"a": [1.0, 2.0, float("nan")]}, dtype="float64")
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "pandas-nullable":
+def nan_dataframe_1(library: BaseHandler) -> DataFrame:
+    if library.name == "pandas-nullable":
+        import pandas as pd
+
         df = pd.DataFrame({"a": [1.0, 2.0, 0.0]}, dtype="Float64")
         other = pd.DataFrame({"a": [1.0, 1.0, 0.0]}, dtype="Float64")
         return convert_to_standard_compliant_dataframe(df / other)
-    if library == "polars-lazy":
-        df = pl.DataFrame({"a": [1.0, 2.0, float("nan")]})
-        return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"  # pragma: no cover
-    raise AssertionError(msg)
+    return library.dataframe({"a": [1.0, 2.0, float("nan")]}, dtype="float64")
 
 
-def nan_dataframe_2(library: str) -> DataFrame:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame({"a": [0.0, 1.0, float("nan")]}, dtype="float64")
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "pandas-nullable":
+def nan_dataframe_2(library: BaseHandler) -> DataFrame:
+    if library.name == "pandas-nullable":
+        import pandas as pd
+
         df = pd.DataFrame({"a": [0.0, 1.0, 0.0]}, dtype="Float64")
         other = pd.DataFrame({"a": [1.0, 1.0, 0.0]}, dtype="Float64")
         return convert_to_standard_compliant_dataframe(df / other)
-    if library == "polars-lazy":
-        df = pl.DataFrame({"a": [0.0, 1.0, float("nan")]})
-        return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"  # pragma: no cover
-    raise AssertionError(msg)
+    return library.dataframe({"a": [0.0, 1.0, float("nan")]}, dtype="float64")
 
 
-def null_dataframe_1(library: str) -> DataFrame:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame({"a": [1.0, 2.0, float("nan")]}, dtype="float64")
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "pandas-nullable":
+def null_dataframe_1(library: BaseHandler) -> DataFrame:
+    if library.name == "pandas-nullable":
+        import pandas as pd
+
         df = pd.DataFrame({"a": [1.0, 2.0, pd.NA]}, dtype="Float64")
         return convert_to_standard_compliant_dataframe(df)
-    if library == "polars-lazy":
+    if library.name == "polars-lazy":
+        import polars as pl
+
         df = pl.DataFrame({"a": [1.0, 2.0, None]})
         return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"  # pragma: no cover
-    raise AssertionError(msg)
+    return library.dataframe({"a": [1.0, 2.0, float("nan")]}, dtype="float64")
 
 
-def null_dataframe_2(library: str) -> DataFrame:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame(
-            {"a": [1.0, -1.0, float("nan")], "b": [1.0, -1.0, float("nan")]},
-            dtype="float64",
-        )
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "pandas-nullable":
+def null_dataframe_2(library: BaseHandler) -> DataFrame:
+    if library.name == "pandas-nullable":
+        import pandas as pd
+
         df = pd.DataFrame(
             {"a": [1.0, 0.0, pd.NA], "b": [1.0, 1.0, pd.NA]},
             dtype="Float64",
         )
         return convert_to_standard_compliant_dataframe(df / df)
-    if library == "polars-lazy":
+    if library.name == "polars-lazy":
+        import polars as pl
+
         df = pl.DataFrame({"a": [1.0, float("nan"), None], "b": [1.0, 1.0, None]})
         return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"  # pragma: no cover
-    raise AssertionError(msg)
+    return library.dataframe(
+        {"a": [1.0, -1.0, float("nan")], "b": [1.0, -1.0, float("nan")]},
+        dtype="float64",
+    )
 
 
-def bool_dataframe_1(library: str, api_version: str = "2023.09-beta") -> DataFrame:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame(
-            {"a": [True, True, False], "b": [True, True, True]},
-            dtype="bool",
-        )
-        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
-    if library == "pandas-nullable":
-        df = pd.DataFrame(
-            {"a": [True, True, False], "b": [True, True, True]},
-            dtype="boolean",
-        )
-        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
-    if library == "polars-lazy":
-        df = pl.DataFrame({"a": [True, True, False], "b": [True, True, True]})
-        return convert_to_standard_compliant_dataframe(df, api_version=api_version)
-    msg = f"Got unexpected library: {library}"  # pragma: no cover
-    raise AssertionError(msg)
+def bool_dataframe_1(
+    library: BaseHandler,
+    api_version: str = "2023.09-beta",
+) -> DataFrame:
+    return library.dataframe(
+        {"a": [True, True, False], "b": [True, True, True]},
+        dtype="bool",
+        api_version=api_version,
+    )
 
 
-def bool_dataframe_2(library: str) -> DataFrame:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame(
-            {
-                "key": [1, 1, 2, 2],
-                "b": [False, True, True, True],
-                "c": [True, False, False, False],
-            },
-        ).astype({"key": "int64", "b": "bool", "c": "bool"})
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "pandas-nullable":
+def bool_dataframe_2(library: BaseHandler) -> DataFrame:
+    if library.name == "pandas-nullable":
+        import pandas as pd
+
+        # TODO: allow library.dataframe to work with dtype like dict
         df = pd.DataFrame(
             {
                 "key": [1, 1, 2, 2],
@@ -273,88 +325,44 @@ def bool_dataframe_2(library: str) -> DataFrame:
             },
         ).astype({"key": "Int64", "b": "boolean", "c": "boolean"})
         return convert_to_standard_compliant_dataframe(df)
-    if library == "polars-lazy":
-        df = pl.DataFrame(
-            {
-                "key": [1, 1, 2, 2],
-                "b": [False, True, True, True],
-                "c": [True, False, False, False],
-            },
-        )
-        return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"  # pragma: no cover
-    raise AssertionError(msg)
+    return library.dataframe(
+        {
+            "key": [1, 1, 2, 2],
+            "b": [False, True, True, True],
+            "c": [True, False, False, False],
+        },
+    )
 
 
-def bool_dataframe_3(library: str) -> DataFrame:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame(
-            {"a": [False, False], "b": [False, True], "c": [True, True]},
-            dtype="bool",
-        )
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "pandas-nullable":
-        df = pd.DataFrame(
-            {"a": [False, False], "b": [False, True], "c": [True, True]},
-            dtype="boolean",
-        )
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "polars-lazy":
-        df = pl.DataFrame({"a": [False, False], "b": [False, True], "c": [True, True]})
-        return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"  # pragma: no cover
-    raise AssertionError(msg)
+def bool_dataframe_3(library: BaseHandler) -> DataFrame:
+    return library.dataframe(
+        {"a": [False, False], "b": [False, True], "c": [True, True]},
+        dtype="bool",
+    )
 
 
-def float_dataframe_1(library: str) -> DataFrame:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame({"a": [2.0, 3.0]}, dtype="float64")
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "pandas-nullable":
-        df = pd.DataFrame({"a": [2.0, 3.0]}, dtype="Float64")
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "polars-lazy":
-        df = pl.DataFrame({"a": [2.0, 3.0]})
-        return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"  # pragma: no cover
-    raise AssertionError(msg)
+def float_dataframe_1(library: BaseHandler) -> DataFrame:
+    return library.dataframe({"a": [2.0, 3.0]}, dtype="float64")
 
 
-def float_dataframe_2(library: str) -> DataFrame:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame({"a": [2.0, 1.0]}, dtype="float64")
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "pandas-nullable":
-        df = pd.DataFrame({"a": [2.0, 1.0]}, dtype="Float64")
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "polars-lazy":  # pragma: no cover
-        df = pl.DataFrame({"a": [2.0, 1.0]})
-        return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"  # pragma: no cover
-    raise AssertionError(msg)
+def float_dataframe_2(library: BaseHandler) -> DataFrame:
+    return library.dataframe({"a": [2.0, 1.0]}, dtype="float64")
 
 
-def float_dataframe_3(library: str) -> DataFrame:
-    df: Any
-    if library == "pandas-numpy":
-        df = pd.DataFrame({"a": [float("nan"), 2.0]}, dtype="float64")
-        return convert_to_standard_compliant_dataframe(df)
-    if library == "pandas-nullable":
+def float_dataframe_3(library: BaseHandler) -> DataFrame:
+    if library.name == "pandas-nullable":
+        import pandas as pd
+
         df = pd.DataFrame({"a": [0.0, 2.0]}, dtype="Float64")
         other = pd.DataFrame({"a": [0.0, 1.0]}, dtype="Float64")
         return convert_to_standard_compliant_dataframe(df / other)
-    if library == "polars-lazy":  # pragma: no cover
-        df = pl.DataFrame({"a": [float("nan"), 2.0]})
-        return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"  # pragma: no cover
-    raise AssertionError(msg)
+    return library.dataframe({"a": [float("nan"), 2.0]}, dtype="float64")
 
 
-def temporal_dataframe_1(library: str) -> DataFrame:
-    if library in ["pandas-numpy", "pandas-nullable"]:
+def temporal_dataframe_1(library: BaseHandler) -> DataFrame:
+    if library.name in ["pandas-numpy", "pandas-nullable"]:
+        import pandas as pd
+
         df = pd.DataFrame(
             {
                 "a": [
@@ -400,7 +408,9 @@ def temporal_dataframe_1(library: str) -> DataFrame:
             },
         )
         return convert_to_standard_compliant_dataframe(df)
-    if library == "polars-lazy":
+    if library.name == "polars-lazy":
+        import polars as pl
+
         df = pl.DataFrame(
             {
                 "a": [
@@ -446,8 +456,42 @@ def temporal_dataframe_1(library: str) -> DataFrame:
             },
         )
         return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"  # pragma: no cover
-    raise AssertionError(msg)
+
+    return library.dataframe(
+        {
+            "a": [
+                datetime(2020, 1, 1, 1, 2, 1, 123000),
+                datetime(2020, 1, 2, 3, 1, 2, 321000),
+                datetime(2020, 1, 3, 5, 4, 9, 987000),
+            ],
+            "b": [
+                timedelta(1, milliseconds=1),
+                timedelta(2, milliseconds=3),
+                timedelta(3, milliseconds=5),
+            ],
+            "c": [
+                datetime(2020, 1, 1, 1, 2, 1, 123543),
+                datetime(2020, 1, 2, 3, 1, 2, 321654),
+                datetime(2020, 1, 3, 5, 4, 9, 987321),
+            ],
+            "d": [
+                timedelta(1, milliseconds=1),
+                timedelta(2, milliseconds=3),
+                timedelta(3, milliseconds=5),
+            ],
+            "e": [
+                datetime(2020, 1, 1, 1, 2, 1, 123543),
+                datetime(2020, 1, 2, 3, 1, 2, 321654),
+                datetime(2020, 1, 3, 5, 4, 9, 987321),
+            ],
+            "f": [
+                timedelta(1, milliseconds=1),
+                timedelta(2, milliseconds=3),
+                timedelta(3, milliseconds=5),
+            ],
+            "index": [0, 1, 2],
+        },
+    )
 
 
 def compare_column_with_reference(
@@ -494,7 +538,7 @@ def compare_dataframe_with_reference(
         )
 
 
-def mixed_dataframe_1(library: str) -> DataFrame:
+def mixed_dataframe_1(library: BaseHandler) -> DataFrame:
     df: Any
     data = {
         "a": [1, 2, 3],
@@ -515,7 +559,9 @@ def mixed_dataframe_1(library: str) -> DataFrame:
         "p": [timedelta(days=1), timedelta(days=2), timedelta(days=3)],
         "q": [timedelta(days=1), timedelta(days=2), timedelta(days=3)],
     }
-    if library == "pandas-numpy":
+    if library.name == "pandas-numpy":
+        import pandas as pd
+
         df = pd.DataFrame(data).astype(
             {
                 "a": "int64",
@@ -538,7 +584,9 @@ def mixed_dataframe_1(library: str) -> DataFrame:
             },
         )
         return convert_to_standard_compliant_dataframe(df)
-    if library == "pandas-nullable":
+    if library.name == "pandas-nullable":
+        import pandas as pd
+
         df = pd.DataFrame(data).astype(
             {
                 "a": "Int64",
@@ -561,7 +609,9 @@ def mixed_dataframe_1(library: str) -> DataFrame:
             },
         )
         return convert_to_standard_compliant_dataframe(df)
-    if library == "polars-lazy":
+    if library.name == "polars-lazy":
+        import polars as pl
+
         df = pl.DataFrame(
             data,
             schema={
@@ -585,5 +635,26 @@ def mixed_dataframe_1(library: str) -> DataFrame:
             },
         )
         return convert_to_standard_compliant_dataframe(df)
-    msg = f"Got unexpected library: {library}"  # pragma: no cover
-    raise AssertionError(msg)
+    # TODO: use standard cast function for that
+    return library.dataframe(
+        data,
+        dtype={
+            "a": "int64",
+            "b": "int32",
+            "c": "int16",
+            "d": "int8",
+            "e": "uint64",
+            "f": "uint32",
+            "g": "uint16",
+            "h": "uint8",
+            "i": "float64",
+            "j": "float32",
+            "k": "bool",
+            "l": "object",
+            "m": "datetime64[s]",
+            "n": "datetime64[ms]",
+            "o": "datetime64[us]",
+            "p": "timedelta64[ms]",
+            "q": "timedelta64[us]",
+        },
+    )
