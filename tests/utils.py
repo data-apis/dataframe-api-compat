@@ -118,45 +118,6 @@ class PolarsHandler(BaseHandler):
         )
 
 
-class ModinHandler(BaseHandler):
-    def __init__(self, name: str) -> None:
-        assert name == "modin"
-        self._name = name
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    def __str__(self) -> str:
-        return self.name
-
-    def dataframe(
-        self,
-        data: Any,
-        api_version: str | None = None,
-        **kwargs: str,
-    ) -> DataFrame:
-        import modin.pandas as pd
-
-        import dataframe_api_compat.modin_standard
-
-        cast_dtypes = None
-        if "dtype" in kwargs and isinstance(kwargs["dtype"], dict):
-            cast_dtypes = kwargs.pop("dtype")
-
-        df = pd.DataFrame(data, **kwargs)
-
-        if cast_dtypes:
-            df = df.astype(cast_dtypes)
-
-        return (
-            dataframe_api_compat.modin_standard.convert_to_standard_compliant_dataframe(
-                df,
-                api_version=api_version or "2023.11-beta",
-            )
-        )
-
-
 def convert_to_standard_compliant_dataframe(
     df: pd.DataFrame | pl.DataFrame,
     api_version: str | None = None,

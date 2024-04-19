@@ -38,7 +38,7 @@ def test_fill_nan_with_null(library: BaseHandler) -> None:
     result = df.fill_nan(ns.null)
     n_nans = result.is_nan().sum()
     result = n_nans.col("a").persist().get_value(0).scalar
-    if library.name in ("pandas-numpy", "modin"):
+    if library.name in ("pandas-numpy",):
         # null is nan for pandas-numpy
         assert result == 1
     else:

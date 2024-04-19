@@ -11,8 +11,6 @@ from tests.utils import pandas_version
 
 
 def test_join_left(library: BaseHandler) -> None:
-    if library.name == "modin":
-        pytest.skip("TODO: enable for modin")
     left = integer_dataframe_1(library)
     right = integer_dataframe_2(library).rename({"b": "c"})
     result = left.join(right, left_on="a", right_on="a", how="left")
@@ -73,8 +71,6 @@ def test_join_outer(library: BaseHandler) -> None:  # pragma: no cover
 
 
 def test_join_two_keys(library: BaseHandler) -> None:
-    if library.name == "modin":
-        pytest.skip("TODO: enable for modin")
     left = integer_dataframe_1(library)
     right = integer_dataframe_2(library).rename({"b": "c"})
     result = left.join(right, left_on=["a", "b"], right_on=["a", "c"], how="left")

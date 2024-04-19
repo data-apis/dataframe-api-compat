@@ -55,8 +55,6 @@ def test_within_df_within_col_propagation(library: BaseHandler) -> None:
 
 
 def test_cross_df_propagation(library: BaseHandler) -> None:
-    if library.name == "modin":
-        pytest.skip("TODO: enable for modin")
     df1 = integer_dataframe_1(library)
     df2 = integer_dataframe_2(library)
     ns = df1.__dataframe_namespace__()

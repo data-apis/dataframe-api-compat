@@ -3,7 +3,6 @@ from __future__ import annotations
 import sys
 from typing import Any
 
-from tests.utils import ModinHandler
 from tests.utils import PandasHandler
 from tests.utils import PolarsHandler
 
@@ -19,7 +18,6 @@ LIBRARIES_HANDLERS = {
     "pandas-numpy": PandasHandler("pandas-numpy"),
     "pandas-nullable": PandasHandler("pandas-nullable"),
     "polars-lazy": PolarsHandler("polars-lazy"),
-    "modin": ModinHandler("modin"),
 }
 
 
@@ -39,7 +37,7 @@ def pytest_configure(config: Any) -> None:
         # `LIBRARIES` is already initialized
         return
     else:
-        assert library in ("pandas-numpy", "pandas-nullable", "polars-lazy", "modin")
+        assert library in ("pandas-numpy", "pandas-nullable", "polars-lazy")
         global LIBRARIES  # noqa: PLW0603
         LIBRARIES = {
             (3, 8): [library],
