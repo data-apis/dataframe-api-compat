@@ -1,6 +1,6 @@
 covdefaults
 pandas
-polars
+polars<0.20.8
 pre-commit
 pyarrow
 pytest
