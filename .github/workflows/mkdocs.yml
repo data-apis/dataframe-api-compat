@@ -27,6 +27,6 @@ jobs:
           path: .cache
           restore-keys: |
             mkdocs-material-
-      - run: pip install -r docs/requirements-docs.txt -e . pandas polars<0.20.8
+      - run: pip install -r docs/requirements-docs.txt -e . pandas "polars<0.20.8"
 
       - run: mkdocs gh-deploy --force
