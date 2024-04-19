@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     import polars as pl
     from dataframe_api import Column
     from dataframe_api import DataFrame
+    from dataframe_api.typing import DType
 
 
 def pandas_version() -> Version:
@@ -535,7 +536,7 @@ def mixed_dataframe_1(library: BaseHandler) -> DataFrame:
 
     result = library.dataframe(data)
     ns = result.__dataframe_namespace__()
-    dtypes = {
+    dtypes: Mapping[str, DType] = {
         "a": ns.Int64(),
         "b": ns.Int32(),
         "c": ns.Int16(),
