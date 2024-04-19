@@ -33,7 +33,7 @@ def pytest_addoption(parser: Any) -> None:
 
 def pytest_configure(config: Any) -> None:
     library = config.option.library
-    if library is None:
+    if library is None:  # pragma: no cover
         # `LIBRARIES` is already initialized
         return
     else:
