@@ -6,6 +6,7 @@ from datetime import datetime
 from datetime import timedelta
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import ClassVar
 from typing import Mapping
 
 from packaging.version import Version
@@ -47,6 +48,13 @@ class BaseHandler:
 
 
 class PandasHandler(BaseHandler):
+    # for `pandas-nullable` case
+    mapping: ClassVar[dict[str, str]] = {
+        "bool": "boolean",
+        "int64": "Int64",
+        "float64": "Float64",
+    }
+
     def __init__(self, name: str) -> None:
         assert name in ("pandas-numpy", "pandas-nullable")
         self._name = name
@@ -54,9 +62,6 @@ class PandasHandler(BaseHandler):
     @property
     def name(self) -> str:
         return self._name
-
-    def __str__(self) -> str:
-        return self.name
 
     def dataframe(
         self,
@@ -69,12 +74,7 @@ class PandasHandler(BaseHandler):
         import dataframe_api_compat.pandas_standard
 
         if self.name == "pandas-nullable" and "dtype" in kwargs:
-            if kwargs["dtype"] == "bool":
-                kwargs["dtype"] = "boolean"
-            elif kwargs["dtype"] == "int64":
-                kwargs["dtype"] = "Int64"
-            elif kwargs["dtype"] == "float64":
-                kwargs["dtype"] = "Float64"
+            kwargs["dtype"] = self.mapping.get(kwargs["dtype"])
         df = pd.DataFrame(data, **kwargs)
 
         return (
@@ -93,9 +93,6 @@ class PolarsHandler(BaseHandler):
     @property
     def name(self) -> str:
         return self._name
-
-    def __str__(self) -> str:
-        return self.name
 
     def dataframe(
         self,
@@ -369,7 +366,7 @@ def temporal_dataframe_1(library: BaseHandler) -> DataFrame:
             },
         )
         return convert_to_standard_compliant_dataframe(df)
-    if library.name == "polars-lazy":
+    else:
         import polars as pl
 
         df = pl.DataFrame(
@@ -417,42 +414,6 @@ def temporal_dataframe_1(library: BaseHandler) -> DataFrame:
             },
         )
         return convert_to_standard_compliant_dataframe(df)
-
-    return library.dataframe(
-        {
-            "a": [
-                datetime(2020, 1, 1, 1, 2, 1, 123000),
-                datetime(2020, 1, 2, 3, 1, 2, 321000),
-                datetime(2020, 1, 3, 5, 4, 9, 987000),
-            ],
-            "b": [
-                timedelta(1, milliseconds=1),
-                timedelta(2, milliseconds=3),
-                timedelta(3, milliseconds=5),
-            ],
-            "c": [
-                datetime(2020, 1, 1, 1, 2, 1, 123543),
-                datetime(2020, 1, 2, 3, 1, 2, 321654),
-                datetime(2020, 1, 3, 5, 4, 9, 987321),
-            ],
-            "d": [
-                timedelta(1, milliseconds=1),
-                timedelta(2, milliseconds=3),
-                timedelta(3, milliseconds=5),
-            ],
-            "e": [
-                datetime(2020, 1, 1, 1, 2, 1, 123543),
-                datetime(2020, 1, 2, 3, 1, 2, 321654),
-                datetime(2020, 1, 3, 5, 4, 9, 987321),
-            ],
-            "f": [
-                timedelta(1, milliseconds=1),
-                timedelta(2, milliseconds=3),
-                timedelta(3, milliseconds=5),
-            ],
-            "index": [0, 1, 2],
-        },
-    )
 
 
 def compare_column_with_reference(
@@ -520,31 +481,6 @@ def mixed_dataframe_1(library: BaseHandler) -> DataFrame:
         "p": [timedelta(days=1), timedelta(days=2), timedelta(days=3)],
         "q": [timedelta(days=1), timedelta(days=2), timedelta(days=3)],
     }
-    if library.name == "pandas-numpy":
-        import pandas as pd
-
-        df = pd.DataFrame(data).astype(
-            {
-                "a": "int64",
-                "b": "int32",
-                "c": "int16",
-                "d": "int8",
-                "e": "uint64",
-                "f": "uint32",
-                "g": "uint16",
-                "h": "uint8",
-                "i": "float64",
-                "j": "float32",
-                "k": "bool",
-                "l": "object",
-                "m": "datetime64[s]",
-                "n": "datetime64[ms]",
-                "o": "datetime64[us]",
-                "p": "timedelta64[ms]",
-                "q": "timedelta64[us]",
-            },
-        )
-        return convert_to_standard_compliant_dataframe(df)
     if library.name == "pandas-nullable":
         import pandas as pd
 
@@ -596,26 +532,26 @@ def mixed_dataframe_1(library: BaseHandler) -> DataFrame:
             },
         )
         return convert_to_standard_compliant_dataframe(df)
-    # TODO: use standard cast function for that
-    return library.dataframe(
-        data,
-        dtype={
-            "a": "int64",
-            "b": "int32",
-            "c": "int16",
-            "d": "int8",
-            "e": "uint64",
-            "f": "uint32",
-            "g": "uint16",
-            "h": "uint8",
-            "i": "float64",
-            "j": "float32",
-            "k": "bool",
-            "l": "object",
-            "m": "datetime64[s]",
-            "n": "datetime64[ms]",
-            "o": "datetime64[us]",
-            "p": "timedelta64[ms]",
-            "q": "timedelta64[us]",
-        },
-    )
+
+    result = library.dataframe(data)
+    ns = result.__dataframe_namespace__()
+    dtypes = {
+        "a": ns.Int64(),
+        "b": ns.Int32(),
+        "c": ns.Int16(),
+        "d": ns.Int8(),
+        "e": ns.UInt64(),
+        "f": ns.UInt32(),
+        "g": ns.UInt16(),
+        "h": ns.UInt8(),
+        "i": ns.Float64(),
+        "j": ns.Float32(),
+        "k": ns.Bool(),
+        "l": ns.String(),
+        "m": ns.Datetime("ms"),
+        "n": ns.Datetime("ms"),
+        "o": ns.Datetime("us"),
+        "p": ns.Duration("ms"),
+        "q": ns.Duration("us"),
+    }
+    return result.cast(dtypes)
