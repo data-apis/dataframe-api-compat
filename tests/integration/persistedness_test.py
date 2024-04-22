@@ -1,11 +1,12 @@
 import pytest
 
+from tests.utils import BaseHandler
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_1
 from tests.utils import integer_dataframe_2
 
 
-def test_within_df_propagation(library: str) -> None:
+def test_within_df_propagation(library: BaseHandler) -> None:
     df1 = integer_dataframe_1(library)
     df1 = df1 + 1
     with pytest.raises(RuntimeError):
@@ -46,14 +47,14 @@ def test_within_df_propagation(library: str) -> None:
     assert int(scalar + 1) == 3  # type: ignore[call-overload]
 
 
-def test_within_df_within_col_propagation(library: str) -> None:
+def test_within_df_within_col_propagation(library: BaseHandler) -> None:
     df1 = integer_dataframe_1(library)
     df1 = df1 + 1
     df1 = df1.persist()
     assert int((df1.col("a") + 1).mean()) == 4  # type: ignore[call-overload]
 
 
-def test_cross_df_propagation(library: str) -> None:
+def test_cross_df_propagation(library: BaseHandler) -> None:
     df1 = integer_dataframe_1(library)
     df2 = integer_dataframe_2(library)
     ns = df1.__dataframe_namespace__()
@@ -69,12 +70,14 @@ def test_cross_df_propagation(library: str) -> None:
     expected_dtype = {
         "a": ns.Int64,
         "b": ns.Int64,
-        "c": ns.Int64 if library in ["pandas-nullable", "polars-lazy"] else ns.Float64,
+        "c": ns.Int64
+        if library.name in ["pandas-nullable", "polars-lazy"]
+        else ns.Float64,
     }
     compare_dataframe_with_reference(result, expected, dtype=expected_dtype)  # type: ignore[arg-type]
 
 
-def test_multiple_propagations(library: str) -> None:
+def test_multiple_propagations(library: BaseHandler) -> None:
     # This is a bit "ugly", as the user is "required" to call `persist`
     # multiple times to do things optimally
     df = integer_dataframe_1(library)
@@ -97,7 +100,7 @@ def test_multiple_propagations(library: str) -> None:
     int(df1.col("a").mean())  # type: ignore[call-overload]
 
 
-def test_parent_propagations(library: str) -> None:
+def test_parent_propagations(library: BaseHandler) -> None:
     # Set up something like this:
     #
     #         df

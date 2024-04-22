@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from tests.utils import BaseHandler
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_1
 
@@ -25,7 +26,7 @@ from tests.utils import integer_dataframe_1
     ],
 )
 def test_comparisons_with_scalar(
-    library: str,
+    library: BaseHandler,
     comparison: str,
     expected_data: dict[str, object],
     expected_dtype: str,
@@ -47,7 +48,7 @@ def test_comparisons_with_scalar(
     ],
 )
 def test_rcomparisons_with_scalar(
-    library: str,
+    library: BaseHandler,
     comparison: str,
     expected_data: dict[str, object],
 ) -> None:

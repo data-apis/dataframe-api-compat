@@ -5,11 +5,12 @@ import pytest
 from packaging.version import Version
 from packaging.version import parse
 
+from tests.utils import BaseHandler
 from tests.utils import convert_to_standard_compliant_dataframe
 from tests.utils import integer_dataframe_1
 
 
-def test_name(library: str) -> None:
+def test_name(library: BaseHandler) -> None:
     df = integer_dataframe_1(library).persist()
     name = df.col("a").name
     assert name == "a"

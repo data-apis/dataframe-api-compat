@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from tests.utils import BaseHandler
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_6
 
 
-def test_column_sorted_indices_ascending(library: str) -> None:
+def test_column_sorted_indices_ascending(library: BaseHandler) -> None:
     df = integer_dataframe_6(library)
     ns = df.__dataframe_namespace__()
     sorted_indices = df.col("b").sorted_indices()
@@ -19,7 +20,7 @@ def test_column_sorted_indices_ascending(library: str) -> None:
         "b": [4, 4, 3, 1, 2],
         "result": [3, 4, 2, 1, 0],
     }
-    if library in ("polars", "polars-lazy"):
+    if library.name in ("polars", "polars-lazy"):
         result = result.cast({"result": ns.Int64()})
     try:
         compare_dataframe_with_reference(result, expected_1, dtype=ns.Int64)
@@ -28,7 +29,7 @@ def test_column_sorted_indices_ascending(library: str) -> None:
         compare_dataframe_with_reference(result, expected_2, dtype=ns.Int64)
 
 
-def test_column_sorted_indices_descending(library: str) -> None:
+def test_column_sorted_indices_descending(library: BaseHandler) -> None:
     df = integer_dataframe_6(library)
     ns = df.__dataframe_namespace__()
     sorted_indices = df.col("b").sorted_indices(ascending=False)
@@ -43,7 +44,7 @@ def test_column_sorted_indices_descending(library: str) -> None:
         "b": [4, 4, 3, 1, 2],
         "result": [0, 1, 2, 4, 3],
     }
-    if library in ("polars", "polars-lazy"):
+    if library.name in ("polars", "polars-lazy"):
         result = result.cast({"result": ns.Int64()})
     try:
         compare_dataframe_with_reference(result, expected_1, dtype=ns.Int64)

@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import pytest
 
+from tests.utils import BaseHandler
 from tests.utils import compare_dataframe_with_reference
 from tests.utils import integer_dataframe_5
 
 
 @pytest.mark.parametrize("keys", [["a", "b"], []])
-def test_sort(library: str, keys: list[str]) -> None:
+def test_sort(library: BaseHandler, keys: list[str]) -> None:
     df = integer_dataframe_5(library, api_version="2023.09-beta")
     ns = df.__dataframe_namespace__()
     result = df.sort(*keys)
@@ -17,7 +18,7 @@ def test_sort(library: str, keys: list[str]) -> None:
 
 @pytest.mark.parametrize("keys", [["a", "b"], []])
 def test_sort_descending(
-    library: str,
+    library: BaseHandler,
     keys: list[str],
 ) -> None:
     df = integer_dataframe_5(library, api_version="2023.09-beta")
