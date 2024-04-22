@@ -39,17 +39,17 @@ class BaseHandler:
         ...
 
     @abstractmethod
-    def dataframe(
+    def create_dataframe(
         self,
         data: Any,
         api_version: str | None = None,
-        **kwargs: Any,
     ) -> DataFrame:
         ...
 
 
 class PandasHandler(BaseHandler):
     # for `pandas-nullable` case
+    # https://pandas.pydata.org/docs/user_guide/basics.html#dtypes
     mapping: ClassVar[dict[str, str]] = {
         "bool": "boolean",
         "int64": "Int64",
@@ -64,19 +64,22 @@ class PandasHandler(BaseHandler):
     def name(self) -> str:
         return self._name
 
-    def dataframe(
+    def create_dataframe(
         self,
         data: Any,
         api_version: str | None = None,
-        **kwargs: Any,
     ) -> DataFrame:
         import pandas as pd
 
         import dataframe_api_compat.pandas_standard
 
-        if self.name == "pandas-nullable" and "dtype" in kwargs:
-            kwargs["dtype"] = self.mapping.get(kwargs["dtype"])
-        df = pd.DataFrame(data, **kwargs)
+        df = pd.DataFrame(data)
+        if self.name == "pandas-nullable":
+            new_dtypes = {
+                col_name: self.mapping.get(str(dtype), str(dtype))
+                for col_name, dtype in zip(df.columns, df.dtypes)
+            }
+            df = df.astype(new_dtypes)
 
         return (
             dataframe_api_compat.pandas_standard.convert_to_standard_compliant_dataframe(
@@ -95,13 +98,11 @@ class PolarsHandler(BaseHandler):
     def name(self) -> str:
         return self._name
 
-    def dataframe(
+    def create_dataframe(
         self,
         data: Any,
         api_version: str | None = None,
-        **kwargs: Any,
     ) -> DataFrame:
-        # TODO: should we ignore kwargs? For example, dtype
         import polars as pl
 
         import dataframe_api_compat.polars_standard
@@ -152,31 +153,27 @@ def integer_dataframe_1(
     library: BaseHandler,
     api_version: str | None = None,
 ) -> DataFrame:
-    return library.dataframe(
+    return library.create_dataframe(
         {"a": [1, 2, 3], "b": [4, 5, 6]},
-        dtype="int64",
         api_version=api_version,
     )
 
 
 def integer_dataframe_2(library: BaseHandler) -> DataFrame:
-    return library.dataframe(
+    return library.create_dataframe(
         {"a": [1, 2, 4], "b": [4, 2, 6]},
-        dtype="int64",
     )
 
 
 def integer_dataframe_3(library: BaseHandler) -> DataFrame:
-    return library.dataframe(
+    return library.create_dataframe(
         {"a": [1, 2, 3, 4, 5, 6, 7], "b": [7, 6, 5, 4, 3, 2, 1]},
-        dtype="int64",
     )
 
 
 def integer_dataframe_4(library: BaseHandler) -> DataFrame:
-    return library.dataframe(
+    return library.create_dataframe(
         {"key": [1, 1, 2, 2], "b": [1, 2, 3, 4], "c": [4, 5, 6, 7]},
-        dtype="int64",
     )
 
 
@@ -184,9 +181,8 @@ def integer_dataframe_5(
     library: BaseHandler,
     api_version: str | None = None,
 ) -> DataFrame:
-    return library.dataframe(
+    return library.create_dataframe(
         {"a": [1, 1], "b": [4, 3]},
-        dtype="int64",
         api_version=api_version,
     )
 
@@ -195,15 +191,14 @@ def integer_dataframe_6(
     library: BaseHandler,
     api_version: str | None = None,
 ) -> DataFrame:
-    return library.dataframe(
+    return library.create_dataframe(
         {"a": [1, 1, 1, 2, 2], "b": [4, 4, 3, 1, 2]},
-        dtype="int64",
         api_version=api_version,
     )
 
 
 def integer_dataframe_7(library: BaseHandler) -> DataFrame:
-    return library.dataframe({"a": [1, 2, 3], "b": [1, 2, 4]}, dtype="int64")
+    return library.create_dataframe({"a": [1, 2, 3], "b": [1, 2, 4]})
 
 
 def nan_dataframe_1(library: BaseHandler) -> DataFrame:
@@ -213,7 +208,7 @@ def nan_dataframe_1(library: BaseHandler) -> DataFrame:
         df = pd.DataFrame({"a": [1.0, 2.0, 0.0]}, dtype="Float64")
         other = pd.DataFrame({"a": [1.0, 1.0, 0.0]}, dtype="Float64")
         return convert_to_standard_compliant_dataframe(df / other)
-    return library.dataframe({"a": [1.0, 2.0, float("nan")]}, dtype="float64")
+    return library.create_dataframe({"a": [1.0, 2.0, float("nan")]})
 
 
 def nan_dataframe_2(library: BaseHandler) -> DataFrame:
@@ -223,7 +218,7 @@ def nan_dataframe_2(library: BaseHandler) -> DataFrame:
         df = pd.DataFrame({"a": [0.0, 1.0, 0.0]}, dtype="Float64")
         other = pd.DataFrame({"a": [1.0, 1.0, 0.0]}, dtype="Float64")
         return convert_to_standard_compliant_dataframe(df / other)
-    return library.dataframe({"a": [0.0, 1.0, float("nan")]}, dtype="float64")
+    return library.create_dataframe({"a": [0.0, 1.0, float("nan")]})
 
 
 def null_dataframe_1(library: BaseHandler) -> DataFrame:
@@ -237,7 +232,7 @@ def null_dataframe_1(library: BaseHandler) -> DataFrame:
 
         df = pl.DataFrame({"a": [1.0, 2.0, None]})
         return convert_to_standard_compliant_dataframe(df)
-    return library.dataframe({"a": [1.0, 2.0, float("nan")]}, dtype="float64")
+    return library.create_dataframe({"a": [1.0, 2.0, float("nan")]})
 
 
 def null_dataframe_2(library: BaseHandler) -> DataFrame:
@@ -254,9 +249,8 @@ def null_dataframe_2(library: BaseHandler) -> DataFrame:
 
         df = pl.DataFrame({"a": [1.0, float("nan"), None], "b": [1.0, 1.0, None]})
         return convert_to_standard_compliant_dataframe(df)
-    return library.dataframe(
+    return library.create_dataframe(
         {"a": [1.0, -1.0, float("nan")], "b": [1.0, -1.0, float("nan")]},
-        dtype="float64",
     )
 
 
@@ -264,27 +258,14 @@ def bool_dataframe_1(
     library: BaseHandler,
     api_version: str = "2023.09-beta",
 ) -> DataFrame:
-    return library.dataframe(
+    return library.create_dataframe(
         {"a": [True, True, False], "b": [True, True, True]},
-        dtype="bool",
         api_version=api_version,
     )
 
 
 def bool_dataframe_2(library: BaseHandler) -> DataFrame:
-    if library.name == "pandas-nullable":
-        import pandas as pd
-
-        # TODO: allow library.dataframe to work with dtype like dict
-        df = pd.DataFrame(
-            {
-                "key": [1, 1, 2, 2],
-                "b": [False, True, True, True],
-                "c": [True, False, False, False],
-            },
-        ).astype({"key": "Int64", "b": "boolean", "c": "boolean"})
-        return convert_to_standard_compliant_dataframe(df)
-    return library.dataframe(
+    return library.create_dataframe(
         {
             "key": [1, 1, 2, 2],
             "b": [False, True, True, True],
@@ -294,18 +275,17 @@ def bool_dataframe_2(library: BaseHandler) -> DataFrame:
 
 
 def bool_dataframe_3(library: BaseHandler) -> DataFrame:
-    return library.dataframe(
+    return library.create_dataframe(
         {"a": [False, False], "b": [False, True], "c": [True, True]},
-        dtype="bool",
     )
 
 
 def float_dataframe_1(library: BaseHandler) -> DataFrame:
-    return library.dataframe({"a": [2.0, 3.0]}, dtype="float64")
+    return library.create_dataframe({"a": [2.0, 3.0]})
 
 
 def float_dataframe_2(library: BaseHandler) -> DataFrame:
-    return library.dataframe({"a": [2.0, 1.0]}, dtype="float64")
+    return library.create_dataframe({"a": [2.0, 1.0]})
 
 
 def float_dataframe_3(library: BaseHandler) -> DataFrame:
@@ -315,7 +295,7 @@ def float_dataframe_3(library: BaseHandler) -> DataFrame:
         df = pd.DataFrame({"a": [0.0, 2.0]}, dtype="Float64")
         other = pd.DataFrame({"a": [0.0, 1.0]}, dtype="Float64")
         return convert_to_standard_compliant_dataframe(df / other)
-    return library.dataframe({"a": [float("nan"), 2.0]}, dtype="float64")
+    return library.create_dataframe({"a": [float("nan"), 2.0]})
 
 
 def temporal_dataframe_1(library: BaseHandler) -> DataFrame:
@@ -507,34 +487,8 @@ def mixed_dataframe_1(library: BaseHandler) -> DataFrame:
             },
         )
         return convert_to_standard_compliant_dataframe(df)
-    if library.name == "polars-lazy":
-        import polars as pl
 
-        df = pl.DataFrame(
-            data,
-            schema={
-                "a": pl.Int64,
-                "b": pl.Int32,
-                "c": pl.Int16,
-                "d": pl.Int8,
-                "e": pl.UInt64,
-                "f": pl.UInt32,
-                "g": pl.UInt16,
-                "h": pl.UInt8,
-                "i": pl.Float64,
-                "j": pl.Float32,
-                "k": pl.Boolean,
-                "l": pl.Utf8,
-                "m": pl.Datetime("ms"),
-                "n": pl.Datetime("ms"),
-                "o": pl.Datetime("us"),
-                "p": pl.Duration("ms"),
-                "q": pl.Duration("us"),
-            },
-        )
-        return convert_to_standard_compliant_dataframe(df)
-
-    result = library.dataframe(data)
+    result = library.create_dataframe(data)
     ns = result.__dataframe_namespace__()
     dtypes: Mapping[str, DType] = {
         "a": ns.Int64(),

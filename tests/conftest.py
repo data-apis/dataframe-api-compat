@@ -47,9 +47,6 @@ def pytest_configure(config: Any) -> None:
             (3, 12): [library],
         }
 
-    # TODO: potential way to add filterwarnings for different librariess: config.addinivalue_line
-    # for "filterwarnings", "ignore:Ray execution environment not yet initialized:UserWarning"
-
 
 def pytest_generate_tests(metafunc: Any) -> None:
     if "library" in metafunc.fixturenames:
