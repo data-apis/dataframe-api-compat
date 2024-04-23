@@ -4,7 +4,6 @@ import pandas as pd
 import pytest
 from packaging.version import Version
 from packaging.version import parse
-from polars.exceptions import SchemaError
 
 from tests.utils import BaseHandler
 from tests.utils import bool_dataframe_2
@@ -42,7 +41,13 @@ def test_groupby_boolean(
 
 def test_group_by_invalid_any_all(library: BaseHandler) -> None:
     df = integer_dataframe_4(library).persist()
-    with pytest.raises((TypeError, SchemaError)):
+
+    exceptions = (TypeError,)
+    if library.name == "polars-lazy":
+        from polars.exceptions import SchemaError
+
+        exceptions = (TypeError, SchemaError)
+    with pytest.raises(exceptions):
         df.group_by("key").any()
-    with pytest.raises((TypeError, SchemaError)):
+    with pytest.raises(exceptions):
         df.group_by("key").all()

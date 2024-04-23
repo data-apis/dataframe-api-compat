@@ -152,7 +152,12 @@ def convert_to_standard_compliant_dataframe(
 ) -> DataFrame:
     # TODO: type return
     import pandas as pd
-    import polars as pl
+
+    try:
+        polars_installed = True
+        import polars as pl
+    except ModuleNotFoundError:
+        polars_installed = False
 
     if isinstance(df, pd.DataFrame):
         import dataframe_api_compat.pandas_standard
@@ -163,7 +168,7 @@ def convert_to_standard_compliant_dataframe(
                 api_version=api_version,
             )
         )
-    elif isinstance(df, (pl.DataFrame, pl.LazyFrame)):
+    elif polars_installed and isinstance(df, (pl.DataFrame, pl.LazyFrame)):
         import dataframe_api_compat.polars_standard
 
         df_lazy = df.lazy() if isinstance(df, pl.DataFrame) else df

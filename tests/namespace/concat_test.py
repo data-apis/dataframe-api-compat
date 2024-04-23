@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import polars as pl
 import pytest
 
 from tests.utils import BaseHandler
@@ -23,6 +22,11 @@ def test_concat_mismatch(library: BaseHandler) -> None:
     df1 = integer_dataframe_1(library).persist()
     df2 = integer_dataframe_4(library).persist()
     ns = df1.__dataframe_namespace__()
+    exceptions = (ValueError,)
+    if library.name == "polars-lazy":
+        import polars as pl
+
+        exceptions = (ValueError, pl.exceptions.ShapeError)
     # TODO check the error
-    with pytest.raises((ValueError, pl.exceptions.ShapeError)):
+    with pytest.raises(exceptions):
         _ = ns.concat([df1, df2]).persist()

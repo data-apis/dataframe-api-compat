@@ -98,15 +98,14 @@ def test_datetime_from_1d_array(library: BaseHandler) -> None:
     compare_column_with_reference(result.col("result"), expected, dtype=ns.Datetime)
 
 
-@pytest.mark.skipif(
-    Version("0.19.9") > polars_version(),
-    reason="upstream bug",
-)
-@pytest.mark.skipif(
-    Version("2.0.0") > pandas_version(),
-    reason="pandas before non-nano",
-)
 def test_duration_from_1d_array(library: BaseHandler) -> None:
+    if library.name in ("pandas-numpy", "pandas-nullable") and pandas_version() < Version(
+        "2.0.0",
+    ):
+        pytest.skip(reason="pandas before non-nano")
+    if library.name == "polars-lazy" and polars_version() < Version("0.19.9"):
+        pytest.skip(reason="upstream bug")
+
     ser = integer_dataframe_1(library).persist().col("a")
     ns = ser.__column_namespace__()
     arr = np.array([timedelta(1), timedelta(2)], dtype="timedelta64[ms]")
