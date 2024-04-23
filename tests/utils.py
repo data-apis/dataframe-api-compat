@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import math
 from abc import abstractmethod
 from datetime import datetime
@@ -468,7 +469,9 @@ def compare_column_with_reference(
     reference: list[Any],
     dtype: Any,
 ) -> None:
-    column = column.persist()
+    with contextlib.suppress(UserWarning):
+        # the comparison should work regardless of whether method `persist` has already been called or not
+        column = column.persist()
     col_len = column.len().scalar
     assert col_len == len(reference), f"column length: {col_len} != {len(reference)}"
     assert isinstance(

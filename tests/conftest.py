@@ -62,7 +62,7 @@ def pytest_generate_tests(metafunc: Any) -> None:
 
 ci_skip_ids = [
     # polars does not allow to create a dataframe with non-unique columns
-    "non_unique_column_names.py::test_repeated_columns[polars-lazy]",
+    "non_unique_column_names_test.py::test_repeated_columns[polars-lazy]",
 ]
 
 
