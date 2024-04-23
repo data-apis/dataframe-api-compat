@@ -3,6 +3,8 @@ from __future__ import annotations
 import sys
 from typing import Any
 
+import pytest
+
 from tests.utils import ModinHandler
 from tests.utils import PandasHandler
 from tests.utils import PolarsHandler
@@ -56,3 +58,17 @@ def pytest_generate_tests(metafunc: Any) -> None:
         lib_handlers = [LIBRARIES_HANDLERS[lib] for lib in libraries]
 
         metafunc.parametrize("library", lib_handlers, ids=libraries)
+
+
+ci_xfail_ids = [
+    # https://github.com/modin-project/modin/issues/7212
+    "join_test.py::test_join_left[modin]",
+    "join_test.py::test_join_two_keys[modin]",
+    "persistedness_test.py::test_cross_df_propagation[modin]",
+]
+
+
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+    for item in items:
+        if any(id_ in item.nodeid for id_ in ci_xfail_ids):
+            item.add_marker(pytest.mark.xfail(strict=True))
