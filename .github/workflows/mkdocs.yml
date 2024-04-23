@@ -19,14 +19,11 @@ jobs:
         with:
           python-version: 3.x
       - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
-
-
       - uses: actions/cache@v3
         with:
           key: mkdocs-material-${{ env.cache_id }}
           path: .cache
           restore-keys: |
             mkdocs-material-
-      - run: pip install -r docs/requirements-docs.txt -e . pandas "polars<0.20.8" # modin[ray] @ git+https://github.com/modin-project/modin.git@abbbd03023f55d4ee9592c4c695308e10a97cb4c
-
+      - run: pip install -r docs/requirements-docs.txt -e . pandas "polars<0.20.8" # modin[ray]
       - run: mkdocs gh-deploy --force

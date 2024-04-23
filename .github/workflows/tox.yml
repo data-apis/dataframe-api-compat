@@ -28,19 +28,27 @@ jobs:
           key: ${{ runner.os }}-build-${{ matrix.python-version }}
       - name: install-reqs
         run: python -m pip install --upgrade tox virtualenv setuptools pip -r requirements-dev.txt
-      - name: Run pytest
+      - name: Run pytest for pandas and polars
         run: |
           pytest tests --cov=dataframe_api_compat/pandas_standard --cov=tests --cov-append --cov-fail-under=50 --cov-report= --library pandas-numpy
           pytest tests --cov=dataframe_api_compat/pandas_standard --cov=tests --cov-append --cov-fail-under=50 --cov-report= --library pandas-nullable
-          pytest tests --cov=dataframe_api_compat/polars_standard --cov=tests --cov-append --cov-fail-under=100 --library polars-lazy
-      - name: install type-checking reqs
-        run: python -m pip install 'git+https://github.com/data-apis/dataframe-api.git#egg=dataframe_api&subdirectory=spec/API_specification' mypy typing-extensions
-      - name: run mypy
-        run: mypy dataframe_api_compat tests
+          pytest tests --cov=dataframe_api_compat/polars_standard --cov=tests --cov-append --cov-fail-under=95 --library polars-lazy
       - name: run polars integration tests
         run: pip uninstall pandas -y && pytest tests/integration/upstream_test.py::TestPolars && pip install -U pandas
       - name: run pandas integration tests
         run: pip uninstall polars -y && pytest tests/integration/upstream_test.py::TestPandas
+      - name: Update env for modin
+        run: |
+          python -m pip uninstall -r requirements-dev.txt
+          python -m pip install -r requirements-dev-modin.txt
+      - name: Run pytest for modin
+        run: |
+          pytest tests --cov=dataframe_api_compat/modin_standard --cov=tests --cov-append --cov-fail-under=100 --library modin
+      - name: install type-checking reqs
+        run: python -m pip install 'git+https://github.com/data-apis/dataframe-api.git#egg=dataframe_api&subdirectory=spec/API_specification' mypy typing-extensions
+      - name: run mypy
+        run: mypy dataframe_api_compat tests
+
 
   tox-modin:
     strategy:

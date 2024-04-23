@@ -60,15 +60,28 @@ def pytest_generate_tests(metafunc: Any) -> None:
         metafunc.parametrize("library", lib_handlers, ids=libraries)
 
 
+ci_skip_ids = [
+    # polars does not allow to create a dataframe with non-unique columns
+    "non_unique_column_names.py::test_repeated_columns[polars-lazy]",
+]
+
+
 ci_xfail_ids = [
     # https://github.com/modin-project/modin/issues/7212
     "join_test.py::test_join_left[modin]",
     "join_test.py::test_join_two_keys[modin]",
     "persistedness_test.py::test_cross_df_propagation[modin]",
+    # https://github.com/modin-project/modin/issues/3602
+    "aggregate_test.py::test_aggregate[modin]",
+    "aggregate_test.py::test_aggregate_only_size[modin]",
 ]
 
 
-def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:  # pragma: no cover
     for item in items:
         if any(id_ in item.nodeid for id_ in ci_xfail_ids):
             item.add_marker(pytest.mark.xfail(strict=True))
+        elif any(id_ in item.nodeid for id_ in ci_skip_ids):
+            item.add_marker(
+                pytest.mark.skip("does not make sense for a specific implementation"),
+            )

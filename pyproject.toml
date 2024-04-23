@@ -82,6 +82,7 @@ line-length = 90
 filterwarnings = [
   "error",
   'ignore:distutils Version classes are deprecated:DeprecationWarning',
+  # modin specific
   'ignore:.*pkg_resources:DeprecationWarning',
   'ignore:Ray execution environment not yet initialized:UserWarning',
   "ignore:Distributing <class '.*'> object.:UserWarning",

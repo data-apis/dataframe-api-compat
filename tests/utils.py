@@ -332,6 +332,8 @@ def temporal_dataframe_1(library: BaseHandler) -> DataFrame:
 
         df = pd.DataFrame(
             {
+                # the data for column "a" differs from other implementations due to pandas 1.5 compat
+                # https://github.com/data-apis/dataframe-api-compat/commit/aeca5cf1a052033b72388e3f87ad8b70d66cedec
                 "a": [
                     datetime(2020, 1, 1, 1, 2, 1, 123000),
                     datetime(2020, 1, 2, 3, 1, 2, 321000),
