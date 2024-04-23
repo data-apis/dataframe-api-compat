@@ -11,14 +11,14 @@ from tests.utils import polars_version
 
 def test_scale_column(library: BaseHandler) -> None:
     if library.name in ("pandas-numpy", "pandas-nullable"):
-        if pandas_version() < Version("2.1.0"):
+        if pandas_version() < Version("2.1.0"):  # pragma: no cover
             pytest.skip(reason="pandas doesn't support 3.8")
         import pandas as pd
 
         s = pd.Series([1, 2, 3], name="a")
         ser = s.__column_consortium_standard__()
     elif library.name == "polars-lazy":
-        if polars_version() < Version("0.19.0"):
+        if polars_version() < Version("0.19.0"):  # pragma: no cover
             pytest.skip(reason="before consortium standard in polars")
         import polars as pl
 
@@ -32,14 +32,14 @@ def test_scale_column(library: BaseHandler) -> None:
 
 def test_scale_column_polars_from_persisted_df(library: BaseHandler) -> None:
     if library.name in ("pandas-numpy", "pandas-nullable"):
-        if pandas_version() < Version("2.1.0"):
+        if pandas_version() < Version("2.1.0"):  # pragma: no cover
             pytest.skip(reason="pandas doesn't support 3.8")
         import pandas as pd
 
         df = pd.DataFrame({"a": [1, 2, 3]})
         ser = df.__dataframe_consortium_standard__().col("a")
     elif library.name == "polars-lazy":
-        if polars_version() < Version("0.19.0"):
+        if polars_version() < Version("0.19.0"):  # pragma: no cover
             pytest.skip(reason="before consortium standard in polars")
         import polars as pl
 

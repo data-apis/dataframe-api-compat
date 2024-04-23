@@ -10,7 +10,7 @@ from tests.utils import polars_version
 
 def test_convert_to_std_column(library: BaseHandler) -> None:
     if library.name in ("pandas-numpy", "pandas-nullable"):
-        if pandas_version() < Version("2.1.0"):
+        if pandas_version() < Version("2.1.0"):  # pragma: no cover
             pytest.skip(reason="before consortium standard in pandas")
         import pandas as pd
 
@@ -19,7 +19,7 @@ def test_convert_to_std_column(library: BaseHandler) -> None:
         s = pd.Series([1, 2, 3], name="alice").__column_consortium_standard__()
         assert float(s.mean()) == 2
     elif library.name == "polars-lazy":
-        if polars_version() < Version("0.19.0"):
+        if polars_version() < Version("0.19.0"):  # pragma: no cover
             pytest.skip(reason="before consortium standard in polars")
         import polars as pl
 

@@ -20,6 +20,9 @@ def test_repeated_columns(library: BaseHandler) -> None:
         )
 
         df = pd.DataFrame([[1, 2]], columns=["b", "b"])
+    else:  # pragma: no cover
+        msg = f"Not supported library: {library}"
+        raise AssertionError(msg)
     with pytest.raises(
         ValueError,
         match=r"Expected unique column names, got b 2 time\(s\)",

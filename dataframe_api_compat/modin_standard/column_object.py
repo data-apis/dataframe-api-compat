@@ -360,7 +360,10 @@ class Column(ColumnT):
 
     def is_nan(self) -> Column:
         ser = self.column
-        if is_extension_array_dtype(ser.dtype):
+        if is_extension_array_dtype(ser.dtype):  # pragma: no cover
+            # this is copied from the pandas implementation;
+            # however this code (in pandas) is only tested for `pandas-nullable`
+            # TODO: need similar tests for modin
             return self._from_series((ser != ser).fillna(False))  # noqa: PLR0124
         return self._from_series(ser.isna())
 
@@ -400,7 +403,10 @@ class Column(ColumnT):
 
     def fill_nan(self, value: float | NullType | Scalar) -> Column:
         ser = self.column.copy()
-        if is_extension_array_dtype(ser.dtype):
+        if is_extension_array_dtype(ser.dtype):  # pragma: no cover
+            # this is copied from the pandas implementation;
+            # however this code (in pandas) is only tested for `pandas-nullable`
+            # TODO: need similar tests for modin
             if self.__column_namespace__().is_null(value):
                 ser[np.isnan(ser).fillna(False).to_numpy(bool)] = pd.NA
             else:
@@ -418,7 +424,10 @@ class Column(ColumnT):
     ) -> Column:
         value = validate_comparand(self, value)
         ser = self.column.copy()
-        if is_extension_array_dtype(ser.dtype):
+        if is_extension_array_dtype(ser.dtype):  # pragma: no cover
+            # this is copied from the pandas implementation;
+            # however this code (in pandas) is only tested for `pandas-nullable`
+            # TODO: need similar tests for modin
             # Mask should include NA values, but not NaN ones
             mask = ser.isna() & (~(ser != ser).fillna(False))  # noqa: PLR0124
             ser = ser.where(~mask, value)

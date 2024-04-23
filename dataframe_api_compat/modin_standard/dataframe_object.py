@@ -438,7 +438,10 @@ class DataFrame(DataFrameT):
         df = self.dataframe
         for col in df.columns:
             ser = df[col].copy()
-            if is_extension_array_dtype(ser.dtype):
+            if is_extension_array_dtype(ser.dtype):  # pragma: no cover
+                # this is copied from the pandas implementation;
+                # however this code (in pandas) is only tested for `pandas-nullable`
+                # TODO: need similar tests for modin
                 if self.__dataframe_namespace__().is_null(_value):
                     ser[np.isnan(ser).fillna(False).to_numpy(bool)] = pd.NA
                 else:

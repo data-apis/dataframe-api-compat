@@ -64,52 +64,54 @@ SUPPORTED_VERSIONS = frozenset({"2023.11-beta"})
 
 
 def map_pandas_dtype_to_standard_dtype(dtype: Any) -> DType:
+    # this is copied from the pandas implementation;
+    # TODO: need similar tests for modin (tests with extension dtypes)
     if dtype == "int64":
         return Namespace.Int64()
-    if dtype == "Int64":
+    if dtype == "Int64":  # pragma: no cover
         return Namespace.Int64()
     if dtype == "int32":
         return Namespace.Int32()
-    if dtype == "Int32":
+    if dtype == "Int32":  # pragma: no cover
         return Namespace.Int32()
     if dtype == "int16":
         return Namespace.Int16()
-    if dtype == "Int16":
+    if dtype == "Int16":  # pragma: no cover
         return Namespace.Int16()
     if dtype == "int8":
         return Namespace.Int8()
-    if dtype == "Int8":
+    if dtype == "Int8":  # pragma: no cover
         return Namespace.Int8()
     if dtype == "uint64":
         return Namespace.UInt64()
-    if dtype == "UInt64":
+    if dtype == "UInt64":  # pragma: no cover
         return Namespace.UInt64()
     if dtype == "uint32":
         return Namespace.UInt32()
-    if dtype == "UInt32":
+    if dtype == "UInt32":  # pragma: no cover
         return Namespace.UInt32()
     if dtype == "uint16":
         return Namespace.UInt16()
-    if dtype == "UInt16":
+    if dtype == "UInt16":  # pragma: no cover
         return Namespace.UInt16()
     if dtype == "uint8":
         return Namespace.UInt8()
-    if dtype == "UInt8":
+    if dtype == "UInt8":  # pragma: no cover
         return Namespace.UInt8()
     if dtype == "float64":
         return Namespace.Float64()
-    if dtype == "Float64":
+    if dtype == "Float64":  # pragma: no cover
         return Namespace.Float64()
     if dtype == "float32":
         return Namespace.Float32()
-    if dtype == "Float32":
+    if dtype == "Float32":  # pragma: no cover
         return Namespace.Float32()
     if dtype in ("bool", "boolean"):
         # Also for `pandas.core.arrays.boolean.BooleanDtype`
         return Namespace.Bool()
     if dtype == "object":
         return Namespace.String()
-    if dtype == "string":
+    if dtype == "string":  # pragma: no cover
         return Namespace.String()
     if hasattr(dtype, "name"):
         # For types like `numpy.dtypes.DateTime64DType`
@@ -166,7 +168,8 @@ def map_standard_dtype_to_pandas_dtype(dtype: DType) -> Any:
 def convert_to_standard_compliant_column(
     ser: pd.Series[Any],
     api_version: str | None = None,
-) -> Column:
+) -> Column:  # pragma: no cover
+    # TODO: remove pragma after after modin implements `__column_consortium_standard__`
     if ser.name is not None and not isinstance(ser.name, str):
         msg = f"Expected column with string name, got: {ser.name}"
         raise ValueError(msg)

@@ -24,7 +24,7 @@ from tests.utils import pandas_version
 def test_is_dtype(library: BaseHandler, dtype: str, expected: list[str]) -> None:
     if library.name in ("pandas-numpy", "pandas-nullable") and pandas_version() < Version(
         "2.0.0",
-    ):
+    ):  # pragma: no cover
         pytest.skip(reason="pandas before non-nano")
     df = mixed_dataframe_1(library).persist()
     namespace = df.__dataframe_namespace__()
