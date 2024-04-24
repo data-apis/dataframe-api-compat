@@ -27,3 +27,6 @@ def test_convert_to_std_column(library: BaseHandler) -> None:
         assert float(s.mean()) == 2
         s = pl.Series("bob", [1, 2, 3]).__column_consortium_standard__()
         assert float(s.mean()) == 2
+    else:  # pragma: no cover
+        msg = f"Not supported library: {library}"
+        raise AssertionError(msg)

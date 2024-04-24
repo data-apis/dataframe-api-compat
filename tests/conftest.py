@@ -66,6 +66,7 @@ ci_skip_ids = [
     # TODO: enable after modin adds implementation for standard
     "scale_column_test.py::test_scale_column[modin]",
     "scale_column_test.py::test_scale_column_polars_from_persisted_df[modin]",
+    "convert_to_standard_column_test.py::test_convert_to_std_column[modin]",
 ]
 
 

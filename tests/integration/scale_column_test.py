@@ -24,6 +24,9 @@ def test_scale_column(library: BaseHandler) -> None:
 
         s = pl.Series("a", [1, 2, 3])
         ser = s.__column_consortium_standard__()
+    else:  # pragma: no cover
+        msg = f"Not supported library: {library}"
+        raise AssertionError(msg)
 
     ns = ser.__column_namespace__()
     ser = ser - ser.mean()
@@ -45,6 +48,9 @@ def test_scale_column_polars_from_persisted_df(library: BaseHandler) -> None:
 
         df = pl.DataFrame({"a": [1, 2, 3]})
         ser = df.__dataframe_consortium_standard__().col("a")
+    else:  # pragma: no cover
+        msg = f"Not supported library: {library}"
+        raise AssertionError(msg)
 
     ns = ser.__column_namespace__()
     ser = ser - ser.mean()
