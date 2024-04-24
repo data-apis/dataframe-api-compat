@@ -1,44 +1,57 @@
 from __future__ import annotations
 
-import pandas as pd
-import polars as pl
 import pytest
 from packaging.version import Version
-from packaging.version import parse
-from polars.testing import assert_series_equal
+
+from tests.utils import BaseHandler
+from tests.utils import compare_column_with_reference
+from tests.utils import pandas_version
+from tests.utils import polars_version
 
 
-@pytest.mark.skipif(
-    parse(pd.__version__) < Version("2.1.0"),
-    reason="pandas doesn't support 3.8",
-)
-def test_scale_column_pandas() -> None:
-    s = pd.Series([1, 2, 3], name="a")
-    ser = s.__column_consortium_standard__()
+def test_scale_column(library: BaseHandler) -> None:
+    if library.name in ("pandas-numpy", "pandas-nullable"):
+        if pandas_version() < Version("2.1.0"):  # pragma: no cover
+            pytest.skip(reason="pandas doesn't support 3.8")
+        import pandas as pd
+
+        s = pd.Series([1, 2, 3], name="a")
+        ser = s.__column_consortium_standard__()
+    elif library.name == "polars-lazy":
+        if polars_version() < Version("0.19.0"):  # pragma: no cover
+            pytest.skip(reason="before consortium standard in polars")
+        import polars as pl
+
+        s = pl.Series("a", [1, 2, 3])
+        ser = s.__column_consortium_standard__()
+    else:  # pragma: no cover
+        msg = f"Not supported library: {library}"
+        raise AssertionError(msg)
+
+    ns = ser.__column_namespace__()
     ser = ser - ser.mean()
-    result = ser.column
-    pd.testing.assert_series_equal(result, pd.Series([-1, 0, 1.0], name="a"))
+    compare_column_with_reference(ser, [-1, 0, 1.0], dtype=ns.Float64)
 
 
-@pytest.mark.skipif(
-    parse(pl.__version__) < Version("0.19.0"),
-    reason="before consortium standard in polars",
-)
-def test_scale_column_polars() -> None:
-    s = pl.Series("a", [1, 2, 3])
-    ser = s.__column_consortium_standard__()
+def test_scale_column_polars_from_persisted_df(library: BaseHandler) -> None:
+    if library.name in ("pandas-numpy", "pandas-nullable"):
+        if pandas_version() < Version("2.1.0"):  # pragma: no cover
+            pytest.skip(reason="pandas doesn't support 3.8")
+        import pandas as pd
+
+        df = pd.DataFrame({"a": [1, 2, 3]})
+        ser = df.__dataframe_consortium_standard__().col("a")
+    elif library.name == "polars-lazy":
+        if polars_version() < Version("0.19.0"):  # pragma: no cover
+            pytest.skip(reason="before consortium standard in polars")
+        import polars as pl
+
+        df = pl.DataFrame({"a": [1, 2, 3]})
+        ser = df.__dataframe_consortium_standard__().col("a")
+    else:  # pragma: no cover
+        msg = f"Not supported library: {library}"
+        raise AssertionError(msg)
+
+    ns = ser.__column_namespace__()
     ser = ser - ser.mean()
-    result = pl.select(ser.column)["a"]
-    assert_series_equal(result, pl.Series("a", [-1, 0, 1.0]))
-
-
-@pytest.mark.skipif(
-    parse(pl.__version__) < Version("0.19.0"),
-    reason="before consortium standard in polars",
-)
-def test_scale_column_polars_from_persisted_df() -> None:
-    df = pl.DataFrame({"a": [1, 2, 3]})
-    ser = df.__dataframe_consortium_standard__().col("a")
-    ser = ser - ser.mean()
-    result = pl.select(ser.persist().column)["a"]
-    assert_series_equal(result, pl.Series("a", [-1, 0, 1.0]))
+    compare_column_with_reference(ser, [-1, 0, 1.0], dtype=ns.Float64)

@@ -1,24 +1,32 @@
 from __future__ import annotations
 
-import pandas as pd
-import polars as pl
 import pytest
 from packaging.version import Version
 
+from tests.utils import BaseHandler
 from tests.utils import pandas_version
 from tests.utils import polars_version
 
 
-@pytest.mark.skipif(
-    Version("0.19.0") > polars_version() or Version("2.1.0") > pandas_version(),
-    reason="before consortium standard in polars/pandas",
-)
-def test_convert_to_std_column() -> None:
-    s = pl.Series([1, 2, 3]).__column_consortium_standard__()
-    assert float(s.mean()) == 2
-    s = pl.Series("bob", [1, 2, 3]).__column_consortium_standard__()
-    assert float(s.mean()) == 2
-    s = pd.Series([1, 2, 3]).__column_consortium_standard__()
-    assert float(s.mean()) == 2
-    s = pd.Series([1, 2, 3], name="alice").__column_consortium_standard__()
-    assert float(s.mean()) == 2
+def test_convert_to_std_column(library: BaseHandler) -> None:
+    if library.name in ("pandas-numpy", "pandas-nullable"):
+        if pandas_version() < Version("2.1.0"):  # pragma: no cover
+            pytest.skip(reason="before consortium standard in pandas")
+        import pandas as pd
+
+        s = pd.Series([1, 2, 3]).__column_consortium_standard__()
+        assert float(s.mean()) == 2
+        s = pd.Series([1, 2, 3], name="alice").__column_consortium_standard__()
+        assert float(s.mean()) == 2
+    elif library.name == "polars-lazy":
+        if polars_version() < Version("0.19.0"):  # pragma: no cover
+            pytest.skip(reason="before consortium standard in polars")
+        import polars as pl
+
+        s = pl.Series([1, 2, 3]).__column_consortium_standard__()
+        assert float(s.mean()) == 2
+        s = pl.Series("bob", [1, 2, 3]).__column_consortium_standard__()
+        assert float(s.mean()) == 2
+    else:  # pragma: no cover
+        msg = f"Not supported library: {library}"
+        raise AssertionError(msg)

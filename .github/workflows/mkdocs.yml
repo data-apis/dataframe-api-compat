@@ -19,8 +19,6 @@ jobs:
         with:
           python-version: 3.x
       - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
-
-
       - uses: actions/cache@v3
         with:
           key: mkdocs-material-${{ env.cache_id }}
@@ -28,5 +26,4 @@ jobs:
           restore-keys: |
             mkdocs-material-
       - run: pip install -r docs/requirements-docs.txt -e . pandas "polars<0.20.8"
-
       - run: mkdocs gh-deploy --force

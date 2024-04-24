@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import math
 from abc import abstractmethod
 from datetime import datetime
@@ -117,13 +118,46 @@ class PolarsHandler(BaseHandler):
         )
 
 
+class ModinHandler(BaseHandler):
+    def __init__(self, name: str) -> None:
+        assert name == "modin"
+        self._name = name
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    def create_dataframe(
+        self,
+        data: Any,
+        api_version: str | None = None,
+    ) -> DataFrame:
+        import modin.pandas as pd
+
+        import dataframe_api_compat.modin_standard
+
+        df = pd.DataFrame(data)
+
+        return (
+            dataframe_api_compat.modin_standard.convert_to_standard_compliant_dataframe(
+                df,
+                api_version=api_version or "2023.11-beta",
+            )
+        )
+
+
 def convert_to_standard_compliant_dataframe(
     df: pd.DataFrame | pl.DataFrame,
     api_version: str | None = None,
 ) -> DataFrame:
     # TODO: type return
     import pandas as pd
-    import polars as pl
+
+    try:
+        polars_installed = True
+        import polars as pl
+    except ModuleNotFoundError:
+        polars_installed = False
 
     if isinstance(df, pd.DataFrame):
         import dataframe_api_compat.pandas_standard
@@ -134,7 +168,7 @@ def convert_to_standard_compliant_dataframe(
                 api_version=api_version,
             )
         )
-    elif isinstance(df, (pl.DataFrame, pl.LazyFrame)):
+    elif polars_installed and isinstance(df, (pl.DataFrame, pl.LazyFrame)):
         import dataframe_api_compat.polars_standard
 
         df_lazy = df.lazy() if isinstance(df, pl.DataFrame) else df
@@ -304,6 +338,8 @@ def temporal_dataframe_1(library: BaseHandler) -> DataFrame:
 
         df = pd.DataFrame(
             {
+                # the data for column "a" differs from other implementations due to pandas 1.5 compat
+                # https://github.com/data-apis/dataframe-api-compat/commit/aeca5cf1a052033b72388e3f87ad8b70d66cedec
                 "a": [
                     datetime(2020, 1, 1, 1, 2, 1, 123000),
                     datetime(2020, 1, 2, 3, 1, 2, 321000),
@@ -347,7 +383,7 @@ def temporal_dataframe_1(library: BaseHandler) -> DataFrame:
             },
         )
         return convert_to_standard_compliant_dataframe(df)
-    else:
+    if library.name == "polars-lazy":
         import polars as pl
 
         df = pl.DataFrame(
@@ -396,13 +432,51 @@ def temporal_dataframe_1(library: BaseHandler) -> DataFrame:
         )
         return convert_to_standard_compliant_dataframe(df)
 
+    return library.create_dataframe(
+        {
+            "a": [
+                datetime(2020, 1, 1, 1, 2, 1, 123000),
+                datetime(2020, 1, 2, 3, 1, 2, 321000),
+                datetime(2020, 1, 3, 5, 4, 9, 987000),
+            ],
+            "b": [
+                timedelta(1, milliseconds=1),
+                timedelta(2, milliseconds=3),
+                timedelta(3, milliseconds=5),
+            ],
+            "c": [
+                datetime(2020, 1, 1, 1, 2, 1, 123543),
+                datetime(2020, 1, 2, 3, 1, 2, 321654),
+                datetime(2020, 1, 3, 5, 4, 9, 987321),
+            ],
+            "d": [
+                timedelta(1, milliseconds=1),
+                timedelta(2, milliseconds=3),
+                timedelta(3, milliseconds=5),
+            ],
+            "e": [
+                datetime(2020, 1, 1, 1, 2, 1, 123543),
+                datetime(2020, 1, 2, 3, 1, 2, 321654),
+                datetime(2020, 1, 3, 5, 4, 9, 987321),
+            ],
+            "f": [
+                timedelta(1, milliseconds=1),
+                timedelta(2, milliseconds=3),
+                timedelta(3, milliseconds=5),
+            ],
+            "index": [0, 1, 2],
+        },
+    )
+
 
 def compare_column_with_reference(
     column: Column,
     reference: list[Any],
     dtype: Any,
 ) -> None:
-    column = column.persist()
+    with contextlib.suppress(UserWarning):
+        # the comparison should work regardless of whether method `persist` has already been called or not
+        column = column.persist()
     col_len = column.len().scalar
     assert col_len == len(reference), f"column length: {col_len} != {len(reference)}"
     assert isinstance(

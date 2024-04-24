@@ -7,7 +7,7 @@ from packaging.version import parse
 
 class TestPolars:
     def test_dataframe(self) -> None:
-        import polars as pl
+        pl = pytest.importorskip("polars")
 
         if parse(pl.__version__) < Version("0.19.0"):  # pragma: no cover
             # before consortium standard in polars
@@ -20,7 +20,7 @@ class TestPolars:
         assert result == expected
 
     def test_lazyframe(self) -> None:
-        import polars as pl
+        pl = pytest.importorskip("polars")
 
         if parse(pl.__version__) < Version("0.19.0"):  # pragma: no cover
             # before consortium standard in polars

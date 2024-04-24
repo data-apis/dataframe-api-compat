@@ -1,0 +1,5 @@
+covdefaults
+modin[ray]
+pre-commit
+pytest
+pytest-cov
