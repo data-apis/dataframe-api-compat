@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import pandas as pd
 import pytest
 from packaging.version import Version
@@ -42,7 +44,7 @@ def test_groupby_boolean(
 def test_group_by_invalid_any_all(library: BaseHandler) -> None:
     df = integer_dataframe_4(library).persist()
 
-    exceptions = (TypeError,)
+    exceptions: tuple[Any, ...] = (TypeError,)
     if library.name == "polars-lazy":
         from polars.exceptions import SchemaError
 

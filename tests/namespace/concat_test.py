@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from tests.utils import BaseHandler
@@ -22,7 +24,7 @@ def test_concat_mismatch(library: BaseHandler) -> None:
     df1 = integer_dataframe_1(library).persist()
     df2 = integer_dataframe_4(library).persist()
     ns = df1.__dataframe_namespace__()
-    exceptions = (ValueError,)
+    exceptions: tuple[Any, ...] = (ValueError,)
     if library.name == "polars-lazy":
         import polars as pl
 

@@ -33,6 +33,10 @@ jobs:
           pytest tests --cov=dataframe_api_compat/pandas_standard --cov=tests --cov-append --cov-fail-under=50 --cov-report= --library pandas-numpy
           pytest tests --cov=dataframe_api_compat/pandas_standard --cov=tests --cov-append --cov-fail-under=50 --cov-report= --library pandas-nullable
           pytest tests --cov=dataframe_api_compat/polars_standard --cov=tests --cov-append --cov-fail-under=95 --library polars-lazy
+      - name: install type-checking reqs
+        run: python -m pip install 'git+https://github.com/data-apis/dataframe-api.git#egg=dataframe_api&subdirectory=spec/API_specification' mypy typing-extensions
+      - name: run mypy
+        run: mypy dataframe_api_compat/pandas_standard dataframe_api_compat/polars_standard
       - name: run polars integration tests
         run: pip uninstall pandas -y && pytest tests/integration/upstream_test.py::TestPolars && pip install -U pandas
       - name: run pandas integration tests
@@ -47,7 +51,7 @@ jobs:
       - name: install type-checking reqs
         run: python -m pip install 'git+https://github.com/data-apis/dataframe-api.git#egg=dataframe_api&subdirectory=spec/API_specification' mypy typing-extensions
       - name: run mypy
-        run: mypy dataframe_api_compat tests
+        run: mypy dataframe_api_compat/modin_standard tests
 
   tox-all-supported:
     strategy:
