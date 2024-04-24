@@ -51,8 +51,9 @@ jobs:
       - name: install type-checking reqs
         run: python -m pip install 'git+https://github.com/data-apis/dataframe-api.git#egg=dataframe_api&subdirectory=spec/API_specification' mypy typing-extensions
       - name: run mypy
-        run: mypy dataframe_api_compat/modin_standard tests
-
+        run: |
+          mypy dataframe_api_compat/modin_standard
+          mypy tests --follow-imports silent
   tox-all-supported:
     strategy:
       matrix:
