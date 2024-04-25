@@ -168,8 +168,7 @@ def map_standard_dtype_to_pandas_dtype(dtype: DType) -> Any:
 def convert_to_standard_compliant_column(
     ser: pd.Series[Any],
     api_version: str | None = None,
-) -> Column:  # pragma: no cover
-    # TODO: remove pragma after after modin implements `__column_consortium_standard__`
+) -> Column:
     if ser.name is not None and not isinstance(ser.name, str):
         msg = f"Expected column with string name, got: {ser.name}"
         raise ValueError(msg)

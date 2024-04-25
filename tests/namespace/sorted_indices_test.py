@@ -20,7 +20,7 @@ def test_column_sorted_indices_ascending(library: BaseHandler) -> None:
         "b": [4, 4, 3, 1, 2],
         "result": [3, 4, 2, 1, 0],
     }
-    if library.name in ("polars", "polars-lazy"):
+    if library.name == "polars-lazy":
         result = result.cast({"result": ns.Int64()})
     try:
         compare_dataframe_with_reference(result, expected_1, dtype=ns.Int64)
@@ -44,7 +44,7 @@ def test_column_sorted_indices_descending(library: BaseHandler) -> None:
         "b": [4, 4, 3, 1, 2],
         "result": [0, 1, 2, 4, 3],
     }
-    if library.name in ("polars", "polars-lazy"):
+    if library.name == "polars-lazy":
         result = result.cast({"result": ns.Int64()})
     try:
         compare_dataframe_with_reference(result, expected_1, dtype=ns.Int64)
