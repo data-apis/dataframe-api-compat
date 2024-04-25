@@ -4,7 +4,7 @@
 
 Please refer to the [Dataframe API Spec](https://data-apis.org/dataframe-api/draft/API_specification/index.html).
 
-Note that the spec is not specific to pandas and Polars - if you follow it, then your code will also be compatible
+Note that the spec is not specific to pandas, Polars and Modin - if you follow it, then your code will also be compatible
 with any other packages which implements the spec.
 
 ## Dataframe Interchange Protocol
@@ -14,4 +14,4 @@ Standardised way of interchanging data between libraries, see
 
 ## Array API
 
-Array counterpart to the DataFrame API, see [here](https://data-apis.org/array-api/2022.12/index.html).
+Array counterpart to the DataFrame API, see [here](https://data-apis.org/array-api/2023.12/index.html).

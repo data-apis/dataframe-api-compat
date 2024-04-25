@@ -96,7 +96,7 @@ def my_func(df1, df2):
     df1_s = df1.__dataframe_consortium_standard__(api_version='2023.11-beta')
     df2_s = df2.__dataframe_consortium_standard__(api_version='2023.11-beta')
     df1_s.filter(df2_s.col('a') > 0)
-    return df_s.dataframe
+    return df1_s.dataframe
 ```
 
 However, if you tried passing two different dataframes to this function, you'd get

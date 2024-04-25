@@ -4,17 +4,30 @@
     paths: []
     options:
       members:
-      - __abs__
-      - __add__
-      - __bool__
+      - Aggregation
+      - Bool
+      - Date
+      - Datetime
+      - Duration
+      - Float32
+      - Float64
+      - Int16
+      - Int32
+      - Int64
+      - Int8
+      - NullType
+      - String
+      - UInt16
+      - UInt32
+      - UInt64
+      - UInt8
       - __class__
+      - __dataframe_api_version__
       - __delattr__
       - __dict__
       - __dir__
       - __doc__
       - __eq__
-      - __float__
-      - __floordiv__
       - __format__
       - __ge__
       - __getattribute__
@@ -22,37 +35,31 @@
       - __hash__
       - __init__
       - __init_subclass__
-      - __int__
       - __le__
       - __lt__
-      - __mod__
       - __module__
-      - __mul__
       - __ne__
-      - __neg__
       - __new__
-      - __pow__
-      - __radd__
       - __reduce__
       - __reduce_ex__
       - __repr__
-      - __rfloordiv__
-      - __rmod__
-      - __rmul__
-      - __rpow__
-      - __rsub__
-      - __rtruediv__
       - __setattr__
       - __sizeof__
       - __str__
-      - __sub__
       - __subclasshook__
-      - __truediv__
       - __weakref__
-      - df
-      - dtype
-      - is_persisted
-      - materialise
-      - persist
-      - value
+      - all_horizontal
+      - any_horizontal
+      - api_version
+      - column_from_1d_array
+      - column_from_sequence
+      - concat
+      - dataframe_from_2d_array
+      - dataframe_from_columns
+      - date
+      - is_dtype
+      - is_null
+      - null
+      - sorted_indices
+      - unique_indices
       show_signature_annotations: true

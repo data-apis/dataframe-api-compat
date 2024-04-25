@@ -42,6 +42,7 @@
       - __rpow__
       - __rsub__
       - __rtruediv__
+      - __scalar_namespace__
       - __setattr__
       - __sizeof__
       - __str__
@@ -49,9 +50,8 @@
       - __subclasshook__
       - __truediv__
       - __weakref__
-      - df
       - dtype
-      - is_persisted
+      - parent_dataframe
       - persist
-      - value
+      - scalar
       show_signature_annotations: true
