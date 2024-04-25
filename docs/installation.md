@@ -1,6 +1,6 @@
 # Installation
 
-First, make sure you have [created and activated](https://docs.python.org/3/library/venv.html) a Python3.8+ virtual environment.
+First, make sure you have [created and activated](https://docs.python.org/3/library/venv.html) a Python3.9+ virtual environment.
 
 Then, run
 ```console
@@ -11,6 +11,6 @@ Then, if you start the Python REPL and see the following:
 ```python
 >>> import dataframe_api_compat
 >>> dataframe_api_compat.__version__
-'0.2.6'
+'0.2.7'
 ```
 then installation worked correctly!

@@ -25,7 +25,6 @@
       - __invert__
       - __iter__
       - __le__
-      - __len__
       - __lt__
       - __mod__
       - __module__
@@ -55,27 +54,25 @@
       - __weakref__
       - all
       - any
-      - api_version
+      - cast
       - column
       - cumulative_max
       - cumulative_min
       - cumulative_prod
       - cumulative_sum
       - day
-      - df
       - dtype
       - fill_nan
       - fill_null
       - filter
       - floor
-      - take
       - get_value
       - hour
       - is_in
       - is_nan
       - is_null
       - iso_weekday
-      - materialise
+      - len
       - max
       - mean
       - median
@@ -83,6 +80,7 @@
       - min
       - minute
       - month
+      - n_unique
       - name
       - nanosecond
       - parent_dataframe
@@ -96,6 +94,7 @@
       - sorted_indices
       - std
       - sum
+      - take
       - to_array
       - unique_indices
       - unix_timestamp

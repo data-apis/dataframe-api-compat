@@ -1,9 +1,9 @@
 # Dataframe API Compat
 
-Extremely lightweight compatibility layer between pandas and Polars:
+Extremely lightweight compatibility layer between pandas, Polars and Modin:
 
 - ✅ No dependencies.
-- ✅ Lightweight: wheel is smaller than 30 kB.
+- ✅ Lightweight: wheel is smaller than 50 kB.
 - ✅ Simple, minimal, and predictable.
 
 No need to choose - support both with ease!

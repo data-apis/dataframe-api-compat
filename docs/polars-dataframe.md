@@ -53,28 +53,23 @@
       - __truediv__
       - __weakref__
       - all
-      - all_horizontal
       - any
-      - any_horizontal
-      - api_version
       - assign
+      - cast
       - col
       - column_names
       - dataframe
-      - df
       - drop
       - drop_nulls
       - fill_nan
       - fill_null
       - filter
       - get_column_names
-      - take
       - group_by
       - is_nan
       - is_null
-      - is_persisted
+      - iter_columns
       - join
-      - materialise_expression
       - max
       - mean
       - median
@@ -87,11 +82,9 @@
       - shape
       - slice_rows
       - sort
-      - sorted_indices
       - std
       - sum
+      - take
       - to_array
-      - unique_indices
-      - validate_is_persisted
       - var
       show_signature_annotations: true

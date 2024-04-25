@@ -1,5 +1,5 @@
 # Pandas Namespace
-::: dataframe_api_compat.pandas_standard.Namespace
+::: dataframe_api_compat.modin_standard.Namespace
     handler: python
     paths: []
     options:

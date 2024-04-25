@@ -1,5 +1,5 @@
-# Polars Namespace
-::: dataframe_api_compat.polars_standard.Namespace
+# Pandas Scalar
+::: dataframe_api_compat.modin_standard.Scalar
     handler: python
     paths: []
     options:

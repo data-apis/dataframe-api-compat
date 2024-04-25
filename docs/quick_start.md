@@ -4,10 +4,16 @@
 
 Please start by following the [installation instructions](installation.md)
 
-Then, please install the following:
+Then, please install any two libraries from the following list:
 
 - [pandas](https://pandas.pydata.org/docs/getting_started/install.html)
 - [Polars](https://pola-rs.github.io/polars/user-guide/installation/)
+- [Modin](https://modin.readthedocs.io/en/latest/?badge=latest#installation-and-choosing-your-compute-engine)
+
+> [!TIP]
+> The Modin interface is compatible with the pandas interface, so if you want
+> to try Modin in the following examples - just change the following import:
+> from `import pandas as pd` to `import modin.pandas as pd`.
 
 ## Simple example
 
