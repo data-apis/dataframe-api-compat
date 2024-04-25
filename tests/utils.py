@@ -150,7 +150,6 @@ def convert_to_standard_compliant_dataframe(
     df: pd.DataFrame | pl.DataFrame,
     api_version: str | None = None,
 ) -> DataFrame:
-    # TODO: type return
     import pandas as pd
 
     try:

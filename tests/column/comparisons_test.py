@@ -41,7 +41,7 @@ def test_column_comparisons(
     other = df.col("b")
     result = df.assign(getattr(ser, comparison)(other).rename("result"))
     expected_ns_dtype = getattr(ns, expected_dtype)
-    if comparison == "__pow__" and library.name in ("polars", "polars-lazy"):
+    if comparison == "__pow__" and library.name == "polars-lazy":
         # TODO
         result = result.cast({"result": ns.Int64()})
         expected_ns_dtype = ns.Int64
@@ -79,7 +79,7 @@ def test_column_comparisons_scalar(
     other = 3
     result = df.assign(getattr(ser, comparison)(other).rename("result"))
     expected_ns_dtype = getattr(ns, expected_dtype)
-    if comparison == "__pow__" and library.name in ("polars", "polars-lazy"):
+    if comparison == "__pow__" and library.name == "polars-lazy":
         result = result.cast({"result": ns.Int64()})
         expected_ns_dtype = ns.Int64
     compare_column_with_reference(result.col("result"), expected_data, expected_ns_dtype)

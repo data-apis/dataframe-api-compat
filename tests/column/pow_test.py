@@ -33,7 +33,7 @@ def test_int_powers_column(library: BaseHandler) -> None:
     ser = df.col("a")
     other = df.col("b") * 1
     result = df.assign(ser.__pow__(other).rename("result"))
-    if library.name in ("polars", "polars-lazy"):
+    if library.name == "polars-lazy":
         result = result.cast({name: ns.Int64() for name in ("a", "b", "result")})
     expected = {"a": [1, 2, 3], "b": [4, 5, 6], "result": [1, 32, 729]}
     expected_dtype = {name: ns.Int64 for name in ("a", "b", "result")}
@@ -46,7 +46,7 @@ def test_int_powers_scalar_column(library: BaseHandler) -> None:
     ser = df.col("a")
     other = 1
     result = df.assign(ser.__pow__(other).rename("result"))
-    if library.name in ("polars", "polars-lazy"):
+    if library.name == "polars-lazy":
         result = result.cast({name: ns.Int64() for name in ("a", "b", "result")})
     expected = {"a": [1, 2, 3], "b": [4, 5, 6], "result": [1, 2, 3]}
     expected_dtype = {name: ns.Int64 for name in ("a", "b", "result")}

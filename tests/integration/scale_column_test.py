@@ -24,6 +24,11 @@ def test_scale_column(library: BaseHandler) -> None:
 
         s = pl.Series("a", [1, 2, 3])
         ser = s.__column_consortium_standard__()
+    elif library.name == "modin":
+        import modin.pandas as pd
+
+        s = pd.Series([1, 2, 3], name="a")
+        ser = s.__column_consortium_standard__()
     else:  # pragma: no cover
         msg = f"Not supported library: {library}"
         raise AssertionError(msg)
@@ -33,7 +38,7 @@ def test_scale_column(library: BaseHandler) -> None:
     compare_column_with_reference(ser, [-1, 0, 1.0], dtype=ns.Float64)
 
 
-def test_scale_column_polars_from_persisted_df(library: BaseHandler) -> None:
+def test_scale_column_from_persisted_df(library: BaseHandler) -> None:
     if library.name in ("pandas-numpy", "pandas-nullable"):
         if pandas_version() < Version("2.1.0"):  # pragma: no cover
             pytest.skip(reason="pandas doesn't support 3.8")
@@ -47,6 +52,11 @@ def test_scale_column_polars_from_persisted_df(library: BaseHandler) -> None:
         import polars as pl
 
         df = pl.DataFrame({"a": [1, 2, 3]})
+        ser = df.__dataframe_consortium_standard__().col("a")
+    elif library.name == "modin":
+        import modin.pandas as pd
+
+        df = pd.DataFrame({"a": [1, 2, 3]})
         ser = df.__dataframe_consortium_standard__().col("a")
     else:  # pragma: no cover
         msg = f"Not supported library: {library}"
