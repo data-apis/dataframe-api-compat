@@ -4,10 +4,10 @@
 
 # Dataframe API Compat
 
-Extremely lightweight compatibility layer between pandas, Polars, and any other project which implements the [Python Dataframe API Standard](https://data-apis.org/dataframe-api/).
+Extremely lightweight compatibility layer between pandas, Polars, Modin and any other project which implements the [Python Dataframe API Standard](https://data-apis.org/dataframe-api/).
 
 - ✅ No dependencies.
-- ✅ Lightweight: wheel is smaller than 30 kB.
+- ✅ Lightweight: wheel is smaller than 50 kB.
 - ✅ Simple, minimal, and predictable.
 
 Documentation, including installation instructions and tutorial, are here: https://data-apis.org/dataframe-api-compat.
