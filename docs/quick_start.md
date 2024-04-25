@@ -13,7 +13,7 @@ Then, please install any two libraries from the following list:
 > [!TIP]
 > The Modin interface is compatible with the pandas interface, so if you want
 > to try Modin in the following examples - just change the following import:
-> from `import pandas as pd` to `import modin.pandas as pd`.
+> `import pandas as pd` -> `import modin.pandas as pd`.
 
 ## Simple example
 
