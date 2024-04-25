@@ -1,4 +1,4 @@
-# Pandas Scalar
+# Modin Scalar
 ::: dataframe_api_compat.modin_standard.Scalar
     handler: python
     paths: []

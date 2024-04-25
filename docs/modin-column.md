@@ -1,4 +1,4 @@
-# Pandas Column
+# Modin Column
 ::: dataframe_api_compat.modin_standard.Column
     handler: python
     paths: []

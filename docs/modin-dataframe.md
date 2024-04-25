@@ -1,4 +1,4 @@
-# Pandas DataFrame
+# Modin DataFrame
 ::: dataframe_api_compat.modin_standard.DataFrame
     handler: python
     paths: []

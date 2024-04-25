@@ -1,4 +1,4 @@
-# Pandas Namespace
+# Modin Namespace
 ::: dataframe_api_compat.modin_standard.Namespace
     handler: python
     paths: []
