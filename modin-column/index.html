@@ -1,0 +1,2623 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.19">
+    
+    
+      
+        <title>Modin Column - Dataframe API Compat</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.66ac8b77.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#modin-column" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Dataframe API Compat" class="md-header__button md-logo" aria-label="Dataframe API Compat" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Dataframe API Compat
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Modin Column
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/data-apis/dataframe-api-compat.git" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Dataframe API Compat" class="md-nav__button md-logo" aria-label="Dataframe API Compat" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    Dataframe API Compat
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/data-apis/dataframe-api-compat.git" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Installation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quick_start/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Quick start
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Tutorial
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorial
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../basics/dataframe/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DataFrame
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../basics/column/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Column
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../basics/scalar/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scalar
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../basics/persist/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Persist
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../basics/complete_example/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Complete example
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Reference
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column" class="md-nav__link">
+    <span class="md-ellipsis">
+      Column
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.column" class="md-nav__link">
+    <span class="md-ellipsis">
+      column
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.dtype" class="md-nav__link">
+    <span class="md-ellipsis">
+      dtype
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.name" class="md-nav__link">
+    <span class="md-ellipsis">
+      name
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.parent_dataframe" class="md-nav__link">
+    <span class="md-ellipsis">
+      parent_dataframe
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__add__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __add__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__and__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __and__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__column_namespace__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __column_namespace__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__divmod__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __divmod__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__eq__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __eq__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__floordiv__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __floordiv__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__ge__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __ge__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__gt__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __gt__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __init__
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="__init__">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__init__--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__invert__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __invert__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__iter__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __iter__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__le__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __le__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__lt__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __lt__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__mod__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __mod__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__mul__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __mul__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__ne__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __ne__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__or__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __or__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__pow__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __pow__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__radd__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __radd__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__rand__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __rand__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__repr__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __repr__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__rfloordiv__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __rfloordiv__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__rmod__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __rmod__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__rmul__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __rmul__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__ror__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __ror__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__rpow__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __rpow__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__rsub__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __rsub__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__rtruediv__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __rtruediv__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__sub__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __sub__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.__truediv__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __truediv__
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.all" class="md-nav__link">
+    <span class="md-ellipsis">
+      all
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.any" class="md-nav__link">
+    <span class="md-ellipsis">
+      any
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.cast" class="md-nav__link">
+    <span class="md-ellipsis">
+      cast
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.cumulative_max" class="md-nav__link">
+    <span class="md-ellipsis">
+      cumulative_max
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.cumulative_min" class="md-nav__link">
+    <span class="md-ellipsis">
+      cumulative_min
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.cumulative_prod" class="md-nav__link">
+    <span class="md-ellipsis">
+      cumulative_prod
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.cumulative_sum" class="md-nav__link">
+    <span class="md-ellipsis">
+      cumulative_sum
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.day" class="md-nav__link">
+    <span class="md-ellipsis">
+      day
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.fill_nan" class="md-nav__link">
+    <span class="md-ellipsis">
+      fill_nan
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.fill_null" class="md-nav__link">
+    <span class="md-ellipsis">
+      fill_null
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      filter
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.floor" class="md-nav__link">
+    <span class="md-ellipsis">
+      floor
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.get_value" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_value
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.hour" class="md-nav__link">
+    <span class="md-ellipsis">
+      hour
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.is_in" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_in
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.is_nan" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_nan
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.is_null" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_null
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.iso_weekday" class="md-nav__link">
+    <span class="md-ellipsis">
+      iso_weekday
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.len" class="md-nav__link">
+    <span class="md-ellipsis">
+      len
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.max" class="md-nav__link">
+    <span class="md-ellipsis">
+      max
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.mean" class="md-nav__link">
+    <span class="md-ellipsis">
+      mean
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.median" class="md-nav__link">
+    <span class="md-ellipsis">
+      median
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.microsecond" class="md-nav__link">
+    <span class="md-ellipsis">
+      microsecond
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.min" class="md-nav__link">
+    <span class="md-ellipsis">
+      min
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.minute" class="md-nav__link">
+    <span class="md-ellipsis">
+      minute
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.month" class="md-nav__link">
+    <span class="md-ellipsis">
+      month
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.n_unique" class="md-nav__link">
+    <span class="md-ellipsis">
+      n_unique
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.nanosecond" class="md-nav__link">
+    <span class="md-ellipsis">
+      nanosecond
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.persist" class="md-nav__link">
+    <span class="md-ellipsis">
+      persist
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.prod" class="md-nav__link">
+    <span class="md-ellipsis">
+      prod
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.rename" class="md-nav__link">
+    <span class="md-ellipsis">
+      rename
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.second" class="md-nav__link">
+    <span class="md-ellipsis">
+      second
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.shift" class="md-nav__link">
+    <span class="md-ellipsis">
+      shift
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.slice_rows" class="md-nav__link">
+    <span class="md-ellipsis">
+      slice_rows
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.sort" class="md-nav__link">
+    <span class="md-ellipsis">
+      sort
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.sorted_indices" class="md-nav__link">
+    <span class="md-ellipsis">
+      sorted_indices
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.std" class="md-nav__link">
+    <span class="md-ellipsis">
+      std
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.sum" class="md-nav__link">
+    <span class="md-ellipsis">
+      sum
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.take" class="md-nav__link">
+    <span class="md-ellipsis">
+      take
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.to_array" class="md-nav__link">
+    <span class="md-ellipsis">
+      to_array
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.unique_indices" class="md-nav__link">
+    <span class="md-ellipsis">
+      unique_indices
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.unix_timestamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      unix_timestamp
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.var" class="md-nav__link">
+    <span class="md-ellipsis">
+      var
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataframe_api_compat.modin_standard.Column.year" class="md-nav__link">
+    <span class="md-ellipsis">
+      year
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="modin-column">Modin Column</h1>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<a id="dataframe_api_compat.modin_standard.Column"></a>
+  <div class="doc doc-contents first">
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.column" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">column</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.dtype" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">dtype</span><span class="p">:</span> <span class="n">DType</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.name" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">name</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.parent_dataframe" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">parent_dataframe</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  </div>
+
+</div>
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__add__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__add__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__and__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__and__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">Scalar</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__column_namespace__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">__column_namespace__</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">dataframe_api_compat</span><span class="o">.</span><span class="n">modin_standard</span><span class="o">.</span><span class="n">Namespace</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__divmod__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__divmod__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Column</span><span class="p">,</span> <span class="n">Column</span><span class="p">]</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__eq__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__floordiv__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__floordiv__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__ge__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__ge__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__gt__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__gt__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__init__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">series</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">api_version</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">is_persisted</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <h4 id="dataframe_api_compat.modin_standard.Column.__init__--parameters">Parameters</h4>
+<p>df
+    DataFrame this column originates from.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__invert__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__invert__</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__iter__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__iter__</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">NoReturn</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__le__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__le__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__lt__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__lt__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__mod__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__mod__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__mul__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__mul__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__ne__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__ne__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__or__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__or__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">Scalar</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__pow__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__pow__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__radd__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__radd__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__rand__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__rand__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__repr__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__rfloordiv__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__rfloordiv__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__rmod__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__rmod__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__rmul__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__rmul__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__ror__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__ror__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__rpow__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__rpow__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__rsub__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__rsub__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__rtruediv__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__rtruediv__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__sub__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__sub__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.__truediv__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__truediv__</span><span class="p">(</span><span class="n">other</span><span class="p">:</span> <span class="n">Column</span> <span class="o">|</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.all" class="doc doc-heading">
+          <code class="highlight language-python"><span class="nb">all</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">skip_nulls</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">Scalar</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Scalar</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.any" class="doc doc-heading">
+          <code class="highlight language-python"><span class="nb">any</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">skip_nulls</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">Scalar</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Scalar</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.cast" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">cast</span><span class="p">(</span><span class="n">dtype</span><span class="p">:</span> <span class="n">DType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.cumulative_max" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">cumulative_max</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">skip_nulls</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">Scalar</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.cumulative_min" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">cumulative_min</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">skip_nulls</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">Scalar</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.cumulative_prod" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">cumulative_prod</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">skip_nulls</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">Scalar</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.cumulative_sum" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">cumulative_sum</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">skip_nulls</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">Scalar</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.day" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">day</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.fill_nan" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">fill_nan</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">NullType</span> <span class="o">|</span> <span class="n">Scalar</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.fill_null" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">fill_null</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.filter" class="doc doc-heading">
+          <code class="highlight language-python"><span class="nb">filter</span><span class="p">(</span><span class="n">mask</span><span class="p">:</span> <span class="n">Column</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.floor" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">floor</span><span class="p">(</span><span class="n">frequency</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.get_value" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">get_value</span><span class="p">(</span><span class="n">row_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.hour" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">hour</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.is_in" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">is_in</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="n">Column</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.is_nan" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">is_nan</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.is_null" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">is_null</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.iso_weekday" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">iso_weekday</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.len" class="doc doc-heading">
+          <code class="highlight language-python"><span class="nb">len</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Scalar</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.max" class="doc doc-heading">
+          <code class="highlight language-python"><span class="nb">max</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">skip_nulls</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">Scalar</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.mean" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">mean</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">skip_nulls</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">Scalar</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.median" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">median</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">skip_nulls</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">Scalar</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.microsecond" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">microsecond</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.min" class="doc doc-heading">
+          <code class="highlight language-python"><span class="nb">min</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">skip_nulls</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">Scalar</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.minute" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">minute</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.month" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">month</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.n_unique" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">n_unique</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">skip_nulls</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Scalar</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.nanosecond" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">nanosecond</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.persist" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">persist</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.prod" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">prod</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">skip_nulls</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">Scalar</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.rename" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">rename</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Scalar</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.second" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">second</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.shift" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">shift</span><span class="p">(</span><span class="n">offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">Scalar</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.slice_rows" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">slice_rows</span><span class="p">(</span><span class="n">start</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">stop</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.sort" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">sort</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">ascending</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">nulls_position</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;first&#39;</span><span class="p">,</span> <span class="s1">&#39;last&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;last&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.sorted_indices" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">sorted_indices</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">ascending</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">nulls_position</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;first&#39;</span><span class="p">,</span> <span class="s1">&#39;last&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;last&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.std" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">std</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">correction</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Scalar</span> <span class="o">|</span> <span class="n">NullType</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">skip_nulls</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">Scalar</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.sum" class="doc doc-heading">
+          <code class="highlight language-python"><span class="nb">sum</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">skip_nulls</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">Scalar</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.take" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">take</span><span class="p">(</span><span class="n">indices</span><span class="p">:</span> <span class="n">Column</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.to_array" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">to_array</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Any</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.unique_indices" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">unique_indices</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">skip_nulls</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">Scalar</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.unix_timestamp" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">unix_timestamp</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">time_unit</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Scalar</span> <span class="o">=</span> <span class="s1">&#39;s&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.var" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">var</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">correction</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Scalar</span> <span class="o">|</span> <span class="n">NullType</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">skip_nulls</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">Scalar</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="dataframe_api_compat.modin_standard.Column.year" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">year</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Column</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.dd8806f2.min.js"></script>
+      
+    
+  </body>
+</html>
