@@ -16,4 +16,4 @@ def __getattr__(name: str) -> ModuleType:
     raise AttributeError(msg)
 
 
-__version__ = "0.2.6"
+__version__ = "0.2.7"
